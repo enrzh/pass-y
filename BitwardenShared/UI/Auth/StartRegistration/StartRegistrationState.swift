@@ -26,10 +26,13 @@ struct StartRegistrationState: Equatable {
     }
 
     /// The region selected by the user.
-    var region: RegionType = .europe
+    var region: RegionType = .selfHosted
+
+    /// The host of the configured (self-hosted) server, or `nil` if none has been set.
+    var serverHost: String?
 
     /// The value which determines if the toggle is shown
-    var showReceiveMarketingToggle = true
+    var showReceiveMarketingToggle = false
 
     /// Terms and privacy disclaimer text
     var termsAndPrivacyDisclaimerText: String {

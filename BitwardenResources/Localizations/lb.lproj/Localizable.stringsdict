@@ -14,9 +14,9 @@
         <key>NSStringFormatValueTypeKey</key>
         <string>d</string>
         <key>one</key>
-        <string>Bitwarden konnt %d Tresorentrée net entschlësselen.</string>
+        <string>Pass-Y konnt %d Tresorentrée net entschlësselen.</string>
         <key>other</key>
-        <string>Bitwarden konnt %d Tresorentréeën net entschlësselen.</string>
+        <string>Pass-Y konnt %d Tresorentréeën net entschlësselen.</string>
       </dict>
     </dict>
     <!-- A message indicating the minimum length of a master password in characters. -->

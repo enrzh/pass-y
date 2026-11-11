@@ -98,12 +98,10 @@ class StartRegistrationProcessor: StateProcessor<
         switch effect {
         case .appeared:
             await regionHelper.loadRegion()
-            state.isReceiveMarketingToggleOn = state.region == .unitedStates
         case .regionTapped:
             await regionHelper.presentRegionSelectorAlert(
                 title: Localizations.creatingOn,
                 currentRegion: state.region,
-                excludingRegions: [.gov],
             )
         case .startRegistration:
             await startRegistration()
@@ -132,6 +130,11 @@ class StartRegistrationProcessor: StateProcessor<
     private func startRegistration() async {
         // Hide the loading overlay when exiting this method, in case it hasn't been hidden yet.
         defer { coordinator.hideLoadingOverlay() }
+
+        guard state.serverHost != nil else {
+            coordinator.navigate(to: .selfHosted(currentRegion: .selfHosted), context: self)
+            return
+        }
 
         let serverConfig = await services.configService.getConfig(forceRefresh: false, isPreAuth: true)
         if serverConfig?.settings?.disableUserRegistration == true {
@@ -243,12 +246,18 @@ extension StartRegistrationProcessor: RegionDelegate {
         guard !urls.isEmpty else { return }
         await services.environmentService.setPreAuthURLs(urls: urls)
         state.region = region
-        state.showReceiveMarketingToggle = state.region != .selfHosted
+        state.serverHost = urls.serverDisplayName
+        state.showReceiveMarketingToggle = false
         await delegate?.didChangeRegion()
         // Using Task avoids delaying region-change side effects (e.g. closing self-host sheet)
         // when internet speed is low — mirrors LandingProcessor.setRegion.
         Task {
             await refreshConfig()
         }
+    }
+
+    func clearRegion() async {
+        state.region = .selfHosted
+        state.serverHost = nil
     }
 }

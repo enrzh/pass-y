@@ -234,7 +234,7 @@ public struct BitwardenToggle<TitleContent: View, FooterContent: View>: View {
 
         BitwardenToggle(
             isOn: .constant(true),
-            helpURL: URL(string: "https://bitwarden.com")!,
+            helpURL: URL(string: "https://github.com/enrzh/pass-y")!,
             title: {
                 Text("Toggle")
             },

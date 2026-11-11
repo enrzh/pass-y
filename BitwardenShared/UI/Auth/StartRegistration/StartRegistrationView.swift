@@ -65,8 +65,8 @@ struct StartRegistrationView: View {
             accessibilityIdentifier: "EmailAddressEntry",
             footerContent: {
                 RegionSelector(
-                    selectorLabel: Localizations.creatingOn,
-                    regionName: store.state.region.baseURLDescription,
+                    selectorLabel: Localizations.server,
+                    regionName: store.state.serverHost ?? Localizations.serverNotSet,
                 ) {
                     await store.perform(.regionTapped)
                 }

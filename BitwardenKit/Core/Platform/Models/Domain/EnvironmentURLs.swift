@@ -142,20 +142,20 @@ public extension EnvironmentURLs {
             identityURL = base.appendingPathComponent("identity")
             webVaultURL = base
         } else {
-            apiURL = environmentURLData.api ?? URL(string: "https://api.bitwarden.com")!
-            baseURL = environmentURLData.base ?? URL(string: "https://vault.bitwarden.com")!
-            eventsURL = environmentURLData.events ?? URL(string: "https://events.bitwarden.com")!
-            iconsURL = environmentURLData.icons ?? URL(string: "https://icons.bitwarden.net")!
-            identityURL = environmentURLData.identity ?? URL(string: "https://identity.bitwarden.com")!
-            webVaultURL = environmentURLData.webVault ?? URL(string: "https://vault.bitwarden.com")!
+            apiURL = environmentURLData.api ?? URL(string: "https://server-not-configured.invalid/api")!
+            baseURL = environmentURLData.base ?? URL(string: "https://server-not-configured.invalid")!
+            eventsURL = environmentURLData.events ?? URL(string: "https://server-not-configured.invalid/events")!
+            iconsURL = environmentURLData.icons ?? URL(string: "https://server-not-configured.invalid/icons")!
+            identityURL = environmentURLData.identity ?? URL(string: "https://server-not-configured.invalid/identity")!
+            webVaultURL = environmentURLData.webVault ?? URL(string: "https://server-not-configured.invalid")!
         }
         fillAssistRulesURL = fillAssistRulesUrl
-            ?? URL(string: "https://fillassist.bitwarden.com")!
-        importItemsURL = environmentURLData.importItemsURL ?? URL(string: "https://vault.bitwarden.com/#/tools/import")!
+            ?? URL(string: "https://server-not-configured.invalid/fillassist")!
+        importItemsURL = environmentURLData.importItemsURL ?? URL(string: "https://server-not-configured.invalid/#/tools/import")!
         recoveryCodeURL = environmentURLData.recoveryCodeURL ?? URL(
-            string: "https://vault.bitwarden.com/#/recover-2fa",
+            string: "https://server-not-configured.invalid/#/recover-2fa",
         )!
-        sendShareURL = environmentURLData.sendShareURL ?? URL(string: "https://send.bitwarden.com/#")!
+        sendShareURL = environmentURLData.sendShareURL ?? URL(string: "https://server-not-configured.invalid/#/send")!
         settingsURL = environmentURLData.settingsURL ?? webVaultURL
         changeEmailURL = environmentURLData.changeEmailURL ?? settingsURL
         manageSubscriptionURL = environmentURLData.manageSubscriptionURL ?? settingsURL

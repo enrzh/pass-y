@@ -99,7 +99,7 @@ private final class FetchedResultsSubscription<SubscriberType, ResultType, Outpu
     private var hasChangesToSend = false
 
     /// A serial queue to synchronize access to subscription state.
-    private let queue = DispatchQueue(label: "com.bitwarden.FetchedResultsSubscription")
+    private let queue = DispatchQueue(label: "de.aiity.passy.FetchedResultsSubscription")
 
     /// The subscriber to the subscription that is notified of the fetched results.
     private var subscriber: SubscriberType?

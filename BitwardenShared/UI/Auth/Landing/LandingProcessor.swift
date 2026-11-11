@@ -28,6 +28,9 @@ class LandingProcessor: StateProcessor<LandingState, LandingAction, LandingEffec
     /// Task that observes `configPublisher()` for live `disableUserRegistration` updates.
     private var configSubscriptionTask: Task<Void, Never>?
 
+    /// Whether the server settings were already presented automatically on this launch.
+    private var hasPromptedForServer = false
+
     /// Helper class with region specific functions
     private lazy var regionHelper = RegionHelper(
         coordinator: coordinator,
@@ -93,21 +96,24 @@ class LandingProcessor: StateProcessor<LandingState, LandingAction, LandingEffec
                 .settings?.disableUserRegistration == true
             await regionHelper.loadRegion()
             await refreshProfileState()
+            if state.serverHost == nil, !hasPromptedForServer {
+                // First launch: Pass-Y has no cloud default, so ask for the server straight away.
+                hasPromptedForServer = true
+                coordinator.navigate(to: .selfHosted(currentRegion: .selfHosted), context: self)
+            }
         case .continuePressed:
+            guard state.serverHost != nil else {
+                coordinator.navigate(to: .selfHosted(currentRegion: .selfHosted), context: self)
+                return
+            }
             updateRememberedEmail()
             await validateEmailAndContinue()
         case let .profileSwitcher(profileEffect):
             await handleProfileSwitcherEffect(profileEffect)
         case .regionPressed:
-            var excludedRegions: [RegionType] = [.gov]
-            if await currentPreAuthServerConfig() != nil,
-               await services.configService.getFeatureFlag(.fedrampGovRegion, isPreAuth: true) {
-                excludedRegions = []
-            }
             await regionHelper.presentRegionSelectorAlert(
                 title: Localizations.loggingInOn,
                 currentRegion: state.region,
-                excludingRegions: excludedRegions,
             )
         }
     }
@@ -273,6 +279,7 @@ extension LandingProcessor: RegionDelegate {
         guard !urls.isEmpty else { return }
         await services.environmentService.setPreAuthURLs(urls: urls)
         state.region = region
+        state.serverHost = urls.serverDisplayName
 
         // - Using `Task` for `refreshConfig` ensures that this call doesn't delay other operations,
         //   such as closing the Self-host settings view or triggering `.appeared` events. These issues
@@ -281,5 +288,10 @@ extension LandingProcessor: RegionDelegate {
         Task {
             await refreshConfig()
         }
+    }
+
+    func clearRegion() async {
+        state.region = .selfHosted
+        state.serverHost = nil
     }
 }

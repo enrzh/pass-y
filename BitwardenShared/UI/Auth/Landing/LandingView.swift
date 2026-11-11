@@ -113,8 +113,8 @@ struct LandingView: View {
                     accessibilityIdentifier: "LoginEmailAddressEntry",
                     footerContent: {
                         RegionSelector(
-                            selectorLabel: Localizations.loggingInOn,
-                            regionName: store.state.region.baseURLDescription,
+                            selectorLabel: Localizations.server,
+                            regionName: store.state.serverHost ?? Localizations.serverNotSet,
                         ) {
                             await store.perform(.regionPressed)
                         }

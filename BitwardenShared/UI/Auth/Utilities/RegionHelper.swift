@@ -45,35 +45,18 @@ class RegionHelper {
         currentRegion: RegionType?,
         excludingRegions: [RegionType] = [],
     ) async {
-        let actions = RegionType.userSelectableCases
-            .filter { !excludingRegions.contains($0) }
-            .map { region in
-                AlertAction(title: region.baseURLDescription, style: .default) { _ in
-                    if let urls = region.defaultURLs {
-                        await self.delegate?.setRegion(region, urls)
-                    } else {
-                        await self.coordinator.navigate(
-                            to: .selfHosted(currentRegion: currentRegion ?? .unitedStates),
-                            context: self.delegate,
-                        )
-                    }
-                }
-            }
-        let cancelAction = AlertAction(title: Localizations.cancel, style: .cancel)
-        let alert = Alert(
-            title: title,
-            message: nil,
-            preferredStyle: .actionSheet,
-            alertActions: actions + [cancelAction],
+        // Pass-Y only supports self-hosted (Vaultwarden) servers, so go straight to the server settings.
+        await coordinator.navigate(
+            to: .selfHosted(currentRegion: currentRegion ?? .selfHosted),
+            context: delegate,
         )
-        await coordinator.showAlert(alert)
     }
 
     /// Sets the region to the last used region.
     ///
     func loadRegion() async {
-        guard let urls = await stateService.getPreAuthEnvironmentURLs() else {
-            await delegate?.setRegion(.unitedStates, .defaultUS)
+        guard let urls = await stateService.getPreAuthEnvironmentURLs(), !urls.isUnconfigured else {
+            await delegate?.clearRegion()
             return
         }
 
@@ -93,4 +76,11 @@ protocol RegionDelegate: AnyObject {
     ///   - urls: The URLs that the app should use for the region.
     ///
     func setRegion(_ region: RegionType, _ urls: EnvironmentURLData) async
+
+    /// Called when no server has been configured yet.
+    func clearRegion() async
+}
+
+extension RegionDelegate {
+    func clearRegion() async {}
 }

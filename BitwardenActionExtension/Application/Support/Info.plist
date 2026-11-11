@@ -7,9 +7,9 @@
     <key>BitwardenKeychainAccessGroup</key>
     <string>$(AppIdentifierPrefix)$(BASE_BUNDLE_ID)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Autofill with Bitwarden</string>
+	<string>Autofill with Pass-Y</string>
 	<key>CFBundleName</key>
-	<string>Bitwarden Extension</string>
+	<string>Pass-Y Extension</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -122,7 +122,7 @@
 						||  ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;org.appextension.change-password-action&quot;
 						||  ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;org.appextension.fill-webview-action&quot;
 						||  ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;org.appextension.fill-browser-action&quot;
-						||  ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;com.8bit.bitwarden.extension-setup&quot;
+						||  ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;de.aiity.passy.extension-setup&quot;
 					).@count == $extensionItem.attachments.@count
 				).@count == 1</string>
 		</dict>

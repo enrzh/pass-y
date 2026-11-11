@@ -7,7 +7,7 @@ import BitwardenResources
 extension RegionType {
     /// The regions the user can choose from in the region picker, in display order.
     static var userSelectableCases: [RegionType] {
-        allCases.filter(\.isUserSelectable)
+        [.selfHosted]
     }
 
     /// The region's apex domain, used as the host for the HTTPS auth-connector callback (Cloud
@@ -74,8 +74,8 @@ extension RegionType {
     /// offered as a selectable option.
     var isUserSelectable: Bool {
         switch self {
-        case .europe, .gov, .selfHosted, .unitedStates: true
-        case .internal: false
+        case .selfHosted: true
+        case .europe, .gov, .internal, .unitedStates: false
         }
     }
 }

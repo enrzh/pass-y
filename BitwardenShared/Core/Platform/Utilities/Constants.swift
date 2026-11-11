@@ -21,7 +21,7 @@ extension Constants {
     static let defaultGeneratedUsername = "-"
 
     /// The URL for the web vault if the user account doesn't have one specified.
-    static let defaultWebVaultHost = "bitwarden.com"
+    static let defaultWebVaultHost = EnvironmentURLData.unconfiguredHost
 
     /// The length of a masked password.
     static let hiddenPasswordLength = 8
@@ -129,7 +129,7 @@ extension Constants {
         static let appExtensionSaveLogin = "org.appextension.save-login-action"
 
         /// A type identifier for the app extension setup.
-        static let appExtensionSetup = "com.8bit.bitwarden.extension-setup"
+        static let appExtensionSetup = "de.aiity.passy.extension-setup"
     }
 
     /// An app extension key for notes for a login.

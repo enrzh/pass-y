@@ -27,6 +27,9 @@ struct LandingState: Equatable {
     /// The region selected by the user.
     var region: RegionType
 
+    /// The host of the configured (self-hosted) server, or `nil` if the user has not set one yet.
+    var serverHost: String?
+
     /// A toast message to show in the view.
     var toast: Toast?
 
@@ -49,7 +52,7 @@ struct LandingState: Equatable {
             shouldAlwaysHideAddAccount: true,
             showPlaceholderToolbarIcon: true,
         ),
-        region: RegionType = .unitedStates,
+        region: RegionType = .selfHosted,
     ) {
         self.email = email
         self.isCreateAccountButtonHidden = isCreateAccountButtonHidden

@@ -243,6 +243,9 @@ public class DefaultConfigService: ConfigService {
         forceRefresh: Bool = false,
         isPreAuth: Bool = false,
     ) async -> Bool {
+        // Pass-Y never offers Premium purchases or billing: this flag is always off.
+        if flag.rawValue == "pm-31697-premium-upgrade-path" { return false }
+
         #if DEBUG_MENU
         if let userDefaultValue = appSettingsStore.debugFeatureFlag(name: flag.rawValue) {
             return userDefaultValue

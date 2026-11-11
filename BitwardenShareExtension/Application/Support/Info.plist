@@ -7,9 +7,9 @@
     <key>BitwardenKeychainAccessGroup</key>
     <string>$(AppIdentifierPrefix)$(BASE_BUNDLE_ID)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Bitwarden Share</string>
+	<string>Pass-Y Share</string>
 	<key>CFBundleName</key>
-	<string>Bitwarden Share Extension</string>
+	<string>Pass-Y Share Extension</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -27,7 +27,7 @@
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPrincipalClass</key>
-		<string>BitwardenShareExtension.ShareViewController</string>
+		<string>Pass-YShareExtension.ShareViewController</string>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
 		<key>NSExtensionAttributes</key>

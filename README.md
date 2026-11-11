@@ -1,35 +1,61 @@
-<p align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset=".github/images/ios-dark.png">
-        <source media="(prefers-color-scheme: light)" srcset=".github/images/ios-light.png">
-        <img alt="Bitwarden iOS apps screenshots." src=".github/images/ios-light.png">
-    </picture>
-</p>
-<p align="center">
-    <a href="https://github.com/bitwarden/ios/actions/workflows/ci-bwpm.yml?query=branch:main" target="_blank"><img src="https://github.com/bitwarden/ios/actions/workflows/ci-bwpm.yml/badge.svg?branch=main" alt="GitHub Workflow iOS Password Manager build on main" /></a>
-    <a href="https://github.com/bitwarden/ios/actions/workflows/ci-bwa.yml?query=branch:main" target="_blank"><img src="https://github.com/bitwarden/ios/actions/workflows/ci-bwa.yml/badge.svg?branch=main" alt="GitHub Workflow iOS Authenticator build on main" /></a>
-    <a href="https://github.com/bitwarden/ios/actions/workflows/test.yml?query=branch:main" target="_blank"><img src="https://github.com/bitwarden/ios/actions/workflows/test.yml/badge.svg?branch=main" alt="GitHub Workflow iOS Password Manager Test on main" /></a>
-    <a href="https://github.com/bitwarden/ios/actions/workflows/test-bwa.yml?query=branch:main" target="_blank"><img src="https://github.com/bitwarden/ios/actions/workflows/test-bwa.yml/badge.svg?branch=main" alt="GitHub Workflow iOS Authenticator Test on main" /></a>
-</p>
+# Pass-Y
 
----
+Pass-Y is an open-source iOS password manager for **self-hosted [Vaultwarden](https://github.com/dani-garcia/vaultwarden)** servers.
+It is a fork of the [Bitwarden iOS client](https://github.com/bitwarden/ios) (GPLv3) with a different focus:
 
-# Bitwarden iOS Password Manager & Authenticator Apps
+- **Server first**: you enter your own server URL; there is no Bitwarden cloud preset (US/EU/Gov are removed).
+- **No telemetry**: Firebase/Crashlytics and all other crash or analytics reporting are removed. Errors are only written to the local OS log.
+- **No upsells**: Premium/billing flows are disabled and never offered.
+- **Own identity**: app name "Pass-Y", own icon, own bundle IDs (`de.aiity.passy*`), own App Group and Keychain group.
+- Everything else is the upstream client: login with 2FA, vault, folders, search, attachments, TOTP, Send, organizations/collections,
+  generator, AutoFill extension, passkeys, Face ID/PIN unlock, offline cache, editing, share/action extensions.
+- The cryptography is **not** reimplemented: it stays in the Bitwarden SDK (`sdk-swift`, a public Swift package).
+  The UI is plain Swift/SwiftUI.
 
-Please refer to the [iOS section](https://contributing.bitwarden.com/getting-started/mobile/ios/) of the [Contributing Documentation](https://contributing.bitwarden.com/) for build instructions, recommended tooling, code style tips, and lots of other great information to get you started.
+Removed from the upstream repository: the Authenticator app, the Apple Watch app/widget, TestHarness, Bitwarden CI workflows and
+fastlane release automation.
 
-## Related projects:
+## Origin and license
 
-- [bitwarden/server](https://github.com/bitwarden/server): The core infrastructure backend (API, database, Docker, etc).
-- [bitwarden/clients](https://github.com/bitwarden/clients): Non-mobile Bitwarden Clients Applications.
-- [bitwarden/directory-connector](https://github.com/bitwarden/directory-connector): A tool for syncing a directory (AD, LDAP, Azure, G Suite, Okta) to an organization.
+Pass-Y is derived from <https://github.com/bitwarden/ios> (full git history is preserved). Copyright (c) Bitwarden Inc. and contributors.
+"Bitwarden" is a trademark of Bitwarden Inc.; Pass-Y is not affiliated with or endorsed by Bitwarden.
+This project is licensed under the **GNU General Public License v3.0** (see [LICENSE.txt](LICENSE.txt)); the upstream
+copyright and license notices are kept unchanged. Changes by Pass-Y are also released under GPLv3.
 
-# We're Hiring!
+## Build
 
-Interested in contributing in a big way? Consider joining our team! We're hiring for many positions. Please take a look at our [Careers page](https://bitwarden.com/careers/) to see what opportunities are [currently open](https://bitwarden.com/careers/#open-positions) as well as what it's like to work at Bitwarden.
+Requirements: Xcode (tested with 27.1), `xcodegen`, `swiftgen`, `sourcery` (e.g. `brew install xcodegen swiftgen sourcery`).
 
-# Contribute
+```sh
+xcodegen --spec project-bwk.yml
+xcodegen --spec project-pm.yml
+open Bitwarden.xcworkspace          # scheme "Bitwarden" (product name Pass-Y)
+```
 
-Code contributions are welcome! Please commit any pull requests against the `main` branch. Learn more about how to contribute by reading the [Contributing Guidelines](https://contributing.bitwarden.com/contributing/). Check out the [Contributing Documentation](https://contributing.bitwarden.com/) for how to get started with your first contribution.
+Signing defaults live in `Configs/Common-bwpm.xcconfig` (team, bundle prefix, app group). Override them in an untracked
+`Configs/Local-bwpm.xcconfig` for your own team.
 
-Security audits and feedback are welcome. Please open an issue or email us privately if the report is sensitive in nature. You can read our security policy in the [`SECURITY.md`](SECURITY.md) file.
+Simulator unit tests (ad-hoc signed, needed for the App Group entitlement):
+
+```sh
+xcodebuild test -project Bitwarden.xcodeproj -scheme Bitwarden -testPlan Bitwarden-Unit \
+  -destination 'platform=iOS Simulator,name=<your simulator>' \
+  CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO
+```
+
+## Testing against a throwaway Vaultwarden (never your real server)
+
+```sh
+git clone --depth 1 https://github.com/dani-garcia/vaultwarden && cd vaultwarden
+cargo build --release --features sqlite,vendored_openssl      # or use the official Docker image
+ROCKET_ADDRESS=127.0.0.1 ROCKET_PORT=8088 DATA_FOLDER=/tmp/vw-data WEB_VAULT_ENABLED=false \
+  SIGNUPS_ALLOWED=true DOMAIN=http://localhost:8088 ./target/release/vaultwarden
+python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:8088
+```
+
+Throwaway test account (test values only, local server only): `passy-test@example.test` / `PassY-Test-Only-2026!`.
+In the app choose server `http://localhost:8088` (simulator only).
+
+## Branding assets
+
+`swift Scripts-passy/generate_branding.swift .` regenerates the icon and wordmark.

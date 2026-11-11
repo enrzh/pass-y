@@ -58,7 +58,7 @@ class DefaultEnvironmentService: EnvironmentService {
         self.stateService = stateService
         self.standardUserDefaults = standardUserDefaults
 
-        _environmentURLs = EnvironmentURLs(environmentURLData: .defaultUS)
+        _environmentURLs = EnvironmentURLs(environmentURLData: .unconfigured)
     }
 
     // MARK: EnvironmentService
@@ -73,7 +73,7 @@ class DefaultEnvironmentService: EnvironmentService {
         } else if let preAuthURLs = await stateService.getPreAuthEnvironmentURLs() {
             urls = preAuthURLs
         } else {
-            urls = .defaultUS
+            urls = .unconfigured
         }
 
         await setPreAuthURLs(urls: managedSettingsURLs ?? urls)

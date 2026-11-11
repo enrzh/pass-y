@@ -179,6 +179,26 @@ public extension EnvironmentURLData {
 }
 
 public extension EnvironmentURLData {
+    /// Placeholder host used until the user has entered their own server. It uses the reserved
+    /// `.invalid` TLD (RFC 2606), so no request can ever leave the device before a server is configured.
+    static let unconfiguredHost = "server-not-configured.invalid"
+
+    /// Placeholder environment used while no server has been configured (Pass-Y has no cloud default).
+    static let unconfigured = EnvironmentURLData(base: URL(string: "https://\(unconfiguredHost)")!)
+
+    /// Whether this environment is the unconfigured placeholder (or has no base URL at all).
+    var isUnconfigured: Bool {
+        base == nil || base?.host == EnvironmentURLData.unconfiguredHost
+    }
+
+    /// A short, user-facing description of the configured server (host and optional port), or `nil`
+    /// when no server has been configured yet.
+    var serverDisplayName: String? {
+        guard !isUnconfigured, let base, let host = base.host else { return nil }
+        if let port = base.port { return "\(host):\(port)" }
+        return host
+    }
+
     /// The default URLs for the US region.
     static let defaultUS = EnvironmentURLData(
         api: URL(string: "https://api.bitwarden.com")!,

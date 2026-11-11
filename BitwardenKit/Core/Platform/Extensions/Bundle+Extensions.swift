@@ -45,7 +45,7 @@ extension Bundle: BundleProtocol {
     public var appIdentifier: String {
         infoDictionary?["BitwardenAppIdentifier"] as? String
             ?? bundleIdentifier
-            ?? "com.x8bit.bitwarden"
+            ?? "de.aiity.passy"
     }
 
     public var appName: String {
