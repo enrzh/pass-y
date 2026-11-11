@@ -140,14 +140,6 @@ schemes:
         - path: TestPlans/Bitwarden-Unit.xctestplan
         - path: TestPlans/Bitwarden-Snapshot.xctestplan
         - path: TestPlans/Bitwarden-ViewInspector.xctestplan
-  BitwardenWatchApp:
-    build:
-      targets:
-        BitwardenWatchApp: all
-  BitwardenWatchWidgetExtension:
-    build:
-      targets:
-        BitwardenWatchWidgetExtension: all
 targets:
   Bitwarden:
     type: application
@@ -163,8 +155,6 @@ targets:
     templateAttributes:
       sourcesPath: Bitwarden
     sources:
-      - path: Bitwarden/Application/Support/GoogleService-Info.plist
-        buildPhase: resources
       - path: README.md
         buildPhase: none
       - path: swiftgen-pm.yml
@@ -176,14 +166,11 @@ targets:
       - target: BitwardenAutoFillExtension
       - target: BitwardenNotificationExtension
       - target: BitwardenShareExtension
-      - target: BitwardenWatchApp
       - target: BitwardenKit/AuthenticatorBridgeKit
       - target: BitwardenKit/BitwardenKit
       - target: BitwardenKit/BitwardenResources
       - target: BitwardenKit/Networking
       - package: BitwardenSdk
-      - package: Firebase
-        product: FirebaseCrashlytics
     preBuildScripts:
       - path: Scripts/update_acknowledgements.sh
         name: "Settings.bundle: Update Acknowledgements"
@@ -386,7 +373,7 @@ targets:
           if [[ ! "$PATH" =~ "/opt/homebrew/bin" ]]; then
             PATH="/opt/homebrew/bin:$PATH"
           fi
-          mint run swiftgen config run --config "swiftgen-pm.yml"
+          swiftgen config run --config "swiftgen-pm.yml"
         basedOnDependencyAnalysis: false
         outputFiles:
           - $(SRCROOT)/BitwardenShared/UI/Platform/Application/Support/Generated/Assets.swift
@@ -496,36 +483,3 @@ targets:
       - package: BitwardenSdk
       - package: ViewInspector
     randomExecutionOrder: true
-
-  BitwardenWatchApp:
-    type: application
-    platform: watchOS
-    deploymentTarget: 9.0
-    configFiles:
-      Debug: Configs/BitwardenWatchApp-Debug.xcconfig
-      Release: Configs/BitwardenWatchApp-Release.xcconfig
-    settings:
-      base:
-        INFOPLIST_FILE: BitwardenWatchApp/Info.plist
-    sources:
-      - path: BitwardenWatchApp
-      - path: BitwardenWatchShared
-      - path: BitwardenWatchApp/GoogleService-Info.plist
-        buildPhase: resources
-    dependencies:
-      - target: BitwardenWatchWidgetExtension
-      - package: Firebase
-        product: FirebaseCrashlytics
-
-  BitwardenWatchWidgetExtension:
-    type: app-extension
-    platform: watchOS
-    deploymentTarget: 9.0
-    configFiles:
-      Debug: Configs/BitwardenWatchWidgetExtension.xcconfig
-      Release: Configs/BitwardenWatchWidgetExtension.xcconfig
-    settings:
-      base:
-        INFOPLIST_FILE: BitwardenWatchWidgetExtension/Application/Support/Info.plist
-    sources:
-      - path: BitwardenWatchWidgetExtension

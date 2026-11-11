@@ -5,12 +5,6 @@
       location = "group:Bitwarden.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Authenticator.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:BitwardenKit.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:TestHarness.xcodeproj">
    </FileRef>
 </Workspace>

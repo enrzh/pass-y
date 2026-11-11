@@ -67,4 +67,4 @@ if [ -z "${BITWARDEN_SDK_PATH:-}" ]; then
 fi
 
 echo "BITWARDEN_SDK_PATH: $BITWARDEN_SDK_PATH"
-mint run sourcery --config "$CONFIG"
+sourcery --config "$CONFIG"

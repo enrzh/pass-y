@@ -10,6 +10,9 @@ if [ "$CONFIGURATION" = "Debug" ]; then
         PATH="/opt/homebrew/bin:$PATH"
     fi
 
-    mint run LicensePlist license-plist \
-        --config-path .license-plist-pm.yml
+    if command -v license-plist >/dev/null 2>&1; then
+        license-plist --config-path .license-plist-pm.yml
+    else
+        echo "license-plist not installed, skipping acknowledgements update"
+    fi
 fi

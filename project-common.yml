@@ -15,9 +15,6 @@ packages:
   BitwardenSdk:
     url: https://github.com/bitwarden/sdk-swift
     revision: e8dfdbaecc482655f824495e115645a23d500575 # 4.0.0-9536-8d6a671
-  Firebase:
-    url: https://github.com/firebase/firebase-ios-sdk
-    exactVersion: 12.14.0
   SnapshotTesting:
     url: https://github.com/pointfreeco/swift-snapshot-testing
     exactVersion: 1.19.4
@@ -33,7 +30,6 @@ targetTemplates:
           - "**/*Tests.*"
           - "**/.gitignore"
           - "**/Fixtures/*"
-          - "**/GoogleService-Info.*.plist"
           - "**/Mocks/*"
           - "**/Sourcery/Generated/*"
           - "**/TestHelpers/*"
@@ -43,7 +39,6 @@ targetTemplates:
       - path: ${sourcesPath}
         includes:
           - "**/__Snapshots__/*"
-          - "**/GoogleService-Info.*.plist"
         buildPhase: none
   # Adds common include/excludes for mocks targets.
   MocksTarget:
