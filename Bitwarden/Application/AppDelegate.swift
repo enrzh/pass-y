@@ -38,10 +38,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                          modifierFlags: [.command, .shift]),
             UIKeyCommand(title: "Copy Verification Code", action: #selector(passyCopyCode), input: "c",
                          modifierFlags: [.command, .alternate]),
+            UIKeyCommand(title: "Search", action: #selector(passyFocusSearch), input: "f", modifierFlags: .command),
             UIKeyCommand(title: "Lock Vault", action: #selector(passyLockVault), input: "l", modifierFlags: .command),
         ]
         let menu = UIMenu(title: "Vault", identifier: UIMenu.Identifier("de.aiity.passy.menu.vault"), children: commands)
         builder.insertSibling(menu, afterMenu: .edit)
+    }
+
+    /// Cmd+F: focuses the search field of the frontmost window (the vault list uses a system search bar).
+    @objc private func passyFocusSearch() {
+        func findSearchField(in view: UIView) -> UISearchTextField? {
+            if let field = view as? UISearchTextField { return field }
+            for sub in view.subviews { if let found = findSearchField(in: sub) { return found } }
+            return nil
+        }
+        let windows = UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.windows }.flatMap { $0 }
+        for window in windows.reversed() where window.isKeyWindow || window.windowScene?.activationState == .foregroundActive {
+            if let field = findSearchField(in: window) { field.becomeFirstResponder(); return }
+        }
     }
 
     @objc private func passyNewLogin() { NotificationCenter.default.post(name: .passyNewLogin, object: nil) }

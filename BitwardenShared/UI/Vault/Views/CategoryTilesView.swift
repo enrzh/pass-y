@@ -12,6 +12,9 @@ struct CategoryTilesView: View {
     /// The group items to show as tiles.
     let items: [VaultListItem]
 
+    /// Forces a single column (used when the tiles are shown as a sidebar).
+    var singleColumn = false
+
     /// Called when a tile is tapped.
     let onSelect: (VaultListItem) -> Void
 
@@ -19,7 +22,7 @@ struct CategoryTilesView: View {
 
     /// One column for accessibility text sizes so titles and counts are never truncated or wrapped mid-word.
     private var columns: [GridItem] {
-        dynamicTypeSize.isAccessibilitySize
+        (dynamicTypeSize.isAccessibilitySize || singleColumn)
             ? [GridItem(.flexible(), spacing: 12)]
             : [GridItem(.adaptive(minimum: 150), spacing: 12)]
     }
@@ -37,6 +40,7 @@ struct CategoryTilesView: View {
                         CategoryTile(group: group, count: count)
                     }
                     .buttonStyle(.plain)
+                    .hoverEffect(.highlight)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(group.name)
                     .accessibilityValue("\(count)")

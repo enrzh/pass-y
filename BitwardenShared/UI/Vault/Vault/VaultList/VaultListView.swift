@@ -23,6 +23,9 @@ private struct SearchableVaultListView: View {
     /// The `TimeProvider` used to calculate TOTP expiration.
     var timeProvider: any TimeProvider
 
+    /// The measured width of the vault content container.
+    @SwiftUI.State private var containerWidth: CGFloat = 0
+
     var body: some View {
         // A ZStack with hidden children is used here so that opening and closing the
         // search interface does not reset the scroll position for the main vault
@@ -256,32 +259,58 @@ private struct SearchableVaultListView: View {
     private func vaultContents(with sections: [VaultListSection]) -> some View {
         let (tileItems, listSections) = Self.splitTiles(sections)
 
+        // Wide containers (iPad, Duo inner display, Stage Manager windows, Mac): a two-column layout with the
+        // category tiles as a sidebar next to the item list, measured from the container width only.
+        let isWide = containerWidth >= 900
         VStack(spacing: 20) {
             actionCard
 
             vaultFilterRow
 
-            if !tileItems.isEmpty {
-                CategoryTilesView(items: tileItems) { item in
-                    Task { await store.perform(.itemPressed(item)) }
+            if isWide {
+                HStack(alignment: .top, spacing: 24) {
+                    if !tileItems.isEmpty {
+                        CategoryTilesView(items: tileItems, singleColumn: true) { item in
+                            Task { await store.perform(.itemPressed(item)) }
+                        }
+                        .frame(width: 300)
+                    }
+                    VStack(spacing: 20) { sectionList(listSections) }
                 }
-            }
-
-            ForEach(listSections) { section in
-                VaultListSectionView(
-                    section: section,
-                    isExpanded: store.binding(
-                        get: { !$0.collapsedSectionIds.contains(section.id) },
-                        send: { .sectionExpandToggled(sectionId: section.id, isExpanded: $0) },
-                    ),
-                ) { item in
-                    vaultItemRow(for: item, isLastInSection: section.items.last == item)
+            } else {
+                if !tileItems.isEmpty {
+                    CategoryTilesView(items: tileItems) { item in
+                        Task { await store.perform(.itemPressed(item)) }
+                    }
                 }
+                sectionList(listSections)
             }
         }
-        .readableContentWidth()
+        .readableContentWidth(isWide ? 1100 : 720)
+        .background(
+            GeometryReader { proxy in
+                Color.clear.onAppear { containerWidth = proxy.size.width }
+                    .onChange(of: proxy.size.width) { containerWidth = $0 }
+            },
+        )
         .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
         .scrollView()
+    }
+
+    /// The item sections of the vault list.
+    @ViewBuilder
+    private func sectionList(_ listSections: [VaultListSection]) -> some View {
+        ForEach(listSections) { section in
+            VaultListSectionView(
+                section: section,
+                isExpanded: store.binding(
+                    get: { !$0.collapsedSectionIds.contains(section.id) },
+                    send: { .sectionExpandToggled(sectionId: section.id, isExpanded: $0) },
+                ),
+            ) { item in
+                vaultItemRow(for: item, isLastInSection: section.items.last == item)
+            }
+        }
     }
 
     /// Creates a row in the list for the provided item.
