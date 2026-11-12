@@ -68,9 +68,9 @@ In the app choose server `http://localhost:8088` (simulator only).
   the difference is removed/rewritten cloud-region tests).
 - UI tests (`PassYUITests`, XCUITest, need the throwaway Vaultwarden above): landing/server-first, login + sync,
   TOTP create/view, generator, settings (no upsell), lock/unlock, dark mode and AX-XXXL Dynamic Type screenshots.
-  `test03_createSearchEditDelete` is **UNVERIFIED** (not green): in the UI-test runner the item list did not show the newly
-  saved item after closing the item sheet (`PassYFlowTests.swift:93 "item appears in vault list"`). Create/view/delete and
-  TOTP are covered by `test04_totpCodeShown` (green); search/edit are not covered by an automated UI test yet.
+  `test03_createSearchEditDelete` (create, search, edit, delete) passed in the implementer's run after fixing two test errors
+  (see Round 2); an independent validator run could not confirm it because the app hit a Debug-only assertion in the error
+  logger (now removed) and the simulator service then hung, so treat it as UNVERIFIED until re-validated.
 - Not verifiable in the simulator: Face ID, real AutoFill in other apps, passkeys on a device, push (disabled).
 
 ## Screenshots (M1: tile home)
@@ -78,8 +78,7 @@ In the app choose server `http://localhost:8088` (simulator only).
 ![Home, iPhone 17 Pro](Docs/screenshots/m1-home-iphone17pro.png)
 ![Detail, iPhone 17 Pro](Docs/screenshots/m1-detail-iphone17pro.png)
 
-Dark mode could not be rendered by the headless simulator in this environment (UNVERIFIED); the palette uses light/dark
-variants of the system colors.
+The palette uses light/dark variants of the system colors; dark mode screenshots were taken in Round 2.
 
 ## M3: iPad and iPhone Duo
 
@@ -135,7 +134,7 @@ Done:
 
 Not done / UNVERIFIED: iPad/Duo `NavigationSplitView` master-detail; Duo open/half-folded poses with reserved regions (the Duo simulator got stuck on the
 splash screen in the inner-display landscape pose in this run and was not investigated further); Cmd+F search shortcut; pointer hover;
-running on the Mac (menu/window screenshot); new Instruments/XCTMetric measurements; TOTP list on the watch with synced data and the complication.
+running on the Mac (menu/window screenshot); a Home Screen screenshot of the new icon (only a composite preview exists); new Instruments/XCTMetric measurements; TOTP list on the watch with synced data and the complication.
 
 ## Logo
 
