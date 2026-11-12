@@ -92,13 +92,15 @@ struct LoginView: View {
     /// The set of login option buttons.
     @ViewBuilder var loginButtons: some View {
         VStack(alignment: .center, spacing: 12) {
-            AsyncButton(Localizations.logInWithMasterPassword) {
+            AsyncButton {
                 await store.perform(.loginWithMasterPasswordPressed)
+            } label: {
+                Text(Localizations.logInWithMasterPassword)
+                    .frame(maxWidth: .infinity)
             }
             .accessibilityIdentifier("LogInWithMasterPasswordButton")
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .frame(maxWidth: .infinity)
 
             if store.state.isLoginWithDeviceVisible {
                 Button {

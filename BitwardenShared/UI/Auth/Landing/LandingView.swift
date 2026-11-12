@@ -108,6 +108,7 @@ struct LandingView: View {
                             .accessibilityHidden(true)
                     }
                 }
+                .buttonStyle(.plain)
                 .accessibilityIdentifier("RegionSelectorDropdown")
                 .accessibilityLabel("\(Localizations.server): \(store.state.serverHost ?? Localizations.serverNotSet)")
 
@@ -134,14 +135,16 @@ struct LandingView: View {
             }
 
             Section {
-                AsyncButton(Localizations.continue) {
+                AsyncButton {
                     await store.perform(.continuePressed)
+                } label: {
+                    Text(Localizations.continue)
+                        .frame(maxWidth: .infinity)
                 }
                 .accessibilityIdentifier("ContinueButton")
                 .disabled(!store.state.isContinueButtonEnabled)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .frame(maxWidth: .infinity)
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
             }
