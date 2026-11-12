@@ -69,6 +69,8 @@ struct VaultListItemRowView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                // In a `List`, several default-style buttons in one row would all fire on a single tap.
+                .buttonStyle(.plain)
                 .accessibilityIdentifier("VaultListItemRowButton")
                 .hoverEffect(.highlight)
 
@@ -84,6 +86,7 @@ struct VaultListItemRowView: View {
                             .contentShape(Rectangle())
                     }
                     .hoverEffect(.highlight)
+                    .buttonStyle(.plain)
                     .accessibilityLabel(Localizations.moreOptions)
                     .accessibilityIdentifier("CipherOptionsButton")
                     // Each more-options action is exposed individually as a custom action on the
@@ -99,6 +102,7 @@ struct VaultListItemRowView: View {
                         Image(systemName: "doc.on.doc")
                             .frame(minWidth: 44, minHeight: 44)
                     }
+                    .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
                     .hoverEffect(.highlight)
                     .accessibilityLabel(Localizations.copyTotp)
