@@ -71,10 +71,10 @@ In the app choose server `http://localhost:8088` (simulator only).
   TOTP are covered by `test04_totpCodeShown` (green); search/edit are not covered by an automated UI test yet.
 - Not verifiable in the simulator: Face ID, real AutoFill in other apps, passkeys on a device, push (disabled).
 
-## Screenshots (M1: Apple-Passwords-style home)
+## Screenshots (M1: tile home)
 
-![Home, iPhone 17 Pro](docs/screenshots/m1-home-iphone17pro.png)
-![Detail, iPhone 17 Pro](docs/screenshots/m1-detail-iphone17pro.png)
+![Home, iPhone 17 Pro](Docs/screenshots/m1-home-iphone17pro.png)
+![Detail, iPhone 17 Pro](Docs/screenshots/m1-detail-iphone17pro.png)
 
 Dark mode could not be rendered by the headless simulator in this environment (UNVERIFIED); the palette uses light/dark
 variants of the system colors.
