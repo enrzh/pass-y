@@ -77,17 +77,17 @@ class LandingViewTests: BitwardenTestCase {
     /// Updating the text field dispatches the `.emailChanged()` action.
     @MainActor
     func test_emailAddressTextField_updateValue() throws {
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.emailAddress)
-        try textField.inputBinding().wrappedValue = "text"
+        let textField = try subject.inspect().find(ViewType.TextField.self)
+        try textField.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .emailChanged("text"))
     }
 
     /// Tapping the region button dispatches the `.regionPressed` action.
     @MainActor
     func test_regionButton_tap() throws {
-        let button = try subject.inspect().find(
-            button: "\(Localizations.loggingInOn): \(RegionType.unitedStates.baseURLDescription)",
-        )
+        let button = try subject.inspect()
+            .find(viewWithAccessibilityIdentifier: "RegionSelectorDropdown")
+            .button()
         try button.tap()
         waitFor(processor.effects.last != nil)
         XCTAssertEqual(processor.effects.last, .regionPressed)

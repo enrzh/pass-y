@@ -71,100 +71,96 @@ struct LandingView: View {
         )
     }
 
-    /// The main content of the view
+    /// The main content of the view: a native grouped form (server, email, remember me) with prominent actions below.
     private var mainContent: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                Spacer(minLength: 24)
-
-                Image(decorative: Asset.Images.logo)
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundColor(SharedAsset.Colors.iconSecondary.swiftUIColor)
-                    .frame(maxWidth: .infinity, maxHeight: 34)
-                    .padding(.horizontal, 12)
-
-                Spacer(minLength: 24)
-
-                landingDetails
-            }
-            .padding(.bottom, 16)
-            .frame(minHeight: geometry.size.height)
-            .scrollView(addVerticalPadding: false, showsIndicators: false)
-        }
-    }
-
-    /// The section of the view containing input fields, and action buttons.
-    private var landingDetails: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Text(Localizations.logInToBitwarden)
-                .styleGuide(.title2, weight: .semibold)
-                .multilineTextAlignment(.center)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+        Form {
+            Section {
+                VStack(spacing: 12) {
+                    Image(decorative: Asset.Images.logo)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(.tint)
+                        .frame(maxWidth: 220, maxHeight: 34)
+                    Text(Localizations.logInToBitwarden)
+                        .font(.title2.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                }
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .listRowBackground(Color.clear)
+                .accessibilityElement(children: .combine)
+            }
 
-            VStack(spacing: 8) {
-                BitwardenTextField(
-                    title: Localizations.emailAddress,
-                    text: store.binding(
-                        get: \.email,
-                        send: LandingAction.emailChanged,
-                    ),
-                    accessibilityIdentifier: "LoginEmailAddressEntry",
-                    footerContent: {
-                        RegionSelector(
-                            selectorLabel: Localizations.server,
-                            regionName: store.state.serverHost ?? Localizations.serverNotSet,
-                        ) {
-                            await store.perform(.regionPressed)
-                        }
-                        .padding(.vertical, 14)
-                    },
+            Section {
+                Button {
+                    Task { await store.perform(.regionPressed) }
+                } label: {
+                    HStack {
+                        Label(Localizations.server, systemImage: "server.rack")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Text(store.state.serverHost ?? Localizations.serverNotSet)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.trailing)
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                    }
+                }
+                .accessibilityIdentifier("RegionSelectorDropdown")
+                .accessibilityLabel("\(Localizations.server): \(store.state.serverHost ?? Localizations.serverNotSet)")
+
+                TextField(
+                    Localizations.emailAddress,
+                    text: store.binding(get: \.email, send: LandingAction.emailChanged),
                 )
-                .textFieldConfiguration(.email)
+                .textContentType(.emailAddress)
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+                .submitLabel(.continue)
+                .accessibilityIdentifier("LoginEmailAddressEntry")
                 .onSubmit {
                     guard store.state.isContinueButtonEnabled else { return }
                     Task { await store.perform(.continuePressed) }
                 }
 
-                BitwardenToggle(Localizations.rememberMe, isOn: store.binding(
+                Toggle(Localizations.rememberMe, isOn: store.binding(
                     get: { $0.isRememberMeOn },
                     send: { .rememberMeChanged($0) },
                 ))
                 .accessibilityIdentifier("RememberMeSwitch")
-                .contentBlock()
             }
 
-            AsyncButton(Localizations.continue) {
-                await store.perform(.continuePressed)
+            Section {
+                AsyncButton(Localizations.continue) {
+                    await store.perform(.continuePressed)
+                }
+                .accessibilityIdentifier("ContinueButton")
+                .disabled(!store.state.isContinueButtonEnabled)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
             }
-            .accessibilityIdentifier("ContinueButton")
-            .disabled(!store.state.isContinueButtonEnabled)
-            .buttonStyle(.primary())
 
-            if !store.state.isCreateAccountButtonHidden {
-                HStack(spacing: 4) {
-                    Spacer()
-                    Text(Localizations.newAroundHere)
-                        .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
+            Section {
+                if !store.state.isCreateAccountButtonHidden {
                     Button(Localizations.createAccount) {
                         store.send(.createAccountPressed)
                     }
                     .accessibilityIdentifier("CreateAccountButton")
-                    .foregroundColor(SharedAsset.Colors.textInteraction.swiftUIColor)
-                    Spacer()
                 }
-                .styleGuide(.footnote)
-            }
 
-            Button {
-                store.send(.showPreLoginSettings)
-            } label: {
-                Label(Localizations.appSettings, image: SharedAsset.Icons.cog16.swiftUIImage)
+                Button {
+                    store.send(.showPreLoginSettings)
+                } label: {
+                    Label(Localizations.appSettings, systemImage: "gearshape")
+                }
+                .accessibilityIdentifier("AppSettingsButton")
             }
-            .accessibilityIdentifier("AppSettingsButton")
-            .buttonStyle(.bitwardenBorderless)
-            .frame(maxWidth: .infinity, alignment: .center)
         }
         // Without an explicit container, a disabled Continue button prevents Full Keyboard Access
         // from navigating to the buttons below it.
