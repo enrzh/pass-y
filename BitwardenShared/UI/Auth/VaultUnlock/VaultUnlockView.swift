@@ -81,28 +81,38 @@ struct VaultUnlockView: View {
         ))
     }
 
-    /// the scrollable content of the view.
+    /// The content of the view: a native grouped form with the credential field and the unlock actions.
     @ViewBuilder var scrollView: some View {
-        VStack(spacing: 24) {
+        Form {
             if store.state.shouldShowPasswordOrPinFields {
-                textField
-            }
-
-            VStack(spacing: 12) {
-                biometricAuthButton
-                if store.state.shouldShowPasswordOrPinFields {
-                    AsyncButton {
-                        await store.perform(.unlockVault)
-                    } label: {
-                        Text(Localizations.unlock)
-                    }
-                    .buttonStyle(.primary(shouldFillWidth: true))
-                    .accessibilityIdentifier("UnlockVaultButton")
+                Section {
+                    textField
+                } footer: {
+                    Text(footerText)
+                        .accessibilityIdentifier("UserAndEnvironmentDataLabel")
                 }
             }
+
+            Section {
+                VStack(spacing: 12) {
+                    biometricAuthButton
+                    if store.state.shouldShowPasswordOrPinFields {
+                        AsyncButton {
+                            await store.perform(.unlockVault)
+                        } label: {
+                            Text(Localizations.unlock)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .accessibilityIdentifier("UnlockVaultButton")
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
-        .scrollView()
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
     }
 
     /// The Toolbar item for the profile switcher view.
@@ -129,8 +139,10 @@ struct VaultUnlockView: View {
                 Task { await store.perform(.unlockVaultWithBiometrics) }
             } label: {
                 biometricUnlockText(biometryType)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.secondary(shouldFillWidth: true))
+            .buttonStyle(.bordered)
+            .controlSize(.large)
         }
     }
 
@@ -151,67 +163,69 @@ struct VaultUnlockView: View {
         )
     }
 
-    /// The text field for the pin or password.
+    /// The field for the pin or password: a native secure field with a reveal toggle.
     @ViewBuilder private var textField: some View {
         switch store.state.unlockMethod {
         case .password:
-            BitwardenTextField(
+            credentialField(
                 title: Localizations.masterPassword,
-                text: store.binding(
-                    get: \.masterPassword,
-                    send: VaultUnlockAction.masterPasswordChanged,
-                ),
-                accessibilityIdentifier: "MasterPasswordEntry",
-                passwordVisibilityAccessibilityId: "PasswordVisibilityToggle",
-                focus: .field($focusedField, equals: .passwordOrPin),
-                isPasswordVisible: store.binding(
-                    get: \.isMasterPasswordRevealed,
-                    send: VaultUnlockAction.revealMasterPasswordFieldPressed,
-                ),
-                footerContent: {
-                    Text(footerText)
-                        .styleGuide(.footnote)
-                        .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                        .accessibilityIdentifier("UserAndEnvironmentDataLabel")
-                        .padding(.vertical, 12)
-                },
+                text: store.binding(get: \.masterPassword, send: VaultUnlockAction.masterPasswordChanged),
+                isRevealed: store.state.isMasterPasswordRevealed,
+                onReveal: { store.send(.revealMasterPasswordFieldPressed(!store.state.isMasterPasswordRevealed)) },
+                fieldIdentifier: "MasterPasswordEntry",
+                toggleIdentifier: "PasswordVisibilityToggle",
+                keyboard: .default,
             )
-            .textFieldConfiguration(.password)
-            .submitLabel(.go)
-            .onSubmit {
-                Task {
-                    await store.perform(.unlockVault)
-                }
-            }
         case .pin:
-            BitwardenTextField(
+            credentialField(
                 title: Localizations.pin,
-                text: store.binding(
-                    get: \.pin,
-                    send: VaultUnlockAction.pinChanged,
-                ),
-                accessibilityIdentifier: "PinEntry",
-                passwordVisibilityAccessibilityId: "PinVisibilityToggle",
-                focus: .field($focusedField, equals: .passwordOrPin),
-                isPasswordVisible: store.binding(
-                    get: \.isPinRevealed,
-                    send: VaultUnlockAction.revealPinFieldPressed,
-                ),
-                footerContent: {
-                    Text(footerText)
-                        .styleGuide(.footnote)
-                        .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                        .accessibilityIdentifier("UserAndEnvironmentDataLabel")
-                        .padding(.vertical, 12)
-                },
+                text: store.binding(get: \.pin, send: VaultUnlockAction.pinChanged),
+                isRevealed: store.state.isPinRevealed,
+                onReveal: { store.send(.revealPinFieldPressed(!store.state.isPinRevealed)) },
+                fieldIdentifier: "PinEntry",
+                toggleIdentifier: "PinVisibilityToggle",
+                keyboard: .numberPad,
             )
-            .textFieldConfiguration(.numeric(.password))
-            .submitLabel(.go)
-            .onSubmit {
-                Task {
-                    await store.perform(.unlockVault)
+        }
+    }
+
+    private func credentialField(
+        title: String,
+        text: Binding<String>,
+        isRevealed: Bool,
+        onReveal: @escaping () -> Void,
+        fieldIdentifier: String,
+        toggleIdentifier: String,
+        keyboard: UIKeyboardType,
+    ) -> some View {
+        HStack {
+            Group {
+                if isRevealed {
+                    TextField(title, text: text)
+                } else {
+                    SecureField(title, text: text)
                 }
             }
+            .keyboardType(keyboard)
+            .textContentType(.password)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .submitLabel(.go)
+            .focused($focusedField, equals: .passwordOrPin)
+            .accessibilityIdentifier(fieldIdentifier)
+            .onSubmit {
+                Task { await store.perform(.unlockVault) }
+            }
+
+            Button(action: onReveal) {
+                Image(systemName: isRevealed ? "eye.slash" : "eye")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityIdentifier(toggleIdentifier)
+            .accessibilityLabel(
+                isRevealed ? Localizations.passwordIsVisibleTapToHide : Localizations.passwordIsNotVisibleTapToShow,
+            )
         }
     }
 
