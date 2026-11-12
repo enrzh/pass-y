@@ -84,3 +84,36 @@ extension XCUIApplication {
             + "\n" + buttons.allElementsBoundByIndex.map(\.label).joined(separator: "\n")
     }
 }
+
+extension XCTestCase {
+    /// Creates a login through the add-item UI and returns to the vault list.
+    func addLogin(_ app: XCUIApplication, name: String, user: String, password: String, totp: String? = nil) {
+        app.buttons["AddItemFloatingActionButton"].tap()
+        app.buttons["Login"].firstMatch.tap()
+        let nameField = app.textFields["ItemNameEntry"]
+        XCTAssertTrue(waitFor(nameField))
+        app.dismissNewLoginCard()
+        nameField.tap(); nameField.typeText(name)
+        if let totp {
+            let setup = app.buttons["SetupTotpButton"]
+            if !setup.exists { app.swipeUp() }
+            let field = app.secureTextFields["LoginTotpEntry"].exists
+                ? app.secureTextFields["LoginTotpEntry"] : app.textFields["LoginTotpEntry"]
+            if !field.waitForExistence(timeout: 3) {
+                for _ in 0 ..< 4 where !field.exists { app.swipeUp() }
+            }
+            if !field.exists, setup.exists { setup.tap() }
+            if field.waitForExistence(timeout: 10) { field.tap(); field.typeText(totp) }
+        }
+        if totp != nil { app.swipeDown() }
+        let userField = app.textFields["LoginUsernameEntry"]
+        userField.tap(); userField.typeText(user)
+        let pw = app.secureTextFields["LoginPasswordEntry"]
+        pw.tap(); pw.typeText(password)
+        app.buttons["SaveButton"].firstMatch.tap()
+        _ = app.buttons["Close"].waitForExistence(timeout: 8)
+        let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
+        if close.exists { close.firstMatch.tap() }
+        sleep(2)
+    }
+}

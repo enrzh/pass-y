@@ -230,12 +230,27 @@ private struct SearchableVaultListView: View {
     ///
     @ViewBuilder
     private func vaultContents(with sections: [VaultListSection]) -> some View {
+        let tileItems = sections.flatMap(\.items).filter {
+            if case let .group(group, _) = $0.itemType { return group.isCategoryTile }
+            return false
+        }
+        let listSections = sections.compactMap { section -> VaultListSection? in
+            let rest = section.items.filter { !tileItems.contains($0) }
+            return rest.isEmpty ? nil : VaultListSection(id: section.id, items: rest, name: section.name)
+        }
+
         VStack(spacing: 20) {
             actionCard
 
             vaultFilterRow
 
-            ForEach(sections) { section in
+            if !tileItems.isEmpty {
+                CategoryTilesView(items: tileItems) { item in
+                    Task { await store.perform(.itemPressed(item)) }
+                }
+            }
+
+            ForEach(listSections) { section in
                 VaultListSectionView(
                     section: section,
                     isExpanded: store.binding(

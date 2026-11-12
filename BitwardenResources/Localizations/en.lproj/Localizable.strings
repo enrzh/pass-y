@@ -173,7 +173,7 @@
 "UnableToDownloadFile" = "Unable to download file.";
 "Downloading" = "Downloading…";
 "AttachmentLargeWarning" = "This attachment is %1$@ in size. Are you sure you want to download it onto your device?";
-"AuthenticatorKey" = "Authenticator key";
+"AuthenticatorKey" = "Verification code";
 "VerificationCodeTotp" = "Verification code (TOTP)";
 "AuthenticatorKeyAdded" = "Authenticator key added.";
 "AuthenticatorKeyReadError" = "Cannot read authenticator key.";

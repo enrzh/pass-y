@@ -54,32 +54,33 @@ extension StyleGuideFont {
         self.textStyle = textStyle
     }
 
-    /// Returns a `StyleGuideFont` that uses the Inter font.
+    /// Returns a `StyleGuideFont` that uses the system font (SF) and scales with Dynamic Type.
     ///
     /// - Parameters:
     ///   - lineHeight: The line height for this style, in px.
     ///   - size: The default font size for this style, in px.
     ///   - textStyle: The text style for the font, used to determine how the font scales with dynamic type.
-    /// - Returns: A `StyleGuideFont` that uses the Inter font.
+    ///   - weight: The font weight.
+    /// - Returns: A `StyleGuideFont` that uses the system font.
     ///
-    static func inter(lineHeight: CGFloat, size: CGFloat, textStyle: SwiftUI.Font.TextStyle) -> StyleGuideFont {
-        FontFamily.registerAllCustomFonts()
-        return self.init(
-            font: FontFamily.InterVariable.regular,
+    static func inter(
+        lineHeight: CGFloat,
+        size: CGFloat,
+        textStyle: SwiftUI.Font.TextStyle,
+        weight: SwiftUI.Font.Weight = .regular,
+    ) -> StyleGuideFont {
+        self.init(
+            font: SwiftUI.Font.system(textStyle).weight(weight),
             lineHeight: lineHeight,
             size: size,
             textStyle: textStyle,
         )
     }
 
-    /// Returns a new `StyleGuideFont` with same properties but different font.
-    ///
-    /// - Parameter font: The `FontConvertible` font for this style.
-    /// - Returns: A `StyleGuideFont` modified to use the specified font.
-    ///
-    private func with(font: FontConvertible) -> StyleGuideFont {
+    /// Returns a new `StyleGuideFont` with the same properties but a different weight.
+    private func with(weight: SwiftUI.Font.Weight) -> StyleGuideFont {
         StyleGuideFont(
-            font: font,
+            font: SwiftUI.Font.system(textStyle).weight(weight),
             lineHeight: lineHeight,
             size: size,
             textStyle: textStyle,
@@ -112,13 +113,13 @@ public extension StyleGuideFont {
     static let body = StyleGuideFont.inter(lineHeight: 20, size: 15, textStyle: .body)
 
     /// The font for the bold body style.
-    static let bodyBold = body.with(font: FontFamily.InterVariable.bold)
+    static let bodyBold = body.with(weight: .bold)
 
     /// The font for the monospaced body style.
     static let bodyMonospaced = StyleGuideFont(font: .system(.body, design: .monospaced), lineHeight: 22, size: 17)
 
     /// The font for the bold semibody style.
-    static let bodySemibold = body.with(font: FontFamily.InterVariable.semiBold)
+    static let bodySemibold = body.with(weight: .semibold)
 
     /// The font for the small sensitive info style (e.g. fingerprint phrases).
     static let sensitiveInfoSmall = StyleGuideFont(
@@ -132,13 +133,13 @@ public extension StyleGuideFont {
     static let callout = StyleGuideFont.inter(lineHeight: 18, size: 13, textStyle: .callout)
 
     /// The font for the callout semibold style.
-    static let calloutSemibold = callout.with(font: FontFamily.InterVariable.semiBold)
+    static let calloutSemibold = callout.with(weight: .semibold)
 
     /// The font for the subheadline style.
     static let subheadline = StyleGuideFont.inter(lineHeight: 16, size: 12, textStyle: .subheadline)
 
     /// The font for the subheadline semibold style.
-    static let subheadlineSemibold = subheadline.with(font: FontFamily.InterVariable.semiBold)
+    static let subheadlineSemibold = subheadline.with(weight: .semibold)
 
     /// The font for the footnote style.
     static let footnote = StyleGuideFont.inter(lineHeight: 18, size: 12, textStyle: .footnote)

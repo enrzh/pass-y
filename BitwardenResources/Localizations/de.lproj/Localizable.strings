@@ -174,7 +174,7 @@
 "UnableToDownloadFile" = "Datei kann nicht heruntergeladen werden.";
 "Downloading" = "Wird heruntergeladen…";
 "AttachmentLargeWarning" = "Dieser Anhang ist %1$@ groß. Bist du sicher, dass du ihn herunterladen möchtest?";
-"AuthenticatorKey" = "Authenticator-Schlüssel";
+"AuthenticatorKey" = "Bestätigungscode";
 "VerificationCodeTotp" = "Verifizierungscode (TOTP)";
 "AuthenticatorKeyAdded" = "Authentifizierungsschlüssel hinzugefügt.";
 "AuthenticatorKeyReadError" = "Authentifizierungsschlüssel kann nicht gelesen werden.";
