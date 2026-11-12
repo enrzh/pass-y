@@ -14,16 +14,61 @@ struct LoginView: View {
     /// The `Store` for this view.
     @ObservedObject var store: Store<LoginState, LoginAction, LoginEffect>
 
+    @FocusState private var isPasswordFocused: Bool
+
     var body: some View {
-        VStack(spacing: 24) {
-            textField
+        Form {
+            Section {
+                HStack {
+                    Group {
+                        if store.state.isMasterPasswordRevealed {
+                            TextField(Localizations.masterPassword, text: passwordBinding)
+                        } else {
+                            SecureField(Localizations.masterPassword, text: passwordBinding)
+                        }
+                    }
+                    .textContentType(.password)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .submitLabel(.go)
+                    .focused($isPasswordFocused)
+                    .accessibilityIdentifier("LoginMasterPasswordEntry")
+                    .onSubmit {
+                        Task { await store.perform(.loginWithMasterPasswordPressed) }
+                    }
 
-            loginButtons
+                    Button {
+                        store.send(.revealMasterPasswordFieldPressed(!store.state.isMasterPasswordRevealed))
+                    } label: {
+                        Image(systemName: store.state.isMasterPasswordRevealed ? "eye.slash" : "eye")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityIdentifier("PasswordVisibilityToggle")
+                    .accessibilityLabel(
+                        store.state.isMasterPasswordRevealed
+                            ? Localizations.passwordIsVisibleTapToHide
+                            : Localizations.passwordIsNotVisibleTapToShow,
+                    )
+                }
 
-            loggedInAs
+                Button(Localizations.getMasterPasswordwordHint) {
+                    store.send(.getMasterPasswordHintPressed)
+                }
+                .accessibilityIdentifier("GetMasterPasswordHintLabel")
+            }
+
+            Section {
+                loginButtons
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+
+            Section {
+                loggedInAs
+            }
+            .listRowBackground(Color.clear)
         }
-        .scrollView()
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
         .navigationTitle(Localizations.bitwarden)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
@@ -36,42 +81,12 @@ struct LoginView: View {
         }
         .task {
             await store.perform(.appeared)
+            isPasswordFocused = true
         }
     }
 
-    /// The text field along with the master password hint button.
-    @ViewBuilder var textField: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            BitwardenTextField(
-                title: Localizations.masterPassword,
-                text: store.binding(
-                    get: \.masterPassword,
-                    send: LoginAction.masterPasswordChanged,
-                ),
-                accessibilityIdentifier: "LoginMasterPasswordEntry",
-                passwordVisibilityAccessibilityId: "PasswordVisibilityToggle",
-                isPasswordAutoFocused: true,
-                isPasswordVisible: store.binding(
-                    get: \.isMasterPasswordRevealed,
-                    send: LoginAction.revealMasterPasswordFieldPressed,
-                ),
-                footerContent: {
-                    Button(Localizations.getMasterPasswordwordHint) {
-                        store.send(.getMasterPasswordHintPressed)
-                    }
-                    .buttonStyle(.bitwardenBorderless)
-                    .padding(.vertical, 14)
-                    .accessibilityIdentifier("GetMasterPasswordHintLabel")
-                },
-            )
-            .textFieldConfiguration(.password)
-            .submitLabel(.go)
-            .onSubmit {
-                Task {
-                    await store.perform(.loginWithMasterPasswordPressed)
-                }
-            }
-        }
+    private var passwordBinding: Binding<String> {
+        store.binding(get: \.masterPassword, send: LoginAction.masterPasswordChanged)
     }
 
     /// The set of login option buttons.
@@ -81,34 +96,33 @@ struct LoginView: View {
                 await store.perform(.loginWithMasterPasswordPressed)
             }
             .accessibilityIdentifier("LogInWithMasterPasswordButton")
-            .buttonStyle(.primary())
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .frame(maxWidth: .infinity)
 
             if store.state.isLoginWithDeviceVisible {
                 Button {
                     store.send(.loginWithDevicePressed)
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(decorative: SharedAsset.Icons.mobile16)
-                            .imageStyle(.accessoryIcon16(scaleWithFont: true))
-                        Text(Localizations.logInWithDevice)
-                    }
+                    Label(Localizations.logInWithDevice, systemImage: "iphone")
+                        .frame(maxWidth: .infinity)
                 }
                 .accessibilityIdentifier("LogInWithAnotherDeviceButton")
-                .buttonStyle(.secondary())
+                .buttonStyle(.bordered)
+                .controlSize(.large)
             }
 
             Button {
                 store.send(.enterpriseSingleSignOnPressed)
             } label: {
-                HStack(spacing: 8) {
-                    Image(decorative: SharedAsset.Icons.provider16)
-                        .imageStyle(.accessoryIcon16(scaleWithFont: true))
-                    Text(Localizations.logInSso)
-                }
+                Label(Localizations.logInSso, systemImage: "building.2")
+                    .frame(maxWidth: .infinity)
             }
             .accessibilityIdentifier("LogInWithSsoButton")
-            .buttonStyle(.secondary())
+            .buttonStyle(.bordered)
+            .controlSize(.large)
         }
+        .padding(.horizontal, 16)
     }
 
     /// The "logged in as..." text along with the not you button.
@@ -119,17 +133,16 @@ struct LoginView: View {
                 store.state.serverURLString,
             ))
             .accessibilityIdentifier("LoggingInAsLabel")
-            .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
+            .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
 
             Button(Localizations.notYou) {
                 store.send(.notYouPressed)
             }
             .accessibilityIdentifier("NotYouLabel")
-            .foregroundColor(SharedAsset.Colors.textInteraction.swiftUIColor)
         }
+        .font(.footnote)
         .frame(maxWidth: .infinity, alignment: .center)
-        .styleGuide(.footnote)
     }
 }
 

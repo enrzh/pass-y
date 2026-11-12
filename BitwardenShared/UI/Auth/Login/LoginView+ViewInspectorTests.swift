@@ -93,23 +93,23 @@ class LoginViewTests: BitwardenTestCase {
     @MainActor
     func test_isMasterPasswordRevealed_false() throws {
         processor.state.isMasterPasswordRevealed = false
-        XCTAssertNoThrow(try subject.inspect().find(secureField: ""))
-        XCTAssertThrowsError(try subject.inspect().find(textField: ""))
+        XCTAssertNoThrow(try subject.inspect().find(secureField: Localizations.masterPassword))
+        XCTAssertThrowsError(try subject.inspect().find(textField: Localizations.masterPassword))
     }
 
     /// The text field is visible when `isMasterPasswordRevealed` is `true`.
     @MainActor
     func test_isMasterPasswordRevealed_true() throws {
         processor.state.isMasterPasswordRevealed = true
-        XCTAssertNoThrow(try subject.inspect().find(textField: ""))
-        XCTAssertThrowsError(try subject.inspect().find(secureField: ""))
+        XCTAssertNoThrow(try subject.inspect().find(textField: Localizations.masterPassword))
+        XCTAssertThrowsError(try subject.inspect().find(secureField: Localizations.masterPassword))
     }
 
     /// Updating the text field dispatches the `.masterPasswordChanged()` action.
     @MainActor
     func test_textField_updateValue() throws {
         processor.state.isMasterPasswordRevealed = true
-        let textField = try subject.inspect().find(textField: "")
+        let textField = try subject.inspect().find(textField: Localizations.masterPassword)
         try textField.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .masterPasswordChanged("text"))
     }
@@ -118,7 +118,7 @@ class LoginViewTests: BitwardenTestCase {
     @MainActor
     func test_secureField_updateValue() throws {
         processor.state.isMasterPasswordRevealed = false
-        let secureField = try subject.inspect().find(secureField: "")
+        let secureField = try subject.inspect().find(secureField: Localizations.masterPassword)
         try secureField.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .masterPasswordChanged("text"))
     }
