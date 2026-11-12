@@ -128,7 +128,7 @@ private struct SearchableVaultListView: View {
                     ForEach(store.state.searchResults) { item in
                         vaultItemRow(
                             for: item,
-                            isLastInSection: store.state.searchResults.last == item,
+                            isLastInSection: store.state.searchResults.last?.id == item.id,
                         )
                         .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
                     }
@@ -308,7 +308,7 @@ private struct SearchableVaultListView: View {
                     send: { .sectionExpandToggled(sectionId: section.id, isExpanded: $0) },
                 ),
             ) { item in
-                vaultItemRow(for: item, isLastInSection: section.items.last == item)
+                vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
             }
         }
     }
