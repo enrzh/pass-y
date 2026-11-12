@@ -110,7 +110,7 @@ final class PassYFlowTests: XCTestCase {
         app.staticTexts[itemName].firstMatch.tap()
         XCTAssertTrue(waitFor(app.buttons["CipherOptionsButton"].exists ? app.buttons["CipherOptionsButton"] : app.buttons["Options"]))
         attach(app, "03-view-item")
-        let edit = app.buttons["Edit"]
+        let edit = app.buttons["Edit"].firstMatch
         if edit.waitForExistence(timeout: 5) { edit.tap() } else {
             app.buttons["CipherOptionsButton"].tap(); app.buttons["Edit"].tap()
         }
