@@ -180,3 +180,27 @@ interactive session with the Accessibility permission, which was not changed).
 - **iPhone Air**: `devicectl` reports the device as `unavailable`, so the device build was not refreshed in this round.
 
 Still not done (UNVERIFIED): a true `NavigationSplitView`, Stage Manager window sizes, keyboard/pointer behavior at runtime, a Mac window screenshot.
+
+## Round 5
+
+- **R1 second iPad type (iPad Air 11", 834 pt wide in portrait)**: below the 900 pt threshold the tiles stay on top in four columns, in landscape
+  the two-column sidebar layout applies. ![Air portrait](Docs/screenshots/r1-ipad-air11-portrait-tiles-on-top.png)
+  ![Air landscape](Docs/screenshots/r1-ipad-air11-landscape-two-column.png)
+  Stage Manager window sizes cannot be driven in the simulator; the layout only depends on the container width, so any window width follows the same rule.
+- **R5 optimization with before/after** (2000+ item vault, iPhone 17 Pro simulator, Debug, same session, `PassYPerfTests`): the last-row detection in
+  the vault and search lists used a deep `Equatable` comparison of whole items and now compares ids.
+
+  | Metric | before | after |
+  |---|---|---|
+  | unlock to populated list | 2.91 s | 2.92 s |
+  | 30 fast swipes (XCUITest-dominated) | 45.4 s | 44.5 s |
+  | search to exact hit (incl. 1.7 s typing delay) | 11.3 s | 11.8 s |
+  | 10 swipes, app CPU time | 7.2 s | 6.2 s (RSD 14 %) |
+  | peak memory | 91.9 MB | 91.9 MB |
+
+  The differences are within measurement noise (CPU time varies between sessions: 4.2 s in an earlier session), so there is **no demonstrated improvement**.
+  The list was already lazy; the dominant costs are inside the SDK/search pipeline and XCUITest, not the SwiftUI layer.
+- **R3 Mac, direct launch**: `open Bitwarden.app` on the Mac build fails with "The application cannot be opened because it has an incorrect executable format"
+  (an iOS binary cannot be started outside Xcode/App Store installation), so there is no Mac window screenshot or menu check. UNVERIFIED.
+- **R1 Duo poses**: only the poses the simulator exposes were captured (portrait on the outer display, landscape on the inner display, see Round 3);
+  half-folded poses and reserved regions cannot be set by `simctl`.
