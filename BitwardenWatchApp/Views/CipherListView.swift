@@ -52,7 +52,7 @@ struct CipherListView: View {
                 }
             }
         }
-        .navigationTitle("Bitwarden")
+        .navigationTitle("Pass-Y")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             #if targetEnvironment(simulator) // for the preview

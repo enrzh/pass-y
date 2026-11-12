@@ -5,7 +5,7 @@ class EnvironmentService {
 
     let BASE_URL_KEY = "base_url"
     let ICONS_URL_KEY = "icons_url"
-    let DEFAULT_ICONS_URL = "https://icons.bitwarden.net"
+    let DEFAULT_ICONS_URL = "https://server-not-configured.invalid/icons"
 
     private init() {}
 

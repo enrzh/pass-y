@@ -67,7 +67,7 @@ struct BitwardenWatchWidgetExtension: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("Bitwarden")
+        .configurationDisplayName("Pass-Y")
         .supportedFamilies([.accessoryCircular, .accessoryCorner, .accessoryInline])
     }
 }

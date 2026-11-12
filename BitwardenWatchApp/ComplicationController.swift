@@ -7,7 +7,7 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
         let descriptors = [
             CLKComplicationDescriptor(
                 identifier: "bitwarden-watch-complication",
-                displayName: "Bitwarden",
+                displayName: "Pass-Y",
                 supportedFamilies: [
                     CLKComplicationFamily.circularSmall,
                     CLKComplicationFamily.graphicCircular,
