@@ -90,13 +90,16 @@ final class PassYFlowTests: XCTestCase {
         let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
         XCTAssertTrue(waitFor(close, timeout: 5))
         close.firstMatch.tap()
-        XCTAssertTrue(waitFor(app.staticTexts["\(itemName)"]), "item appears in vault list")
+        // The vault list is a LazyVStack sorted by name, so a new "PassY UITest ..." row is usually below the fold and
+        // not part of the accessibility tree until scrolled to; the search step below is the reliable lookup.
+        XCTAssertTrue(waitFor(app.buttons["AddItemFloatingActionButton"]), "back on the vault list")
         attach(app, "03-vault-with-item")
 
         // Search
         let search = app.searchFields.firstMatch
         search.tap(); sleep(2)
-        app.typeText(itemName)
+        // Type slowly: with a 2000-item vault the main thread is busy after each keystroke and fast typing drops characters.
+        for ch in itemName { app.typeText(String(ch)); usleep(150_000) }
         attach(app, "03-search")
         let hit = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", itemName)).firstMatch
         XCTAssertTrue(waitFor(hit), "search finds the item (search field value: \(search.value as? String ?? "nil"))")
