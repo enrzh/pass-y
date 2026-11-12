@@ -30,15 +30,28 @@ class BitwardenTabBarController: UITabBarController, TabNavigator {
     func setNavigators<Tab: Hashable & TabRepresentable>(_ tabs: [Tab: Navigator]) {
         tabsAndNavigators = tabs as? [TabRoute: Navigator] ?? [:]
 
-        viewControllers = tabs
-            .sorted { $0.key.index < $1.key.index }
-            .compactMap { tab in
-                guard let viewController = tab.value.rootViewController else { return nil }
-                viewController.tabBarItem.title = tab.key.title
-                viewController.tabBarItem.image = tab.key.image
-                viewController.tabBarItem.selectedImage = tab.key.selectedImage
-                return viewController
+        let sortedTabs = tabs.sorted { $0.key.index < $1.key.index }
+        let controllers: [(tab: Tab, controller: UIViewController)] = sortedTabs.compactMap { tab in
+            guard let viewController = tab.value.rootViewController else { return nil }
+            viewController.tabBarItem.title = tab.key.title
+            viewController.tabBarItem.image = tab.key.image
+            viewController.tabBarItem.selectedImage = tab.key.selectedImage
+            return (tab.key, viewController)
+        }
+
+        if #available(iOS 18.0, *) {
+            // Native adaptive navigation: tab bar in compact widths, sidebar on iPad / wide windows (and Mac).
+            self.tabs = controllers.map { entry in
+                UITab(
+                    title: entry.tab.title,
+                    image: entry.tab.image,
+                    identifier: "\(entry.tab.index)",
+                ) { _ in entry.controller }
             }
+            mode = .tabSidebar
+        } else {
+            viewControllers = controllers.map(\.controller)
+        }
     }
 
     // MARK: Lifecycle
