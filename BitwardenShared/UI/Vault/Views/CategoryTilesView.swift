@@ -15,7 +15,14 @@ struct CategoryTilesView: View {
     /// Called when a tile is tapped.
     let onSelect: (VaultListItem) -> Void
 
-    private let columns = [GridItem(.adaptive(minimum: 150), spacing: 12)]
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// One column for accessibility text sizes so titles and counts are never truncated or wrapped mid-word.
+    private var columns: [GridItem] {
+        dynamicTypeSize.isAccessibilitySize
+            ? [GridItem(.flexible(), spacing: 12)]
+            : [GridItem(.adaptive(minimum: 150), spacing: 12)]
+    }
 
     // MARK: View
 
@@ -61,12 +68,15 @@ private struct CategoryTile: View {
                 Text("\(count)")
                     .font(.title2.weight(.bold))
                     .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
             }
             Text(group.name)
                 .font(.headline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.leading)
-                .lineLimit(2)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(12)
