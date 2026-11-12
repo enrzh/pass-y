@@ -204,3 +204,15 @@ Still not done (UNVERIFIED): a true `NavigationSplitView`, Stage Manager window 
   (an iOS binary cannot be started outside Xcode/App Store installation), so there is no Mac window screenshot or menu check. UNVERIFIED.
 - **R1 Duo poses**: only the poses the simulator exposes were captured (portrait on the outer display, landscape on the inner display, see Round 3);
   half-folded poses and reserved regions cannot be set by `simctl`.
+
+## Native SwiftUI rewrite (in progress)
+
+Plan and inventory: `~/harness/specs/20261112-passy-swiftui-rewrite.md` (outside the repo). The views are rewritten group by group on top of the unchanged
+Store/Processor/Service layer (Bitwarden SDK untouched), with the same accessibility identifiers so the UI tests keep working.
+
+- **G1 (done): Landing and master-password Login** are now native `Form` screens (inset grouped sections, SF Symbols, system colors and fonts,
+  prominent system buttons, `SecureField` with reveal toggle):
+  ![landing light](Docs/screenshots/g1-landing-light.png) ![landing dark](Docs/screenshots/g1-landing-dark.png)
+  ![landing XXXL](Docs/screenshots/g1-landing-xxxl.png)
+- Not yet rewritten: Unlock, two-step login, registration screens, vault list/search, item view/edit, generator, send, settings, folders/collections,
+  import/export, extensions, and the UIKit coordinators (NavigationStack/NavigationSplitView).
