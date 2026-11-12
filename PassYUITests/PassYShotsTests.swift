@@ -20,6 +20,9 @@ final class PassYShotsTests: XCTestCase {
         }
         sleep(2)
         attach(app, "\(tag)-1-home")
+        XCUIDevice.shared.orientation = .landscapeLeft; sleep(2)
+        attach(app, "\(tag)-1b-home-landscape")
+        XCUIDevice.shared.orientation = .portrait; sleep(1)
         if app.staticTexts["GitHub"].exists {
             app.staticTexts["GitHub"].firstMatch.tap()
             sleep(2)
