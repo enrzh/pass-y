@@ -116,4 +116,35 @@ for f in ["BitwardenWatchApp/Assets.xcassets/BitwardenImagetype.imageset/passy-l
           "BitwardenWatchWidgetExtension/Assets.xcassets/AccentedComplicationIcon.imageset/passy-logo.pdf"] {
     write(pdf(palette: light), f)
 }
+// --- in-app wordmark (template image): key mark + "Pass-Y" text, 282x44 pt @1x/2x/3x ---
+let blackMark = Palette(bg: nil, fg: (0, 0, 0), hole: (0, 0, 0))
+func wordmark(scale: CGFloat) -> Data {
+    let w = Int(282 * scale), h = Int(44 * scale)
+    let cs = CGColorSpace(name: CGColorSpace.sRGB)!
+    let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0, space: cs,
+                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+    let markSize = CGFloat(h)
+    let font = NSFont.systemFont(ofSize: 32 * scale, weight: .bold)
+    let str = NSAttributedString(string: "Pass-Y", attributes: [.font: font, .foregroundColor: NSColor.black])
+    let textSize = str.size()
+    let gap = 10 * scale
+    let total = markSize + gap + textSize.width
+    let x0 = (CGFloat(w) - total) / 2
+    ctx.saveGState(); ctx.translateBy(x: x0, y: 0)
+    drawMark(ctx, size: markSize, palette: blackMark, punchHole: true)
+    ctx.restoreGState()
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
+    str.draw(at: NSPoint(x: x0 + markSize + gap, y: (CGFloat(h) - textSize.height) / 2))
+    NSGraphicsContext.restoreGraphicsState()
+    return NSBitmapImageRep(cgImage: ctx.makeImage()!).representation(using: .png, properties: [:])!
+}
+for dir in ["Bitwarden/Application/Support/Assets.xcassets/logoBitwarden.imageset",
+            "BitwardenShared/UI/Platform/Application/Support/Images.xcassets/logo.imageset"] {
+    write(wordmark(scale: 1), "\(dir)/logo.png"); write(wordmark(scale: 2), "\(dir)/logo@2x.png"); write(wordmark(scale: 3), "\(dir)/logo@3x.png")
+}
+// --- watch Dev/Beta sets reference their own file names; keep them identical to the main icon ---
+for set in ["AppIcon-Dev", "AppIcon-Beta"] {
+    write(png(size: 1024, palette: light), "BitwardenWatchApp/Assets.xcassets/\(set).appiconset/\(set).png")
+}
 print("logo assets written")
