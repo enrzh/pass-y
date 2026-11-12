@@ -1,10 +1,10 @@
 "ThereAreNoItemsToList" = "Walang maililistang item";
 "ToViewVerificationCodesUpgradeToPremium" = "Upang tingnan ang mga verification code, mag-upgrade sa premium";
 "Add2FactorAutenticationToAnItemToViewVerificationCodes" = "Magdagdag ng 2-factor authentication sa isang item upang tingnan ang mga verification code";
-"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Mag-log in sa Bitwarden sa iyong iPhone upang tingnan ang mga verification code";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Mag-log in sa Pass-Y sa iyong iPhone upang tingnan ang mga verification code";
 "SyncingItemsContainingVerificationCodes" = "Nag-si-sync ng mga item na naglalaman ng mga verification code";
-"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "I-unlock ang Bitwarden sa iyong iPhone upang tingnan ang mga verification code";
-"SetUpBitwardenToViewItemsContainingVerificationCodes" = "I-set up ang Bitwarden upang tingnan ang mga item na naglalaman ng mga verification code";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "I-unlock ang Pass-Y sa iyong iPhone upang tingnan ang mga verification code";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "I-set up ang Pass-Y upang tingnan ang mga item na naglalaman ng mga verification code";
 "Search" = "Maghanap";
 "NoItemsFound" = "Walang nahanap na mga item";
-"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Mag-set up ng Apple Watch passcode upang magamit ang Bitwarden";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Mag-set up ng Apple Watch passcode upang magamit ang Pass-Y";

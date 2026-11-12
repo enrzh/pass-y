@@ -1,10 +1,10 @@
 "ThereAreNoItemsToList" = "هیچ موردی برای نمایش وجود ندارد";
 "ToViewVerificationCodesUpgradeToPremium" = "برای مشاهده کدهای تأیید، به ویژه ارتقا دهید";
 "Add2FactorAutenticationToAnItemToViewVerificationCodes" = "برای مشاهده کدهای تأیید، احراز هویت دو عاملی را به یک مورد اضافه کنید";
-"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "برای مشاهده کدهای تأیید در آیفون خود وارد Bitwarden شوید";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "برای مشاهده کدهای تأیید در آیفون خود وارد Pass-Y شوید";
 "SyncingItemsContainingVerificationCodes" = "همگام‌سازی موارد حاوی کدهای تأیید";
-"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "برای مشاهده کدهای تأیید، قفل Bitwarden را در آیفون خود باز کنید";
-"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Bitwarden را برای مشاهده موارد حاوی کدهای تأیید راه‌اندازی کنید";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "برای مشاهده کدهای تأیید، قفل Pass-Y را در آیفون خود باز کنید";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Pass-Y را برای مشاهده موارد حاوی کدهای تأیید راه‌اندازی کنید";
 "Search" = "جستجو";
 "NoItemsFound" = "موردی یافت نشد";
-"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "برای استفاده از Bitwarden، رمز عبور Apple Watch را تنظیم کنید";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "برای استفاده از Pass-Y، رمز عبور Apple Watch را تنظیم کنید";

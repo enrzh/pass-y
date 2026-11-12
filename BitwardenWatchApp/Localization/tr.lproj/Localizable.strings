@@ -1,10 +1,10 @@
 "ThereAreNoItemsToList" = "Listelenecek kayıt yok";
 "ToViewVerificationCodesUpgradeToPremium" = "Doğrulama kodlarını görmek için premium'a geçin";
 "Add2FactorAutenticationToAnItemToViewVerificationCodes" = "Doğrulama kodlarını görmek istediğiniz kayda iki aşamalı doğrulama ekleyin";
-"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Doğrulama kodlarını görmek için Bitwarden'a iPhone'unuzdan giriş yapın";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Doğrulama kodlarını görmek için Pass-Y'a iPhone'unuzdan giriş yapın";
 "SyncingItemsContainingVerificationCodes" = "Doğrulama kodları içeren kayıtlar eşitleniyor";
-"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Doğrulama kodlarını görmek için iPhone'unuzda Bitwarden'ın kilidini açın";
-"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Doğrulama kodu içeren kayıtları görmek için Bitwarden'ı ayarlayın";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Doğrulama kodlarını görmek için iPhone'unuzda Pass-Y'ın kilidini açın";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Doğrulama kodu içeren kayıtları görmek için Pass-Y'ı ayarlayın";
 "Search" = "Ara";
 "NoItemsFound" = "Hiç kayıt bulunamadı";
-"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Bitwarden'ı kullanmak için Apple Watch parolasını ayarlayın";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Pass-Y'ı kullanmak için Apple Watch parolasını ayarlayın";

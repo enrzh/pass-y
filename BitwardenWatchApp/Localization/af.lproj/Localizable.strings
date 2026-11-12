@@ -1,10 +1,10 @@
 "ThereAreNoItemsToList" = "Daar is geen items om te lys nie";
 "ToViewVerificationCodesUpgradeToPremium" = "Om verifikasiekodes te sien, gradeer op na Premium";
 "Add2FactorAutenticationToAnItemToViewVerificationCodes" = "Voeg 2-faktor-verifikasie by 'n item om die verifikasiekodes te sien";
-"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Meld aan by Bitwarden op u iPhone om verifikasiekodes te sien";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Meld aan by Pass-Y op u iPhone om verifikasiekodes te sien";
 "SyncingItemsContainingVerificationCodes" = "Besig om items met verifikasiekodes te sinkroniseer";
-"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Ontsluit Bitwarden op u iPhone om verifikasiekodes te sien";
-"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Stel Bitwarden op om items met verifikasiekodes te sien";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Ontsluit Pass-Y op u iPhone om verifikasiekodes te sien";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Stel Pass-Y op om items met verifikasiekodes te sien";
 "Search" = "Soek";
 "NoItemsFound" = "Geen items gevind nie";
-"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Stel Apple Watch-slotkode op om Bitwarden te gebruik";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Stel Apple Watch-slotkode op om Pass-Y te gebruik";

@@ -1,10 +1,10 @@
 "ThereAreNoItemsToList" = "జాబితా చేయడానికి అంశాలు లేవు";
 "ToViewVerificationCodesUpgradeToPremium" = "ధృవీకరణ కోడ్‌లను చూడడానికి, ప్రీమియం‌కు అప్‌గ్రేడ్ చేయండి";
 "Add2FactorAutenticationToAnItemToViewVerificationCodes" = "ధృవీకరణ కోడ్‌లను చూడడానికి అంశానికి 2-కారకాల ధృవీకరణను జోడించండి";
-"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "ధృవీకరణ కోడ్‌లను చూడడానికి మీ iPhoneలో Bitwardenకు లాగిన్ అవ్వండి";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "ధృవీకరణ కోడ్‌లను చూడడానికి మీ iPhoneలో Pass-Yకు లాగిన్ అవ్వండి";
 "SyncingItemsContainingVerificationCodes" = "ధృవీకరణ కోడ్‌లను కలిగి ఉన్న అంశాలను సింక్ చేస్తోంది";
-"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "ధృవీకరణ కోడ్‌లను చూడడానికి మీ iPhoneలో Bitwardenను అన్లాక్ చేయండి";
-"SetUpBitwardenToViewItemsContainingVerificationCodes" = "ధృవీకరణ కోడ్‌లను కలిగి ఉన్న అంశాలను చూడడానికి Bitwardenను సెటప్ చేయండి";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "ధృవీకరణ కోడ్‌లను చూడడానికి మీ iPhoneలో Pass-Yను అన్లాక్ చేయండి";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "ధృవీకరణ కోడ్‌లను కలిగి ఉన్న అంశాలను చూడడానికి Pass-Yను సెటప్ చేయండి";
 "Search" = "శోధించు";
 "NoItemsFound" = "అంశాలు కనుగొనబడలేదు";
-"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Bitwarden ఉపయోగించడానికి Apple Watch పాస్‌కోడ్ సెటప్ చేయండి";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Pass-Y ఉపయోగించడానికి Apple Watch పాస్‌కోడ్ సెటప్ చేయండి";

@@ -1,10 +1,10 @@
 "ThereAreNoItemsToList" = "Det er ingen elementer å liste";
 "ToViewVerificationCodesUpgradeToPremium" = "For å se verifiseringskoder, oppgrader til Premium";
 "Add2FactorAutenticationToAnItemToViewVerificationCodes" = "Legg til tofaktorautentisering på et element for å se verifiseringskodene";
-"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Logg inn på Bitwarden på iPhone for å se verifiseringskoder";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Logg inn på Pass-Y på iPhone for å se verifiseringskoder";
 "SyncingItemsContainingVerificationCodes" = "Synkroniserer elementer som inneholder verifiseringskoder";
-"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Lås opp Bitwarden på iPhone for å se verifiseringskoder";
-"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Sett opp Bitwarden for å se elementer som inneholder verifiseringskoder";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Lås opp Pass-Y på iPhone for å se verifiseringskoder";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Sett opp Pass-Y for å se elementer som inneholder verifiseringskoder";
 "Search" = "Søk";
 "NoItemsFound" = "Ingen gjenstander ble funnet";
-"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Sett opp Apple Watch-kode for å bruke Bitwarden";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Sett opp Apple Watch-kode for å bruke Pass-Y";

@@ -1,10 +1,10 @@
 "ThereAreNoItemsToList" = "Neexistujú žiadne položky na zobrazenie";
 "ToViewVerificationCodesUpgradeToPremium" = "Ak chcete zobraziť overovacie kódy, prejdite na prémium";
 "Add2FactorAutenticationToAnItemToViewVerificationCodes" = "Ak chcete zobraziť overovacie kódy, pridajte k položke dvojfaktorové overenie";
-"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Prihláste sa do Bitwardenu na iPhone a zobrazte si overovacie kódy";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Prihláste sa do Pass-Yu na iPhone a zobrazte si overovacie kódy";
 "SyncingItemsContainingVerificationCodes" = "Synchronizácia položiek obsahujúcich overovacie kódy";
-"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Ak chcete zobraziť overovacie kódy, odomknite na svojom iPhone Bitwarden";
-"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Nastavte Bitwarden na zobrazenie položiek obsahujúcich overovacie kódy";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Ak chcete zobraziť overovacie kódy, odomknite na svojom iPhone Pass-Y";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Nastavte Pass-Y na zobrazenie položiek obsahujúcich overovacie kódy";
 "Search" = "Hladať";
 "NoItemsFound" = "Nenašli sa žiadne položky";
-"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Ak chcete používať Bitwarden, nastavte prístupový kód Apple Watch";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Ak chcete používať Pass-Y, nastavte prístupový kód Apple Watch";
