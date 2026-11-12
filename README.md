@@ -215,5 +215,6 @@ Store/Processor/Service layer (Bitwarden SDK untouched), with the same accessibi
   ![landing light](Docs/screenshots/g1-landing-light.png) ![landing dark](Docs/screenshots/g1-landing-dark.png)
   ![landing XXXL](Docs/screenshots/g1-landing-xxxl.png)
 - **G1b (done): Unlock** (master password or PIN) is a native `Form` too: ![unlock](Docs/screenshots/g1b-unlock.png)
+- **G2-lite (done): vault list rows** use SF Symbols (ellipsis, copy), 44 pt targets and pointer hover; the vault list ViewInspector tests were updated for category tiles vs folder rows. The list itself is still the custom tile + lazy rows layout, not a `List`.
 - Not yet rewritten: two-step login, registration screens, vault list/search, item view/edit, generator, send, settings, folders/collections,
   import/export, extensions, and the UIKit coordinators (NavigationStack/NavigationSplitView).
