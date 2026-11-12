@@ -96,6 +96,14 @@ class CipherListViewModel: ObservableObject {
     }
 
     func fetchCiphers() {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-passyDemoCodes") {
+            currentState = .valid
+            showingSheet = false
+            DispatchQueue.main.async { self.ciphers = CipherMock.ciphers }
+            return
+        }
+        #endif
         let c = cipherService.fetchCiphers(user?.id)
         DispatchQueue.main.async {
             self.ciphers = c
