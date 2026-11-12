@@ -49,6 +49,8 @@ class BitwardenTabBarController: UITabBarController, TabNavigator {
                 ) { _ in entry.controller }
             }
             mode = .tabSidebar
+            // The tab providers are lazy; resolve them now so `viewControllers` (used by `navigator(for:)`) is populated.
+            self.tabs.forEach { _ = $0.viewController }
         } else {
             viewControllers = controllers.map(\.controller)
         }
