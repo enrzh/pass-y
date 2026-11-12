@@ -164,3 +164,19 @@ Still not done (UNVERIFIED): iPad/Mac `NavigationSplitView` master-detail (the v
 split view needs that layer rewritten), Cmd+F focusing the search field (`.searchable` has no programmatic focus on the iOS 15 deployment
 target), Stage Manager window sizes, pointer hover polish, and running/screenshotting on the Mac ("Designed for iPad" needs an
 interactive session with the Accessibility permission, which was not changed).
+
+## Round 4
+
+- **R1 two-column layout (iPad, wide windows)**: on containers at least 900 pt wide (measured from the container, not the device idiom) the vault
+  list shows the category tiles as a single-column sidebar next to the item list, instead of tiles on top. This is a thin SwiftUI layout change
+  inside the existing vault list view, not a UIKit `UISplitViewController`/`NavigationSplitView` replacement of the coordinators.
+  ![iPad portrait](Docs/screenshots/r1-ipad-pro13-portrait-two-column.png)
+  ![iPad landscape](Docs/screenshots/r1-ipad-pro13-landscape-two-column.png)
+- **Cmd+F** (menu "Vault > Search") focuses the system search field of the front window; tiles have a pointer hover highlight.
+  Both were only code-reviewed and built, not exercised with a hardware keyboard or pointer.
+- **R3 Mac**: `xcodebuild test -destination 'platform=macOS,variant=Designed for iPad' -only-testing:BitwardenTests` starts the app as an iOS process on
+  macOS (the log shows `Bitwarden.app` loading `/System/iOSSupport` accessibility bundles), but the XCTest bundle fails to load `SnapshotTesting.framework`
+  under the Mac sandbox, so the run fails and there is no window screenshot. The app on the Mac is therefore only partly verified.
+- **iPhone Air**: `devicectl` reports the device as `unavailable`, so the device build was not refreshed in this round.
+
+Still not done (UNVERIFIED): a true `NavigationSplitView`, Stage Manager window sizes, keyboard/pointer behavior at runtime, a Mac window screenshot.
