@@ -64,4 +64,16 @@ final class PassYPerfTests: XCTestCase {
         }
         report("search_exact_1999", values)
     }
+
+    /// XCTest metrics (clock, CPU time, peak memory) while scrolling a large vault; XCTest prints the averages in the log.
+    func test_perf_scrollMetrics() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        _ = waitFor(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Perf Item'")).firstMatch, timeout: 60)
+        let options = XCTMeasureOptions(); options.iterationCount = 3
+        measure(metrics: [XCTClockMetric(), XCTCPUMetric(application: app), XCTMemoryMetric(application: app)], options: options) {
+            for _ in 0 ..< 5 { app.swipeUp(velocity: .fast) }
+            for _ in 0 ..< 5 { app.swipeDown(velocity: .fast) }
+        }
+    }
 }
