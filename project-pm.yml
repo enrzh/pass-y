@@ -148,6 +148,14 @@ schemes:
     test:
       targets:
         - PassYUITests
+  BitwardenWatchApp:
+    build:
+      targets:
+        BitwardenWatchApp: all
+  BitwardenWatchWidgetExtension:
+    build:
+      targets:
+        BitwardenWatchWidgetExtension: all
 targets:
   PassYUITests:
     type: bundle.ui-testing
@@ -187,6 +195,7 @@ targets:
       - target: BitwardenAutoFillExtension
       - target: BitwardenNotificationExtension
       - target: BitwardenShareExtension
+      - target: BitwardenWatchApp
       - target: BitwardenKit/AuthenticatorBridgeKit
       - target: BitwardenKit/BitwardenKit
       - target: BitwardenKit/BitwardenResources
@@ -492,3 +501,32 @@ targets:
       - package: BitwardenSdk
       - package: ViewInspector
     randomExecutionOrder: true
+
+  BitwardenWatchApp:
+    type: application
+    platform: watchOS
+    deploymentTarget: 9.0
+    configFiles:
+      Debug: Configs/BitwardenWatchApp-Debug.xcconfig
+      Release: Configs/BitwardenWatchApp-Release.xcconfig
+    settings:
+      base:
+        INFOPLIST_FILE: BitwardenWatchApp/Info.plist
+    sources:
+      - path: BitwardenWatchApp
+      - path: BitwardenWatchShared
+    dependencies:
+      - target: BitwardenWatchWidgetExtension
+
+  BitwardenWatchWidgetExtension:
+    type: app-extension
+    platform: watchOS
+    deploymentTarget: 9.0
+    configFiles:
+      Debug: Configs/BitwardenWatchWidgetExtension.xcconfig
+      Release: Configs/BitwardenWatchWidgetExtension.xcconfig
+    settings:
+      base:
+        INFOPLIST_FILE: BitwardenWatchWidgetExtension/Application/Support/Info.plist
+    sources:
+      - path: BitwardenWatchWidgetExtension

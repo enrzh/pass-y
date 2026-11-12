@@ -1,0 +1,10 @@
+"ThereAreNoItemsToList" = "Nema stavki za prikaz";
+"ToViewVerificationCodesUpgradeToPremium" = "Za pregled verifikacijskih kodova nadogradite na Premium";
+"Add2FactorAutenticationToAnItemToViewVerificationCodes" = "Dodajte dvofaktorsku autentifikaciju na stavku za pregled verifikacijskih kodova";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Prijavite se na Bitwarden na svom iPhone-u za pregled verifikacijskih kodova";
+"SyncingItemsContainingVerificationCodes" = "Sinhronizacija stavki koje sadrže verifikacijske kodove";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Otključajte Bitwarden na svom iPhone-u za pregled verifikacijskih kodova";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Postavite Bitwarden za pregled stavki koje sadrže verifikacijske kodove";
+"Search" = "Pretraga";
+"NoItemsFound" = "Nema pronađenih stavki";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Postavite lozinku za Apple Watch da biste koristili Bitwarden";

@@ -1,0 +1,10 @@
+"ThereAreNoItemsToList" = "გამოსატანი ჩანაწერები არ არის";
+"ToViewVerificationCodesUpgradeToPremium" = "დადასტურების კოდების სანახავად, განაახლეთ premium-ზე";
+"Add2FactorAutenticationToAnItemToViewVerificationCodes" = "დადასტურების კოდების სანახავად, დაამატეთ 2-ფაქტორიანი ავთენტიფიკაცია ჩანაწერს";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "დადასტურების კოდების სანახავად, შედით Bitwarden-ში თქვენს iPhone-ზე";
+"SyncingItemsContainingVerificationCodes" = "დადასტურების კოდების შემცველი ჩანაწერების სინქრონიზაცია";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "დადასტურების კოდების სანახავად, განბლოკეთ Bitwarden თქვენს iPhone-ზე";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "დადასტურების კოდების შემცველი ჩანაწერების სანახავად, დააყენეთ Bitwarden";
+"Search" = "ძიება";
+"NoItemsFound" = "ჩანაწერები ვერ მოიძებნა";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Bitwarden-ის გამოსაყენებლად, დააყენეთ Apple Watch-ის პაროლი";

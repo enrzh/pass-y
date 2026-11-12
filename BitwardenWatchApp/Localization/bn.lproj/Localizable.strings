@@ -1,0 +1,10 @@
+"ThereAreNoItemsToList" = "তালিকাভুক্ত করার মতো কোনও আইটেম নেই";
+"ToViewVerificationCodesUpgradeToPremium" = "যাচাইকরণ কোড দেখতে, প্রিমিয়ামে আপগ্রেড করুন";
+"Add2FactorAutenticationToAnItemToViewVerificationCodes" = "যাচাইকরণ কোড দেখতে একটি আইটেমে 2-ফ্যাক্টর প্রমাণীকরণ যোগ করুন";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "যাচাইকরণ কোড দেখতে আপনার iPhone-এ Bitwarden-এ লগ ইন করুন";
+"SyncingItemsContainingVerificationCodes" = "যাচাইকরণ কোড রয়েছে এমন আইটেম সিঙ্ক করা হচ্ছে";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "যাচাইকরণ কোড দেখতে আপনার iPhone-এ Bitwarden আনলক করুন";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "যাচাইকরণ কোড রয়েছে এমন আইটেম দেখতে Bitwarden সেট আপ করুন";
+"Search" = "অনুসন্ধান";
+"NoItemsFound" = "কোনও আইটেম পাওয়া যায়নি";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Bitwarden ব্যবহার করার জন্য Apple Watch পাসকোড সেট আপ করুন";
