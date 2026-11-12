@@ -241,4 +241,6 @@ on cipher rows, pointer hover on rows) instead of a custom scroll view with a la
 results screen still uses the previous lazy stack. The wide two-column sidebar layout of Round 4 was dropped in favor of the system list on iPad.
 ![vault list dark](Docs/screenshots/stepb-vault-list-dark.png)
 Tests: vault list and row ViewInspector tests (37 executed, 3 skipped, 0 failures), UI tests test02/03/04/07 green (test07 once failed in a combined run and passed alone).
-Not done: `searchable` results as `List`, Cmd+F runtime check, the SwiftUI navigation shell (Step A).
+
+**Step B2:** the search results are a `List` as well. This exposed a bug in the first List version: a row with several default-style buttons fires all of them on one tap (opening the item and the More menu together). The row buttons now use `.plain` style so only the tapped action fires; `test03_createSearchEditDelete` (create, search, edit, delete) is green again.
+Not done: Cmd+F runtime check, the SwiftUI navigation shell (Step A), no UI regression test for tapping a row of the main (non-search) list yet.
