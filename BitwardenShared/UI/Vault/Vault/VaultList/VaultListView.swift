@@ -23,9 +23,6 @@ private struct SearchableVaultListView: View {
     /// The `TimeProvider` used to calculate TOTP expiration.
     var timeProvider: any TimeProvider
 
-    /// The measured width of the vault content container.
-    @SwiftUI.State private var containerWidth: CGFloat = 0
-
     var body: some View {
         // A ZStack with hidden children is used here so that opening and closing the
         // search interface does not reset the scroll position for the main vault
@@ -250,67 +247,88 @@ private struct SearchableVaultListView: View {
         return (tileItems, listSections)
     }
 
-    /// A view that displays the main vault interface, including sections for groups and
-    /// vault items.
+    /// The vault as a native inset-grouped `List`: action card, vault filter, category tiles and one collapsible section per
+    /// group of items. Rows get a "More" swipe action and pointer hover.
     ///
     /// - Parameter sections: The sections of the vault list to display.
     ///
     @ViewBuilder
     private func vaultContents(with sections: [VaultListSection]) -> some View {
         let (tileItems, listSections) = Self.splitTiles(sections)
-
-        // Wide containers (iPad, Duo inner display, Stage Manager windows, Mac): a two-column layout with the
-        // category tiles as a sidebar next to the item list, measured from the container width only.
-        let isWide = containerWidth >= 900
-        VStack(spacing: 20) {
-            actionCard
-
-            vaultFilterRow
-
-            if isWide {
-                HStack(alignment: .top, spacing: 24) {
-                    if !tileItems.isEmpty {
-                        CategoryTilesView(items: tileItems, singleColumn: true) { item in
-                            Task { await store.perform(.itemPressed(item)) }
-                        }
-                        .frame(width: 300)
-                    }
-                    VStack(spacing: 20) { sectionList(listSections) }
+        List {
+            if store.state.activeActionCard != nil, store.state.activeActionCard != .introducingArchive {
+                Section {
+                    actionCard
                 }
-            } else {
-                if !tileItems.isEmpty {
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
+
+            Section {
+                vaultFilterRow
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+
+            if !tileItems.isEmpty {
+                Section {
                     CategoryTilesView(items: tileItems) { item in
                         Task { await store.perform(.itemPressed(item)) }
                     }
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowBackground(Color.clear)
                 }
-                sectionList(listSections)
             }
-        }
-        .readableContentWidth(isWide ? 1100 : 720)
-        .background(
-            GeometryReader { proxy in
-                Color.clear.onAppear { containerWidth = proxy.size.width }
-                    .onChange(of: proxy.size.width) { containerWidth = $0 }
-            },
-        )
-        .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
-        .scrollView()
-    }
 
-    /// The item sections of the vault list.
-    @ViewBuilder
-    private func sectionList(_ listSections: [VaultListSection]) -> some View {
-        ForEach(listSections) { section in
-            VaultListSectionView(
-                section: section,
-                isExpanded: store.binding(
-                    get: { !$0.collapsedSectionIds.contains(section.id) },
-                    send: { .sectionExpandToggled(sectionId: section.id, isExpanded: $0) },
-                ),
-            ) { item in
-                vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
+            ForEach(listSections) { section in
+                let isExpanded = !store.state.collapsedSectionIds.contains(section.id)
+                Section {
+                    if isExpanded {
+                        ForEach(section.items) { item in
+                            vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
+                                .listRowInsets(EdgeInsets())
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    if case .cipher = item.itemType {
+                                        Button {
+                                            Task { await store.perform(.morePressed(item)) }
+                                        } label: {
+                                            Label(Localizations.moreOptions, systemImage: "ellipsis")
+                                        }
+                                        .tint(.gray)
+                                    }
+                                }
+                        }
+                    }
+                } header: {
+                    Button {
+                        store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
+                    } label: {
+                        HStack {
+                            Text(section.name)
+                            Spacer()
+                            Text("\(section.items.count)")
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.footnote.weight(.semibold))
+                        }
+                        .textCase(nil)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("SectionExpandButton_\(section.id)")
+                    .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
+                }
+            }
+
+            // Space below the last row so the floating action button never covers it.
+            Section {
+                Color.clear
+                    .frame(height: FloatingActionButton.bottomOffsetPadding)
+                    .listRowBackground(Color.clear)
+                    .accessibilityHidden(true)
             }
         }
+        .listStyle(.insetGrouped)
     }
 
     /// Creates a row in the list for the provided item.
