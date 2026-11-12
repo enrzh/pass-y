@@ -446,6 +446,9 @@ extension VaultListProcessor {
 
     /// Entry point to handling things around push notifications.
     private func handleNotifications() async {
+        // Pass-Y has no push relay (Vaultwarden push depends on Bitwarden's own cloud service), so it never
+        // asks for notification permission and never registers for remote notifications.
+        guard Constants.isPushRegistrationEnabled else { return }
         switch await services.notificationService.notificationAuthorization() {
         case .notDetermined:
             await requestNotificationPermissions()

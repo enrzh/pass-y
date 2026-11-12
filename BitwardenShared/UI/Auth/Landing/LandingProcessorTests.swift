@@ -33,7 +33,8 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         errorReporter = MockErrorReporter()
         stateService = MockStateService()
 
-        let state = LandingState()
+        var state = LandingState()
+        state.serverHost = "vault.example.com"
         let services = ServiceContainer.withMocks(
             appSettingsStore: appSettingsStore,
             authRepository: authRepository,
@@ -96,9 +97,9 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
     @MainActor
     func test_didSaveEnvironment_empty() async {
         stateService.preAuthEnvironmentURLs = EnvironmentURLData()
-        subject.state.region = .unitedStates
+        subject.state.region = .europe
         await subject.didSaveEnvironment(urls: EnvironmentURLData())
-        XCTAssertEqual(subject.state.region, .unitedStates)
+        XCTAssertEqual(subject.state.region, .europe)
         XCTAssertNil(environmentService.setPreAuthEnvironmentURLsData)
     }
 
@@ -168,12 +169,23 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertFalse(subject.state.isCreateAccountButtonHidden)
     }
 
-    /// `perform(.appeared)` with no pre-auth URLs defaults the region and URLs to the US environment.
+    /// `perform(.appeared)` with no pre-auth URLs leaves no server configured and asks for one once.
     @MainActor
     func test_perform_appeared_loadsRegion_noPreAuthUrls() async {
         await subject.perform(.appeared)
-        XCTAssertEqual(subject.state.region, .unitedStates)
-        XCTAssertEqual(environmentService.setPreAuthEnvironmentURLsData, .defaultUS)
+        XCTAssertEqual(subject.state.region, .selfHosted)
+        XCTAssertNil(subject.state.serverHost)
+        XCTAssertNil(environmentService.setPreAuthEnvironmentURLsData)
+        XCTAssertEqual(coordinator.routes.last, .selfHosted(currentRegion: .selfHosted))
+    }
+
+    /// `perform(.continuePressed)` without a configured server opens the server settings.
+    @MainActor
+    func test_perform_continuePressed_noServer() async {
+        subject.state.serverHost = nil
+        subject.state.email = "email@example.com"
+        await subject.perform(.continuePressed)
+        XCTAssertEqual(coordinator.routes.last, .selfHosted(currentRegion: .selfHosted))
     }
 
     /// `perform(.appeared)` with EU pre-auth URLs sets the state to the EU region and sets the
@@ -626,104 +638,12 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertTrue(subject.state.isContinueButtonEnabled)
     }
 
-    /// `perform(_:)` with `.regionPressed` shows US, EU, Self-Hosted — Gov is excluded by default.
+    /// `perform(_:)` with `.regionPressed` goes straight to the self-hosted server settings.
     @MainActor
-    func test_perform_regionPressed() async throws {
+    func test_perform_regionPressed() async {
         await subject.perform(.regionPressed)
-
-        var alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, Localizations.loggingInOn)
-        XCTAssertNil(alert.message)
-        XCTAssertEqual(alert.alertActions.count, 4) // US + EU + Self-Hosted + Cancel (no Gov)
-        XCTAssertNil(alert.alertActions.first(where: { $0.title == "bitwarden-gov.com" }))
-
-        XCTAssertEqual(alert.alertActions[0].title, "bitwarden.com")
-        try await alert.tapAction(title: "bitwarden.com")
-        XCTAssertEqual(subject.state.region, .unitedStates)
-
-        await subject.perform(.regionPressed)
-        alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.alertActions[1].title, "bitwarden.eu")
-        try await alert.tapAction(title: "bitwarden.eu")
-        XCTAssertEqual(subject.state.region, .europe)
-
-        await subject.perform(.regionPressed)
-        alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.selfHosted)
-        try await alert.tapAction(title: Localizations.selfHosted)
-        XCTAssertEqual(coordinator.routes.last, .selfHosted(currentRegion: .europe))
-    }
-
-    /// `perform(_:)` with `.regionPressed` includes Gov when `fedrampGovRegion` is enabled
-    /// and the cached config matches the current region.
-    @MainActor
-    func test_perform_regionPressed_fedrampGovRegionEnabled() async throws {
-        stateService.preAuthEnvironmentURLs = .defaultUS
-        configService.configMocker.withResult(
-            ServerConfig(
-                date: Date(),
-                responseModel: ConfigResponseModel(
-                    communication: nil,
-                    environment: EnvironmentServerConfigResponseModel(
-                        api: nil,
-                        cloudRegion: nil,
-                        fillAssistRules: nil,
-                        identity: nil,
-                        notifications: nil,
-                        sso: nil,
-                        vault: "https://vault.bitwarden.com",
-                    ),
-                    featureStates: [:],
-                    gitHash: nil,
-                    server: nil,
-                    version: "2025.1.0",
-                ),
-            ),
-        )
-        configService.featureFlagsBoolPreAuth[.fedrampGovRegion] = true
-
-        await subject.perform(.regionPressed)
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.alertActions.count, 5)
-        XCTAssertEqual(alert.alertActions[2].title, "bitwarden-gov.com")
-        try await alert.tapAction(title: "bitwarden-gov.com")
-        XCTAssertEqual(subject.state.region, .gov)
-    }
-
-    /// `perform(_:)` with `.regionPressed` excludes Gov when `fedrampGovRegion` is enabled
-    /// but the cached config belongs to a different region (stale cache).
-    @MainActor
-    func test_perform_regionPressed_fedrampGovRegionEnabled_staleConfig() async throws {
-        stateService.preAuthEnvironmentURLs = .defaultUS
-        configService.configMocker.withResult(
-            ServerConfig(
-                date: Date(),
-                responseModel: ConfigResponseModel(
-                    communication: nil,
-                    environment: EnvironmentServerConfigResponseModel(
-                        api: nil,
-                        cloudRegion: nil,
-                        fillAssistRules: nil,
-                        identity: nil,
-                        notifications: nil,
-                        sso: nil,
-                        vault: "https://vault.bitwarden.eu",
-                    ),
-                    featureStates: [:],
-                    gitHash: nil,
-                    server: nil,
-                    version: "2025.1.0",
-                ),
-            ),
-        )
-        configService.featureFlagsBoolPreAuth[.fedrampGovRegion] = true
-
-        await subject.perform(.regionPressed)
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.alertActions.count, 4)
-        XCTAssertNil(alert.alertActions.first(where: { $0.title == "bitwarden-gov.com" }))
+        XCTAssertEqual(coordinator.routes.last, .selfHosted(currentRegion: .selfHosted))
+        XCTAssertTrue(coordinator.alertShown.isEmpty)
     }
 
     /// `receive(_:)` with `.rememberMeChanged(true)` updates the state to reflect the changes.

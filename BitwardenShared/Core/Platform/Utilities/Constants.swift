@@ -20,6 +20,9 @@ extension Constants {
     /// The default generated username if there isn't enough information to generate a username.
     static let defaultGeneratedUsername = "-"
 
+    /// Whether the app registers for push notifications. Disabled in Pass-Y: push needs Bitwarden's cloud relay.
+    nonisolated(unsafe) static var isPushRegistrationEnabled = false
+
     /// The URL for the web vault if the user account doesn't have one specified.
     static let defaultWebVaultHost = EnvironmentURLData.unconfiguredHost
 

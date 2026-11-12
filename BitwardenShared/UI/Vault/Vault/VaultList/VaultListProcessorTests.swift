@@ -52,6 +52,7 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
 
     override func setUp() { // swiftlint:disable:this function_body_length
         super.setUp()
+        Constants.isPushRegistrationEnabled = true
 
         application = MockApplication()
         authRepository = MockAuthRepository()
@@ -123,6 +124,7 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
 
     override func tearDown() {
         super.tearDown()
+        Constants.isPushRegistrationEnabled = false
 
         authRepository = nil
         authService = nil

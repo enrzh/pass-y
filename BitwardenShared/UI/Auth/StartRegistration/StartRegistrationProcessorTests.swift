@@ -48,7 +48,7 @@ class StartRegistrationProcessorTests: BitwardenTestCase { // swiftlint:disable:
                 httpClient: client,
                 stateService: stateService,
             ),
-            state: StartRegistrationState(),
+            state: .fixture(isReceiveMarketingToggleOn: false, region: .selfHosted),
         )
     }
 
@@ -66,32 +66,20 @@ class StartRegistrationProcessorTests: BitwardenTestCase { // swiftlint:disable:
 
     // MARK: Tests
 
-    /// `perform(_:)` with `.regionTapped` shows US, EU, Self-Hosted — Gov is excluded.
+    /// `perform(_:)` with `.regionTapped` goes straight to the self-hosted server settings.
     @MainActor
-    func test_perform_regionTapped() async throws {
+    func test_perform_regionTapped() async {
         await subject.perform(.regionTapped)
+        XCTAssertEqual(coordinator.routes.last, .selfHosted(currentRegion: .selfHosted))
+        XCTAssertTrue(coordinator.alertShown.isEmpty)
+    }
 
-        var alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, Localizations.creatingOn)
-        XCTAssertNil(alert.message)
-        XCTAssertEqual(alert.alertActions.count, 4) // US + EU + Self-Hosted + Cancel (no Gov)
-        XCTAssertNil(alert.alertActions.first(where: { $0.title == "bitwarden-gov.com" }))
-
-        XCTAssertEqual(alert.alertActions[0].title, "bitwarden.com")
-        try await alert.tapAction(title: "bitwarden.com")
-        XCTAssertEqual(subject.state.region, .unitedStates)
-
-        await subject.perform(.regionTapped)
-        alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.alertActions[1].title, "bitwarden.eu")
-        try await alert.tapAction(title: "bitwarden.eu")
-        XCTAssertEqual(subject.state.region, .europe)
-
-        await subject.perform(.regionTapped)
-        alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.selfHosted)
-        try await alert.tapAction(title: Localizations.selfHosted)
-        XCTAssertEqual(coordinator.routes.last, .selfHosted(currentRegion: .europe))
+    /// `perform(.startRegistration)` without a configured server opens the server settings.
+    @MainActor
+    func test_startRegistration_noServer() async {
+        subject.state = .fixture(serverHost: nil)
+        await subject.perform(.startRegistration)
+        XCTAssertEqual(coordinator.routes.last, .selfHosted(currentRegion: .selfHosted))
     }
 
     /// `perform(.startRegistration)` skips the restricted alert when `environment.vault` is nil —

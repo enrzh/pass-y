@@ -140,7 +140,28 @@ schemes:
         - path: TestPlans/Bitwarden-Unit.xctestplan
         - path: TestPlans/Bitwarden-Snapshot.xctestplan
         - path: TestPlans/Bitwarden-ViewInspector.xctestplan
+  PassYUITests:
+    build:
+      targets:
+        Bitwarden: all
+        PassYUITests: [test]
+    test:
+      targets:
+        - PassYUITests
 targets:
+  PassYUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: PassYUITests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: de.aiity.passy.uitests
+        TEST_TARGET_NAME: Bitwarden
+        DEVELOPMENT_TEAM: H8FW6W6K2D
+    dependencies:
+      - target: Bitwarden
   Bitwarden:
     type: application
     platform: iOS

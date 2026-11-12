@@ -10,12 +10,15 @@ extension StartRegistrationState {
         isReceiveMarketingToggleOn: Bool = true,
         nameText: String = "name",
         region: RegionType = .unitedStates,
+        serverHost: String? = "vault.example.com",
     ) -> Self {
-        StartRegistrationState(
+        var state = StartRegistrationState(
             emailText: emailText,
             isReceiveMarketingToggleOn: isReceiveMarketingToggleOn,
             nameText: nameText,
             region: region,
         )
+        state.serverHost = serverHost
+        return state
     }
 }

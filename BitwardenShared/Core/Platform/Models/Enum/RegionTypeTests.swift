@@ -52,17 +52,17 @@ class RegionTypeTests: BitwardenTestCase {
         XCTAssertEqual(RegionType.unitedStates.errorReporterName, "US")
     }
 
-    /// `getter:isUserSelectable` is true for the user-facing regions and false for internal.
+    /// `getter:isUserSelectable` is only true for self-hosted (Pass-Y has no cloud regions).
     func test_isUserSelectable() {
-        XCTAssertTrue(RegionType.europe.isUserSelectable)
-        XCTAssertTrue(RegionType.gov.isUserSelectable)
+        XCTAssertFalse(RegionType.europe.isUserSelectable)
+        XCTAssertFalse(RegionType.gov.isUserSelectable)
         XCTAssertFalse(RegionType.internal.isUserSelectable)
         XCTAssertTrue(RegionType.selfHosted.isUserSelectable)
-        XCTAssertTrue(RegionType.unitedStates.isUserSelectable)
+        XCTAssertFalse(RegionType.unitedStates.isUserSelectable)
     }
 
     /// `userSelectableCases` returns the user-facing regions in display order, excluding internal.
     func test_userSelectableCases() {
-        XCTAssertEqual(RegionType.userSelectableCases, [.unitedStates, .europe, .gov, .selfHosted])
+        XCTAssertEqual(RegionType.userSelectableCases, [.selfHosted])
     }
 }

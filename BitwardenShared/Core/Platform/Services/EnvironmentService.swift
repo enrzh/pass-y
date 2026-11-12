@@ -76,7 +76,13 @@ class DefaultEnvironmentService: EnvironmentService {
             urls = .unconfigured
         }
 
-        await setPreAuthURLs(urls: managedSettingsURLs ?? urls)
+        let preAuthURLs = managedSettingsURLs ?? urls
+        if preAuthURLs.isUnconfigured {
+            // Nothing to persist until the user has entered a server.
+            environmentURLs = EnvironmentURLs(environmentURLData: urls)
+        } else {
+            await setPreAuthURLs(urls: preAuthURLs)
+        }
         currentClientCertificateFingerprint = urls.clientCertificateFingerprint
         environmentURLs = EnvironmentURLs(environmentURLData: urls)
 
