@@ -59,3 +59,13 @@ In the app choose server `http://localhost:8088` (simulator only).
 ## Branding assets
 
 `swift Scripts-passy/generate_branding.swift .` regenerates the icon and wordmark.
+
+## Tests
+
+- Unit tests (`Bitwarden-Unit` plan): 5855 XCTest + 724 Swift Testing cases green (upstream baseline: 5859 XCTest, 0 failures;
+  the difference is removed/rewritten cloud-region tests).
+- UI tests (`PassYUITests`, XCUITest, need the throwaway Vaultwarden above): landing/server-first, login + sync,
+  TOTP create/view, generator, settings (no upsell), lock/unlock, dark mode and AX-XXXL Dynamic Type screenshots.
+  The create/search/edit/delete test (`test03_createSearchEditDelete`) is currently **not green**: after saving, the item
+  list did not show the new item within the timeout in the test runner (the same flow works manually/in the TOTP test).
+- Not verifiable in the simulator: Face ID, real AutoFill in other apps, passkeys on a device, push (disabled).
