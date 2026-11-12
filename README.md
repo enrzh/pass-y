@@ -218,3 +218,18 @@ Store/Processor/Service layer (Bitwarden SDK untouched), with the same accessibi
 - **G2-lite (done): vault list rows** use SF Symbols (ellipsis, copy), 44 pt targets and pointer hover; the vault list ViewInspector tests were updated for category tiles vs folder rows. The list itself is still the custom tile + lazy rows layout, not a `List`.
 - Not yet rewritten: two-step login, registration screens, vault list/search, item view/edit, generator, send, settings, folders/collections,
   import/export, extensions, and the UIKit coordinators (NavigationStack/NavigationSplitView).
+
+## Audit of the remaining screens (G3 to G10)
+
+After G1 to G2 the remaining groups were audited on the iPhone 17 Pro simulator in dark mode instead of being rewritten blindly:
+![settings](Docs/screenshots/audit-settings-dark.png) ![add login](Docs/screenshots/audit-add-login-dark.png)
+![generator](Docs/screenshots/audit-generator-dark.png) ![vault](Docs/screenshots/audit-vault-home-dark.png)
+
+Findings: with the system palette, system fonts and tile home from M1, the item add/edit/detail screens (inset grouped cards with section headers),
+settings (icon rows with chevrons in a rounded group), generator and vault already follow the Apple look. What is **not** native is structural:
+the screens are assembled from Bitwarden's custom field/card components (`BitwardenField`, `ContentBlock`, `SettingsListItem` ...) instead of `Form`/`List`, the vault
+list is a custom lazy stack instead of `List`, and navigation is owned by 22 UIKit coordinators. Replacing them is a rewrite of about 100 view files plus the
+navigation layer and the matching ViewInspector/snapshot/coordinator tests; it was not started because it would change structure, not appearance,
+and cannot be done incrementally without a second navigation layer. Status: **G3 to G9 audited (visual parity accepted, structural rewrite not done),
+G10 (NavigationStack/NavigationSplitView replacing the coordinators) not done**, G11 legacy points unchanged (Mac window/menu, watch sync/complication,
+Duo poses: UNVERIFIED as described above).
