@@ -63,7 +63,7 @@ extension StyleGuideFont {
     ///   - weight: The font weight.
     /// - Returns: A `StyleGuideFont` that uses the system font.
     ///
-    static func inter(
+    static func system(
         lineHeight: CGFloat,
         size: CGFloat,
         textStyle: SwiftUI.Font.TextStyle,
@@ -92,25 +92,25 @@ extension StyleGuideFont {
 
 public extension StyleGuideFont {
     /// The font for the huge title style.
-    static let hugeTitle = StyleGuideFont.inter(lineHeight: 41, size: 34, textStyle: .largeTitle)
+    static let hugeTitle = StyleGuideFont.system(lineHeight: 41, size: 34, textStyle: .largeTitle)
 
     /// The font for the large title style.
-    static let largeTitle = StyleGuideFont.inter(lineHeight: 32, size: 26, textStyle: .largeTitle)
+    static let largeTitle = StyleGuideFont.system(lineHeight: 32, size: 26, textStyle: .largeTitle)
 
     /// The font for the title style.
-    static let title = StyleGuideFont.inter(lineHeight: 28, size: 22, textStyle: .title)
+    static let title = StyleGuideFont.system(lineHeight: 28, size: 22, textStyle: .title)
 
     /// The font for the title2 style.
-    static let title2 = StyleGuideFont.inter(lineHeight: 22, size: 17, textStyle: .title2)
+    static let title2 = StyleGuideFont.system(lineHeight: 22, size: 17, textStyle: .title2)
 
     /// The font for the title3 style.
-    static let title3 = StyleGuideFont.inter(lineHeight: 21, size: 16, textStyle: .title3)
+    static let title3 = StyleGuideFont.system(lineHeight: 21, size: 16, textStyle: .title3)
 
     /// The font for the headline style.
-    static let headline = StyleGuideFont.inter(lineHeight: 28, size: 15, textStyle: .headline)
+    static let headline = StyleGuideFont.system(lineHeight: 28, size: 15, textStyle: .headline)
 
     /// The font for the body style.
-    static let body = StyleGuideFont.inter(lineHeight: 20, size: 15, textStyle: .body)
+    static let body = StyleGuideFont.system(lineHeight: 20, size: 15, textStyle: .body)
 
     /// The font for the bold body style.
     static let bodyBold = body.with(weight: .bold)
@@ -130,25 +130,25 @@ public extension StyleGuideFont {
     )
 
     /// The font for the callout style.
-    static let callout = StyleGuideFont.inter(lineHeight: 18, size: 13, textStyle: .callout)
+    static let callout = StyleGuideFont.system(lineHeight: 18, size: 13, textStyle: .callout)
 
     /// The font for the callout semibold style.
     static let calloutSemibold = callout.with(weight: .semibold)
 
     /// The font for the subheadline style.
-    static let subheadline = StyleGuideFont.inter(lineHeight: 16, size: 12, textStyle: .subheadline)
+    static let subheadline = StyleGuideFont.system(lineHeight: 16, size: 12, textStyle: .subheadline)
 
     /// The font for the subheadline semibold style.
     static let subheadlineSemibold = subheadline.with(weight: .semibold)
 
     /// The font for the footnote style.
-    static let footnote = StyleGuideFont.inter(lineHeight: 18, size: 12, textStyle: .footnote)
+    static let footnote = StyleGuideFont.system(lineHeight: 18, size: 12, textStyle: .footnote)
 
     /// The font for the caption1 style.
-    static let caption1 = StyleGuideFont.inter(lineHeight: 18, size: 12, textStyle: .caption)
+    static let caption1 = StyleGuideFont.system(lineHeight: 18, size: 12, textStyle: .caption)
 
     /// The font for the caption2 style.
-    static let caption2 = StyleGuideFont.inter(lineHeight: 13, size: 11, textStyle: .caption2)
+    static let caption2 = StyleGuideFont.system(lineHeight: 13, size: 11, textStyle: .caption2)
 
     /// The font for the caption2 style monospaced.
     static let caption2Monospaced = StyleGuideFont(
