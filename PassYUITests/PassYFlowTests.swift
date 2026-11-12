@@ -13,10 +13,11 @@ final class PassYFlowTests: XCTestCase {
 
     /// Opens the item options menu on the view-item screen and deletes the item.
     private func deleteCurrentItem(_ app: XCUIApplication) {
-        let candidates = [app.buttons["CipherOptionsButton"].firstMatch, app.buttons["Options"].firstMatch,
-                          app.buttons["More options"].firstMatch, app.navigationBars.buttons["Options"].firstMatch]
-        guard let opts = candidates.first(where: { $0.waitForExistence(timeout: 3) }) else {
-            dump(app, "no options button"); return XCTFail("no item options button")
+        _ = app.buttons["CipherOptionsButton"].firstMatch.waitForExistence(timeout: 5)
+        // Several "options" buttons can exist (list rows behind the sheet); use the first hittable one.
+        let all = app.buttons.matching(NSPredicate(format: "identifier == 'CipherOptionsButton' OR label == 'Options'"))
+        guard let opts = all.allElementsBoundByIndex.first(where: { $0.isHittable }) else {
+            dump(app, "no options button"); return XCTFail("no hittable item options button")
         }
         opts.tap()
         let delete = app.buttons["Delete item"].exists ? app.buttons["Delete item"] : app.buttons["Delete"]
@@ -96,8 +97,9 @@ final class PassYFlowTests: XCTestCase {
         let search = app.searchFields.firstMatch
         search.tap(); sleep(2)
         app.typeText(itemName)
-        XCTAssertTrue(waitFor(app.staticTexts[itemName]), "search finds the item")
         attach(app, "03-search")
+        let hit = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", itemName)).firstMatch
+        XCTAssertTrue(waitFor(hit), "search finds the item (search field value: \(search.value as? String ?? "nil"))")
         if app.buttons["Cancel"].exists { app.buttons["Cancel"].tap() }
         if app.buttons["Clear text"].exists { app.buttons["Clear text"].tap() }
 

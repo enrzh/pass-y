@@ -66,6 +66,7 @@ In the app choose server `http://localhost:8088` (simulator only).
   the difference is removed/rewritten cloud-region tests).
 - UI tests (`PassYUITests`, XCUITest, need the throwaway Vaultwarden above): landing/server-first, login + sync,
   TOTP create/view, generator, settings (no upsell), lock/unlock, dark mode and AX-XXXL Dynamic Type screenshots.
-  The create/search/edit/delete test (`test03_createSearchEditDelete`) is currently **not green**: after saving, the item
-  list did not show the new item within the timeout in the test runner (the same flow works manually/in the TOTP test).
+  `test03_createSearchEditDelete` is **UNVERIFIED** (not green): in the UI-test runner the item list did not show the newly
+  saved item after closing the item sheet (`PassYFlowTests.swift:93 "item appears in vault list"`). Create/view/delete and
+  TOTP are covered by `test04_totpCodeShown` (green); search/edit are not covered by an automated UI test yet.
 - Not verifiable in the simulator: Face ID, real AutoFill in other apps, passkeys on a device, push (disabled).
