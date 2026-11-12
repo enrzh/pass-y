@@ -104,3 +104,15 @@ Measured with `PassYUITests/PassYPerfTests` (wall clock, iPhone 17 Pro simulator
 The only code change (single-pass tile/list split instead of repeated `Equatable` comparisons) is within measurement noise;
 the item list was already lazy (`LazyVStack`). No Instruments trace was taken, so scroll hitch rate and memory are UNVERIFIED.
 The search timing test did not complete (UNVERIFIED). Added: light haptic feedback on tile taps.
+
+## M4: Mac
+
+**Decision: "Designed for iPad/iPhone" (the iOS app running on Apple Silicon Macs), not Mac Catalyst and not a native macOS target.**
+Reason: the Bitwarden SDK binary (`BitwardenFFI.xcframework` from `sdk-swift`) ships only `ios-arm64` and
+`ios-arm64_x86_64-simulator` slices. A Catalyst or native macOS build cannot link the SDK (crypto/sync) without building it
+from `sdk-internal` for macOS, which is out of scope. The iOS build already supports the Mac destination
+(`xcodebuild -destination 'platform=macOS,variant=Designed for iPad'` succeeds, exit 0) and keeps the Keychain group, App Group and
+AutoFill behaviour of the iOS app unchanged, so there is no compatibility risk for the vault data.
+
+Not done / UNVERIFIED: running the app on this Mac (needs a UI session and the Accessibility permission), a real Mac menu bar,
+window sizing, keyboard shortcuts, Mac AutoFill. A future native/Catalyst target needs the SDK built with macOS slices first.
