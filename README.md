@@ -233,3 +233,12 @@ navigation layer and the matching ViewInspector/snapshot/coordinator tests; it w
 and cannot be done incrementally without a second navigation layer. Status: **G3 to G9 audited (visual parity accepted, structural rewrite not done),
 G10 (NavigationStack/NavigationSplitView replacing the coordinators) not done**, G11 legacy points unchanged (Mac window/menu, watch sync/complication,
 Duo poses: UNVERIFIED as described above).
+
+## Step B: vault list as a real `List`
+
+The vault contents are now a native inset-grouped `List` (action card, vault filter, category tiles row, one collapsible `Section` per group, "More" swipe action
+on cipher rows, pointer hover on rows) instead of a custom scroll view with a lazy stack. Items still come from the unchanged `VaultListProcessor`; the search
+results screen still uses the previous lazy stack. The wide two-column sidebar layout of Round 4 was dropped in favor of the system list on iPad.
+![vault list dark](Docs/screenshots/stepb-vault-list-dark.png)
+Tests: vault list and row ViewInspector tests (37 executed, 3 skipped, 0 failures), UI tests test02/03/04/07 green (test07 once failed in a combined run and passed alone).
+Not done: `searchable` results as `List`, Cmd+F runtime check, the SwiftUI navigation shell (Step A).
