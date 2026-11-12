@@ -118,19 +118,34 @@ private struct SearchableVaultListView: View {
     /// interface, and a message indicating that no results were found.
     @ViewBuilder private var search: some View {
         if store.state.searchText.isEmpty || !store.state.searchResults.isEmpty {
-            ScrollView {
-                LazyVStack(spacing: 0) {
+            List {
+                Section {
                     searchVaultFilterRow
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
 
+                Section {
                     ForEach(store.state.searchResults) { item in
                         vaultItemRow(
                             for: item,
                             isLastInSection: store.state.searchResults.last?.id == item.id,
                         )
-                        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
+                        .listRowInsets(EdgeInsets())
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            if case .cipher = item.itemType {
+                                Button {
+                                    Task { await store.perform(.morePressed(item)) }
+                                } label: {
+                                    Label(Localizations.moreOptions, systemImage: "ellipsis")
+                                }
+                                .tint(.gray)
+                            }
+                        }
                     }
                 }
             }
+            .listStyle(.insetGrouped)
         } else {
             SearchNoResultsView {
                 searchVaultFilterRow
