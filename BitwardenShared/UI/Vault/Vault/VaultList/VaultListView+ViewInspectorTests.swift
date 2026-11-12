@@ -387,10 +387,22 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     /// Tapping the vault item dispatches the `.itemPressed` effect.
     @MainActor
     func test_vaultItem_tap() async throws {
-        let item = VaultListItem(id: "1", itemType: .group(.login, 123))
+        // Folder groups are shown as list rows (type groups such as logins are category tiles, see below).
+        let item = VaultListItem(id: "1", itemType: .group(.folder(id: "f1", name: "Folder"), 123))
         processor.state.loadingState = .data([VaultListSection(id: "1", items: [item], name: "Group")])
         let button = try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
         try await button.tap()
+        XCTAssertEqual(processor.effects.last, .itemPressed(item))
+    }
+
+    /// Tapping a category tile (type group) dispatches the `.itemPressed` effect.
+    @MainActor
+    func test_categoryTile_tap() throws {
+        let item = VaultListItem(id: "1", itemType: .group(.login, 123))
+        processor.state.loadingState = .data([VaultListSection(id: "1", items: [item], name: "Types")])
+        let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "CategoryTile_login").button()
+        try button.tap()
+        waitFor(processor.effects.last != nil)
         XCTAssertEqual(processor.effects.last, .itemPressed(item))
     }
 
