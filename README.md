@@ -78,3 +78,15 @@ In the app choose server `http://localhost:8088` (simulator only).
 
 Dark mode could not be rendered by the headless simulator in this environment (UNVERIFIED); the palette uses light/dark
 variants of the system colors.
+
+## M3: iPad and iPhone Duo
+
+Layout depends only on container size (no `UIScreen`/idiom checks): content is capped to a readable width and centered, tiles
+reflow into more columns, bars come from the system (`TabView`/navigation bars, which the OS renders vertically on Duo).
+
+![Home, iPad Pro 13"](Docs/screenshots/m3-home-ipad-pro13.png)
+![Home, iPhone Duo (outer display)](Docs/screenshots/m3-home-iphone-duo-outer.png)
+
+Not done / UNVERIFIED: a `NavigationSplitView` master-detail layout (the vault navigation is coordinator/UIKit based; a split view
+would mean rewriting the navigation layer), Duo open/half-folded/rotated poses and reserved-region handling (the simulator pose
+controls were not available in this run), Stage Manager/Slide Over, keyboard shortcuts and pointer polish.

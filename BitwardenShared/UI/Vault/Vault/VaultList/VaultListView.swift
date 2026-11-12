@@ -262,6 +262,7 @@ private struct SearchableVaultListView: View {
                 }
             }
         }
+        .readableContentWidth()
         .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
         .scrollView()
     }

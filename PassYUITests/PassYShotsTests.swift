@@ -27,11 +27,11 @@ final class PassYShotsTests: XCTestCase {
             let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
             if close.exists { close.firstMatch.tap() }
         }
-        app.tabBars.buttons["Generator"].tap(); sleep(1)
+        tab(app, "Generator").tap(); sleep(1)
         attach(app, "\(tag)-3-generator")
-        app.tabBars.buttons["Settings"].tap(); sleep(1)
+        tab(app, "Settings").tap(); sleep(1)
         attach(app, "\(tag)-4-settings")
-        app.tabBars.buttons["My vault"].tap()
+        tab(app, "My vault").tap()
         app.buttons["AddItemFloatingActionButton"].tap()
         app.buttons["Login"].firstMatch.tap(); sleep(2)
         attach(app, "\(tag)-5-add")

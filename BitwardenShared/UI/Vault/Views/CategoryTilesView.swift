@@ -145,3 +145,15 @@ extension VaultListGroup {
         }
     }
 }
+
+// MARK: - Readable width
+
+extension View {
+    /// Limits the content to a comfortable reading width and centers it. On iPhone widths this is a no-op;
+    /// on iPad, iPhone Duo (inner display) and wide windows it keeps lists and tiles from stretching edge to edge.
+    /// It only depends on the container size, never on the device idiom or `UIScreen`.
+    func readableContentWidth(_ maxWidth: CGFloat = 720) -> some View {
+        frame(maxWidth: maxWidth)
+            .frame(maxWidth: .infinity)
+    }
+}

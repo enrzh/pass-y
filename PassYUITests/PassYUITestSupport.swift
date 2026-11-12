@@ -117,3 +117,9 @@ extension XCTestCase {
         sleep(2)
     }
 }
+
+/// A tab bar item that works for the iPhone tab bar and the iPad/Duo floating tab bar.
+func tab(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+    let inBar = app.tabBars.buttons[label]
+    return inBar.exists ? inBar : app.buttons[label].firstMatch
+}
