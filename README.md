@@ -1,3 +1,5 @@
+<p align="center"><img src="Branding/passy-logo-512.png" width="128" alt="Pass-Y logo"></p>
+
 # Pass-Y
 
 Pass-Y is an open-source iOS password manager for **self-hosted [Vaultwarden](https://github.com/dani-garcia/vaultwarden)** servers.
@@ -116,3 +118,9 @@ AutoFill behaviour of the iOS app unchanged, so there is no compatibility risk f
 
 Not done / UNVERIFIED: running the app on this Mac (needs a UI session and the Accessibility permission), a real Mac menu bar,
 window sizing, keyboard shortcuts, Mac AutoFill. A future native/Catalyst target needs the SDK built with macOS slices first.
+
+## Logo
+
+A "Y" cut like a key: two arms that meet in a keyhole, a stem with two key teeth; flat, two colors. The source is vector
+(`Branding/passy-logo.svg`, plus dark and tinted variants); `swift Scripts-passy/generate_logo.swift .` renders all app icons
+(iOS any/dark/tinted, Dev/Beta, action extension, watch app and widget, complication PDFs) from the same geometry.
