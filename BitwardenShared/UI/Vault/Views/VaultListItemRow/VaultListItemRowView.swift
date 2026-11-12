@@ -70,15 +70,20 @@ struct VaultListItemRowView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .accessibilityIdentifier("VaultListItemRowButton")
+                .hoverEffect(.highlight)
 
                 if case let .cipher(cipherItem, _) = store.state.item.itemType,
                    !store.state.isFromExtension, !cipherItem.isDecryptionFailure {
                     AsyncButton {
                         await store.perform(.morePressed)
                     } label: {
-                        SharedAsset.Icons.ellipsisHorizontal24.swiftUIImage
-                            .imageStyle(.rowIcon)
+                        Image(systemName: "ellipsis.circle")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
+                    .hoverEffect(.highlight)
                     .accessibilityLabel(Localizations.moreOptions)
                     .accessibilityIdentifier("CipherOptionsButton")
                     // Each more-options action is exposed individually as a custom action on the
@@ -91,9 +96,11 @@ struct VaultListItemRowView: View {
                     Button {
                         store.send(.copyTOTPCode(model.totpCode.code))
                     } label: {
-                        SharedAsset.Icons.copy24.swiftUIImage
+                        Image(systemName: "doc.on.doc")
+                            .frame(minWidth: 44, minHeight: 44)
                     }
-                    .foregroundColor(SharedAsset.Colors.iconPrimary.swiftUIColor)
+                    .foregroundStyle(.secondary)
+                    .hoverEffect(.highlight)
                     .accessibilityLabel(Localizations.copyTotp)
                 }
             }
