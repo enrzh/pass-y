@@ -143,3 +143,24 @@ A "Y" cut like a key: two arms that meet in a keyhole, a stem with two key teeth
 (iOS any/dark/tinted, Dev/Beta, action extension, watch app and widget, complication PDFs) from the same geometry.
 
 ![Pass-Y icons: any, dark, tinted; 60 pt and 29 pt](Branding/icons-preview.png)
+
+## Round 3
+
+- **R6 watch TOTP list**: the watch app has a debug-only demo mode (`-passyDemoCodes` launch argument, `#if DEBUG`) that shows fixture items,
+  so the list and the code view were verified on a watchOS 27 simulator without a paired iPhone:
+  ![watch list](Docs/screenshots/r6-watch-list.png) ![watch code](Docs/screenshots/r6-watch-totp-detail.png)
+  The real WatchConnectivity sync from the iPhone and the complication were not exercised.
+- **R7 icon on the Home Screen / App Library** (iOS 26.5 simulator, light and dark):
+  ![icon light](Docs/screenshots/r7-icon-appLibrary-light.png) ![icon dark](Docs/screenshots/r7-icon-appLibrary-dark.png)
+- **R1 iPhone Duo**: the app launches and lays out in portrait and landscape on the Duo simulator (iOS 27.1); the earlier "stuck on
+  splash" was not reproducible on a freshly created simulator and was most likely a loaded host.
+  ![duo portrait](Docs/screenshots/r1-duo-portrait-intro.png) ![duo landscape](Docs/screenshots/r1-duo-landscape-intro.png)
+  Open/half-folded poses with reserved regions could not be driven (the simulator only exposes rotation).
+- **R5 metrics** (2000-item vault, iPhone 17 Pro simulator, Debug): unlock to populated list 2.70 s (before: 2.72 s); 10 fast swipes:
+  wall clock 22.3 s, app CPU time 4.2 s (about 19 % of wall time, the rest is XCUITest idle waits), peak physical memory about 92 MB.
+  No optimization was made, so there is no before/after improvement; the search timing test still does not finish.
+
+Still not done (UNVERIFIED): iPad/Mac `NavigationSplitView` master-detail (the vault navigation is built on UIKit coordinators, a
+split view needs that layer rewritten), Cmd+F focusing the search field (`.searchable` has no programmatic focus on the iOS 15 deployment
+target), Stage Manager window sizes, pointer hover polish, and running/screenshotting on the Mac ("Designed for iPad" needs an
+interactive session with the Accessibility permission, which was not changed).
