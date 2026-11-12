@@ -90,3 +90,17 @@ reflow into more columns, bars come from the system (`TabView`/navigation bars, 
 Not done / UNVERIFIED: a `NavigationSplitView` master-detail layout (the vault navigation is coordinator/UIKit based; a split view
 would mean rewriting the navigation layer), Duo open/half-folded/rotated poses and reserved-region handling (the simulator pose
 controls were not available in this run), Stage Manager/Slide Over, keyboard shortcuts and pointer polish.
+
+## M2: performance measurement (2000-item vault)
+
+Measured with `PassYUITests/PassYPerfTests` (wall clock, iPhone 17 Pro simulator, Debug build, local Vaultwarden seeded with
+`Scripts-passy/vaultwarden/seed_ciphers.py 2000`; median of 3):
+
+| Metric | before | after |
+|---|---|---|
+| Unlock tap to populated vault list | 2.72 s | 2.68 s |
+| 30 fast swipes (dominated by XCUITest idle waits) | 43.9 s | 44.6 s |
+
+The only code change (single-pass tile/list split instead of repeated `Equatable` comparisons) is within measurement noise;
+the item list was already lazy (`LazyVStack`). No Instruments trace was taken, so scroll hitch rate and memory are UNVERIFIED.
+The search timing test did not complete (UNVERIFIED). Added: light haptic feedback on tile taps.

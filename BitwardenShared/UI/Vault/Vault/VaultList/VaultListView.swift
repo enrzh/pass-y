@@ -223,6 +223,30 @@ private struct SearchableVaultListView: View {
         .scrollView(centerContentVertically: true)
     }
 
+    /// Splits the sections into category tile items and the remaining list sections in a single pass using a cheap
+    /// case check (no deep `Equatable` comparisons, which were O(items x tiles) on every body evaluation).
+    private static func splitTiles(_ sections: [VaultListSection]) -> ([VaultListItem], [VaultListSection]) {
+        var tileItems: [VaultListItem] = []
+        var listSections: [VaultListSection] = []
+        for section in sections {
+            var rest: [VaultListItem] = []
+            rest.reserveCapacity(section.items.count)
+            for item in section.items {
+                if case let .group(group, _) = item.itemType, group.isCategoryTile {
+                    tileItems.append(item)
+                } else {
+                    rest.append(item)
+                }
+            }
+            if rest.count == section.items.count {
+                listSections.append(section)
+            } else if !rest.isEmpty {
+                listSections.append(VaultListSection(id: section.id, items: rest, name: section.name))
+            }
+        }
+        return (tileItems, listSections)
+    }
+
     /// A view that displays the main vault interface, including sections for groups and
     /// vault items.
     ///
@@ -230,14 +254,7 @@ private struct SearchableVaultListView: View {
     ///
     @ViewBuilder
     private func vaultContents(with sections: [VaultListSection]) -> some View {
-        let tileItems = sections.flatMap(\.items).filter {
-            if case let .group(group, _) = $0.itemType { return group.isCategoryTile }
-            return false
-        }
-        let listSections = sections.compactMap { section -> VaultListSection? in
-            let rest = section.items.filter { !tileItems.contains($0) }
-            return rest.isEmpty ? nil : VaultListSection(id: section.id, items: rest, name: section.name)
-        }
+        let (tileItems, listSections) = Self.splitTiles(sections)
 
         VStack(spacing: 20) {
             actionCard

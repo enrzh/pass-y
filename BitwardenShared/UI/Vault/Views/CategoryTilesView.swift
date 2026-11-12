@@ -24,6 +24,7 @@ struct CategoryTilesView: View {
             ForEach(items) { item in
                 if case let .group(group, count) = item.itemType {
                     Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         onSelect(item)
                     } label: {
                         CategoryTile(group: group, count: count)
