@@ -61,6 +61,17 @@ class CipherListViewModel: ObservableObject {
     }
 
     func checkStateAndFetch(_ state: BWState? = nil) {
+        #if DEBUG
+        // Debug-only demo mode (launch argument `-passyDemoCodes`): show fixture items so the TOTP list can be
+        // verified in the simulator without a paired iPhone and a synced vault.
+        if ProcessInfo.processInfo.arguments.contains("-passyDemoCodes") {
+            currentState = .valid
+            showingSheet = false
+            DispatchQueue.main.async { self.ciphers = CipherMock.ciphers }
+            return
+        }
+        #endif
+
         guard checkDeviceOwnerAuth() else {
             return
         }
