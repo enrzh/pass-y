@@ -13,7 +13,7 @@ final class PassYShotsTests: XCTestCase {
         let app = launchApp(extraArguments: env["PASSY_SHOT_XXXL"] == "1"
             ? ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] : [])
         ensureUnlockedVault(app)
-        if !app.staticTexts["GitHub"].exists {
+        if !FileManager.default.fileExists(atPath: "/tmp/passy_skip_seed"), !app.staticTexts["GitHub"].exists {
             addLogin(app, name: "GitHub", user: "octo@example.test", password: "Gh-Pass-1234", totp: "JBSWY3DPEHPK3PXP")
             addLogin(app, name: "Netflix", user: "movie@example.test", password: "Nf-Pass-5678")
             addLogin(app, name: "Bank", user: "me@example.test", password: "Bk-Pass-9012")
