@@ -45,8 +45,9 @@ extension XCTestCase {
             let email = app.textFields["LoginEmailAddressEntry"]
             if email.exists {
                 if app.buttons["RegionSelectorDropdown"].label.contains("Not set") {
-                    app.buttons["RegionSelectorDropdown"].tap()
-                } else {
+                    // The server sheet is presented automatically; wait until the selector is tappable.
+                    if app.buttons["RegionSelectorDropdown"].isHittable { app.buttons["RegionSelectorDropdown"].tap() }
+                } else if email.isHittable {
                     email.tap()
                     email.typeText(TestAccount.email)
                     app.buttons["ContinueButton"].tap()

@@ -13,8 +13,8 @@ final class PassYFlowTests: XCTestCase {
 
     /// Opens the item options menu on the view-item screen and deletes the item.
     private func deleteCurrentItem(_ app: XCUIApplication) {
-        let candidates = [app.buttons["CipherOptionsButton"], app.buttons["Options"], app.buttons["More options"],
-                          app.navigationBars.buttons["Options"]]
+        let candidates = [app.buttons["CipherOptionsButton"].firstMatch, app.buttons["Options"].firstMatch,
+                          app.buttons["More options"].firstMatch, app.navigationBars.buttons["Options"].firstMatch]
         guard let opts = candidates.first(where: { $0.waitForExistence(timeout: 3) }) else {
             dump(app, "no options button"); return XCTFail("no item options button")
         }
