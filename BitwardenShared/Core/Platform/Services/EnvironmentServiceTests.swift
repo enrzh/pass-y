@@ -46,29 +46,25 @@ struct EnvironmentServiceTests { // swiftlint:disable:this type_body_length
         }
     }
 
-    /// `apiURL` and other URL properties return US default values before URLs are loaded.
+    /// Asserts that every URL points at the unconfigured placeholder and never at a Bitwarden cloud host.
+    private func expectUnconfigured() {
+        let urls = [
+            subject.apiURL, subject.baseURL, subject.changeEmailURL, subject.eventsURL, subject.iconsURL,
+            subject.identityURL, subject.importItemsURL, subject.proxyCookieRedirectConnectorURL,
+            subject.recoveryCodeURL, subject.sendShareURL, subject.settingsURL, subject.setUpTwoFactorURL,
+            subject.webVaultURL,
+        ]
+        for url in urls {
+            #expect(url.host == EnvironmentURLData.unconfiguredHost, "\(url)")
+            #expect(!url.absoluteString.contains("bitwarden"), "\(url)")
+        }
+        #expect(subject.region == .selfHosted)
+    }
+
+    /// URL properties point at the unconfigured placeholder before URLs are loaded (no cloud default).
     @Test
     func defaultUrls() {
-        #expect(subject.apiURL == URL(string: "https://api.bitwarden.com"))
-        #expect(subject.baseURL == URL(string: "https://vault.bitwarden.com"))
-        #expect(subject.changeEmailURL == URL(string: "https://vault.bitwarden.com/#/settings/account"))
-        #expect(subject.eventsURL == URL(string: "https://events.bitwarden.com"))
-        #expect(subject.iconsURL == URL(string: "https://icons.bitwarden.net"))
-        #expect(subject.identityURL == URL(string: "https://identity.bitwarden.com"))
-        #expect(subject.importItemsURL == URL(string: "https://vault.bitwarden.com/#/tools/import"))
-        #expect(
-            subject.proxyCookieRedirectConnectorURL
-                == URL(string: "https://vault.bitwarden.com/proxy-cookie-redirect-connector.html"),
-        )
-        #expect(subject.recoveryCodeURL == URL(string: "https://vault.bitwarden.com/#/recover-2fa"))
-        #expect(subject.region == .unitedStates)
-        #expect(subject.sendShareURL == URL(string: "https://send.bitwarden.com/#"))
-        #expect(subject.settingsURL == URL(string: "https://vault.bitwarden.com/#/settings"))
-        #expect(
-            subject.setUpTwoFactorURL
-                == URL(string: "https://vault.bitwarden.com/#/settings/security/two-factor"),
-        )
-        #expect(subject.webVaultURL == URL(string: "https://vault.bitwarden.com"))
+        expectUnconfigured()
     }
 
     /// `loadURLsForActiveAccount()` loads the URLs for the active account.
@@ -226,35 +222,15 @@ struct EnvironmentServiceTests { // swiftlint:disable:this type_body_length
         #expect(stateService.preAuthEnvironmentURLs == urls)
     }
 
-    /// `loadURLsForActiveAccount()` loads the default URLs if there's no active account
-    /// and no preauth URLs.
+    /// `loadURLsForActiveAccount()` keeps the unconfigured placeholder if there's no active account
+    /// and no preauth URLs, and does not persist it.
     @Test
     func loadURLsForActiveAccount_noAccount() async {
         await subject.loadURLsForActiveAccount()
 
-        #expect(subject.apiURL == URL(string: "https://api.bitwarden.com"))
-        #expect(subject.baseURL == URL(string: "https://vault.bitwarden.com"))
-        #expect(subject.changeEmailURL == URL(string: "https://vault.bitwarden.com/#/settings/account"))
-        #expect(subject.eventsURL == URL(string: "https://events.bitwarden.com"))
-        #expect(subject.iconsURL == URL(string: "https://icons.bitwarden.net"))
-        #expect(subject.identityURL == URL(string: "https://identity.bitwarden.com"))
-        #expect(subject.importItemsURL == URL(string: "https://vault.bitwarden.com/#/tools/import"))
-        #expect(
-            subject.proxyCookieRedirectConnectorURL
-                == URL(string: "https://vault.bitwarden.com/proxy-cookie-redirect-connector.html"),
-        )
-        #expect(subject.recoveryCodeURL == URL(string: "https://vault.bitwarden.com/#/recover-2fa"))
-        #expect(subject.region == .unitedStates)
-        #expect(subject.sendShareURL == URL(string: "https://send.bitwarden.com/#"))
-        #expect(subject.settingsURL == URL(string: "https://vault.bitwarden.com/#/settings"))
-        #expect(
-            subject.setUpTwoFactorURL
-                == URL(string: "https://vault.bitwarden.com/#/settings/security/two-factor"),
-        )
-        #expect(subject.webVaultURL == URL(string: "https://vault.bitwarden.com"))
-        #expect(stateService.preAuthEnvironmentURLs == .defaultUS)
-
-        #expect(errorReporter.region?.region == "US")
+        expectUnconfigured()
+        #expect(stateService.preAuthEnvironmentURLs == nil)
+        #expect(errorReporter.region?.region == "Self-Hosted")
         #expect(errorReporter.region?.isPreAuth == false)
     }
 

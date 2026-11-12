@@ -99,7 +99,7 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         stateService.preAuthEnvironmentURLs = EnvironmentURLData()
         subject.state.region = .europe
         await subject.didSaveEnvironment(urls: EnvironmentURLData())
-        XCTAssertEqual(subject.state.region, .europe)
+        XCTAssertEqual(subject.state.region, .selfHosted)
         XCTAssertNil(environmentService.setPreAuthEnvironmentURLsData)
     }
 

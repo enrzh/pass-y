@@ -213,7 +213,7 @@ class AboutProcessorTests: BitwardenTestCase {
         try await alert.tapAction(title: Localizations.continue)
         XCTAssertEqual(
             subject.state.appReviewUrl?.absoluteString,
-            "https://itunes.apple.com/us/app/id1137397744?action=write-review",
+            "https://github.com/enrzh/pass-y",
         )
     }
 
