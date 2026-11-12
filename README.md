@@ -214,5 +214,6 @@ Store/Processor/Service layer (Bitwarden SDK untouched), with the same accessibi
   prominent system buttons, `SecureField` with reveal toggle):
   ![landing light](Docs/screenshots/g1-landing-light.png) ![landing dark](Docs/screenshots/g1-landing-dark.png)
   ![landing XXXL](Docs/screenshots/g1-landing-xxxl.png)
-- Not yet rewritten: Unlock, two-step login, registration screens, vault list/search, item view/edit, generator, send, settings, folders/collections,
+- **G1b (done): Unlock** (master password or PIN) is a native `Form` too: ![unlock](Docs/screenshots/g1b-unlock.png)
+- Not yet rewritten: two-step login, registration screens, vault list/search, item view/edit, generator, send, settings, folders/collections,
   import/export, extensions, and the UIKit coordinators (NavigationStack/NavigationSplitView).
