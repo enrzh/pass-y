@@ -108,9 +108,20 @@ final class VaultListProcessor: StateProcessor<
         self.vaultItemMoreOptionsHelper = vaultItemMoreOptionsHelper
 
         super.init(state: state)
+
+        // New-login command from the menu bar / hardware keyboard (Cmd+N).
+        commandsTask = Task { [weak self] in
+            for await _ in NotificationCenter.default.notifications(named: .passyNewLogin) {
+                await MainActor.run { [weak self] in self?.receive(.addItemPressed(.login)) }
+            }
+        }
     }
 
+    /// Task observing the new-login command.
+    private var commandsTask: Task<Void, Never>?
+
     deinit {
+        commandsTask?.cancel()
         reviewPromptTask?.cancel()
     }
 

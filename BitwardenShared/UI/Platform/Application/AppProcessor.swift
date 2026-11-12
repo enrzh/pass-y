@@ -101,6 +101,14 @@ public class AppProcessor {
 
         startEventTimer()
 
+        // Lock command from the menu bar / hardware keyboard (Cmd+L).
+        Task { [weak self] in
+            for await _ in NotificationCenter.default.notifications(named: .passyLockVault) {
+                guard let self else { return }
+                await self.services.authRepository.lockVault(userId: nil, isManuallyLocking: true)
+            }
+        }
+
         UI.initialLanguageCode = services.appSettingsStore.appLocale ?? Bundle.main.preferredLocalizations.first
         UI.applyDefaultAppearances()
 

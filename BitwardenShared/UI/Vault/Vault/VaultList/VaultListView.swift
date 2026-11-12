@@ -344,19 +344,8 @@ extension SearchableVaultListView {
                 },
             )
         case .introducingArchive:
-            ActionCard(
-                title: Localizations.introducingArchive,
-                message: Localizations.keepYtemsYouDontNeedRightNowSafeButOutOfSight,
-                actionButtonState: ActionCard.ButtonState(title: Localizations.goToArchive) {
-                    store.send(.goToArchive)
-                },
-                dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                    await store.perform(.dismissArchiveOnboardingActionCard)
-                },
-            ) {
-                SharedAsset.Icons.archive24.swiftUIImage
-                    .foregroundStyle(SharedAsset.Colors.iconSecondary.swiftUIColor)
-            }
+            // Pass-Y does not show feature promotions.
+            EmptyView()
         case let .organizationBanner(data):
             ActionCard(
                 title: data.headerText,

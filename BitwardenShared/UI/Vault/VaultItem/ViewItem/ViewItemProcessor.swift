@@ -78,6 +78,9 @@ final class ViewItemProcessor: StateProcessor<ViewItemState, ViewItemAction, Vie
     /// The task that streams cipher details.
     private(set) var streamCipherDetailsTask: Task<Void, Never>?
 
+    /// Task observing the copy commands from the menu bar / keyboard shortcuts.
+    private var commandsTask: Task<Void, Never>?
+
     /// The helper to execute vault item actions.
     private let vaultItemActionHelper: VaultItemActionHelper
 
@@ -112,9 +115,32 @@ final class ViewItemProcessor: StateProcessor<ViewItemState, ViewItemAction, Vie
         Task {
             await self.services.rehydrationHelper.addRehydratableTarget(self)
         }
+
+        // Copy commands from the menu bar / hardware keyboard while this item is displayed.
+        commandsTask = Task { [weak self] in
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    for await _ in NotificationCenter.default.notifications(named: .passyCopyPassword) {
+                        await MainActor.run { [weak self] in
+                            guard let password = self?.state.loadingState.data?.cipher.login?.password else { return }
+                            self?.copyValue(password, .password)
+                        }
+                    }
+                }
+                group.addTask {
+                    for await _ in NotificationCenter.default.notifications(named: .passyCopyCode) {
+                        await MainActor.run { [weak self] in
+                            guard let code = self?.state.loadingState.data?.loginState.totpCode?.code else { return }
+                            self?.copyValue(code, .totp)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     deinit {
+        commandsTask?.cancel()
         // When the view is dismissed, ensure any temporary files are deleted.
         services.vaultRepository.clearTemporaryDownloads()
     }

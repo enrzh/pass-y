@@ -27,6 +27,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         ProcessInfo.processInfo.arguments.contains("-testing")
     }
 
+    // MARK: Menu bar / keyboard shortcuts
+
+    override func buildMenu(with builder: UIMenuBuilder) {
+        super.buildMenu(with: builder)
+        guard builder.system == .main else { return }
+        let commands: [UIMenuElement] = [
+            UIKeyCommand(title: "New Login", action: #selector(passyNewLogin), input: "n", modifierFlags: .command),
+            UIKeyCommand(title: "Copy Password", action: #selector(passyCopyPassword), input: "c",
+                         modifierFlags: [.command, .shift]),
+            UIKeyCommand(title: "Copy Verification Code", action: #selector(passyCopyCode), input: "c",
+                         modifierFlags: [.command, .alternate]),
+            UIKeyCommand(title: "Lock Vault", action: #selector(passyLockVault), input: "l", modifierFlags: .command),
+        ]
+        let menu = UIMenu(title: "Vault", identifier: UIMenu.Identifier("de.aiity.passy.menu.vault"), children: commands)
+        builder.insertSibling(menu, afterMenu: .edit)
+    }
+
+    @objc private func passyNewLogin() { NotificationCenter.default.post(name: .passyNewLogin, object: nil) }
+    @objc private func passyLockVault() { NotificationCenter.default.post(name: .passyLockVault, object: nil) }
+    @objc private func passyCopyPassword() { NotificationCenter.default.post(name: .passyCopyPassword, object: nil) }
+    @objc private func passyCopyCode() { NotificationCenter.default.post(name: .passyCopyCode, object: nil) }
+
     // MARK: Methods
 
     func application(
