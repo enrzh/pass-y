@@ -177,6 +177,68 @@ final class PassYFlowTests: XCTestCase {
         }
     }
 
+    /// Searching and cancelling returns to the normal vault with the add button visible and the keyboard closed.
+    func test09_searchCancelRestoresVault() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let search = app.searchFields.firstMatch
+        search.tap(); sleep(3)
+        for ch in "Perf" { app.typeText(String(ch)); usleep(150_000) }
+        XCTAssertFalse(app.buttons["AddItemFloatingActionButton"].exists, "add button is hidden while searching")
+        let cancel = app.otherElements["VaultSearchField"].buttons.firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5), "cancel button of the search bar")
+        cancel.tap(); sleep(2)
+        attach(app, "09-after-cancel")
+        XCTAssertTrue(app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 5), "add button is back after cancel")
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "keyboard is closed after cancel")
+    }
+
+    /// Open a search result, close the item, cancel the search: the vault is back to normal.
+    func test10_searchOpenCloseCancel() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let search = app.searchFields.firstMatch
+        search.tap(); sleep(3)
+        for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+        let hit = app.staticTexts["GitHub"].firstMatch
+        XCTAssertTrue(hit.waitForExistence(timeout: 20), "search finds GitHub")
+        hit.tap()
+        let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
+        XCTAssertTrue(close.firstMatch.waitForExistence(timeout: 10), "item sheet is open")
+        close.firstMatch.tap(); sleep(2)
+        attach(app, "10-after-item-close")
+        let cancel = app.otherElements["VaultSearchField"].buttons.firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5), "search bar cancel is still there")
+        cancel.tap(); sleep(2)
+        attach(app, "10-after-cancel")
+        XCTAssertTrue(app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 5), "add button is back after cancel")
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "keyboard is closed after cancel")
+    }
+
+    /// Search, open a result, close it, switch tabs and back, then cancel: the vault is back to normal in one tap.
+    func test11_searchTabSwitchCancel() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let search = app.searchFields.firstMatch
+        search.tap(); sleep(3)
+        for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+        let hit = app.staticTexts["GitHub"].firstMatch
+        XCTAssertTrue(hit.waitForExistence(timeout: 20), "search finds GitHub")
+        hit.tap()
+        let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
+        XCTAssertTrue(close.firstMatch.waitForExistence(timeout: 10), "item sheet is open")
+        close.firstMatch.tap(); sleep(2)
+        tabBarButton(app, "Generator").tap(); sleep(1)
+        tabBarButton(app, "My vault").tap(); sleep(2)
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "keyboard stays closed after returning to the vault tab")
+        let cancel = app.otherElements["VaultSearchField"].buttons.firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5), "search bar cancel is still there")
+        cancel.tap(); sleep(2)
+        attach(app, "11-after-cancel")
+        XCTAssertTrue(app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 5), "add button is back after one cancel tap")
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "keyboard is closed after cancel")
+    }
+
     func test05_generator() {
         let app = launchApp()
         ensureUnlockedVault(app)

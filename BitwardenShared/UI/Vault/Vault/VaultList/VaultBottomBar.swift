@@ -2,6 +2,13 @@ import BitwardenResources
 import SwiftUI
 import UIKit
 
+// MARK: - Notification.Name
+
+extension Notification.Name {
+    /// Asks the bottom search bar to resign first responder immediately (posted when the vault tab disappears).
+    static let vaultSearchResign = Notification.Name("de.aiity.passy.vaultSearchResign")
+}
+
 // MARK: - VaultBottomBar
 
 /// The bottom bar of the vault screen: a native search field and the "new item" menu, floating above the tab bar
@@ -102,6 +109,7 @@ private struct VaultSearchBarRepresentable: UIViewRepresentable {
         bar.delegate = context.coordinator
         bar.backgroundImage = UIImage()
         bar.accessibilityIdentifier = "VaultSearchField"
+        context.coordinator.observeResign(of: bar)
         return bar
     }
 
@@ -113,18 +121,48 @@ private struct VaultSearchBarRepresentable: UIViewRepresentable {
 
     final class Coordinator: NSObject, UISearchBarDelegate {
         var parent: VaultSearchBarRepresentable
+        private var resignObserver: NSObjectProtocol?
+
         init(_ parent: VaultSearchBarRepresentable) { self.parent = parent }
 
-        func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) { parent.isEditing = true }
+        deinit { resignObserver.map(NotificationCenter.default.removeObserver) }
+
+        func observeResign(of bar: UISearchBar) {
+            resignObserver = NotificationCenter.default.addObserver(
+                forName: .vaultSearchResign, object: nil, queue: .main,
+            ) { [weak bar] _ in bar?.resignFirstResponder() }
+        }
+
+        /// Set while a cancel tap is being processed: UIKit may re-activate the field right after the cancel
+        /// (when the bar was not first responder), which must not leave the vault in search mode.
+        private var isCancelling = false
+
+        func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+            if isCancelling {
+                searchBar.resignFirstResponder()
+                return
+            }
+            parent.isEditing = true
+        }
+
         // UIKit also ends editing when the screen navigates away (e.g. opening a result); keep the + button in sync.
         func searchBarTextDidEndEditing(_ searchBar: UISearchBar) { parent.isEditing = false }
+
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) { parent.text = searchText }
+
         func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+            isCancelling = true
             parent.text = ""
             parent.isEditing = false
             searchBar.text = ""
             searchBar.resignFirstResponder()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self, weak searchBar] in
+                searchBar?.resignFirstResponder()
+                self?.parent.isEditing = false
+                self?.isCancelling = false
+            }
         }
+
         func searchBarSearchButtonClicked(_ searchBar: UISearchBar) { searchBar.resignFirstResponder() }
     }
 }

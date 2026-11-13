@@ -45,8 +45,10 @@ final class PassYShotsTests: XCTestCase {
         attach(app, "\(tag)-4-settings")
         tab(app, "My vault").tap()
         // iOS 26 shows the search bar cancel as an X button (label "Cancel" or "Close" depending on the OS build).
-        let cancel = app.buttons.matching(NSPredicate(format: "label IN {'Cancel','Close'}")).firstMatch
-        if cancel.waitForExistence(timeout: 3) { cancel.tap() }
+        // The cancel/X button belongs to the bottom search bar (other "Close" buttons, e.g. sheets, must not match).
+        let cancel = app.otherElements["VaultSearchField"].buttons.firstMatch
+        attach(app, "\(tag)-4a-before-cancel")
+        if cancel.waitForExistence(timeout: 3) { cancel.tap(); sleep(2) }
         attach(app, "\(tag)-4b-before-add")
         if !app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 5) {
             XCTFail("Add button missing after closing the search\n\(app.debugDescription)")

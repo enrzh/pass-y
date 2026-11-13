@@ -556,6 +556,11 @@ struct VaultListView: View {
         .onDisappear {
             vaultListTask?.cancel()
             vaultListTask = nil
+            // Leaving the tab ends editing in the bottom search bar (UIKit resigns it without telling us),
+            // so reset the flag; the search text is kept and the bar shows its cancel button.
+            isSearchEditing = false
+            // Close the keyboard right away; otherwise UIKit restores the search focus when the tab comes back.
+            NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
         }
         .onAppear {
             Task {
