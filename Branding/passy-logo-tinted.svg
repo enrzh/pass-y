@@ -4,7 +4,6 @@
   <g fill="none" stroke="#FFFFFF" stroke-width="118" stroke-linecap="round" stroke-linejoin="round">
     <path d="M380 800 L380 232 L560 232 A150 150 0 0 1 560 532 L380 532"/>
   </g>
-  <g fill="#FFFFFF"><rect x="380" y="668" width="118" height="66"/><rect x="380" y="760" width="86" height="66"/>
-    <circle cx="560" cy="372" r="34"/><rect x="544" y="380" width="32" height="62"/></g>
+  <g fill="#FFFFFF"><rect x="380" y="668" width="118" height="66"/><rect x="380" y="760" width="86" height="66"/></g>
   </g>
 </svg>

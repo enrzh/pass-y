@@ -138,7 +138,7 @@ running on the Mac (menu/window screenshot); a Home Screen screenshot of the new
 
 ## Logo
 
-A "P" cut like a key: a stem with two key teeth and a bowl that holds a keyhole; flat, black and white only (light: black on white, dark: inverted, tinted: grayscale mask). The source is vector
+A "P" cut like a key: a stem with two key teeth and an open bowl; flat, black and white only (light: black on white, dark: inverted, tinted: grayscale mask). The source is vector
 (`Branding/passy-logo.svg`, plus dark and tinted variants); `swift Scripts-passy/generate_logo.swift .` renders all app icons
 (iOS any/dark/tinted, Dev/Beta, action extension, watch app and widget, complication PDFs) from the same geometry.
 

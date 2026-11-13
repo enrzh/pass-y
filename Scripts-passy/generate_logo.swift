@@ -1,6 +1,6 @@
 #!/usr/bin/swift
 // Pass-Y logo generator. One geometry (1024 grid), rendered as SVG + PNG + PDF; writes all app icon assets.
-// A "P" cut like a key: a stem with two key teeth, a bowl holding a keyhole. Flat, black and white only.
+// A "P" cut like a key: a stem with two key teeth and an open bowl. Flat, black and white only.
 // Usage: swift Scripts-passy/generate_logo.swift <repo-root>
 import AppKit
 import CoreGraphics
@@ -34,9 +34,6 @@ func drawMark(_ ctx: CGContext, size: CGFloat, palette: Palette, punchHole: Bool
     // key teeth on the stem
     ctx.fill(CGRect(x: 380, y: 668, width: 118, height: 66))
     ctx.fill(CGRect(x: 380, y: 760, width: 86, height: 66))
-    // keyhole inside the bowl
-    ctx.fillEllipse(in: CGRect(x: 560 - 34, y: 372 - 34, width: 68, height: 68))
-    ctx.fill(CGRect(x: 560 - 16, y: 380, width: 32, height: 62))
     ctx.restoreGState()
 }
 
@@ -74,8 +71,7 @@ func svg(_ p: Palette) -> String {
       <g fill="none" stroke="\(hex(p.fg))" stroke-width="118" stroke-linecap="round" stroke-linejoin="round">
         <path d="M380 800 L380 232 L560 232 A150 150 0 0 1 560 532 L380 532"/>
       </g>
-      <g fill="\(hex(p.fg))"><rect x="380" y="668" width="118" height="66"/><rect x="380" y="760" width="86" height="66"/>
-        <circle cx="560" cy="372" r="34"/><rect x="544" y="380" width="32" height="62"/></g>
+      <g fill="\(hex(p.fg))"><rect x="380" y="668" width="118" height="66"/><rect x="380" y="760" width="86" height="66"/></g>
       </g>
     </svg>
     """
