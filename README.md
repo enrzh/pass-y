@@ -137,6 +137,10 @@ splash screen in the inner-display landscape pose in this run and was not invest
 running on the Mac (menu/window screenshot); a Home Screen screenshot of the new icon (only a composite preview exists); new Instruments/XCTMetric measurements; TOTP list on the watch with synced data and the complication.
 
 ## Logo
+Home screen on the simulator (light / dark system appearance; the springboard only switches to the dark icon variant when the user selects the Dark icon style, so both shots show the default variant; the dark and tinted variants are in `Branding/icons-preview.png`):
+
+![home light](Docs/screenshots/logo-home-light.png) ![home dark](Docs/screenshots/logo-home-dark.png)
+
 
 A "P" cut like a key: a stem with two key teeth and an open bowl; flat, black and white only (light: black on white, dark: inverted, tinted: grayscale mask). The source is vector
 (`Branding/passy-logo.svg`, plus dark and tinted variants); `swift Scripts-passy/generate_logo.swift .` renders all app icons
