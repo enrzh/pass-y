@@ -243,4 +243,6 @@ results screen still uses the previous lazy stack. The wide two-column sidebar l
 Tests: vault list and row ViewInspector tests (37 executed, 3 skipped, 0 failures), UI tests test02/03/04/07 green (test07 once failed in a combined run and passed alone).
 
 **Step B2:** the search results are a `List` as well. This exposed a bug in the first List version: a row with several default-style buttons fires all of them on one tap (opening the item and the More menu together). The row buttons now use `.plain` style so only the tapped action fires; `test03_createSearchEditDelete` (create, search, edit, delete) is green again.
-Not done: Cmd+F runtime check, the SwiftUI navigation shell (Step A), no UI regression test for tapping a row of the main (non-search) list yet.
+
+**Step A (thin native shell):** on iOS 18+ the root `BitwardenTabBarController` uses `UITab` with `.tabSidebar` (floating tab bar on iPhone, sidebar toggle on iPad/Mac). Only this shell is native; the coordinators and navigation stacks inside the tabs are still UIKit (`UINavigationController`), so a full `NavigationStack`/`NavigationSplitView` replacement is not done. Before iOS 18 the classic `viewControllers` path remains (not run, no such runtime installed). Tests: 5855 XCTest + 724 Swift Testing green.
+Not done: Cmd+F runtime check, full SwiftUI navigation (coordinator replacement), no UI regression test for tapping a row of the main (non-search) list yet.
