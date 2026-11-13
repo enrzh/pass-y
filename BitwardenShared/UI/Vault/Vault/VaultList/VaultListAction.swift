@@ -56,6 +56,9 @@ enum VaultListAction: Equatable {
     /// The user tapped the get started button on the import logins action card.
     case showImportLogins
 
+    /// The user chose Settings in the profile menu.
+    case settingsPressed
+
     /// The toast was shown or hidden.
     case toastShown(Toast?)
 

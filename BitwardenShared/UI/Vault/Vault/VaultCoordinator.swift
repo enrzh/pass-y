@@ -255,6 +255,8 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             }
         case .flightRecorderSettings:
             delegate?.switchToSettingsTab(route: .about)
+        case .settings:
+            delegate?.switchToSettingsTab(route: .settings(.tab))
         case let .group(group, filter):
             showGroup(group, filter: filter)
         case let .importCXF(cxfRoute):

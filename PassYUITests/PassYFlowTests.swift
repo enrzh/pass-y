@@ -103,10 +103,8 @@ final class PassYFlowTests: XCTestCase {
         attach(app, "03-search")
         let hit = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", itemName)).firstMatch
         XCTAssertTrue(waitFor(hit), "search finds the item (search field value: \(search.value as? String ?? "nil"))")
-        if app.buttons["Cancel"].exists { app.buttons["Cancel"].tap() }
-        if app.buttons["Clear text"].exists { app.buttons["Clear text"].tap() }
 
-        // Open + edit
+        // Open (straight from the search results; the bottom search bar keeps the results visible) + edit
         app.staticTexts[itemName].firstMatch.tap()
         XCTAssertTrue(waitFor(app.buttons["CipherOptionsButton"].exists ? app.buttons["CipherOptionsButton"] : app.buttons["Options"]))
         attach(app, "03-view-item")

@@ -86,6 +86,9 @@ public enum VaultRoute: Equatable, Hashable {
     ///
     case switchAccount(userId: String)
 
+    /// A route to the settings tab (opened from the profile menu).
+    case settings
+
     /// A route to the vault item selection screen.
     case vaultItemSelection(TOTPKeyModel)
 

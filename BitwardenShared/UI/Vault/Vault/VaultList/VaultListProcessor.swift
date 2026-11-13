@@ -211,6 +211,8 @@ final class VaultListProcessor: StateProcessor<
             state.searchVaultFilterType = newValue
         case let .sectionExpandToggled(sectionId, isExpanded):
             setSectionExpanded(sectionId: sectionId, isExpanded: isExpanded)
+        case .settingsPressed:
+            coordinator.navigate(to: .settings)
         case .showImportLogins:
             coordinator.navigate(to: .importLogins)
         case let .toastShown(newValue):

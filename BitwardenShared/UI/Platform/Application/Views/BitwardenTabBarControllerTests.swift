@@ -144,6 +144,26 @@ struct BitwardenTabBarControllerTests {
         #expect(subject.navigator(for: TabRoute.settings(.about)) === settingsNavigator)
     }
 
+    /// Re-applying the same navigators (as happens on a light/dark change) keeps the existing tabs instead of
+    /// replacing them, which would crash UIKit once the controllers are installed.
+    @Test
+    func setNavigators_twiceKeepsTabs() throws {
+        guard #available(iOS 18.0, *) else { return }
+        let tabs: [TestRoute: MockRootNavigator] = [
+            .firstTab: MockRootNavigator(),
+            .secondTab: MockRootNavigator(),
+            .thirdTab: MockRootNavigator(),
+        ]
+        tabs[.firstTab]?.rootViewController = UIViewController()
+        tabs[.secondTab]?.rootViewController = UIViewController()
+        tabs[.thirdTab]?.rootViewController = UIViewController()
+        subject.setNavigators(tabs)
+        let first = subject.tabs
+        subject.setNavigators(tabs)
+        #expect(subject.tabs.count == 3)
+        #expect(zip(first, subject.tabs).allSatisfy { $0 === $1 })
+    }
+
     /// `setNavigators(_:)` sets the `viewControllers` property correctly.
     @Test
     func setNavigators() throws {

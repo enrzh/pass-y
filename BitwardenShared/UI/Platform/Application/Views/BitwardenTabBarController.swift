@@ -40,6 +40,17 @@ class BitwardenTabBarController: UITabBarController, TabNavigator {
         }
 
         if #available(iOS 18.0, *) {
+            // Re-applying the same tabs (e.g. on a light/dark change) must update the existing `UITab`s in
+            // place: replacing them re-resolves view controllers that are already installed, which UIKit
+            // rejects with an assertion (crash on every appearance switch).
+            if self.tabs.map(\.identifier) == controllers.map({ "\($0.tab.index)" }) {
+                for (uiTab, entry) in zip(self.tabs, controllers) {
+                    uiTab.title = entry.tab.title
+                    uiTab.image = entry.tab.image
+                    if #available(iOS 26.1, *) { uiTab.selectedImage = entry.tab.selectedImage }
+                }
+                return
+            }
             // Native adaptive navigation: tab bar in compact widths, sidebar on iPad / wide windows (and Mac).
             self.tabs = controllers.map { entry in
                 let uiTab = UITab(
