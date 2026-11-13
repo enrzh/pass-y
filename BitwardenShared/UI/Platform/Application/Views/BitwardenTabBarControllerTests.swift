@@ -162,6 +162,22 @@ struct BitwardenTabBarControllerTests {
 
         subject.setNavigators(tabs)
 
+        if #available(iOS 18.0, *) {
+            // iOS 18+: adaptive tab bar / sidebar built from `UITab`s with lazy view controller providers.
+            let uiTabs = subject.tabs
+            #expect(uiTabs.count == 3)
+            #expect(uiTabs.map(\.title) == ["first", "second", "third"])
+            #expect(uiTabs[0].image?.pngData() == TestRoute.firstTabImage?.pngData())
+            #expect(uiTabs[1].image?.pngData() == TestRoute.secondTabImage?.pngData())
+            #expect(uiTabs[2].image?.pngData() == TestRoute.thirdTabImage?.pngData())
+            #expect(uiTabs[0].viewControllerProvider?(uiTabs[0]) === firstTabViewController)
+            #expect(uiTabs[1].viewControllerProvider?(uiTabs[1]) === secondTabViewController)
+            #expect(uiTabs[2].viewControllerProvider?(uiTabs[2]) === thirdTabViewController)
+            #expect(firstTabViewController.tabBarItem.selectedImage?.pngData()
+                == TestRoute.firstTabSelectedImage?.pngData())
+            return
+        }
+
         #expect(subject.viewControllers?.count == 3)
 
         let firstTab = try #require(subject.viewControllers?[0])
