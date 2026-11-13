@@ -31,11 +31,17 @@ pw_hash = b64(hashlib.pbkdf2_hmac("sha256", master, PASSWORD.encode(), 1, 32))
 stretched = HKDFExpand(hashes.SHA256(), 32, b"enc").derive(master) + HKDFExpand(hashes.SHA256(), 32, b"mac").derive(master)
 form = urllib.parse.urlencode({"grant_type": "password", "username": EMAIL, "password": pw_hash, "scope": "api offline_access",
     "client_id": "web", "deviceType": "9", "deviceIdentifier": "00000000-0000-4000-8000-000000000001", "deviceName": "seed"}).encode()
-tok = json.load(urllib.request.urlopen(urllib.request.Request(SERVER + "/identity/connect/token", form)))
+CLIENT_VERSION = "2025.10.0"  # newer Vaultwarden requires the Bitwarden-Client-Version header
+try:
+    tok = json.load(urllib.request.urlopen(urllib.request.Request(
+        SERVER + "/identity/connect/token", form, {"Bitwarden-Client-Version": CLIENT_VERSION})))
+except urllib.error.HTTPError as e:
+    print("token request failed:", e.code, e.read()[:500]); raise SystemExit(1)
 sym = dec_string(stretched, tok.get("Key") or tok["key"])
 payload = tok["access_token"].split(".")[1]; payload += "=" * (-len(payload) % 4)
 UID = json.loads(base64.urlsafe_b64decode(payload))["sub"]
-H = {"Authorization": "Bearer " + tok["access_token"], "Content-Type": "application/json"}
+H = {"Authorization": "Bearer " + tok["access_token"], "Content-Type": "application/json",
+     "Bitwarden-Client-Version": CLIENT_VERSION}
 for i in range(COUNT):
     body = {"encryptedFor": UID, "type": 1, "name": enc_string(sym, f"Perf Item {i:04d}".encode()), "notes": None, "favorite": i % 50 == 0,
             "login": {"username": enc_string(sym, f"user{i}@example.test".encode()), "password": enc_string(sym, b"pw-%d" % i),

@@ -66,37 +66,38 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         XCTAssertEqual(processor.dispatchedActions.last, .addItemPressed(.login))
     }
 
-    /// Tapping the floating action button dispatches the `.addItemPressed` action for a new login type.
+    /// Tapping a type in the add menu (bottom bar) reports the chosen item type.
     @MainActor
-    func test_addItemFloatingActionButton_tap() throws {
-        let fab = try subject.inspect().find(viewWithAccessibilityIdentifier: "AddItemFloatingActionButton")
-        try fab.find(button: Localizations.typeLogin).tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .addItemPressed(.login))
+    func test_addMenu_tap_login_and_identity() throws {
+        var added: [BitwardenShared.CipherType] = []
+        let menu = VaultAddMenuView(
+            availableItemTypes: [.login, .card, .identity, .secureNote],
+            addItem: { added.append($0) },
+            addFolder: {},
+        )
+        try menu.inspect().find(button: Localizations.typeLogin).tap()
+        try menu.inspect().find(button: Localizations.typeIdentity).tap()
+        XCTAssertEqual(added, [.login, .identity])
     }
 
-    /// Tapping the floating action button dispatches the `.addItemPressed` action for a new identity type.
+    /// Tapping the folder entry in the add menu adds a folder.
     @MainActor
-    func test_addItemFloatingActionButton_tap_identity() throws {
-        let fab = try subject.inspect().find(viewWithAccessibilityIdentifier: "AddItemFloatingActionButton")
-        try fab.find(button: Localizations.typeIdentity).tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .addItemPressed(.identity))
+    func test_addMenu_tap_addFolder() throws {
+        var folderTapped = false
+        let menu = VaultAddMenuView(availableItemTypes: [.login], addItem: { _ in }, addFolder: { folderTapped = true })
+        try menu.inspect().find(button: Localizations.folder).tap()
+        XCTAssertTrue(folderTapped)
     }
 
-    /// Tapping the add folder button in the FAB dispatches the `.addFolder` action.
+    /// Item types blocked by policy are not offered in the add menu.
     @MainActor
-    func test_addItemFloatingActionButton_tap_addFolder() throws {
-        let fab = try subject.inspect().find(viewWithAccessibilityIdentifier: "AddItemFloatingActionButton")
-        try fab.find(button: Localizations.folder).tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .addFolder)
-    }
-
-    /// The floating action button will be hidden if .
-    @MainActor
-    func test_addItemFloatingActionButton_hidden_policy_enable() throws {
-        processor.state.loadingState = .data([])
-        processor.state.itemTypesUserCanCreate = [.login, .identity, .secureNote]
-        let fab = try subject.inspect().find(viewWithAccessibilityIdentifier: "AddItemFloatingActionButton")
-        XCTAssertThrowsError(try fab.find(button: Localizations.typeCard))
+    func test_addMenu_hidden_policy_enable() throws {
+        let menu = VaultAddMenuView(
+            availableItemTypes: [.login, .identity, .secureNote],
+            addItem: { _ in },
+            addFolder: {},
+        )
+        XCTAssertThrowsError(try menu.inspect().find(button: Localizations.typeCard))
     }
 
     /// Long pressing a profile row dispatches the `.accountLongPressed` action.
@@ -325,29 +326,28 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         XCTAssertEqual(processor.effects, [.dismissOrganizationBanner(fromActionButton: true)])
     }
 
-    /// Tapping the profile button dispatches the `.requestedProfileSwitcher` effect.
+    /// The profile menu offers settings, sync and account switching.
     @MainActor
-    func test_profileButton_tap_withProfilesViewNotVisible() async throws {
-        processor.state.profileSwitcherState.isVisible = false
-        let buttonUnselected = try subject.inspect().find(asyncButton: "AA")
-        try await buttonUnselected.tap()
-        XCTAssertEqual(
-            processor.effects.last,
-            .profileSwitcher(.requestedProfileSwitcher(visible: true)),
+    func test_profileMenu_actions() async throws {
+        var settingsTapped = false
+        var syncTapped = false
+        let profileProcessor = MockProcessor<ProfileSwitcherState, ProfileSwitcherAction, ProfileSwitcherEffect>(
+            state: .dualAccounts,
         )
-    }
-
-    /// Tapping the profile button dispatches the `.requestedProfileSwitcher` effect.
-    @MainActor
-    func test_profileButton_tap_withProfilesViewVisible() async throws {
-        processor.state.profileSwitcherState.isVisible = true
-        let buttonUnselected = try subject.inspect().find(asyncButton: "AA")
-        try await buttonUnselected.tap()
-
-        XCTAssertEqual(
-            processor.effects.last,
-            .profileSwitcher(.requestedProfileSwitcher(visible: false)),
+        let menu = VaultProfileMenuView(
+            onSync: { syncTapped = true },
+            onSettings: { settingsTapped = true },
+            store: Store(processor: profileProcessor),
         )
+        try menu.inspect().find(button: Localizations.settings).tap()
+        XCTAssertTrue(settingsTapped)
+        try menu.inspect().find(button: Localizations.syncNow).tap()
+        try await Task.sleep(nanoseconds: 300_000_000)
+        XCTAssertTrue(syncTapped)
+        let account = profileProcessor.state.accounts[1]
+        try menu.inspect().find(button: account.email).tap()
+        try await Task.sleep(nanoseconds: 300_000_000)
+        XCTAssertEqual(profileProcessor.effects.last, .accountPressed(account))
     }
 
     /// Tapping the search result dispatches the `.itemPressed` effect.

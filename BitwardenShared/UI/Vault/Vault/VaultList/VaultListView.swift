@@ -12,7 +12,7 @@ private struct SearchableVaultListView: View {
     // MARK: Properties
 
     /// A flag indicating if the search bar is focused.
-    @Environment(\.isSearching) private var isSearching
+    var isSearching: Bool
 
     /// An object used to open urls from this view.
     @Environment(\.openURL) private var openURL
@@ -67,9 +67,6 @@ private struct SearchableVaultListView: View {
             guard let url = newValue else { return }
             openURL(url)
             store.send(.clearURL)
-        }
-        .onChange(of: isSearching) { newValue in
-            store.send(.searchStateChanged(isSearching: newValue))
         }
         .animation(.default, value: isSearching)
     }
@@ -179,15 +176,6 @@ private struct SearchableVaultListView: View {
             }
         } errorView: { errorMessage in
             errorViewWithRetry(errorMessage: errorMessage)
-        }
-        .overlay(alignment: .bottomTrailing) {
-            addVaultItemFloatingActionMenu(
-                availableItemTypes: store.state.itemTypesUserCanCreate,
-            ) { type in
-                store.send(.addItemPressed(type))
-            } addFolder: {
-                store.send(.addFolder)
-            }
         }
     }
 
@@ -476,20 +464,31 @@ struct VaultListView: View {
     /// the vault filter type changes.
     @SwiftUI.State private var vaultListTask: Task<Void, Never>?
 
+    /// Whether the bottom search field is being edited.
+    @SwiftUI.State private var isSearchEditing = false
+
     var body: some View {
         ZStack {
             SearchableVaultListView(
+                isSearching: isSearchEditing || !store.state.searchText.isEmpty,
                 store: store,
                 timeProvider: timeProvider,
             )
-            .searchable(
-                text: store.binding(
-                    get: \.searchText,
-                    send: VaultListAction.searchTextChanged,
-                ),
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: Localizations.search,
-            )
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VaultBottomBar(
+                    addFolder: { store.send(.addFolder) },
+                    addItem: { store.send(.addItemPressed($0)) },
+                    availableItemTypes: store.state.itemTypesUserCanCreate,
+                    isEditing: $isSearchEditing,
+                    text: store.binding(
+                        get: \.searchText,
+                        send: VaultListAction.searchTextChanged,
+                    ),
+                )
+            }
+            .onChange(of: isSearchEditing || !store.state.searchText.isEmpty) { newValue in
+                store.send(.searchStateChanged(isSearching: newValue))
+            }
             .autocorrectionDisabled(true)
             .searchDebouncedTask(id: store.state.searchText) {
                 await store.perform(.search(store.state.searchText))
@@ -512,7 +511,9 @@ struct VaultListView: View {
             largeNavigationTitleToolbarItem(store.state.navigationTitle)
 
             ToolbarItem(placement: .topBarTrailing) {
-                ProfileSwitcherToolbarView(
+                VaultProfileMenuView(
+                    onSync: { await store.perform(.refreshVault) },
+                    onSettings: { store.send(.settingsPressed) },
                     store: store.child(
                         state: { state in
                             state.profileSwitcherState
