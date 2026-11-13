@@ -72,7 +72,7 @@ final class PassYFlowTests: XCTestCase {
         ensureUnlockedVault(app)
 
         app.buttons["AddItemFloatingActionButton"].tap()
-        app.buttons["Login"].firstMatch.tap()
+        tapNewLoginMenuItem(app)
         let name = app.textFields["ItemNameEntry"]
         XCTAssertTrue(waitFor(name))
         app.dismissNewLoginCard()
@@ -132,7 +132,7 @@ final class PassYFlowTests: XCTestCase {
         let app = launchApp()
         ensureUnlockedVault(app)
         app.buttons["AddItemFloatingActionButton"].tap()
-        app.buttons["Login"].firstMatch.tap()
+        tapNewLoginMenuItem(app)
         let name = app.textFields["ItemNameEntry"]
         XCTAssertTrue(waitFor(name))
         app.dismissNewLoginCard()
@@ -158,6 +158,24 @@ final class PassYFlowTests: XCTestCase {
     }
 
     // MARK: 05 Generator
+
+    /// The add (+) menu in the bottom bar opens and offers the item types and Folder (iPhone and iPad).
+    func test08_addMenuOpensWithEntries() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let add = app.buttons["AddItemFloatingActionButton"]
+        XCTAssertTrue(waitFor(add), "add button is on screen")
+        XCTAssertGreaterThanOrEqual(add.frame.width, 40, "the add button exposes a full-size tap target (frame \(add.frame))")
+        add.tap(); sleep(2)
+        attach(app, "08-add-menu")
+        for title in ["Login", "Card", "Identity", "Folder"] {
+            let entry = app.descendants(matching: .any)
+                .matching(NSPredicate(format: "label == %@ AND NOT (identifier BEGINSWITH 'CategoryTile')", title))
+                .matching(NSPredicate(format: "elementType == %d OR elementType == %d", XCUIElement.ElementType.menuItem.rawValue, XCUIElement.ElementType.button.rawValue))
+                .firstMatch
+            XCTAssertTrue(entry.waitForExistence(timeout: 5), "menu entry \(title) exists\n\(app.debugDescription)")
+        }
+    }
 
     func test05_generator() {
         let app = launchApp()

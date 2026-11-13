@@ -8,6 +8,16 @@ enum TestAccount {
 }
 
 extension XCTestCase {
+    /// Taps "Login" in the open add menu (on iPad the category tile of the same name is also visible behind it).
+    func tapNewLoginMenuItem(_ app: XCUIApplication) {
+        let menuItem = app.menuItems["Login"]
+        if menuItem.waitForExistence(timeout: 4) { menuItem.tap(); return }
+        let predicate = NSPredicate(format: "label == 'Login' AND NOT (identifier BEGINSWITH 'CategoryTile')")
+        let button = app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 4), "Login entry of the add menu\n\(app.debugDescription)")
+        button.tap()
+    }
+
     func launchApp(extraArguments: [String] = [], appearance: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extraArguments
@@ -89,7 +99,7 @@ extension XCTestCase {
     /// Creates a login through the add-item UI and returns to the vault list.
     func addLogin(_ app: XCUIApplication, name: String, user: String, password: String, totp: String? = nil) {
         app.buttons["AddItemFloatingActionButton"].tap()
-        app.buttons["Login"].firstMatch.tap()
+        tapNewLoginMenuItem(app)
         let nameField = app.textFields["ItemNameEntry"]
         XCTAssertTrue(waitFor(nameField))
         app.dismissNewLoginCard()

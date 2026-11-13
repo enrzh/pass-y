@@ -52,7 +52,7 @@ final class PassYShotsTests: XCTestCase {
             XCTFail("Add button missing after closing the search\n\(app.debugDescription)")
         }
         app.buttons["AddItemFloatingActionButton"].tap()
-        app.buttons["Login"].firstMatch.tap(); sleep(2)
+        tapNewLoginMenuItem(app); sleep(2)
         attach(app, "\(tag)-5-add")
     }
 }

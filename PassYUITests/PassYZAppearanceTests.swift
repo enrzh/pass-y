@@ -17,7 +17,7 @@ final class PassYZAppearanceTests: XCTestCase {
         attach(app, "\(prefix)-settings")
         tab(app, "My vault").tap()
         app.buttons["AddItemFloatingActionButton"].tap()
-        app.buttons["Login"].firstMatch.tap()
+        tapNewLoginMenuItem(app)
         XCTAssertTrue(waitFor(app.textFields["ItemNameEntry"]))
         attach(app, "\(prefix)-add-login")
         app.buttons["CancelButton"].firstMatch.tap()

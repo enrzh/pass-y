@@ -46,6 +46,10 @@ struct VaultBottomBar: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+        // The bar swallows touches in its whole area so they never reach list rows underneath.
+        .contentShape(Rectangle())
+        // Like system toolbars, the floating bar stops growing at the largest non-accessibility size.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .background {
             // Solid below, soft fade above: rows never show through the glass or behind the tab bar.
             VStack(spacing: 0) {
