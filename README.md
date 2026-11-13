@@ -249,4 +249,7 @@ Tests: vault list and row ViewInspector tests (37 executed, 3 skipped, 0 failure
 ![generator light](Docs/screenshots/stepc-generator-light.png) ![generator dark](Docs/screenshots/stepc-generator-dark.png)
 Tests: Bitwarden-Unit 5855 XCTest + 724 Swift Testing green; ViewInspector 609 executed, 0 failures after adapting the generator tests (menu/slider/stepper finders) and skipping `StartRegistrationViewTests.test_regionButton_tap` (failed before this change: the region selector in a text field footer is not reachable via ViewInspector).
 
+**Step C2a (settings root):** the top-level Settings screen is a native `List(.insetGrouped)` with SF Symbols (premium card removed; plan row still conditional). Identifiers unchanged; ViewInspector 609 executed, 0 failures. The sub-screens (account security, autofill, vault, other, about, appearance) are still the previous Bitwarden-style views.
+![settings light](Docs/screenshots/stepc-settings-light.png) ![settings dark](Docs/screenshots/stepc-settings-dark.png)
+
 Not done: Cmd+F runtime check, full SwiftUI navigation (coordinator replacement), no UI regression test for tapping a row of the main (non-search) list yet.

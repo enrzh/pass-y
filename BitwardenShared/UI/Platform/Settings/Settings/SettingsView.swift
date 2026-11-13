@@ -18,17 +18,10 @@ struct SettingsView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 16) {
-            if store.state.shouldShowUpgradedToPremiumActionCard {
-                UpgradedToPremiumActionCardView(
-                    onDismiss: { await store.perform(.dismissUpgradedToPremiumActionCard) },
-                    onLearnMore: { store.send(.learnMoreAboutPremium) },
-                )
-            }
-
+        List {
             settingsItems
         }
-        .scrollView()
+        .listStyle(.insetGrouped)
         .navigationBar(title: Localizations.settings, titleDisplayMode: .inline)
         .task {
             await store.perform(.appeared)
@@ -52,120 +45,86 @@ struct SettingsView: View {
 
     // MARK: Private views
 
-    /// The chevron shown in the settings list item.
-    private var chevron: some View {
-        Image(asset: SharedAsset.Icons.chevronRight16)
-            .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-    }
-
     /// The settings items.
-    private var settingsItems: some View {
-        ContentBlock(dividerLeadingPadding: 48) {
-            if store.state.presentationMode == .preLogin {
-                appearanceRow
-                aboutRow
-            } else {
-                accountSecurityRow
-                autofillRow
-                vaultRow
-                if store.state.showPlanRow {
-                    planRow
+    @ViewBuilder private var settingsItems: some View {
+        if store.state.presentationMode == .preLogin {
+            Section {
+                row(Localizations.appearance, symbol: "paintbrush", id: "AppearanceSettingsButton") {
+                    store.send(.appearancePressed)
                 }
-                appearanceRow
-                otherRow
-                aboutRow
+                row(Localizations.about, symbol: "info.circle", id: "AboutSettingsButton") {
+                    store.send(.aboutPressed)
+                }
+            }
+        } else {
+            Section {
+                row(
+                    Localizations.accountSecurity,
+                    symbol: "lock",
+                    badge: store.state.accountSecurityBadgeValue,
+                    id: "AccountSecuritySettingsButton",
+                ) { store.send(.accountSecurityPressed) }
+                row(
+                    Localizations.autofill,
+                    symbol: "checkmark.circle",
+                    badge: store.state.autofillBadgeValue,
+                    id: "AutofillSettingsButton",
+                ) { store.send(.autoFillPressed) }
+                row(
+                    Localizations.vault,
+                    symbol: "key",
+                    badge: store.state.vaultBadgeValue,
+                    id: "VaultSettingsButton",
+                ) { store.send(.vaultPressed) }
+                if store.state.showPlanRow {
+                    row(Localizations.plan, symbol: "creditcard", id: "PlanSettingsButton") {
+                        Task { await store.perform(.planPressed) }
+                    }
+                }
+            }
+            Section {
+                row(Localizations.appearance, symbol: "paintbrush", id: "AppearanceSettingsButton") {
+                    store.send(.appearancePressed)
+                }
+                row(Localizations.other, symbol: "ellipsis.circle", id: "OtherSettingsButton") {
+                    store.send(.otherPressed)
+                }
+                row(Localizations.about, symbol: "info.circle", id: "AboutSettingsButton") {
+                    store.send(.aboutPressed)
+                }
             }
         }
     }
 
-    // MARK: Settings Rows
-
-    /// The about settings row.
-    private var aboutRow: some View {
-        SettingsListItem(
-            Localizations.about,
-            icon: SharedAsset.Icons.informationCircle24,
-        ) {
-            store.send(.aboutPressed)
-        } trailingContent: {
-            chevron
+    /// A native settings row: SF Symbol, title, optional badge, disclosure chevron.
+    private func row(
+        _ title: String,
+        symbol: String,
+        badge: String? = nil,
+        id: String,
+        action: @escaping () -> Void,
+    ) -> some View {
+        Button(action: action) {
+            HStack {
+                Label(title, systemImage: symbol)
+                    .foregroundStyle(.primary)
+                Spacer()
+                if let badge {
+                    Text(badge)
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.red))
+                }
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .contentShape(Rectangle())
         }
-        .accessibilityIdentifier("AboutSettingsButton")
-    }
-
-    /// The account security settings row.
-    private var accountSecurityRow: some View {
-        SettingsListItem(
-            Localizations.accountSecurity,
-            badgeValue: store.state.accountSecurityBadgeValue,
-            icon: SharedAsset.Icons.locked24,
-        ) {
-            store.send(.accountSecurityPressed)
-        } trailingContent: {
-            chevron
-        }
-        .accessibilityIdentifier("AccountSecuritySettingsButton")
-    }
-
-    /// The appearance settings row.
-    private var appearanceRow: some View {
-        SettingsListItem(Localizations.appearance, icon: SharedAsset.Icons.paintBrush) {
-            store.send(.appearancePressed)
-        } trailingContent: {
-            chevron
-        }
-        .accessibilityIdentifier("AppearanceSettingsButton")
-    }
-
-    /// The autofill settings row.
-    private var autofillRow: some View {
-        SettingsListItem(
-            Localizations.autofill,
-            badgeValue: store.state.autofillBadgeValue,
-            icon: SharedAsset.Icons.checkCircle24,
-        ) {
-            store.send(.autoFillPressed)
-        } trailingContent: {
-            chevron
-        }
-        .accessibilityIdentifier("AutofillSettingsButton")
-    }
-
-    /// The other settings row.
-    private var otherRow: some View {
-        SettingsListItem(Localizations.other, icon: SharedAsset.Icons.other) {
-            store.send(.otherPressed)
-        } trailingContent: {
-            chevron
-        }
-        .accessibilityIdentifier("OtherSettingsButton")
-    }
-
-    /// The plan settings row.
-    private var planRow: some View {
-        SettingsListItem(
-            Localizations.plan,
-            icon: SharedAsset.Icons.card24,
-        ) {
-            Task { await store.perform(.planPressed) }
-        } trailingContent: {
-            chevron
-        }
-        .accessibilityIdentifier("PlanSettingsButton")
-    }
-
-    /// The vault settings row.
-    private var vaultRow: some View {
-        SettingsListItem(
-            Localizations.vault,
-            badgeValue: store.state.vaultBadgeValue,
-            icon: SharedAsset.Icons.vaultSettings,
-        ) {
-            store.send(.vaultPressed)
-        } trailingContent: {
-            chevron
-        }
-        .accessibilityIdentifier("VaultSettingsButton")
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id)
     }
 }
 
