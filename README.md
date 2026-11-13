@@ -252,4 +252,8 @@ Tests: Bitwarden-Unit 5855 XCTest + 724 Swift Testing green; ViewInspector 609 e
 **Step C2a (settings root):** the top-level Settings screen is a native `List(.insetGrouped)` with SF Symbols (premium card removed; plan row still conditional). Identifiers unchanged; ViewInspector 609 executed, 0 failures. The sub-screens (account security, autofill, vault, other, about, appearance) are still the previous Bitwarden-style views.
 ![settings light](Docs/screenshots/stepc-settings-light.png) ![settings dark](Docs/screenshots/stepc-settings-dark.png)
 
+**Step C2b (icon set):** all ~85 remaining Bitwarden line icons in `BitwardenResources/Icons.xcassets` were regenerated from SF Symbols (`Scripts-passy/generate_sf_icons.swift`, template PDFs, same asset names, so every screen picks them up). This is a visual unification, not a structural rewrite.
+![icons](Docs/screenshots/stepc-icons-home-light.png)
+**Not rewritten as native List/Form (honest status):** item view/edit (all types), send, folders/collections, import/export, registration/2FA and the settings sub-screens still use the shared `ContentBlock`/`BitwardenField`/`SectionView` building blocks in system colors and fonts, hosted in UIKit coordinators. Step D/E (extensions, watch sync, Mac, Duo poses) were not extended beyond the earlier rounds.
+
 Not done: Cmd+F runtime check, full SwiftUI navigation (coordinator replacement), no UI regression test for tapping a row of the main (non-search) list yet.
