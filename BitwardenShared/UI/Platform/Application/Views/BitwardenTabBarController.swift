@@ -42,11 +42,14 @@ class BitwardenTabBarController: UITabBarController, TabNavigator {
         if #available(iOS 18.0, *) {
             // Native adaptive navigation: tab bar in compact widths, sidebar on iPad / wide windows (and Mac).
             self.tabs = controllers.map { entry in
-                UITab(
+                let uiTab = UITab(
                     title: entry.tab.title,
                     image: entry.tab.image,
                     identifier: "\(entry.tab.index)",
                 ) { _ in entry.controller }
+                // `UITab.selectedImage` only exists on iOS 26.1+; older systems derive the filled variant themselves.
+                if #available(iOS 26.1, *) { uiTab.selectedImage = entry.tab.selectedImage }
+                return uiTab
             }
             mode = .tabSidebar
             // The tab providers are lazy; resolve them now so `viewControllers` (used by `navigator(for:)`) is populated.

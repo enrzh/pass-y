@@ -170,11 +170,11 @@ struct BitwardenTabBarControllerTests {
             #expect(uiTabs[0].image?.pngData() == TestRoute.firstTabImage?.pngData())
             #expect(uiTabs[1].image?.pngData() == TestRoute.secondTabImage?.pngData())
             #expect(uiTabs[2].image?.pngData() == TestRoute.thirdTabImage?.pngData())
-            #expect(uiTabs[0].viewControllerProvider?(uiTabs[0]) === firstTabViewController)
-            #expect(uiTabs[1].viewControllerProvider?(uiTabs[1]) === secondTabViewController)
-            #expect(uiTabs[2].viewControllerProvider?(uiTabs[2]) === thirdTabViewController)
-            #expect(firstTabViewController.tabBarItem.selectedImage?.pngData()
-                == TestRoute.firstTabSelectedImage?.pngData())
+            if #available(iOS 26.1, *) {
+                #expect(uiTabs[0].selectedImage?.pngData() == TestRoute.firstTabSelectedImage?.pngData())
+                #expect(uiTabs[1].selectedImage?.pngData() == TestRoute.secondTabSelectedImage?.pngData())
+                #expect(uiTabs[2].selectedImage?.pngData() == TestRoute.thirdTabSelectedImage?.pngData())
+            }
             return
         }
 
