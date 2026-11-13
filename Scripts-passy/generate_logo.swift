@@ -1,6 +1,6 @@
 #!/usr/bin/swift
 // Pass-Y logo generator. One geometry (1024 grid), rendered as SVG + PNG + PDF; writes all app icon assets.
-// A "Y" cut like a key: two arms meeting in a keyhole, a stem with two key teeth. Flat, two colors.
+// A "P" cut like a key: a stem with two key teeth, a bowl holding a keyhole. Flat, black and white only.
 // Usage: swift Scripts-passy/generate_logo.swift <repo-root>
 import AppKit
 import CoreGraphics
@@ -9,10 +9,10 @@ let root = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "."
 let fm = FileManager.default
 
 struct Palette { let bg: (CGFloat, CGFloat, CGFloat)?; let fg: (CGFloat, CGFloat, CGFloat); let hole: (CGFloat, CGFloat, CGFloat) }
-let light = Palette(bg: (0.043, 0.373, 0.839), fg: (1, 1, 1), hole: (0.043, 0.373, 0.839))   // #0B5FD6 / white
-let dark = Palette(bg: (0.039, 0.082, 0.165), fg: (0.376, 0.671, 1.0), hole: (0.039, 0.082, 0.165)) // navy / light blue
-let tinted = Palette(bg: (0, 0, 0), fg: (1, 1, 1), hole: (0, 0, 0))
-let markOnly = Palette(bg: nil, fg: (0.043, 0.373, 0.839), hole: (0, 0, 0)) // template/wordmark use (hole punched)
+let light = Palette(bg: (1, 1, 1), fg: (0, 0, 0), hole: (1, 1, 1))       // white tile, black mark
+let dark = Palette(bg: (0, 0, 0), fg: (1, 1, 1), hole: (0, 0, 0))          // inverted
+let tinted = Palette(bg: (0, 0, 0), fg: (1, 1, 1), hole: (0, 0, 0))        // grayscale mask for tinting
+let markOnly = Palette(bg: nil, fg: (0, 0, 0), hole: (0, 0, 0))
 
 func col(_ c: (CGFloat, CGFloat, CGFloat)) -> CGColor { CGColor(red: c.0, green: c.1, blue: c.2, alpha: 1) }
 
@@ -24,16 +24,19 @@ func drawMark(_ ctx: CGContext, size: CGFloat, palette: Palette, punchHole: Bool
     if let bg = palette.bg { ctx.setFillColor(col(bg)); ctx.fill(CGRect(x: 0, y: 0, width: 1024, height: 1024)) }
     ctx.setStrokeColor(col(palette.fg)); ctx.setFillColor(col(palette.fg))
     ctx.setLineWidth(118); ctx.setLineCap(.round); ctx.setLineJoin(.round)
-    ctx.move(to: CGPoint(x: 290, y: 232)); ctx.addLine(to: CGPoint(x: 512, y: 520)); ctx.addLine(to: CGPoint(x: 734, y: 232))
-    ctx.move(to: CGPoint(x: 512, y: 520)); ctx.addLine(to: CGPoint(x: 512, y: 800))
+    ctx.translateBy(x: -33, y: -4) // optical centering of the P
+    // P: stem + bowl (arc centered 560,382 r150)
+    ctx.move(to: CGPoint(x: 380, y: 800)); ctx.addLine(to: CGPoint(x: 380, y: 232))
+    ctx.addLine(to: CGPoint(x: 560, y: 232))
+    ctx.addArc(center: CGPoint(x: 560, y: 382), radius: 150, startAngle: -.pi / 2, endAngle: .pi / 2, clockwise: false)
+    ctx.addLine(to: CGPoint(x: 380, y: 532))
     ctx.strokePath()
-    // key teeth
-    ctx.fill(CGRect(x: 512, y: 668, width: 118, height: 66))
-    ctx.fill(CGRect(x: 512, y: 760, width: 86, height: 66))
-    // keyhole at the fork
-    if punchHole { ctx.setBlendMode(.clear) } else { ctx.setFillColor(col(palette.hole)) }
-    ctx.fillEllipse(in: CGRect(x: 512 - 46, y: 520 - 46, width: 92, height: 92))
-    ctx.setBlendMode(.normal)
+    // key teeth on the stem
+    ctx.fill(CGRect(x: 380, y: 668, width: 118, height: 66))
+    ctx.fill(CGRect(x: 380, y: 760, width: 86, height: 66))
+    // keyhole inside the bowl
+    ctx.fillEllipse(in: CGRect(x: 560 - 34, y: 372 - 34, width: 68, height: 68))
+    ctx.fill(CGRect(x: 560 - 16, y: 380, width: 32, height: 62))
     ctx.restoreGState()
 }
 
@@ -67,11 +70,13 @@ func svg(_ p: Palette) -> String {
     return """
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
       \(bgRect)
+      <g transform="translate(-33 -4)">
       <g fill="none" stroke="\(hex(p.fg))" stroke-width="118" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M290 232 L512 520 L734 232 M512 520 L512 800"/>
+        <path d="M380 800 L380 232 L560 232 A150 150 0 0 1 560 532 L380 532"/>
       </g>
-      <g fill="\(hex(p.fg))"><rect x="512" y="668" width="118" height="66"/><rect x="512" y="760" width="86" height="66"/></g>
-      <circle cx="512" cy="520" r="46" fill="\(hex(p.hole))"/>
+      <g fill="\(hex(p.fg))"><rect x="380" y="668" width="118" height="66"/><rect x="380" y="760" width="86" height="66"/>
+        <circle cx="560" cy="372" r="34"/><rect x="544" y="380" width="32" height="62"/></g>
+      </g>
     </svg>
     """
 }
