@@ -84,8 +84,6 @@ public struct ToggleFieldView<State>: View {
         .accessibilityIdentifier(field.accessibilityId ?? field.id)
         .accessibilityLabel(field.accessibilityLabel ?? field.title)
         .disabled(field.isDisabled)
-        .toggleStyle(.bitwarden)
-        .padding(16)
     }
 
     // MARK: Initialization

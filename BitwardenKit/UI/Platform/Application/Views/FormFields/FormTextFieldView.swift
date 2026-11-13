@@ -138,19 +138,35 @@ public struct FormTextFieldView<State>: View {
     let isPasswordVisibleChangedAction: (@MainActor (Bool) -> Void)?
 
     public var body: some View {
-        BitwardenTextField(
-            title: field.title,
-            text: Binding(get: { field.value }, set: action),
-            accessibilityIdentifier: field.accessibilityId ?? field.title,
-            passwordVisibilityAccessibilityId: field.passwordVisibilityAccessibilityId,
-            isPasswordVisible: field.isPasswordVisible.map { isPasswordVisible in
-                Binding(get: { isPasswordVisible }, set: isPasswordVisibleChangedAction ?? { _ in })
-            },
-        )
-        .autocorrectionDisabled(field.isAutocorrectDisabled)
-        .keyboardType(field.keyboardType)
-        .textContentType(field.textContentType)
-        .textInputAutocapitalization(field.autocapitalization.textInputAutocapitalization)
+        HStack(spacing: 8) {
+            Text(field.title)
+            Group {
+                if let isPasswordVisible = field.isPasswordVisible, !isPasswordVisible {
+                    SecureField("", text: Binding(get: { field.value }, set: action))
+                } else {
+                    TextField("", text: Binding(get: { field.value }, set: action))
+                }
+            }
+            .multilineTextAlignment(.trailing)
+            .accessibilityLabel(field.title)
+            .accessibilityIdentifier(field.accessibilityId ?? field.title)
+            .autocorrectionDisabled(field.isAutocorrectDisabled)
+            .keyboardType(field.keyboardType)
+            .textContentType(field.textContentType)
+            .textInputAutocapitalization(field.autocapitalization.textInputAutocapitalization)
+
+            if let isPasswordVisible = field.isPasswordVisible {
+                Button {
+                    isPasswordVisibleChangedAction?(!isPasswordVisible)
+                } label: {
+                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier(field.passwordVisibilityAccessibilityId ?? "PasswordVisibilityToggle")
+                .accessibilityLabel(field.title)
+            }
+        }
     }
 
     // MARK: Initialization

@@ -177,46 +177,13 @@ class GeneratorViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         XCTAssertEqual(processor.dispatchedActions.last, .refreshGeneratedValue)
     }
 
-    /// Tapping the dismiss button in the learn generator action card sends the
-    /// `.dismissLearnGeneratorActionCard` effect.
-    @MainActor
-    func test_learnGeneratorActionCard_visible_tapDismiss() async throws {
-        processor.state.isLearnGeneratorActionCardEligible = true
-        let actionCard = try subject.inspect().find(actionCard: Localizations.exploreTheGenerator)
-
-        let button = try actionCard.find(asyncButton: Localizations.dismiss)
-        try await button.tap()
-        XCTAssertEqual(processor.effects, [.dismissLearnGeneratorActionCard])
-    }
-
-    /// Tapping the 'Get started' button in the learn generator action card sends the
-    /// `.showLearnNewLoginGuidedTour` effect.
-    @MainActor
-    func test_learnGeneratorActionCard_visible_tapGetStarted() async throws {
-        processor.state.isLearnGeneratorActionCardEligible = true
-        let actionCard = try subject.inspect().find(actionCard: Localizations.exploreTheGenerator)
-
-        let button = try actionCard.find(asyncButton: Localizations.getStarted)
-        try await button.tap()
-        XCTAssertEqual(processor.effects, [.showLearnGeneratorGuidedTour])
-    }
-
-    /// Tests that the generator action card is not present when `.presentationMode` is `.inPlace`.
-    @MainActor
-    func test_learnGeneratorActionCard_inVisible() throws {
-        processor.state.isLearnGeneratorActionCardEligible = true
-        processor.state.presentationMode = .inPlace
-        let actionCard = try? subject.inspect().find(actionCard: Localizations.exploreTheGenerator)
-        XCTAssertNil(actionCard)
-    }
-
     /// Updating the email type dispatches the `.emailTypeChanged` action.
     @MainActor
     func test_menuEmailTypeChanged() throws {
         processor.state.generatorType = .username
         processor.state.usernameState.emailWebsite = "bitwarden.com"
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.emailType)
-        try menuField.select(newValue: UsernameEmailType.website)
+        let menuField = try subject.inspect().find(ViewType.Picker.self, containing: Localizations.emailType)
+        try menuField.select(value: UsernameEmailType.website)
         XCTAssertEqual(processor.dispatchedActions.last, .emailTypeChanged(.website))
     }
 
@@ -227,8 +194,8 @@ class GeneratorViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         processor.state.generatorType = .username
         processor.state.usernameState.usernameGeneratorType = .forwardedEmail
         processor.state.usernameState.forwardedEmailService = .addyIO
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.service)
-        try menuField.select(newValue: ForwardedEmailServiceType.fastmail)
+        let menuField = try subject.inspect().find(ViewType.Picker.self, containing: Localizations.service)
+        try menuField.select(value: ForwardedEmailServiceType.fastmail)
         XCTAssertEqual(processor.dispatchedActions.last, .usernameForwardedEmailServiceChanged(.fastmail))
     }
 
@@ -282,7 +249,7 @@ class GeneratorViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
             title: Localizations.length,
             value: 14,
         )
-        let slider = try subject.inspect().find(sliderWithAccessibilityLabel: Localizations.length)
+        let slider = try subject.inspect().find(ViewType.Slider.self)
         try slider.setValue(0.25) // (128 - 5 + 1) * 0.25 + 5 = 36
         XCTAssertEqual(
             processor.dispatchedActions.last,
@@ -300,10 +267,7 @@ class GeneratorViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
             title: Localizations.minNumbers,
             value: 1,
         )
-        let stepper = try subject.inspect().find(
-            BitwardenStepperType.self,
-            containing: Localizations.minNumbers,
-        )
+        let stepper = try subject.inspect().find(ViewType.Stepper.self, containing: Localizations.minNumbers)
         try stepper.increment()
         XCTAssertEqual(
             processor.dispatchedActions.last,

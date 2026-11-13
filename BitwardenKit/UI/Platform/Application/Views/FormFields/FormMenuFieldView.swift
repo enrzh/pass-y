@@ -81,42 +81,30 @@ public struct FormMenuFieldView<State, T: Menuable, TitleAccessory: View, Traili
     // MARK: View
 
     public var body: some View {
-        if let trailingContent, let titleAccessoryContent {
-            BitwardenMenuField(
-                title: field.title,
-                footer: field.footer,
-                accessibilityIdentifier: field.accessibilityIdentifier,
-                options: field.options,
-                selection: Binding(get: { field.selection }, set: action),
-                titleAccessoryContent: { titleAccessoryContent },
-                trailingContent: { trailingContent },
-            )
-        } else if let trailingContent {
-            BitwardenMenuField(
-                title: field.title,
-                footer: field.footer,
-                accessibilityIdentifier: field.accessibilityIdentifier,
-                options: field.options,
-                selection: Binding(get: { field.selection }, set: action),
-                trailingContent: { trailingContent },
-            )
-        } else if let titleAccessoryContent {
-            BitwardenMenuField(
-                title: field.title,
-                footer: field.footer,
-                accessibilityIdentifier: field.accessibilityIdentifier,
-                options: field.options,
-                selection: Binding(get: { field.selection }, set: action),
-                titleAccessoryContent: { titleAccessoryContent },
-            )
-        } else {
-            BitwardenMenuField(
-                title: field.title,
-                footer: field.footer,
-                accessibilityIdentifier: field.accessibilityIdentifier,
-                options: field.options,
-                selection: Binding(get: { field.selection }, set: action),
-            )
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Picker(
+                    selection: Binding(get: { field.selection }, set: action),
+                ) {
+                    ForEach(field.options, id: \.self) { option in
+                        Text(option.localizedName).tag(option)
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(field.title)
+                        if let titleAccessoryContent { titleAccessoryContent }
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier(field.accessibilityIdentifier ?? field.title)
+
+                if let trailingContent { trailingContent }
+            }
+            if let footer = field.footer {
+                Text(footer)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 

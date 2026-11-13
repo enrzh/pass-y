@@ -16,66 +16,66 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
     /// The `Store` for this view.
     @ObservedObject var store: Store<GeneratorState, GeneratorAction, GeneratorEffect>
 
-    @SwiftUI.State private var referenceViewHeight: CGFloat = 0
-
     var body: some View {
-        GeometryReader { geometry in
-            Group {
-                if #available(iOS 26, *) {
-                    ZStack(alignment: .top) {
-                        internalView(geometry: geometry)
-                    }
-                } else {
-                    VStack(spacing: 0) {
-                        internalView(geometry: geometry)
+        Form {
+            if store.state.availableGeneratorTypes.count > 1 {
+                Section {
+                    BitwardenSegmentedControl(
+                        isSelectionDisabled: { store.state.isGeneratorTypeDisabled($0) },
+                        selection: store.binding(get: \.generatorType, send: GeneratorAction.generatorTypeChanged),
+                        selections: store.state.availableGeneratorTypes,
+                    )
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
+            }
+
+            if store.state.isPolicyInEffect {
+                Section {
+                    Label(Localizations.passwordGeneratorPolicyInEffect, systemImage: "info.circle")
+                        .accessibilityIdentifier("PasswordGeneratorPolicyInEffectLabel")
+                }
+            }
+
+            ForEach(store.state.formSections) { section in
+                sectionView(section)
+            }
+        }
+        .navigationBar(title: Localizations.generator, titleDisplayMode: .inline)
+        .task { await store.perform(.appeared) }
+        .onChange(of: focusedFieldKeyPath) { newValue in
+            store.send(.textFieldFocusChanged(keyPath: newValue))
+        }
+        .toast(store.binding(
+            get: \.toast,
+            send: GeneratorAction.toastShown,
+        ))
+        .onChange(of: store.state.url) { newValue in
+            guard let url = newValue else { return }
+            openURL(url)
+            store.send(.clearUrl)
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                if store.state.presentationMode.isDismissButtonVisible {
+                    cancelToolbarButton {
+                        store.send(.dismissPressed)
                     }
                 }
             }
-            .coordinateSpace(name: "generatorView")
-            .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-            .navigationBar(title: Localizations.generator, titleDisplayMode: .inline)
-            .task { await store.perform(.appeared) }
-            .onChange(of: focusedFieldKeyPath) { newValue in
-                store.send(.textFieldFocusChanged(keyPath: newValue))
-            }
-            .toast(store.binding(
-                get: \.toast,
-                send: GeneratorAction.toastShown,
-            ))
-            .onChange(of: store.state.url) { newValue in
-                guard let url = newValue else { return }
-                openURL(url)
-                store.send(.clearUrl)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    if store.state.presentationMode.isDismissButtonVisible {
-                        cancelToolbarButton {
-                            store.send(.dismissPressed)
+
+            largeNavigationTitleToolbarItem(
+                Localizations.generator,
+                hidden: store.state.presentationMode != .tab,
+            )
+
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if store.state.presentationMode.isOptionsButtonVisible {
+                    optionsToolbarMenu {
+                        Button(Localizations.passwordHistory) {
+                            store.send(.showPasswordHistory)
                         }
                     }
-                }
-
-                largeNavigationTitleToolbarItem(
-                    Localizations.generator,
-                    hidden: store.state.presentationMode != .tab,
-                )
-
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    if store.state.presentationMode.isOptionsButtonVisible {
-                        optionsToolbarMenu {
-                            Button(Localizations.passwordHistory) {
-                                store.send(.showPasswordHistory)
-                            }
-                        }
-                    }
-                }
-            }
-            .apply { view in
-                if #available(iOS 26, *) {
-                    view.contentMargins(.top, referenceViewHeight)
-                } else {
-                    view
                 }
             }
         }
@@ -87,131 +87,24 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
         Button(store.state.generatorType.fillButtonTitle) {
             store.send(.fillGeneratedValue)
         }
-        .buttonStyle(.primary())
+        .buttonStyle(.borderedProminent)
+        .frame(maxWidth: .infinity)
         .accessibilityIdentifier("FillGeneratedValueButton")
-    }
-
-    @ViewBuilder
-    func internalView(geometry: GeometryProxy) -> some View { // swiftlint:disable:this function_body_length
-        if store.state.availableGeneratorTypes.count > 1 {
-            BitwardenSegmentedControl(
-                isSelectionDisabled: { store.state.isGeneratorTypeDisabled($0) },
-                selection: store.binding(get: \.generatorType, send: GeneratorAction.generatorTypeChanged),
-                selections: store.state.availableGeneratorTypes,
-            )
-            .backport.onGeometryChange(for: CGSize.self) { proxy in proxy.size } action: { size in
-                referenceViewHeight = size.height
-            }
-            .guidedTourStep(.step1, perform: { frame in
-                let steps: [GuidedTourStep] = [.step1, .step2, .step3]
-                for step in steps {
-                    store.send(
-                        .guidedTourViewAction(.didRenderViewToSpotlight(
-                            frame: frame,
-                            step: step,
-                        )),
-                    )
-                }
-            })
-            .padding(.horizontal, 12)
-            .padding(.bottom, 12)
-            .apply { view in
-                if #unavailable(iOS 26) {
-                    view.background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-                } else {
-                    view.zIndex(1)
-                }
-            }
-        }
-
-        if #unavailable(iOS 26) {
-            Divider()
-        }
-
-        GuidedTourScrollView(
-            store: store.child(
-                state: \.guidedTourViewState,
-                mapAction: GeneratorAction.guidedTourViewAction,
-                mapEffect: nil,
-            ),
-        ) {
-            VStack(alignment: .leading, spacing: 24) {
-                if store.state.shouldShowUpgradedToPremiumActionCard {
-                    UpgradedToPremiumActionCardView(
-                        onDismiss: { await store.perform(.dismissUpgradedToPremiumActionCard) },
-                        onLearnMore: { store.send(.learnMoreAboutPremium) },
-                    )
-                }
-
-                if store.state.isLearnGeneratorActionCardEligible,
-                   store.state.presentationMode == .tab {
-                    ActionCard(
-                        title: Localizations.exploreTheGenerator,
-                        message: Localizations.learnMoreAboutGeneratingSecureLoginCredentialsWithAGuidedTour,
-                        actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
-                            await store.perform(.showLearnGeneratorGuidedTour)
-                        },
-                        dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                            await store.perform(.dismissLearnGeneratorActionCard)
-                        },
-                    )
-                }
-
-                if store.state.isPolicyInEffect {
-                    InfoContainer(Localizations.passwordGeneratorPolicyInEffect)
-                        .accessibilityIdentifier("PasswordGeneratorPolicyInEffectLabel")
-                }
-
-                ForEach(store.state.formSections) { section in
-                    sectionView(section, geometryProxy: geometry)
-                }
-            }
-            .padding(12)
-        }
     }
 
     /// Returns a view for displaying a section of items in the form.
     ///
-    /// - Parameters:
-    ///   - section: The section of items to display.
-    ///   - geometryProxy: The geometry proxy for the view.
+    /// - Parameter section: The section of items to display.
     ///
     @ViewBuilder
-    func sectionView(
-        _ section: GeneratorState.FormSection<GeneratorState>,
-        geometryProxy: GeometryProxy,
-    ) -> some View {
-        VStack(spacing: 8) {
+    func sectionView(_ section: GeneratorState.FormSection<GeneratorState>) -> some View {
+        Section {
             ForEach(section.groups) { group in
-                if group.showInContentBlock {
-                    ContentBlock(dividerLeadingPadding: 16) {
-                        groupView(group)
-                    }
-                    .onFrameChanged(
-                        id: GuidedTourStep.step4.id,
-                        perform: { origin, size in
-                            // The spotlight region for step 4 is quite large and may not fit on the
-                            // screen even in portrait mode, potentially leaving some parts hidden.
-                            // This calculation helps identify the visible portion of
-                            // the spotlight region.
-                            let globalFrame = CGRect(origin: origin, size: size)
-                            var visibleFrame = globalFrame
-                            let generatorViewFrame = geometryProxy.frame(in: .global)
-                            if globalFrame.maxY > generatorViewFrame.maxY {
-                                visibleFrame.size.height = generatorViewFrame.maxY
-                                    - globalFrame.origin.y
-                            }
-                            store.send(
-                                .guidedTourViewAction(.didRenderViewToSpotlight(
-                                    frame: visibleFrame,
-                                    step: .step4,
-                                )),
-                            )
-                        },
-                    )
-                } else {
-                    groupView(group)
-                }
+                groupView(group)
+            }
+        } header: {
+            if let title = section.title {
+                Text(title)
             }
         }
     }
@@ -227,16 +120,6 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
                 emailWebsiteView(website: website)
             case let .generatedValue(generatedValueField):
                 generatedValueView(field: generatedValueField)
-                    .guidedTourStep(.step6) { frame in
-                        store.send(
-                            .guidedTourViewAction(
-                                .didRenderViewToSpotlight(
-                                    frame: frame,
-                                    step: .step6,
-                                ),
-                            ),
-                        )
-                    }
             case let .menuEmailType(menuField):
                 FormMenuFieldView(field: menuField) { newValue in
                     store.send(.emailTypeChanged(newValue))
@@ -252,7 +135,7 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
                     store.send(.sliderEditingChanged(field: sliderField, isEditing: isEditing))
                 } onValueChanged: { newValue in
                     store.send(.sliderValueChanged(field: sliderField, value: newValue))
-                }.id(GuidedTourStep.step4.id)
+                }
             case let .stepper(stepperField):
                 StepperFieldView(field: stepperField) { newValue in
                     store.send(.stepperValueChanged(field: stepperField, value: newValue))
@@ -278,10 +161,10 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
     ///
     @ViewBuilder
     func emailWebsiteView(website: String) -> some View {
-        BitwardenField(title: Localizations.website) {
-            Text(website)
-                .styleGuide(.body)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+        HStack {
+            Text(Localizations.website)
+            Spacer()
+            Text(website).foregroundStyle(.secondary)
         }
     }
 
@@ -291,33 +174,32 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
     ///
     @ViewBuilder
     func generatedValueView(field: GeneratorState.GeneratedValueField<GeneratorState>) -> some View {
-        BitwardenField {
+        HStack(spacing: 12) {
             PasswordText(password: field.value, isPasswordVisible: true)
                 .accessibilityIdentifier("GeneratedPasswordLabel")
-        } accessoryContent: {
-            AccessoryButton(
-                asset: SharedAsset.Icons.generate24,
-                accessibilityLabel: store.state.generatorType.regenerateButtonAccessibilityLabel,
-                accessibilityIdentifier: "RegenerateValueButton",
-            ) {
+                .textSelection(.enabled)
+            Spacer(minLength: 0)
+            Button {
                 store.send(.refreshGeneratedValue)
+            } label: {
+                Image(systemName: "arrow.clockwise")
+                    .frame(width: 44, height: 44)
             }
-            .guidedTourStep(.step5) { frame in
-                store.send(
-                    .guidedTourViewAction(.didRenderViewToSpotlight(
-                        frame: frame.enlarged(by: 8),
-                        step: .step5,
-                    )),
-                )
-            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.tint)
+            .accessibilityLabel(store.state.generatorType.regenerateButtonAccessibilityLabel)
+            .accessibilityIdentifier("RegenerateValueButton")
 
-            AccessoryButton(
-                asset: SharedAsset.Icons.copy24,
-                accessibilityLabel: store.state.generatorType.copyButtonAccessibilityLabel,
-                accessibilityIdentifier: "CopyValueIconButton",
-            ) {
+            Button {
                 store.send(.copyGeneratedValue)
+            } label: {
+                Image(systemName: "doc.on.doc")
+                    .frame(width: 44, height: 44)
             }
+            .buttonStyle(.plain)
+            .foregroundStyle(.tint)
+            .accessibilityLabel(store.state.generatorType.copyButtonAccessibilityLabel)
+            .accessibilityIdentifier("CopyValueIconButton")
         }
 
         if store.state.presentationMode.isFillButtonVisible {
@@ -328,7 +210,8 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
             AsyncButton(Localizations.createLogin) {
                 await store.perform(.createLoginPressed)
             }
-            .buttonStyle(.primary())
+            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity)
             .disabled(!store.state.hasGeneratedValue)
             .accessibilityIdentifier("CreateLoginButton")
         }
@@ -347,10 +230,10 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
             Button {
                 openURL(ExternalLinksConstants.generatorUsernameTypes)
             } label: {
-                SharedAsset.Icons.questionCircle12.swiftUIImage
-                    .scaledFrame(width: 12, height: 12)
+                Image(systemName: "questionmark.circle")
+                    .font(.footnote)
             }
-            .buttonStyle(.fieldLabelIcon)
+            .buttonStyle(.plain)
             .accessibilityLabel(Localizations.learnMore)
         }
     }

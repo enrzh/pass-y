@@ -70,13 +70,17 @@ public struct StepperFieldView<State>: View {
     let field: StepperField<State>
 
     public var body: some View {
-        BitwardenStepper(
+        Stepper(
             value: Binding(get: { field.value }, set: action),
             in: field.range,
         ) {
-            Text(field.title)
-                .styleGuide(.body)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+            HStack {
+                Text(field.title)
+                Spacer()
+                Text(String(field.value))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
         }
         .accessibilityIdentifier(field.accessibilityId ?? field.id)
     }

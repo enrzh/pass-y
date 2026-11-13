@@ -87,16 +87,19 @@ public struct SliderFieldView<State>: View {
     let onValueChanged: @MainActor (Double) -> Void
 
     /// The width of the three digit text "000" based on the current font.
-    @SwiftUI.State private var minTextWidth: CGFloat = 14
-
     public var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            Text(field.title)
-                .styleGuide(.body)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .accessibilityHidden(true)
-
-            BitwardenSlider(
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(field.title)
+                    .accessibilityHidden(true)
+                Spacer()
+                Text(String(Int(field.value)))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .accessibilityIdentifier(field.sliderValueAccessibilityId ?? field.id)
+                    .accessibilityHidden(true)
+            }
+            Slider(
                 value: Binding(get: { field.value }, set: onValueChanged),
                 in: field.range,
                 step: field.step,
@@ -118,19 +121,8 @@ public struct SliderFieldView<State>: View {
                     view
                 }
             }
-
-            Text(String(Int(field.value)))
-                .styleGuide(.body, monoSpacedDigit: true)
-                .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .accessibilityIdentifier(field.sliderValueAccessibilityId ?? field.id)
-                .accessibilityHidden(true)
-                .frame(minWidth: minTextWidth)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background {
-            calculateMinTextWidth()
-        }
+        .padding(.vertical, 4)
     }
 
     // MARK: Initialization
@@ -150,20 +142,5 @@ public struct SliderFieldView<State>: View {
         self.field = field
         self.onEditingChanged = onEditingChanged
         self.onValueChanged = onValueChanged
-    }
-
-    // MARK: Private methods
-
-    /// Calculate the width of the text "000" based on the current font.
-    private func calculateMinTextWidth() -> some View {
-        Text("000")
-            .styleGuide(.body, monoSpacedDigit: true)
-            .hidden()
-            .background(GeometryReader { geometry in
-                Color.clear
-                    .onAppear {
-                        minTextWidth = geometry.size.width
-                    }
-            })
     }
 }
