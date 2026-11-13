@@ -103,7 +103,7 @@ private struct VaultSearchBarRepresentable: UIViewRepresentable {
 
     func updateUIView(_ bar: UISearchBar, context: Context) {
         if bar.text != text { bar.text = text }
-        bar.setShowsCancelButton(isEditing, animated: true)
+        bar.setShowsCancelButton(isEditing || !text.isEmpty, animated: true)
         if !isEditing, bar.isFirstResponder { bar.resignFirstResponder() }
     }
 
@@ -112,6 +112,8 @@ private struct VaultSearchBarRepresentable: UIViewRepresentable {
         init(_ parent: VaultSearchBarRepresentable) { self.parent = parent }
 
         func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) { parent.isEditing = true }
+        // UIKit also ends editing when the screen navigates away (e.g. opening a result); keep the + button in sync.
+        func searchBarTextDidEndEditing(_ searchBar: UISearchBar) { parent.isEditing = false }
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) { parent.text = searchText }
         func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
             parent.text = ""

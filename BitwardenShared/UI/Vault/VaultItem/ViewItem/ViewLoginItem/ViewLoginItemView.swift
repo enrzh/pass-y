@@ -90,6 +90,12 @@ struct ViewLoginItemView: View {
             }
         }
         .accessibilityElement(children: .contain)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard store.state.canViewPassword else { return }
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            store.send(.copyPressed(value: password, field: .password))
+        }
     }
 
     /// Row signifying that Premium subscription is required for TOTP.
@@ -147,6 +153,11 @@ struct ViewLoginItemView: View {
             .accessibilityIdentifier("LoginCopyUsernameButton")
         }
         .accessibilityElement(children: .contain)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            store.send(.copyPressed(value: username, field: .username))
+        }
     }
 
     // MARK: Methods

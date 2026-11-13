@@ -24,18 +24,33 @@ final class PassYShotsTests: XCTestCase {
         let land = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         land.name = "\(tag)-1b-home-landscape"; land.lifetime = .keepAlways; add(land)
         XCUIDevice.shared.orientation = .portrait; sleep(1)
+        if !app.staticTexts["GitHub"].exists {
+            // With a large vault the item is below the fold: find it through the bottom search bar.
+            let search = app.searchFields.firstMatch
+            search.tap(); sleep(3)
+            for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+            _ = app.staticTexts["GitHub"].waitForExistence(timeout: 20)
+        }
         if app.staticTexts["GitHub"].exists {
             app.staticTexts["GitHub"].firstMatch.tap()
             sleep(2)
             attach(app, "\(tag)-2-detail")
             let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
             if close.exists { close.firstMatch.tap() }
+            if app.buttons["Cancel"].waitForExistence(timeout: 3) { app.buttons["Cancel"].tap() }
         }
         tab(app, "Generator").tap(); sleep(1)
         attach(app, "\(tag)-3-generator")
         tab(app, "Settings").tap(); sleep(1)
         attach(app, "\(tag)-4-settings")
         tab(app, "My vault").tap()
+        // iOS 26 shows the search bar cancel as an X button (label "Cancel" or "Close" depending on the OS build).
+        let cancel = app.buttons.matching(NSPredicate(format: "label IN {'Cancel','Close'}")).firstMatch
+        if cancel.waitForExistence(timeout: 3) { cancel.tap() }
+        attach(app, "\(tag)-4b-before-add")
+        if !app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 5) {
+            XCTFail("Add button missing after closing the search\n\(app.debugDescription)")
+        }
         app.buttons["AddItemFloatingActionButton"].tap()
         app.buttons["Login"].firstMatch.tap(); sleep(2)
         attach(app, "\(tag)-5-add")

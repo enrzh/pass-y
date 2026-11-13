@@ -268,4 +268,7 @@ Fixed on the way: switching light/dark crashed the app (`BitwardenTabBarControll
 **Step N2 (settings account row, bottom bar fade):** the top of Settings has an Apple-ID-style account row (avatar, e-mail, menu to switch account, lock now, log out; add account stays in the vault profile menu). The vault list now fades out behind the floating bottom bar (solid background with a short gradient above, plus the iOS 26 soft scroll edge) so rows no longer shine through the glass or show between bar and tab bar.
 ![settings account light](Docs/screenshots/settings-account-light.png) ![settings account dark](Docs/screenshots/settings-account-dark.png) ![vault fade](Docs/screenshots/nav-home-fade-light.png)
 
+**Step N3 (item view polish, search state):** the item view has a bold large title; tapping the username or password row copies it (with haptic), in addition to the copy icons. Fixed a bug found by the UI test: after opening a search result, UIKit ended editing in the bottom search bar while the app still thought it was editing, so the `+` button stayed hidden; the bar now follows `searchBarTextDidEndEditing` and keeps its cancel button while text is present. The item view is still the shared card layout (not a `List`/`Form`).
+![item light](Docs/screenshots/item-view-light.png) ![item dark](Docs/screenshots/item-view-dark.png)
+
 Not done: Cmd+F runtime check, full SwiftUI navigation (coordinator replacement), no UI regression test for tapping a row of the main (non-search) list yet.

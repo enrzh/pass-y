@@ -263,7 +263,7 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
             .padding(.vertical, 5)
 
             Text(store.state.name)
-                .styleGuide(.title2, weight: .semibold, includeLinePadding: false, includeLineSpacing: false)
+                .styleGuide(.title, weight: .bold, includeLinePadding: false, includeLineSpacing: false)
                 .multilineTextAlignment(.leading)
                 .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
                 .accessibilityIdentifier(store.state.name)

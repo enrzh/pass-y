@@ -80,6 +80,31 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(value: "username", field: .username)))
     }
 
+    /// Tapping the username row itself (not only the copy icon) copies the username.
+    @MainActor
+    func test_usernameRow_tapToCopy() throws {
+        let loginState = CipherItemState(
+            existing: .loginFixture(
+                login: .fixture(
+                    username: "username",
+                ),
+                name: "Name",
+                revisionDate: Date(),
+            ),
+            hasPremium: true,
+        )!
+        processor.state.loadingState = .data(loginState)
+        let value = try subject.inspect().find(viewWithAccessibilityIdentifier: "LoginUsernameEntry")
+        // The tap gesture sits on the row container: walk up from the value text until one handles it.
+        var node = try value.parent()
+        var tapped = false
+        for _ in 0 ..< 12 where !tapped {
+            if (try? node.callOnTapGesture()) != nil { tapped = true } else if let next = try? node.parent() { node = next } else { break }
+        }
+        XCTAssertTrue(tapped, "no ancestor of the username value handles a tap")
+        XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(value: "username", field: .username)))
+    }
+
     /// Tapping the copy password button dispatches the `.copyPressed` action along with the
     /// password.
     @MainActor
