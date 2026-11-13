@@ -8,6 +8,17 @@ enum TestAccount {
 }
 
 extension XCTestCase {
+    /// Taps the search field and makes sure the soft keyboard is up (the simulator occasionally ignores the first tap).
+    func focusSearch(_ app: XCUIApplication) {
+        let search = app.searchFields.firstMatch
+        search.tap()
+        if !app.keyboards.firstMatch.waitForExistence(timeout: 4) {
+            search.tap()
+            XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 6), "keyboard shows after tapping the search field")
+        }
+        sleep(1)
+    }
+
     /// Taps "Login" in the open add menu (on iPad the category tile of the same name is also visible behind it).
     func tapNewLoginMenuItem(_ app: XCUIApplication) {
         let menuItem = app.menuItems["Login"]

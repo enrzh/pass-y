@@ -26,8 +26,7 @@ final class PassYShotsTests: XCTestCase {
         XCUIDevice.shared.orientation = .portrait; sleep(1)
         if !app.staticTexts["GitHub"].exists {
             // With a large vault the item is below the fold: find it through the bottom search bar.
-            let search = app.searchFields.firstMatch
-            search.tap(); sleep(3)
+            focusSearch(app)
             for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
             _ = app.staticTexts["GitHub"].waitForExistence(timeout: 20)
         }

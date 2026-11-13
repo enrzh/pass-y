@@ -215,6 +215,62 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertFalse(app.keyboards.firstMatch.exists, "keyboard is closed after cancel")
     }
 
+    /// Opens the seeded "GitHub" login through the bottom search bar and returns once the item sheet is up.
+    private func openGitHubViaSearch(_ app: XCUIApplication) {
+        let search = app.searchFields.firstMatch
+        search.tap(); sleep(3)
+        for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+        let hit = app.staticTexts["GitHub"].firstMatch
+        XCTAssertTrue(hit.waitForExistence(timeout: 20), "search finds GitHub")
+        hit.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["LoginUsernameEntry"].waitForExistence(timeout: 10), "item view is open")
+    }
+
+    /// Real taps in the item view: the eye reveals the password, the copy icons and the rows copy (toast "copied").
+    func test12_itemViewRevealAndCopyTaps() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        openGitHubViaSearch(app)
+        let password = app.descendants(matching: .any)["LoginPasswordEntry"]
+        XCTAssertTrue(password.waitForExistence(timeout: 5), "password row exists")
+        let hiddenLabel = password.label
+        attach(app, "12-item-hidden")
+        let eye = app.buttons["ShowLoginPasswordButton"]
+        XCTAssertTrue(eye.waitForExistence(timeout: 5), "reveal (eye) button exists")
+        eye.tap(); sleep(1)
+        attach(app, "12-item-revealed")
+        XCTAssertNotEqual(app.descendants(matching: .any)["LoginPasswordEntry"].label, hiddenLabel, "eye reveals the password")
+        let copied = NSPredicate(format: "label CONTAINS[c] 'copied'")
+        app.buttons["LoginCopyUsernameButton"].tap(); sleep(1)
+        XCTAssertTrue(app.staticTexts.matching(copied).firstMatch.waitForExistence(timeout: 5), "copy icon shows a copied toast")
+        attach(app, "12-item-copy-icon-toast")
+        sleep(4)
+        app.descendants(matching: .any)["LoginUsernameEntry"].tap(); sleep(1)
+        XCTAssertTrue(app.staticTexts.matching(copied).firstMatch.waitForExistence(timeout: 5), "tapping the row copies and shows the toast")
+        attach(app, "12-item-row-tap-toast")
+    }
+
+    /// Real taps in Settings: the account row menu offers Lock and Log out; Log out asks for confirmation.
+    func test13_settingsAccountMenu() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        tabBarButton(app, "Settings").tap()
+        let row = app.buttons["SettingsAccountRow"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10), "account row exists")
+        XCTAssertTrue(app.staticTexts["passy-test@example.test"].exists, "account row shows the e-mail")
+        row.tap(); sleep(2)
+        attach(app, "13-account-menu")
+        XCTAssertTrue(app.buttons["Lock now"].waitForExistence(timeout: 5), "menu offers Lock now")
+        let logout = app.buttons["Log out"]
+        XCTAssertTrue(logout.exists, "menu offers Log out")
+        logout.tap(); sleep(2)
+        attach(app, "13-logout-confirmation")
+        let cancel = app.alerts.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5), "log out asks for confirmation")
+        cancel.tap()
+        XCTAssertTrue(app.buttons["SettingsAccountRow"].waitForExistence(timeout: 5), "still logged in after cancelling")
+    }
+
     func test05_generator() {
         let app = launchApp()
         ensureUnlockedVault(app)
