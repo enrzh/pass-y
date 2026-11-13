@@ -26,6 +26,9 @@ struct SettingsView: View {
         .task {
             await store.perform(.appeared)
         }
+        .task {
+            await store.perform(.loadProfile)
+        }
         .onChange(of: store.state.url) { newValue in
             guard let url = newValue else { return }
             openURL(url)

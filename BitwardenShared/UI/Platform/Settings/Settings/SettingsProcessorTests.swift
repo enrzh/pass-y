@@ -1,5 +1,6 @@
 import BitwardenKit
 import BitwardenKitMocks
+import BitwardenResources
 import TestHelpers
 import XCTest
 
@@ -9,6 +10,7 @@ import XCTest
 class SettingsProcessorTests: BitwardenTestCase {
     // MARK: Properties
 
+    var authRepository: MockAuthRepository!
     var coordinator: MockCoordinator<SettingsRoute, SettingsEvent>!
     var delegate: MockSettingsProcessorDelegate!
     var errorReporter: MockErrorReporter!
@@ -20,6 +22,7 @@ class SettingsProcessorTests: BitwardenTestCase {
     override func setUp() {
         super.setUp()
 
+        authRepository = MockAuthRepository()
         coordinator = MockCoordinator()
         delegate = MockSettingsProcessorDelegate()
         errorReporter = MockErrorReporter()
@@ -31,6 +34,7 @@ class SettingsProcessorTests: BitwardenTestCase {
     override func tearDown() {
         super.tearDown()
 
+        authRepository = nil
         coordinator = nil
         delegate = nil
         errorReporter = nil
@@ -44,6 +48,7 @@ class SettingsProcessorTests: BitwardenTestCase {
             coordinator: coordinator.asAnyCoordinator(),
             delegate: delegate,
             services: ServiceContainer.withMocks(
+                authRepository: authRepository,
                 errorReporter: errorReporter,
                 stateService: stateService,
             ),
@@ -165,6 +170,45 @@ class SettingsProcessorTests: BitwardenTestCase {
         await subject.perform(.appeared)
         XCTAssertFalse(subject.state.hasPremium)
         XCTAssertFalse(subject.state.showPlanRow)
+    }
+
+    /// `perform(.loadProfile)` loads the accounts for the account row at the top.
+    @MainActor
+    func test_perform_loadProfile() async {
+        authRepository.profileSwitcherState = .dualAccounts
+        await subject.perform(.loadProfile)
+        XCTAssertEqual(subject.state.profileState.accounts, ProfileSwitcherState.dualAccounts.accounts)
+        XCTAssertEqual(subject.state.profileState.activeAccountId, ProfileSwitcherState.dualAccounts.activeAccountId)
+    }
+
+    /// `receive(.lockPressed)` locks the active vault.
+    @MainActor
+    func test_receive_lockPressed() async throws {
+        subject.receive(.lockPressed)
+        try await waitForAsync { !self.coordinator.events.isEmpty }
+        XCTAssertEqual(coordinator.events.last, .authAction(.lockVault(userId: nil, isManuallyLocking: true)))
+    }
+
+    /// `receive(.logoutPressed)` asks for confirmation and then logs the user out.
+    @MainActor
+    func test_receive_logoutPressed() async throws {
+        subject.receive(.logoutPressed)
+        let alert = try XCTUnwrap(coordinator.alertShown.last)
+        XCTAssertEqual(alert.alertActions[0].title, Localizations.yes)
+        try await alert.tapAction(title: Localizations.yes)
+        XCTAssertEqual(coordinator.events.last, .authAction(.logout(userId: nil, userInitiated: true)))
+    }
+
+    /// `receive(.switchAccountPressed)` switches to the chosen account.
+    @MainActor
+    func test_receive_switchAccountPressed() async throws {
+        let account = ProfileSwitcherState.dualAccounts.accounts[1]
+        subject.receive(.switchAccountPressed(account))
+        try await waitForAsync { !self.coordinator.events.isEmpty }
+        XCTAssertEqual(
+            coordinator.events.last,
+            .authAction(.switchAccount(isAutomatic: false, userId: account.userId, authCompletionRoute: nil)),
+        )
     }
 
     /// `receive(.clearUrl)` clears the URL from state.

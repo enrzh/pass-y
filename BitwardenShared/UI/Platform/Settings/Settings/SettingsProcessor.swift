@@ -102,12 +102,6 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
         switch effect {
         case .appeared:
             guard state.presentationMode == .tab else { return }
-            state.profileState = await services.authRepository.getProfilesState(
-                allowLockAndLogout: true,
-                isVisible: false,
-                shouldAlwaysHideAddAccount: true,
-                showPlaceholderToolbarIcon: false,
-            )
             let featureEnabled = await services.configService
                 .getFeatureFlag(.premiumUpgradePath, defaultValue: false)
             let hasPersonalSubscription = await services.billingService.hasPersonalSubscription()
@@ -131,6 +125,14 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
         case .dismissUpgradedToPremiumActionCard:
             state.shouldShowUpgradedToPremiumActionCard = false
             await services.billingService.setUpgradedToPremiumActionCardDismissed()
+        case .loadProfile:
+            guard state.presentationMode == .tab else { return }
+            state.profileState = await services.authRepository.getProfilesState(
+                allowLockAndLogout: true,
+                isVisible: false,
+                shouldAlwaysHideAddAccount: true,
+                showPlaceholderToolbarIcon: false,
+            )
         case .planPressed:
             await navigateToPlan()
         }

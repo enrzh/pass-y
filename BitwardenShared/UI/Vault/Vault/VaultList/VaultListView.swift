@@ -143,7 +143,6 @@ private struct SearchableVaultListView: View {
                 }
             }
             .listStyle(.insetGrouped)
-        .softBottomScrollEdge()
             .softBottomScrollEdge()
         } else {
             SearchNoResultsView {
@@ -334,6 +333,7 @@ private struct SearchableVaultListView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .softBottomScrollEdge()
     }
 
     /// Creates a row in the list for the provided item.

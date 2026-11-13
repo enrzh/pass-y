@@ -8,5 +8,9 @@ enum SettingsEffect: Equatable {
     case dismissUpgradedToPremiumActionCard
 
     /// The plan row was tapped.
+    /// Loads the accounts for the account row.
+    case loadProfile
+
+    /// The plan row was pressed.
     case planPressed
 }
