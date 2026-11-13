@@ -18,24 +18,102 @@ struct OtherSettingsView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            allowSyncOnRefresh
+        Form {
+            Section {
+                Toggle(
+                    Localizations.enableSyncOnRefresh,
+                    isOn: store.binding(
+                        get: \.isAllowSyncOnRefreshToggleOn,
+                        send: OtherSettingsAction.toggleAllowSyncOnRefresh,
+                    ),
+                )
+                .accessibilityIdentifier("SyncOnRefreshSwitch")
+                .accessibilityLabel(Localizations.enableSyncOnRefresh)
+            } footer: {
+                Text(Localizations.enableSyncOnRefreshDescription)
+            }
 
-            syncNow
-
-            VStack(alignment: .leading, spacing: 8) {
-                clearClipboard
-
-                allowUniversalClipboard
-
-                if store.state.shouldShowConnectToWatchToggle {
-                    connectToWatch
+            Section {
+                AsyncButton {
+                    await store.perform(.syncNow)
+                } label: {
+                    HStack {
+                        Label(Localizations.syncNow, systemImage: "arrow.triangle.2.circlepath")
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("SyncNowButton")
+            } footer: {
+                if let lastSyncDate = store.state.lastSyncDate {
+                    FormattedDateTimeView(label: Localizations.lastSync, separator: "", date: lastSyncDate)
+                        .accessibilityIdentifier("LastSyncLabel")
+                } else {
+                    Text(Localizations.lastSync + " --")
+                        .accessibilityIdentifier("LastSyncLabel")
+                }
+            }
 
-                siriAndShortcutsAccess
+            Section {
+                Picker(
+                    Localizations.clearClipboard,
+                    selection: store.binding(
+                        get: \.clearClipboardValue,
+                        send: OtherSettingsAction.clearClipboardValueChanged,
+                    ),
+                ) {
+                    ForEach(ClearClipboardValue.allCases, id: \.self) { value in
+                        Text(value.localizedName).tag(value)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("ClearClipboardChooser")
+            } footer: {
+                Text(Localizations.clearClipboardDescription)
+            }
+
+            Section {
+                Toggle(
+                    Localizations.allowUniversalClipboard,
+                    isOn: store.binding(
+                        get: \.isAllowUniversalClipboardToggleOn,
+                        send: OtherSettingsAction.toggleAllowUniversalClipboard,
+                    ),
+                )
+                .accessibilityIdentifier("UniversalClipboardChooser")
+                .accessibilityLabel(Localizations.allowUniversalClipboard)
+            } footer: {
+                Text(Localizations.useUniversalClipboardToCopyDescriptionLong)
+            }
+
+            if store.state.shouldShowConnectToWatchToggle {
+                Section {
+                    Toggle(
+                        Localizations.connectToWatch,
+                        isOn: store.binding(
+                            get: \.isConnectToWatchToggleOn,
+                            send: OtherSettingsAction.toggleConnectToWatch,
+                        ),
+                    )
+                    .accessibilityLabel(Localizations.connectToWatch)
+                }
+            }
+
+            Section {
+                Toggle(
+                    Localizations.siriAndShortcutsAccess,
+                    isOn: store.binding(
+                        get: \.isSiriAndShortcutsAccessToggleOn,
+                        send: OtherSettingsAction.toggleSiriAndShortcutsAccessToggleOn,
+                    ),
+                )
+                .accessibilityIdentifier("SiriAndShortcutsAccessSwitch")
+                .accessibilityLabel(Localizations.siriAndShortcutsAccess)
+            } footer: {
+                Text(Localizations.enableToAllowTheAppToRespondToSiriAndShortcutsUsingAppIntents)
             }
         }
-        .scrollView()
         .navigationBar(title: Localizations.other, titleDisplayMode: .inline)
         .toast(store.binding(
             get: \.toast,
@@ -46,112 +124,6 @@ struct OtherSettingsView: View {
         }
         .task {
             await store.perform(.loadInitialValues)
-        }
-    }
-
-    // MARK: Private views
-
-    /// The allow sync on refresh toggle and description.
-    private var allowSyncOnRefresh: some View {
-        BitwardenToggle(
-            Localizations.enableSyncOnRefresh,
-            isOn: store.binding(
-                get: \.isAllowSyncOnRefreshToggleOn,
-                send: OtherSettingsAction.toggleAllowSyncOnRefresh,
-            ),
-            accessibilityIdentifier: "SyncOnRefreshSwitch",
-        ) {
-            Text(Localizations.enableSyncOnRefreshDescription)
-                .styleGuide(.footnote)
-                .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-        }
-        .contentBlock()
-    }
-
-    /// The Universal Clipboard toggle button and its description.
-    private var allowUniversalClipboard: some View {
-        BitwardenToggle(
-            Localizations.allowUniversalClipboard,
-            isOn: store.binding(
-                get: \.isAllowUniversalClipboardToggleOn,
-                send: OtherSettingsAction.toggleAllowUniversalClipboard,
-            ),
-            accessibilityIdentifier: "UniversalClipboardChooser",
-        ) {
-            Text(Localizations.useUniversalClipboardToCopyDescriptionLong)
-                .styleGuide(.footnote)
-                .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-        }
-        .contentBlock()
-    }
-
-    /// The clear clipboard button and description.
-    private var clearClipboard: some View {
-        BitwardenMenuField(
-            title: Localizations.clearClipboard,
-            footer: Localizations.clearClipboardDescription,
-            accessibilityIdentifier: "ClearClipboardChooser",
-            options: ClearClipboardValue.allCases,
-            selection: store.binding(
-                get: \.clearClipboardValue,
-                send: OtherSettingsAction.clearClipboardValueChanged,
-            ),
-        )
-    }
-
-    /// The connect to watch toggle.
-    private var connectToWatch: some View {
-        BitwardenToggle(
-            Localizations.connectToWatch,
-            isOn: store.binding(
-                get: \.isConnectToWatchToggleOn,
-                send: OtherSettingsAction.toggleConnectToWatch,
-            ),
-        )
-        .contentBlock()
-    }
-
-    /// Whether to allow access to Siri & Shortcuts using `AppIntent`s.
-    private var siriAndShortcutsAccess: some View {
-        BitwardenToggle(
-            Localizations.siriAndShortcutsAccess,
-            isOn: store.binding(
-                get: \.isSiriAndShortcutsAccessToggleOn,
-                send: OtherSettingsAction.toggleSiriAndShortcutsAccessToggleOn,
-            ),
-            accessibilityIdentifier: "SiriAndShortcutsAccessSwitch",
-        ) {
-            Text(Localizations.enableToAllowTheAppToRespondToSiriAndShortcutsUsingAppIntents)
-                .styleGuide(.footnote)
-                .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-        }
-        .contentBlock()
-    }
-
-    /// The sync now button and last synced description.
-    private var syncNow: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            AsyncButton {
-                await store.perform(.syncNow)
-            } label: {
-                Text(Localizations.syncNow)
-            }
-            .buttonStyle(.secondary())
-            .accessibilityIdentifier("SyncNowButton")
-
-            Group {
-                if let lastSyncDate = store.state.lastSyncDate {
-                    FormattedDateTimeView(label: Localizations.lastSync, separator: "", date: lastSyncDate)
-                        .accessibilityIdentifier("LastSyncLabel")
-                } else {
-                    Text(Localizations.lastSync + " --")
-                        .accessibilityIdentifier("LastSyncLabel")
-                }
-            }
-            .padding(.leading, 16)
-            .styleGuide(.footnote)
-            .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-            .multilineTextAlignment(.leading)
         }
     }
 }

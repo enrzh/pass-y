@@ -551,7 +551,11 @@ struct VaultListView: View {
         .task {
             await store.perform(.streamSyncComplete)
         }
-        .onAppear { restartVaultListStream() }
+        .onAppear {
+            restartVaultListStream()
+            // UIKit restores the search focus when the tab reappears; keep the keyboard closed.
+            NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
+        }
         .onChange(of: store.state.vaultFilterType) { _ in restartVaultListStream() }
         .onDisappear {
             vaultListTask?.cancel()

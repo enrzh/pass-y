@@ -130,15 +130,21 @@ private struct VaultSearchBarRepresentable: UIViewRepresentable {
         func observeResign(of bar: UISearchBar) {
             resignObserver = NotificationCenter.default.addObserver(
                 forName: .vaultSearchResign, object: nil, queue: .main,
-            ) { [weak bar] _ in bar?.resignFirstResponder() }
+            ) { [weak self, weak bar] _ in
+                self?.ignoreBeginEditingUntil = Date().addingTimeInterval(0.6)
+                bar?.resignFirstResponder()
+            }
         }
 
         /// Set while a cancel tap is being processed: UIKit may re-activate the field right after the cancel
         /// (when the bar was not first responder), which must not leave the vault in search mode.
         private var isCancelling = false
 
+        /// Until this date, UIKit re-activating the field (focus restoration when the tab reappears) is undone.
+        private var ignoreBeginEditingUntil = Date.distantPast
+
         func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-            if isCancelling {
+            if isCancelling || Date() < ignoreBeginEditingUntil {
                 searchBar.resignFirstResponder()
                 return
             }

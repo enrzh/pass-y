@@ -71,7 +71,6 @@ public struct BitwardenToggle<TitleContent: View, FooterContent: View>: View {
                     }
                 }
             }
-            .toggleStyle(.bitwarden)
             .padding(.vertical, 12)
             .accessibilityIdentifier(accessibilityIdentifier ?? "")
             .accessibilityLabel(accessibilityLabel ?? "")
