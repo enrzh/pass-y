@@ -11,6 +11,9 @@ struct SettingsState: Equatable {
     /// Whether the active account has a Premium subscription.
     var hasPremium = false
 
+    /// The accounts known to the app and the active one (shown in the account row at the top).
+    var profileState = ProfileSwitcherState.empty(allowLockAndLogout: true)
+
     /// The presentation mode based on where the settings view is displayed from. This determines
     /// if the UI should show specific elements.
     var presentationMode = SettingsPresentationMode.tab

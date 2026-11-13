@@ -57,6 +57,9 @@ struct SettingsView: View {
                 }
             }
         } else {
+            if let active = store.state.profileState.activeAccountProfile {
+                Section { accountRow(active) }
+            }
             Section {
                 row(
                     Localizations.accountSecurity,
@@ -94,6 +97,48 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    /// The account row at the top (like the Apple ID row): avatar, e-mail, and a menu to switch, lock or log out.
+    private func accountRow(_ active: ProfileSwitcherItem) -> some View {
+        Menu {
+            let others = store.state.profileState.accounts.filter { $0.userId != active.userId }
+            ForEach(others, id: \.userId) { account in
+                Button(account.email) { store.send(.switchAccountPressed(account)) }
+            }
+            if active.canBeLocked {
+                Button { store.send(.lockPressed) } label: { Label(Localizations.lockNow, systemImage: "lock") }
+            }
+            Button(role: .destructive) { store.send(.logoutPressed) } label: {
+                Label(Localizations.logOut, systemImage: "rectangle.portrait.and.arrow.right")
+            }
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle().fill(active.color)
+                    Text(active.userInitials ?? "")
+                        .font(.system(size: 22, weight: .semibold, design: .rounded))
+                        .foregroundStyle(active.profileIconTextColor)
+                }
+                .frame(width: 56, height: 56)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(active.email)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Text(store.state.profileState.accounts.count > 1 ? Localizations.account : "Pass-Y")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.vertical, 4)
+        }
+        .tint(.primary)
+        .accessibilityIdentifier("SettingsAccountRow")
     }
 
     /// A native settings row: SF Symbol, title, optional badge, disclosure chevron.

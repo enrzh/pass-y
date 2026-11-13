@@ -21,7 +21,8 @@ protocol SettingsProcessorDelegate: AnyObject {
 final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, SettingsEffect> {
     // MARK: Types
 
-    typealias Services = HasBillingRepository
+    typealias Services = HasAuthRepository
+        & HasBillingRepository
         & HasBillingService
         & HasConfigService
         & HasEnvironmentService
@@ -101,6 +102,12 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
         switch effect {
         case .appeared:
             guard state.presentationMode == .tab else { return }
+            state.profileState = await services.authRepository.getProfilesState(
+                allowLockAndLogout: true,
+                isVisible: false,
+                shouldAlwaysHideAddAccount: true,
+                showPlaceholderToolbarIcon: false,
+            )
             let featureEnabled = await services.configService
                 .getFeatureFlag(.premiumUpgradePath, defaultValue: false)
             let hasPersonalSubscription = await services.billingService.hasPersonalSubscription()
@@ -147,6 +154,18 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
             state.url = ExternalLinksConstants.learnMoreAboutPremium
             state.shouldShowUpgradedToPremiumActionCard = false
             Task { await services.billingService.setUpgradedToPremiumActionCardDismissed() }
+        case .lockPressed:
+            Task { await coordinator.handleEvent(.authAction(.lockVault(userId: nil, isManuallyLocking: true))) }
+        case .logoutPressed:
+            coordinator.showAlert(.logoutConfirmation { [weak self] in
+                await self?.coordinator.handleEvent(.authAction(.logout(userId: nil, userInitiated: true)))
+            })
+        case let .switchAccountPressed(account):
+            Task {
+                await coordinator.handleEvent(
+                    .authAction(.switchAccount(isAutomatic: false, userId: account.userId, authCompletionRoute: nil)),
+                )
+            }
         case .otherPressed:
             coordinator.navigate(to: .other)
         case .vaultPressed:

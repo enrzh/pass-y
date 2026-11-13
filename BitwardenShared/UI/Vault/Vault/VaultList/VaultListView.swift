@@ -143,6 +143,8 @@ private struct SearchableVaultListView: View {
                 }
             }
             .listStyle(.insetGrouped)
+        .softBottomScrollEdge()
+            .softBottomScrollEdge()
         } else {
             SearchNoResultsView {
                 searchVaultFilterRow
@@ -1037,3 +1039,17 @@ struct VaultListView: View {
     }
 }
 #endif
+
+// MARK: - Soft bottom scroll edge
+
+private extension View {
+    /// Fades list content out under the floating bottom bar (iOS 26 scroll edge effect) so rows do not shine through.
+    @ViewBuilder
+    func softBottomScrollEdge() -> some View {
+        if #available(iOS 26, *) {
+            scrollEdgeEffectStyle(.soft, for: .bottom)
+        } else {
+            self
+        }
+    }
+}

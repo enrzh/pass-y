@@ -46,6 +46,16 @@ struct VaultBottomBar: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+        .background {
+            // Fade the list out behind the bar so rows do not shine through the glass.
+            LinearGradient(
+                colors: [Color(.systemGroupedBackground).opacity(0), Color(.systemGroupedBackground)],
+                startPoint: .top,
+                endPoint: UnitPoint(x: 0.5, y: 0.45),
+            )
+            .padding(.top, -28)
+            .allowsHitTesting(false)
+        }
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isEditing)
     }
 }

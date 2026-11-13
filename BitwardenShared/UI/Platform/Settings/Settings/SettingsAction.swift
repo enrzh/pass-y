@@ -22,6 +22,15 @@ enum SettingsAction: Equatable {
     /// The "Learn more" button on the Upgraded to Premium action card was tapped.
     case learnMoreAboutPremium
 
+    /// The user chose to lock the vault from the account row.
+    case lockPressed
+
+    /// The user chose to log out from the account row.
+    case logoutPressed
+
+    /// The user chose another account in the account row.
+    case switchAccountPressed(ProfileSwitcherItem)
+
     /// The other button was pressed.
     case otherPressed
 
