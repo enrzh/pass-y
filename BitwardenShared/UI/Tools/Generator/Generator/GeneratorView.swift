@@ -20,12 +20,29 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
         Form {
             if store.state.availableGeneratorTypes.count > 1 {
                 Section {
-                    BitwardenSegmentedControl(
-                        isSelectionDisabled: { store.state.isGeneratorTypeDisabled($0) },
-                        selection: store.binding(get: \.generatorType, send: GeneratorAction.generatorTypeChanged),
-                        selections: store.state.availableGeneratorTypes,
-                    )
-                    .listRowInsets(EdgeInsets())
+                    // Native segmented control (readable in dark mode); the custom control is only kept when a
+                    // policy disables one of the types.
+                    Group {
+                    if store.state.availableGeneratorTypes.contains(where: { store.state.isGeneratorTypeDisabled($0) }) {
+                        BitwardenSegmentedControl(
+                            isSelectionDisabled: { store.state.isGeneratorTypeDisabled($0) },
+                            selection: store.binding(get: \.generatorType, send: GeneratorAction.generatorTypeChanged),
+                            selections: store.state.availableGeneratorTypes,
+                        )
+                    } else {
+                        Picker(
+                            Localizations.generator,
+                            selection: store.binding(get: \.generatorType, send: GeneratorAction.generatorTypeChanged),
+                        ) {
+                            ForEach(store.state.availableGeneratorTypes) { type in
+                                Text(type.localizedName).tag(type)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .accessibilityIdentifier("GeneratorTypePicker")
+                    }
+                    }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     .listRowBackground(Color.clear)
                 }
             }
