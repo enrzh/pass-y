@@ -15,18 +15,29 @@ struct ExportVaultView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        Form {
             disabledExportInfo
 
-            fileFormatField
+            Section {
+                Picker(Localizations.fileFormat, selection: store.binding(
+                    get: \.fileFormat,
+                    send: ExportVaultAction.fileFormatTypeChanged,
+                )) {
+                    ForEach(ExportFormatType.allCases, id: \.self) { format in
+                        Text(format.localizedName).tag(format)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("FileFormatPicker")
+            }
 
             filePasswordFields
 
-            masterPasswordField
+            masterPasswordSection
         }
+        .passYNativeFormBackground()
         .animation(.default, value: store.state.filePasswordStrengthScore)
         .disabled(store.state.disableIndividualVaultExport)
-        .scrollView()
         .navigationBar(title: Localizations.exportVault, titleDisplayMode: .inline)
         .task {
             await store.perform(.loadData)
@@ -52,100 +63,128 @@ struct ExportVaultView: View {
 
     // MARK: Private Views
 
-    /// An info container displayed if individual export is disabled.
+    /// A notice displayed if individual export is disabled.
     @ViewBuilder private var disabledExportInfo: some View {
         if store.state.disableIndividualVaultExport {
-            InfoContainer(Localizations.disablePersonalVaultExportPolicyInEffect)
-                .padding(.bottom, 8)
-                .accessibilityIdentifier("DisablePrivateVaultPolicyLabel")
+            Section {
+                Label(Localizations.disablePersonalVaultExportPolicyInEffect, systemImage: "info.circle")
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("DisablePrivateVaultPolicyLabel")
+            }
         }
     }
 
-    /// The selector to choose the export file format.
-    private var fileFormatField: some View {
-        BitwardenMenuField(
-            title: Localizations.fileFormat,
-            accessibilityIdentifier: "FileFormatPicker",
-            options: ExportFormatType.allCases,
-            selection: store.binding(
-                get: \.fileFormat,
-                send: ExportVaultAction.fileFormatTypeChanged,
-            ),
-        )
+    /// A password row with a reveal button.
+    private func secureRow(
+        title: String,
+        text: Binding<String>,
+        visible: Binding<Bool>,
+        fieldId: String,
+        toggleId: String,
+    ) -> some View {
+        HStack {
+            if visible.wrappedValue {
+                TextField(title, text: text)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .accessibilityIdentifier(fieldId)
+            } else {
+                SecureField(title, text: text)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .accessibilityIdentifier(fieldId)
+            }
+
+            Button {
+                visible.wrappedValue.toggle()
+            } label: {
+                Image(systemName: visible.wrappedValue ? "eye.slash" : "eye")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityIdentifier(toggleId)
+            .accessibilityLabel(
+                visible.wrappedValue
+                    ? Localizations.passwordIsVisibleTapToHide
+                    : Localizations.passwordIsNotVisibleTapToShow,
+            )
+        }
     }
 
-    /// The file password text fields for a JSON encrypted export.
+    /// The file password fields for a JSON encrypted export.
     @ViewBuilder private var filePasswordFields: some View {
         if store.state.fileFormat == .jsonEncrypted {
-            BitwardenTextField(
-                title: Localizations.filePassword,
-                text: store.binding(
-                    get: \.filePasswordText,
-                    send: ExportVaultAction.filePasswordTextChanged,
-                ),
-                footer: Localizations.filePasswordDescription,
-                accessibilityIdentifier: "FilePasswordEntry",
-                passwordVisibilityAccessibilityId: "FilePasswordVisibilityToggle",
-                isPasswordVisible: store.binding(
-                    get: \.isFilePasswordVisible,
-                    send: ExportVaultAction.toggleFilePasswordVisibility,
-                ),
-            )
-            .textFieldConfiguration(.password)
+            Section {
+                secureRow(
+                    title: Localizations.filePassword,
+                    text: store.binding(
+                        get: \.filePasswordText,
+                        send: ExportVaultAction.filePasswordTextChanged,
+                    ),
+                    visible: store.binding(
+                        get: \.isFilePasswordVisible,
+                        send: ExportVaultAction.toggleFilePasswordVisibility,
+                    ),
+                    fieldId: "FilePasswordEntry",
+                    toggleId: "FilePasswordVisibilityToggle",
+                )
 
-            PasswordStrengthIndicator(
-                passwordStrengthScore: store.state.filePasswordStrengthScore,
-            )
+                secureRow(
+                    title: Localizations.confirmFilePassword,
+                    text: store.binding(
+                        get: \.filePasswordConfirmationText,
+                        send: ExportVaultAction.filePasswordConfirmationTextChanged,
+                    ),
+                    visible: store.binding(
+                        get: \.isFilePasswordVisible,
+                        send: ExportVaultAction.toggleFilePasswordVisibility,
+                    ),
+                    fieldId: "FilePasswordEntry",
+                    toggleId: "FilePasswordVisibilityToggle",
+                )
 
-            BitwardenTextField(
-                title: Localizations.confirmFilePassword,
-                text: store.binding(
-                    get: \.filePasswordConfirmationText,
-                    send: ExportVaultAction.filePasswordConfirmationTextChanged,
-                ),
-                accessibilityIdentifier: "FilePasswordEntry",
-                passwordVisibilityAccessibilityId: "FilePasswordVisibilityToggle",
-                isPasswordVisible: store.binding(
-                    get: \.isFilePasswordVisible,
-                    send: ExportVaultAction.toggleFilePasswordVisibility,
-                ),
-            )
-            .textFieldConfiguration(.password)
+                PasswordStrengthIndicator(
+                    passwordStrengthScore: store.state.filePasswordStrengthScore,
+                )
+            } footer: {
+                Text(Localizations.filePasswordDescription)
+            }
         }
     }
 
-    /// The master password/OTP text field.
-    @ViewBuilder private var masterPasswordField: some View {
-        if !store.state.hasMasterPassword {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(Localizations.sendVerificationCodeToEmail)
-                    .styleGuide(.subheadline, weight: .semibold)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
+    /// The master password / OTP section.
+    private var masterPasswordSection: some View {
+        Section {
+            secureRow(
+                title: store.state.masterPasswordOrOtpTitle,
+                text: store.binding(
+                    get: \.masterPasswordOrOtpText,
+                    send: ExportVaultAction.masterPasswordOrOtpTextChanged,
+                ),
+                visible: store.binding(
+                    get: \.isMasterPasswordOrOtpVisible,
+                    send: ExportVaultAction.toggleMasterPasswordOrOtpVisibility,
+                ),
+                fieldId: "MasterPasswordEntry",
+                toggleId: "PasswordVisibilityToggle",
+            )
 
-                AsyncButton(Localizations.sendCode) {
+            if !store.state.hasMasterPassword {
+                AsyncButton {
                     await store.perform(.sendCodeTapped)
+                } label: {
+                    Label(Localizations.sendCode, systemImage: "envelope")
                 }
-                .buttonStyle(.secondary())
                 .accessibilityIdentifier("SendTOTPCodeButton")
                 .disabled(store.state.isSendCodeButtonDisabled)
             }
+        } header: {
+            if !store.state.hasMasterPassword {
+                Text(Localizations.sendVerificationCodeToEmail)
+            }
+        } footer: {
+            Text(store.state.masterPasswordOrOtpFooter)
         }
-
-        BitwardenTextField(
-            title: store.state.masterPasswordOrOtpTitle,
-            text: store.binding(
-                get: \.masterPasswordOrOtpText,
-                send: ExportVaultAction.masterPasswordOrOtpTextChanged,
-            ),
-            footer: store.state.masterPasswordOrOtpFooter,
-            accessibilityIdentifier: "MasterPasswordEntry",
-            passwordVisibilityAccessibilityId: "PasswordVisibilityToggle",
-            isPasswordVisible: store.binding(
-                get: \.isMasterPasswordOrOtpVisible,
-                send: ExportVaultAction.toggleMasterPasswordOrOtpVisibility,
-            ),
-        )
-        .textFieldConfiguration(.password)
     }
 }
 

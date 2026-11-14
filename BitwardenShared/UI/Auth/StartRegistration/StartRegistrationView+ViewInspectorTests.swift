@@ -71,10 +71,9 @@ class StartRegistrationViewTests: BitwardenTestCase {
     /// Tapping the region button dispatches the `.regionPressed` action.
     @MainActor
     func test_regionButton_tap() throws {
-        // Known: the region selector sits in `footerContent` of the text field, which ViewInspector cannot reach
-        // since the Pass-Y server selector rewrite; covered by the UI flow tests instead.
-        throw XCTSkip("RegionSelector in footerContent is not reachable via ViewInspector.")
-        let button = try subject.inspect().find(ViewType.Button.self, containing: "\(Localizations.server): ")
+        let button = try subject.inspect()
+            .find(viewWithAccessibilityIdentifier: "RegionSelectorDropdown")
+            .button()
         try button.tap()
         waitFor(!processor.effects.isEmpty)
         XCTAssertEqual(processor.effects.last, .regionTapped)

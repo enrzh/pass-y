@@ -44,30 +44,53 @@ struct ImportLoginsView: View {
     /// The intro page view.
     @ViewBuilder
     private func intro() -> some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.import,
-                title: Localizations.giveYourVaultAHeadStart,
-                message: Localizations.importLoginsDescriptionLong,
-            )
-
-            VStack(spacing: 12) {
-                Button(Localizations.getStarted) {
-                    store.send(.getStarted)
+        Form {
+            Section {
+                VStack(spacing: 12) {
+                    Image(systemName: "square.and.arrow.down.on.square")
+                        .font(.system(size: 52))
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                    Text(Localizations.giveYourVaultAHeadStart)
+                        .font(.title2.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(Localizations.importLoginsDescriptionLong)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                 }
-                .buttonStyle(.primary())
-
-                if store.state.shouldShowImportLoginsLater {
-                    AsyncButton(Localizations.importLoginsLater) {
-                        await store.perform(.importLoginsLater)
-                    }
-                    .buttonStyle(.secondary())
-                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .listRowBackground(Color.clear)
             }
+
+            Section {
+                VStack(spacing: 12) {
+                    Button {
+                        store.send(.getStarted)
+                    } label: {
+                        Text(Localizations.getStarted).frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+
+                    if store.state.shouldShowImportLoginsLater {
+                        AsyncButton {
+                            await store.perform(.importLoginsLater)
+                        } label: {
+                            Text(Localizations.importLoginsLater).frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
-        .padding(.top, 12)
-        .frame(maxWidth: .infinity)
-        .scrollView()
+        .passYNativeFormBackground()
     }
 
     /// The step 1 page view.
@@ -103,7 +126,7 @@ struct ImportLoginsView: View {
         }
     }
 
-    /// Returns a scroll view for displaying the instructions for a step.
+    /// Returns a form for displaying the instructions for a step.
     ///
     /// - Parameters:
     ///   - step: The step number of this page.
@@ -116,42 +139,58 @@ struct ImportLoginsView: View {
         title: String,
         @ViewBuilder list: () -> some View,
     ) -> some View {
-        VStack(spacing: 24) {
-            VStack(spacing: 12) {
-                Text(Localizations.stepXOfY(step, totalSteps))
-                    .styleGuide(.subheadline, weight: .bold)
-
-                Text(title)
-                    .styleGuide(.title2, weight: .bold)
-            }
-            .multilineTextAlignment(.center)
-
-            NumberedList(content: list)
-
-            Text(LocalizedStringKey(
-                Localizations.needHelpCheckOutImportHelp(ExternalLinksConstants.importHelp),
-            ))
-            .multilineTextAlignment(.center)
-            .styleGuide(.footnote)
-            .tint(SharedAsset.Colors.textInteraction.swiftUIColor)
-            .accessibilityLinks(in: Localizations.needHelpCheckOutImportHelp(ExternalLinksConstants.importHelp))
-
-            VStack(spacing: 12) {
-                AsyncButton(step == totalSteps ? Localizations.done : Localizations.continue) {
-                    await store.perform(.advanceNextPage)
+        Form {
+            Section {
+                VStack(spacing: 4) {
+                    Text(Localizations.stepXOfY(step, totalSteps))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(title)
+                        .font(.title2.weight(.semibold))
+                        .accessibilityAddTraits(.isHeader)
                 }
-                .buttonStyle(.primary())
-
-                Button(Localizations.back) {
-                    store.send(.advancePreviousPage)
-                }
-                .buttonStyle(.secondary())
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
+                .accessibilityElement(children: .combine)
             }
+
+            Section {
+                NumberedList(content: list)
+                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+            } footer: {
+                Text(LocalizedStringKey(
+                    Localizations.needHelpCheckOutImportHelp(ExternalLinksConstants.importHelp),
+                ))
+                .tint(.accentColor)
+                .accessibilityLinks(in: Localizations.needHelpCheckOutImportHelp(ExternalLinksConstants.importHelp))
+            }
+
+            Section {
+                VStack(spacing: 12) {
+                    AsyncButton {
+                        await store.perform(.advanceNextPage)
+                    } label: {
+                        Text(step == totalSteps ? Localizations.done : Localizations.continue)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+
+                    Button {
+                        store.send(.advancePreviousPage)
+                    } label: {
+                        Text(Localizations.back).frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                }
+                .padding(.horizontal, 16)
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
-        .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-        .padding(.top, 12)
-        .frame(maxWidth: .infinity)
-        .scrollView()
+        .passYNativeFormBackground()
     }
 }
 

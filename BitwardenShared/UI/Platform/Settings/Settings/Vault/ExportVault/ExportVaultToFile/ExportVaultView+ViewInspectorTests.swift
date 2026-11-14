@@ -2,6 +2,7 @@
 import BitwardenKit
 import BitwardenKitMocks
 import BitwardenResources
+import ViewInspector
 import XCTest
 
 @testable import BitwardenShared
@@ -48,10 +49,11 @@ class ExportVaultViewTests: BitwardenTestCase {
         let button = try subject.inspect().find(button: Localizations.export)
         XCTAssertTrue(button.isDisabled())
 
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.fileFormat)
-        XCTAssertTrue(menuField.isDisabled())
+        let picker = try subject.inspect().find(ViewType.Picker.self)
+        XCTAssertTrue(picker.isDisabled())
 
-        let secureField = try subject.inspect().find(viewWithId: Localizations.masterPassword).secureField()
+        let secureField = try subject.inspect()
+            .find(viewWithAccessibilityIdentifier: "MasterPasswordEntry").secureField()
         XCTAssertTrue(secureField.isDisabled())
     }
 
@@ -70,8 +72,8 @@ class ExportVaultViewTests: BitwardenTestCase {
     @MainActor
     func test_fileFormatMenu_updateValue() throws {
         processor.state.fileFormat = .json
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.fileFormat)
-        try menuField.select(newValue: ExportFormatType.csv)
+        let picker = try subject.inspect().find(ViewType.Picker.self)
+        try picker.select(value: ExportFormatType.csv)
         XCTAssertEqual(processor.dispatchedActions.last, .fileFormatTypeChanged(.csv))
     }
 
@@ -80,7 +82,7 @@ class ExportVaultViewTests: BitwardenTestCase {
     func test_filePasswordField_updateValue() throws {
         processor.state.fileFormat = .jsonEncrypted
         processor.state.isFilePasswordVisible = true
-        let textfield = try subject.inspect().find(viewWithId: Localizations.filePassword).textField()
+        let textfield = try subject.inspect().find(viewWithAccessibilityIdentifier: "FilePasswordEntry").textField()
         try textfield.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .filePasswordTextChanged("text"))
     }
@@ -103,7 +105,10 @@ class ExportVaultViewTests: BitwardenTestCase {
     func test_filePasswordConfirmationField_updateValue() throws {
         processor.state.fileFormat = .jsonEncrypted
         processor.state.isFilePasswordVisible = true
-        let textfield = try subject.inspect().find(viewWithId: Localizations.confirmFilePassword).textField()
+        let textfield = try subject.inspect().findAll(
+            ViewType.TextField.self,
+            where: { try $0.accessibilityIdentifier() == "FilePasswordEntry" },
+        )[1]
         try textfield.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .filePasswordConfirmationTextChanged("text"))
     }
@@ -112,7 +117,7 @@ class ExportVaultViewTests: BitwardenTestCase {
     @MainActor
     func test_masterPasswordField_updateValue() throws {
         processor.state.isMasterPasswordOrOtpVisible = true
-        let textfield = try subject.inspect().find(viewWithId: Localizations.masterPassword).textField()
+        let textfield = try subject.inspect().find(viewWithAccessibilityIdentifier: "MasterPasswordEntry").textField()
         try textfield.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .masterPasswordOrOtpTextChanged("text"))
     }

@@ -15,33 +15,41 @@ struct ExportSettingsView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            SettingsListItem(Localizations.exportVaultToAFile) {
-                store.send(.exportToFileTapped)
-            } trailingContent: {
-                chevron
+        Form {
+            Section {
+                row(Localizations.exportVaultToAFile, symbol: "doc.badge.arrow.up", id: "ExportVaultToAFileLabel") {
+                    store.send(.exportToFileTapped)
+                }
+                row(
+                    Localizations.exportVaultToAnotherApp,
+                    symbol: "square.and.arrow.up.on.square",
+                    id: "ExportVaultToAnotherAppLabel",
+                ) {
+                    store.send(.exportToAppTapped)
+                }
             }
-            .accessibilityIdentifier("ExportVaultToAFileLabel")
-            .cornerRadius(10)
-
-            SettingsListItem(Localizations.exportVaultToAnotherApp) {
-                store.send(.exportToAppTapped)
-            } trailingContent: {
-                chevron
-            }
-            .accessibilityIdentifier("ExportVaultToAnotherAppLabel")
-            .cornerRadius(10)
         }
-        .scrollView()
+        .passYNativeFormBackground()
         .navigationBar(title: Localizations.exportVault, titleDisplayMode: .inline)
     }
 
     // MARK: Private views
 
-    /// The chevron shown in the settings list item.
-    private var chevron: some View {
-        Image(asset: SharedAsset.Icons.chevronRight16)
-            .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
+    /// A navigation-style row with a leading SF Symbol and a gray chevron.
+    private func row(_ title: String, symbol: String, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Label(title, systemImage: symbol)
+                    .foregroundStyle(.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id)
     }
 }
 

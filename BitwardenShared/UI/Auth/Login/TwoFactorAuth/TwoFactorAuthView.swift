@@ -107,137 +107,175 @@ struct TwoFactorAuthView: View {
 
     /// The continue button.
     private var continueButton: some View {
-        AsyncButton(Localizations.continue) {
+        AsyncButton {
             await store.perform(.continueTapped)
+        } label: {
+            Text(Localizations.continue)
+                .frame(maxWidth: .infinity)
         }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
         .disabled(!store.state.continueEnabled)
-        .buttonStyle(.primary())
+        .accessibilityIdentifier("ContinueButton")
+    }
+
+    /// The header: method icon (SF Symbol) and instructions.
+    @ViewBuilder private var header: some View {
+        Section {
+            VStack(spacing: 12) {
+                Image(systemName: headerSymbol)
+                    .font(.system(size: 44))
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
+                Text(store.state.detailsText)
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .listRowBackground(Color.clear)
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    /// The SF Symbol representing the current method.
+    private var headerSymbol: String {
+        switch store.state.authMethod {
+        case .email: "envelope"
+        case .yubiKey: "key.radiowaves.forward"
+        case .duo, .duoOrganization: "lock.shield"
+        case .webAuthn: "person.badge.key"
+        case .recoveryCode: "lifepreserver"
+        default: "lock.shield"
+        }
+    }
+
+    /// Applies the native form look with a visible card background (also inside sheets).
+    private func nativeForm(@ViewBuilder _ content: () -> some View) -> some View {
+        Form { content() }
+            .passYNativeFormBackground()
     }
 
     /// The body content for most 2FA methods.
     private var defaultContent: some View {
-        VStack(spacing: 24) {
-            if let authMethodImage = store.state.authMethodImageAsset {
-                Image(decorative: authMethodImage)
-                    .resizable()
-                    .frame(width: 124, height: 124)
-            }
+        nativeForm {
+            header
 
-            detailText
-
-            VStack(spacing: 8) {
-                verificationCodeTextField
+            Section {
+                TextField(Localizations.verificationCode, text: store.binding(
+                    get: \.verificationCode,
+                    send: TwoFactorAuthAction.verificationCodeChanged,
+                ))
+                .textContentType(.oneTimeCode)
+                .keyboardType(verificationKeyboardType)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+                .accessibilityIdentifier("VerificationCodeEntry")
+                .accessibilityLabel(Localizations.verificationCode)
 
                 if !store.state.deviceVerificationRequired {
                     rememberMeToggle
                 }
             }
 
-            VStack(spacing: 12) {
-                continueButton
-
-                resendEmailButton
+            Section {
+                VStack(spacing: 12) {
+                    continueButton
+                    resendEmailButton
+                }
+                .padding(.horizontal, 16)
             }
-        }
-        .padding(.top, 12)
-        .scrollView()
-    }
-
-    /// The detailed instructions for the method.
-    private var detailText: some View {
-        VStack(spacing: 16) {
-            Text(store.state.detailsText)
-                .styleGuide(.body)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .multilineTextAlignment(.center)
-
-            if let detailImageAsset = store.state.detailImageAsset {
-                Image(decorative: detailImageAsset)
-                    .resizable()
-                    .frame(width: 124, height: 124)
-            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
     }
 
-    /// The launch duo button.
-    private var duoButton: some View {
-        AsyncButton(Localizations.launchDuo) {
-            await store.perform(.beginDuoAuth)
-        }
-        .buttonStyle(.primary())
+    /// The keyboard type for the verification field.
+    private var verificationKeyboardType: UIKeyboardType {
+        if store.state.authMethod == .yubiKey { return .default }
+        if #available(iOS 26, *), UIDevice.current.userInterfaceIdiom == .pad { return .default }
+        return .numberPad
     }
 
     /// A view for DUO 2FA type.
     @ViewBuilder private var duo2FAView: some View {
-        VStack(spacing: 24) {
-            detailText
-
-            rememberMeToggle
-
-            duoButton
+        nativeForm {
+            header
+            Section { rememberMeToggle }
+            Section {
+                launchButton(title: Localizations.launchDuo, id: "LaunchDuoButton") {
+                    await store.perform(.beginDuoAuth)
+                }
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
-        .padding(.top, 12)
-        .scrollView()
-    }
-
-    /// The launch webAuthn button.
-    private var webAuthnButton: some View {
-        AsyncButton(Localizations.launchWebAuthn) {
-            await store.perform(.beginWebAuthn)
-        }
-        .buttonStyle(.primary())
     }
 
     /// A view for WebAuthn 2FA type.
     @ViewBuilder private var webAuthn2FAView: some View {
-        VStack(spacing: 24) {
-            detailText
-
-            rememberMeToggle
-
-            webAuthnButton
+        nativeForm {
+            header
+            Section { rememberMeToggle }
+            Section {
+                launchButton(title: Localizations.launchWebAuthn, id: "LaunchWebAuthnButton") {
+                    await store.perform(.beginWebAuthn)
+                }
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
-        .padding(.top, 12)
-        .scrollView()
+    }
+
+    /// A prominent full-width launch button.
+    private func launchButton(title: String, id: String, action: @escaping () async -> Void) -> some View {
+        AsyncButton {
+            await action()
+        } label: {
+            Text(title).frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .accessibilityIdentifier(id)
     }
 
     /// The remember me toggle.
     private var rememberMeToggle: some View {
-        BitwardenToggle(
+        Toggle(
             Localizations.rememberMe,
             isOn: store.binding(
                 get: { $0.isRememberMeOn },
                 send: { .rememberMeToggleChanged($0) },
             ),
         )
-        .contentBlock()
+        .accessibilityIdentifier("RememberMeSwitch")
     }
 
     /// The resend email button for the email authentication option.
     @ViewBuilder private var resendEmailButton: some View {
         if store.state.authMethod == .email {
-            AsyncButton(Localizations.resendCode) {
+            AsyncButton {
                 await store.perform(.resendEmailTapped)
+            } label: {
+                Label(Localizations.resendCode, systemImage: "arrow.clockwise")
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.secondary())
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .accessibilityIdentifier("ResendCodeButton")
         } else if store.state.authMethod == .yubiKey {
-            AsyncButton(Localizations.tryAgain) {
+            AsyncButton {
                 await store.perform(.tryAgainTapped)
+            } label: {
+                Label(Localizations.tryAgain, systemImage: "arrow.clockwise")
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.secondary())
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .accessibilityIdentifier("TryAgainButton")
         }
-    }
-
-    /// The verification code text field.
-    private var verificationCodeTextField: some View {
-        BitwardenTextField(
-            title: Localizations.verificationCode,
-            text: store.binding(
-                get: \.verificationCode,
-                send: TwoFactorAuthAction.verificationCodeChanged,
-            ),
-        )
-        .textFieldConfiguration(verificationTextFieldConfiguration)
     }
 
     // MARK: Private Methods
