@@ -12,6 +12,8 @@ final class PassYImportRegShotsTests: XCTestCase {
     func test_registrationStart() {
         let t = tag()
         let app = launchApp()
+        // A fresh install starts on the intro carousel; "Log in" leads to the landing screen.
+        if app.buttons["Log in"].waitForExistence(timeout: 10) { app.buttons["Log in"].tap() }
         // The server sheet is presented automatically on a fresh install.
         let server = app.textFields["ServerUrlEntry"]
         if waitFor(server, timeout: 40) {
@@ -34,8 +36,11 @@ final class PassYImportRegShotsTests: XCTestCase {
         name.tap(); name.typeText("IR Test")
         attach(app, "\(t)-reg-start-filled")
         app.keyboards.buttons["return"].firstMatch.tap()
-        let cont = app.buttons["ContinueButton"]
-        XCTAssertTrue(cont.waitForExistence(timeout: 5))
+        // The landing screen below the registration form also has a "ContinueButton": take the visible, hittable one.
+        _ = app.buttons["ContinueButton"].firstMatch.waitForExistence(timeout: 5)
+        guard let cont = app.buttons.matching(identifier: "ContinueButton").allElementsBoundByIndex.first(where: { $0.isHittable }) else {
+            XCTFail("no hittable ContinueButton"); return
+        }
         cont.tap()
         sleep(4)
         attach(app, "\(t)-reg-start-after-continue")

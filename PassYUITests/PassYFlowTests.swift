@@ -185,7 +185,7 @@ final class PassYFlowTests: XCTestCase {
         search.tap(); sleep(3)
         for ch in "Perf" { app.typeText(String(ch)); usleep(150_000) }
         XCTAssertFalse(app.buttons["AddItemFloatingActionButton"].exists, "add button is hidden while searching")
-        let cancel = app.otherElements["VaultSearchField"].buttons.firstMatch
+        let cancel = app.buttons["VaultSearchCancel"]
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "cancel button of the search bar")
         cancel.tap(); sleep(2)
         attach(app, "09-after-cancel")
@@ -207,7 +207,7 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(close.firstMatch.waitForExistence(timeout: 10), "item sheet is open")
         close.firstMatch.tap(); sleep(2)
         attach(app, "10-after-item-close")
-        let cancel = app.otherElements["VaultSearchField"].buttons.firstMatch
+        let cancel = app.buttons["VaultSearchCancel"]
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "search bar cancel is still there")
         cancel.tap(); sleep(2)
         attach(app, "10-after-cancel")
@@ -438,6 +438,64 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(last.exists && last.isHittable, "the last folder row is reachable")
         XCTAssertLessThanOrEqual(last.frame.maxY, add.frame.minY + 1,
                                  "last row (\(last.frame)) sits above the add button (\(add.frame))")
+    }
+
+    /// Walks the main screens and asserts that no visible text contains a leaked Optional (`Optional("...")`), and that
+    /// the last row of the vault search results and of the Send list can be scrolled clear of the bottom bar.
+    func test18_noOptionalTextAndLastRowsClearOfBar() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        func assertNoOptional(_ screen: String) {
+            let leaked = app.descendants(matching: .any)
+                .matching(NSPredicate(format: "label CONTAINS 'Optional(' OR value CONTAINS 'Optional('")).firstMatch
+            XCTAssertFalse(leaked.exists, "\(screen): visible text contains Optional(...): \(leaked.exists ? leaked.label : "")")
+        }
+        assertNoOptional("vault")
+        // Vault search results: last row above the bottom bar.
+        focusSearch(app)
+        for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+        XCTAssertTrue(app.staticTexts["GitHub"].firstMatch.waitForExistence(timeout: 20), "search finds GitHub")
+        // The search key closes the keyboard so the bar sits at the bottom again.
+        let searchKey = app.keyboards.buttons["Search"]
+        XCTAssertTrue(searchKey.waitForExistence(timeout: 5), "keyboard has the Search key")
+        searchKey.tap(); sleep(1)
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "keyboard closed after the search key")
+        for _ in 0 ..< 5 { app.swipeUp() }
+        sleep(1)
+        let hits = app.staticTexts.matching(identifier: "GitHub")
+        let lastHit = hits.element(boundBy: hits.count - 1)
+        let bar = app.otherElements["VaultSearchField"]
+        XCTAssertTrue(bar.exists, "search bar present")
+        XCTAssertLessThanOrEqual(lastHit.frame.maxY, bar.frame.minY + 1, "vault: last result (\(lastHit.frame)) above the bar (\(bar.frame))")
+        assertNoOptional("vault search")
+        // The search bar cancel (X, label "Close"); the first button of the field could also be its clear-text button.
+        let closeX = app.buttons["VaultSearchCancel"]
+        XCTAssertTrue(closeX.waitForExistence(timeout: 5), "search bar cancel (X) exists")
+        closeX.tap(); sleep(2)
+        XCTAssertTrue(app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 5), "vault back to normal after the X")
+        // Send list.
+        tabBarButton(app, "Send").tap(); sleep(2)
+        assertNoOptional("send")
+        for _ in 0 ..< 4 { app.swipeUp() }
+        sleep(1)
+        let sends = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'PassY Send'"))
+        if sends.count > 0 {
+            let lastSend = sends.element(boundBy: sends.count - 1)
+            let sendBar = app.otherElements["VaultSearchField"]
+            XCTAssertLessThanOrEqual(lastSend.frame.maxY, sendBar.frame.minY + 1, "send: last row (\(lastSend.frame)) above the bar (\(sendBar.frame))")
+        }
+        // Settings and its sub-screens.
+        tabBarButton(app, "Settings").tap(); sleep(2)
+        attach(app, "18-settings")
+        assertNoOptional("settings")
+        for id in ["AccountSecuritySettingsButton", "AutofillSettingsButton", "VaultSettingsButton", "AppearanceSettingsButton",
+                   "OtherSettingsButton", "AboutSettingsButton"] {
+            let row = app.buttons[id]
+            guard row.waitForExistence(timeout: 5) else { XCTFail("missing settings row \(id)"); continue }
+            row.tap(); sleep(2)
+            assertNoOptional(id)
+            app.navigationBars.buttons.firstMatch.tap(); sleep(1)
+        }
     }
 
     func test05_generator() {

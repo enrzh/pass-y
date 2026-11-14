@@ -29,7 +29,14 @@ struct SendBottomBar: View {
                 .frame(height: 44)
                 .modifier(BarBackground(shape: Capsule()))
 
-            if !isEditing {
+            if isEditing || !text.isEmpty {
+                SearchCancelButton {
+                    text = ""
+                    isEditing = false
+                    NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
+                }
+                .transition(.scale.combined(with: .opacity))
+            } else {
                 addControl
                     .frame(width: 44, height: 44)
                     .modifier(BarBackground(shape: Circle()))
@@ -54,7 +61,7 @@ struct SendBottomBar: View {
             .ignoresSafeArea(edges: .bottom)
             .allowsHitTesting(false)
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isEditing)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isEditing || !text.isEmpty)
     }
 
     // MARK: Private

@@ -40,7 +40,14 @@ struct VaultBottomBar: View {
                 .frame(height: 44)
                 .modifier(BarBackground(shape: Capsule()))
 
-            if !isEditing {
+            if isEditing || !text.isEmpty {
+                SearchCancelButton {
+                    text = ""
+                    isEditing = false
+                    NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
+                }
+                .transition(.scale.combined(with: .opacity))
+            } else {
                 VaultAddMenuView(
                     availableItemTypes: availableItemTypes,
                     addItem: addItem,
@@ -72,7 +79,7 @@ struct VaultBottomBar: View {
             .ignoresSafeArea(edges: .bottom)
             .allowsHitTesting(false)
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isEditing)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isEditing || !text.isEmpty)
     }
 }
 
@@ -88,6 +95,28 @@ struct BarBackground<S: Shape>: ViewModifier {
         } else {
             content.background(.regularMaterial, in: shape)
         }
+    }
+}
+
+// MARK: - SearchCancelButton
+
+/// The cancel control of the bottom bars: clears the search and closes the keyboard. It is a real SwiftUI button
+/// because the `UISearchBar` cancel button did not clear the search after the keyboard had been closed with the
+/// Search key (it only re-activated the field).
+struct SearchCancelButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "xmark")
+                .font(.system(size: 17, weight: .semibold))
+                .frame(width: 44, height: 44)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .modifier(BarBackground(shape: Circle()))
+        .accessibilityLabel(Localizations.cancel)
+        .accessibilityIdentifier("VaultSearchCancel")
     }
 }
 
@@ -115,7 +144,7 @@ struct VaultSearchBarRepresentable: UIViewRepresentable {
 
     func updateUIView(_ bar: UISearchBar, context: Context) {
         if bar.text != text { bar.text = text }
-        bar.setShowsCancelButton(isEditing || !text.isEmpty, animated: true)
+        bar.setShowsCancelButton(false, animated: false)
         if !isEditing, bar.isFirstResponder { bar.resignFirstResponder() }
     }
 
