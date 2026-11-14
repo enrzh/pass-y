@@ -59,6 +59,13 @@ public struct SettingsListItem<Content: View>: View {
                         .styleGuide(.body)
                         .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
                         .multilineTextAlignment(.trailing)
+
+                    if Content.self == EmptyView.self {
+                        // Native disclosure indicator for plain navigation rows.
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundColor(Color(UIColor.tertiaryLabel))
+                    }
                 }
                 .padding(.horizontal, icon == nil ? 16 : 12)
             }

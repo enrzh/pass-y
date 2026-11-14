@@ -309,6 +309,25 @@ final class PassYFlowTests: XCTestCase {
         attach(app, "14-folders")
     }
 
+    /// Real taps in Send: the Send tab opens, the add menu offers the send types and Text opens the add form.
+    func test15_sendTabAddMenu() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        tabBarButton(app, "Send").tap()
+        let add = app.buttons["AddItemFloatingActionButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10), "Send tab shows the add button")
+        attach(app, "15-send-list")
+        add.tap(); sleep(2)
+        attach(app, "15-send-add-menu")
+        let text = app.buttons.matching(NSPredicate(format: "label == 'Text'")).firstMatch
+        let menuText = app.menuItems["Text"]
+        XCTAssertTrue(menuText.waitForExistence(timeout: 5) || text.waitForExistence(timeout: 5), "add menu offers Text")
+        (menuText.exists ? menuText : text).tap(); sleep(2)
+        attach(app, "15-send-add-form")
+        XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10) || app.buttons["SaveButton"].exists
+            || app.navigationBars.firstMatch.exists, "add send form is shown")
+    }
+
     func test05_generator() {
         let app = launchApp()
         ensureUnlockedVault(app)

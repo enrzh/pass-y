@@ -156,34 +156,51 @@ private struct MainSendListView: View {
     /// The list for this view, displayed when there is content to display.
     @ViewBuilder
     private func list(sections: [SendListSection]) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if store.state.shouldShowUpgradedToPremiumActionCard {
-                UpgradedToPremiumActionCardView(
-                    onDismiss: { await store.perform(.dismissUpgradedToPremiumActionCard) },
-                    onLearnMore: { store.send(.learnMoreAboutPremium) },
-                )
-            }
-
+        List {
             if store.state.isSendDisabled {
                 InfoContainer(Localizations.sendDisabledWarning)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
+                    .listRowBackground(Color.clear)
             }
 
             ForEach(sections) { section in
-                sendItemSectionView(
-                    sectionName: section.name,
-                    items: section.items,
-                )
+                Section {
+                    sendRows(items: section.items)
+                } header: {
+                    Text("\(section.name) (\(section.items.count))")
+                        .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
+                }
             }
         }
-        .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
-        .scrollView()
+        .listStyle(.insetGrouped)
+    }
+
+    /// The rows of a section of sends.
+    @ViewBuilder
+    private func sendRows(items: [SendListItem]) -> some View {
+        ForEach(items) { item in
+            SendListItemRowView(
+                store: store.child(
+                    state: { _ in
+                        SendListItemRowState(
+                            isSendDisabled: store.state.isSendDisabled,
+                            item: item,
+                            hasDivider: false,
+                        )
+                    },
+                    mapAction: SendListAction.sendListItemRow,
+                    mapEffect: SendListEffect.sendListItemRow,
+                ),
+            )
+            .buttonStyle(.plain)
+            .listRowInsets(EdgeInsets())
+        }
     }
 
     /// Creates a section that appears in the sends list.
     ///
     /// - Parameters:
     ///   - sectionName: The title of the section.
-    ///     in this section's title.
     ///   - items: The `SendListItem`s in this section.
     ///
     @ViewBuilder
