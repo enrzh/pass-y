@@ -181,8 +181,11 @@ struct TwoFactorAuthView: View {
             }
 
             Section {
-                continueButton
-                resendEmailButton
+                VStack(spacing: 12) {
+                    continueButton
+                    resendEmailButton
+                }
+                .padding(.horizontal, 16)
             }
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
