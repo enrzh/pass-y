@@ -309,6 +309,52 @@ final class PassYFlowTests: XCTestCase {
         attach(app, "14-folders")
     }
 
+    /// Real taps through the native Account security, Autofill and About forms (identifiers checked, rows tapped).
+    func test16_settingsAccountSecurityAutofillAbout() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        tabBarButton(app, "Settings").tap()
+        func noOptional(_ page: String) { XCTAssertFalse(app.allLabels.contains("Optional("), "\(page) shows Optional( in visible text") }
+        func back() { app.navigationBars.buttons.firstMatch.tap(); sleep(1) }
+
+        let accountSecurity = app.buttons["AccountSecuritySettingsButton"]
+        XCTAssertTrue(accountSecurity.waitForExistence(timeout: 10), "settings list shows Account security")
+        accountSecurity.tap(); sleep(2)
+        XCTAssertTrue(app.buttons["VaultTimeoutChooser"].waitForExistence(timeout: 5), "Account security has the timeout picker")
+        XCTAssertTrue(app.buttons["VaultTimeoutActionChooser"].exists, "Account security has the timeout action picker")
+        XCTAssertTrue(app.buttons["TwoStepLoginLinkItemView"].exists || app.staticTexts["Two-step login"].exists, "two-step login row")
+        attach(app, "16-account-security"); noOptional("account-security")
+        app.buttons["VaultTimeoutChooser"].tap(); sleep(1)
+        attach(app, "16-account-security-timeout-menu")
+        XCTAssertTrue(app.buttons["1 minute"].waitForExistence(timeout: 5), "timeout menu offers 1 minute")
+        app.buttons["1 minute"].tap(); sleep(1)
+        app.swipeUp(); sleep(1)
+        XCTAssertTrue(app.buttons["LogOutLabel"].exists, "Account security has Log out")
+        XCTAssertTrue(app.buttons["DeleteAccountLabel"].exists, "Account security has Delete account")
+        attach(app, "16-account-security-bottom"); noOptional("account-security-bottom")
+        app.buttons["LogOutLabel"].tap(); sleep(1)
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5), "Log out asks for confirmation")
+        app.alerts.firstMatch.buttons["Cancel"].tap(); sleep(1)
+        back()
+
+        app.buttons["AutofillSettingsButton"].tap(); sleep(2)
+        XCTAssertTrue(app.buttons["DefaultUriMatchDetectionChooser"].waitForExistence(timeout: 5), "Autofill has the URI match picker")
+        XCTAssertTrue(app.switches["CopyTotpAutomaticallySwitch"].exists, "Autofill has the copy TOTP switch")
+        attach(app, "16-autofill"); noOptional("autofill")
+        back()
+
+        app.buttons["AboutSettingsButton"].tap(); sleep(2)
+        XCTAssertTrue(app.switches["SubmitCrashLogsSwitch"].waitForExistence(timeout: 5), "About has the crash logs switch")
+        XCTAssertTrue(app.switches["FlightRecorderSwitch"].exists, "About has the flight recorder switch")
+        attach(app, "16-about"); noOptional("about")
+        let privacy = app.buttons["Privacy Policy"]
+        XCTAssertTrue(privacy.exists, "About has the privacy policy row")
+        let version = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Version'")).firstMatch
+        XCTAssertTrue(version.exists, "About shows the version row")
+        version.tap(); sleep(1)
+        attach(app, "16-about-version-copied")
+    }
+
     /// Real taps in Send: the Send tab opens, the add menu offers the send types and Text opens the add form.
     func test15_sendTabAddMenu() {
         let app = launchApp()

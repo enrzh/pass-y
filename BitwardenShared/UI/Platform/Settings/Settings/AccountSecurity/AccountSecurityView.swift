@@ -18,7 +18,7 @@ struct AccountSecurityView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 16) {
+        Form {
             setUpUnlockActionCard
 
             if !store.state.isManageDevicesEnabled {
@@ -36,7 +36,6 @@ struct AccountSecurityView: View {
             otherSection
         }
         .animation(.easeInOut, value: store.state.badgeState?.vaultUnlockSetupProgress == .complete)
-        .scrollView()
         .navigationBar(title: Localizations.accountSecurity, titleDisplayMode: .inline)
         .onChange(of: store.state.twoStepLoginUrl) { newValue in
             guard let url = newValue else { return }
@@ -64,173 +63,192 @@ struct AccountSecurityView: View {
     /// The action card for setting up vault unlock methods.
     @ViewBuilder private var setUpUnlockActionCard: some View {
         if let progress = store.state.badgeState?.vaultUnlockSetupProgress, progress != .complete {
-            ActionCard(
-                title: Localizations.setUpUnlock,
-                actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
-                    store.send(.showSetUpUnlock)
-                },
-                dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                    await store.perform(.dismissSetUpUnlockActionCard)
-                },
-            ) {
-                BitwardenBadge(badgeValue: "1")
+            Section {
+                ActionCard(
+                    title: Localizations.setUpUnlock,
+                    actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
+                        store.send(.showSetUpUnlock)
+                    },
+                    dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
+                        await store.perform(.dismissSetUpUnlockActionCard)
+                    },
+                ) {
+                    BitwardenBadge(badgeValue: "1")
+                }
             }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
         }
     }
 
     /// The other section.
     private var otherSection: some View {
-        SectionView(Localizations.other) {
-            ContentBlock(dividerLeadingPadding: 16) {
-                SettingsListItem(
-                    Localizations.accountFingerprintPhrase,
-                    accessibilityIdentifier: "AccountFingerprintPhraseLabel",
-                ) {
+        Section(Localizations.other) {
+            NativeSettingsRow(
+                action: {
                     Task {
                         await store.perform(.accountFingerprintPhrasePressed)
                     }
-                }
+                },
+                accessibilityIdentifier: "AccountFingerprintPhraseLabel",
+                symbol: "touchid",
+                title: Localizations.accountFingerprintPhrase,
+            )
 
-                SettingsListItem(
-                    Localizations.twoStepLogin,
-                    accessibilityIdentifier: "TwoStepLoginLinkItemView",
-                ) {
-                    store.send(.twoStepLoginPressed)
-                } trailingContent: {
-                    Image(asset: SharedAsset.Icons.externalLink24)
-                        .imageStyle(.rowIcon)
-                }
+            NativeSettingsRow(
+                accessory: .symbol("arrow.up.right.square"),
+                action: { store.send(.twoStepLoginPressed) },
+                accessibilityIdentifier: "TwoStepLoginLinkItemView",
+                symbol: "lock.shield",
+                title: Localizations.twoStepLogin,
+            )
 
-                if store.state.isManageDevicesEnabled {
-                    SettingsListItem(
-                        Localizations.devices,
-                        accessibilityIdentifier: "ManageDevicesLabel",
-                    ) {
-                        store.send(.manageDevicesTapped)
-                    }
-                }
+            if store.state.isManageDevicesEnabled {
+                NativeSettingsRow(
+                    action: { store.send(.manageDevicesTapped) },
+                    accessibilityIdentifier: "ManageDevicesLabel",
+                    symbol: "iphone.and.ipad",
+                    title: Localizations.devices,
+                )
+            }
 
-                if store.state.isLockNowVisible {
-                    SettingsListItem(
-                        Localizations.lockNow,
-                        accessibilityIdentifier: "LockNowLabel",
-                    ) {
+            if store.state.isLockNowVisible {
+                NativeSettingsRow(
+                    accessory: .none,
+                    action: {
                         Task {
                             await store.perform(.lockVault)
                         }
-                    }
-                }
-
-                SettingsListItem(
-                    Localizations.logOut,
-                    accessibilityIdentifier: "LogOutLabel",
-                ) {
-                    store.send(.logout)
-                }
-
-                SettingsListItem(
-                    Localizations.deleteAccount,
-                    accessibilityIdentifier: "DeleteAccountLabel",
-                ) {
-                    store.send(.deleteAccountPressed)
-                }
+                    },
+                    accessibilityIdentifier: "LockNowLabel",
+                    symbol: "lock",
+                    title: Localizations.lockNow,
+                )
             }
+
+            NativeSettingsRow(
+                accessory: .none,
+                action: { store.send(.logout) },
+                accessibilityIdentifier: "LogOutLabel",
+                symbol: "rectangle.portrait.and.arrow.right",
+                titleStyle: .red,
+                title: Localizations.logOut,
+            )
+
+            NativeSettingsRow(
+                accessory: .none,
+                action: { store.send(.deleteAccountPressed) },
+                accessibilityIdentifier: "DeleteAccountLabel",
+                symbol: "trash",
+                titleStyle: .red,
+                title: Localizations.deleteAccount,
+            )
         }
     }
 
     /// The pending login requests section.
     private var pendingLoginRequests: some View {
-        SectionView(Localizations.approveLoginRequests) {
-            SettingsListItem(
-                Localizations.pendingLogInRequests,
+        Section(Localizations.approveLoginRequests) {
+            NativeSettingsRow(
+                action: { store.send(.pendingLoginRequestsTapped) },
                 accessibilityIdentifier: "PendingLogInRequestsLabel",
-            ) {
-                store.send(.pendingLoginRequestsTapped)
-            } trailingContent: {
-                Image(asset: SharedAsset.Icons.chevronRight16)
-                    .imageStyle(.accessoryIcon16)
-            }
-            .contentBlock()
+                symbol: "person.badge.clock",
+                title: Localizations.pendingLogInRequests,
+            )
         }
     }
 
     /// The session timeout section.
-    private var sessionTimeoutSection: some View {
-        SectionView(Localizations.sessionTimeout, contentSpacing: 8) {
-            ContentBlock(dividerLeadingPadding: 16) {
-                BitwardenMenuField(
-                    title: Localizations.sessionTimeout,
-                    footer: store.state.policyTimeoutMessage,
-                    accessibilityIdentifier: "VaultTimeoutChooser",
-                    options: store.state.availableTimeoutOptions,
-                    selection: store.binding(
-                        get: \.sessionTimeoutValue,
-                        send: AccountSecurityAction.sessionTimeoutValueChanged,
-                    ),
-                )
-                .disabled(store.state.isSessionTimeoutPickerDisabled)
-
-                if store.state.isShowingCustomTimeout {
-                    SettingsPickerField(
-                        title: "",
-                        footer: store.state.policyTimeoutCustomMessage,
-                        customTimeoutValue: store.state.customTimeoutString,
-                        pickerValue: store.binding(
-                            get: \.customTimeoutValueSeconds,
-                            send: AccountSecurityAction.customTimeoutValueSecondsChanged,
-                        ),
-                        customTimeoutAccessibilityLabel: store.state.customTimeoutAccessibilityLabel,
-                    )
+    @ViewBuilder private var sessionTimeoutSection: some View {
+        Section {
+            Picker(
+                Localizations.sessionTimeout,
+                selection: store.binding(
+                    get: \.sessionTimeoutValue,
+                    send: AccountSecurityAction.sessionTimeoutValueChanged,
+                ),
+            ) {
+                ForEach(store.state.availableTimeoutOptions, id: \.self) { option in
+                    Text(option.localizedName).tag(option)
                 }
             }
-            ContentBlock(dividerLeadingPadding: 16) {
-                BitwardenMenuField(
-                    title: Localizations.sessionTimeoutAction,
-                    footer: store.state.policyTimeoutActionMessage,
-                    accessibilityIdentifier: "VaultTimeoutActionChooser",
-                    options: store.state.availableTimeoutActions,
-                    selection: store.binding(
-                        get: \.sessionTimeoutAction,
-                        send: AccountSecurityAction.sessionTimeoutActionChanged,
+            .pickerStyle(.menu)
+            .accessibilityIdentifier("VaultTimeoutChooser")
+            .disabled(store.state.isSessionTimeoutPickerDisabled)
+
+            if store.state.isShowingCustomTimeout {
+                SettingsPickerField(
+                    title: "",
+                    footer: store.state.policyTimeoutCustomMessage,
+                    customTimeoutValue: store.state.customTimeoutString,
+                    pickerValue: store.binding(
+                        get: \.customTimeoutValueSeconds,
+                        send: AccountSecurityAction.customTimeoutValueSecondsChanged,
                     ),
+                    customTimeoutAccessibilityLabel: store.state.customTimeoutAccessibilityLabel,
                 )
-                .disabled(store.state.isSessionTimeoutActionDisabled)
+            }
+        } header: {
+            Text(Localizations.sessionTimeout)
+        } footer: {
+            if let message = store.state.policyTimeoutMessage {
+                Text(message)
+            }
+        }
+
+        Section {
+            Picker(
+                Localizations.sessionTimeoutAction,
+                selection: store.binding(
+                    get: \.sessionTimeoutAction,
+                    send: AccountSecurityAction.sessionTimeoutActionChanged,
+                ),
+            ) {
+                ForEach(store.state.availableTimeoutActions, id: \.self) { action in
+                    Text(action.localizedName).tag(action)
+                }
+            }
+            .pickerStyle(.menu)
+            .accessibilityIdentifier("VaultTimeoutActionChooser")
+            .disabled(store.state.isSessionTimeoutActionDisabled)
+        } footer: {
+            if let message = store.state.policyTimeoutActionMessage {
+                Text(message)
             }
         }
     }
 
     /// The unlock options section.
     private var unlockOptionsSection: some View {
-        SectionView(Localizations.unlockOptions) {
-            ContentBlock(dividerLeadingPadding: 16) {
-                biometricsSetting
+        Section(Localizations.unlockOptions) {
+            biometricsSetting
 
-                if store.state.unlockWithPinFeatureAvailable {
-                    BitwardenToggle(
-                        Localizations.unlockWithPIN,
-                        isOn: store.bindingAsync(
-                            get: \.isUnlockWithPINCodeOn,
-                            perform: AccountSecurityEffect.toggleUnlockWithPINCode,
-                        ),
-                    )
-                    .accessibilityIdentifier("UnlockWithPinSwitch")
-                }
+            if store.state.unlockWithPinFeatureAvailable {
+                Toggle(
+                    Localizations.unlockWithPIN,
+                    isOn: store.bindingAsync(
+                        get: \.isUnlockWithPINCodeOn,
+                        perform: AccountSecurityEffect.toggleUnlockWithPINCode,
+                    ),
+                )
+                .accessibilityIdentifier("UnlockWithPinSwitch")
+                .accessibilityLabel(Localizations.unlockWithPIN)
             }
         }
     }
 
     /// The authenticator sync section.
     @ViewBuilder private var authenticatorSyncSection: some View {
-        SectionView(Localizations.authenticatorSync) {
-            BitwardenToggle(
+        Section(Localizations.authenticatorSync) {
+            Toggle(
                 Localizations.allowAuthenticatorSyncing,
                 isOn: store.bindingAsync(
                     get: \.isAuthenticatorSyncEnabled,
                     perform: AccountSecurityEffect.toggleSyncWithAuthenticator,
                 ),
-                accessibilityIdentifier: Localizations.allowAuthenticatorSyncing,
             )
-            .contentBlock()
+            .accessibilityIdentifier(Localizations.allowAuthenticatorSyncing)
+            .accessibilityLabel(Localizations.allowAuthenticatorSyncing)
         }
     }
 
@@ -250,7 +268,7 @@ struct AccountSecurityView: View {
     @ViewBuilder
     private func biometricUnlockToggle(enabled: Bool, type: BiometricAuthenticationType) -> some View {
         let toggleText = biometricsToggleText(type)
-        BitwardenToggle(
+        Toggle(
             toggleText,
             isOn: store.bindingAsync(
                 get: { _ in enabled },

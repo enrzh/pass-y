@@ -291,3 +291,22 @@ The new Send empty state (SF Symbol paperplane instead of the illustration) is U
 Mac window screenshot: UNVERIFIED. `My Mac (Designed for iPad)` builds, but UI tests are not supported on that destination ("UI tests are not supported on My Mac (Designed for iPad)") and `open` on the built product fails with "incorrect executable format"; no Mac Catalyst target exists in this project.
 
 Not done: Cmd+F runtime check, full SwiftUI navigation (coordinator replacement), no UI regression test for tapping a row of the main (non-search) list yet.
+
+## Settings-Untermenues + Step D/E (settings-de)
+
+**Account security, Autofill, About** are native `Form`s now (inset grouped, SF Symbols, system colors/fonts, red destructive rows, menu `Picker`s, no cards except the existing set-up-unlock action card). A shared `NativeSettingsRow` (symbol, title, chevron / external-link / no accessory) replaces `SettingsListItem` in these screens; the flight recorder section in `BitwardenKit` was converted the same way because About embeds it. Store/Processor/State/Action and all accessibility identifiers are unchanged.
+![account security light](Docs/screenshots/sd-account-security-light.png) ![account security dark](Docs/screenshots/sd-account-security-dark.png)
+![autofill light](Docs/screenshots/sd-autofill-light.png) ![autofill dark](Docs/screenshots/sd-autofill-dark.png)
+![about light](Docs/screenshots/sd-about-light.png) ![about dark](Docs/screenshots/sd-about-dark.png)
+
+Evidence (iPhone simulator PassY-SD, local Vaultwarden):
+- `test16_settingsAccountSecurityAutofillAbout` (real taps: timeout menu, log out alert, version copy, identifiers) passes, light and dark; it also asserts that no visible label contains `Optional(`. No string interpolation of optional values in the three views.
+- Bitwarden-ViewInspector 606 executed, 17 skipped, 0 failures (Autofill picker test adapted, About/Account security tests unchanged and green); Bitwarden-Unit 5859 XCTest + 725 Swift Testing, 0 failures.
+- Watch app (watchOS simulator, `-passyDemoCodes`): TOTP list ![watch](Docs/screenshots/sd-watch-totp-list.png)
+- `platform=macOS,variant=Designed for iPad` builds (BUILD SUCCEEDED) with the default team signing; with ad-hoc signing it fails ("Ad Hoc code signing is not allowed with SDK 'iOS 27.1'"). Catalyst was not retried (README: SDK slices).
+
+UNVERIFIED:
+- Mac window screenshot: `open .../Debug-iphoneos/Bitwarden.app` fails with "The application cannot be opened because it has an incorrect executable format."
+- iPhone Duo portrait/landscape: PassY-SD-Duo does not come up (`simctl bootstatus`: "Data Migration Failed"; screenshot: "Invalid argument").
+- Action and AutoFill extensions, watch widget/complication: not started (need a host app sheet / watch face); only built and embedded.
+- Real login rate limit note: the throwaway Vaultwarden needs `LOGIN_RATELIMIT_SECONDS=1 LOGIN_RATELIMIT_MAX_BURST=1000` for UI tests (the UI helper retries login).

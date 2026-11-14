@@ -18,17 +18,14 @@ struct AboutView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        Form {
             submitCrashLogs
 
             flightRecorderSection
 
             miscSection
-
-            copyrightNotice
         }
         .animation(.default, value: store.state.flightRecorderState.activeLog)
-        .scrollView()
         .navigationBar(title: Localizations.about, titleDisplayMode: .inline)
         .task {
             await store.perform(.streamFlightRecorderLog)
@@ -51,76 +48,77 @@ struct AboutView: View {
 
     // MARK: Private views
 
-    /// The copyright notice.
-    private var copyrightNotice: some View {
-        Text(store.state.copyrightText)
-            .styleGuide(.caption2)
-            .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-    }
-
     /// The section for the flight recorder.
     @ViewBuilder private var flightRecorderSection: some View {
-        FlightRecorderSettingsSectionView(
-            store: store.child(
-                state: \.flightRecorderState,
-                mapAction: { .flightRecorder($0) },
-                mapEffect: { .flightRecorder($0) },
-            ),
-        )
+        Section {
+            FlightRecorderSettingsSectionView(
+                store: store.child(
+                    state: \.flightRecorderState,
+                    mapAction: { .flightRecorder($0) },
+                    mapEffect: { .flightRecorder($0) },
+                ),
+            )
+        }
     }
 
     /// The section of miscellaneous about items.
     private var miscSection: some View {
-        ContentBlock(dividerLeadingPadding: 16) {
-            externalLinkRow(Localizations.bitwardenHelpCenter, action: .helpCenterTapped)
+        Section {
+            externalLinkRow(Localizations.bitwardenHelpCenter, symbol: "questionmark.circle", action: .helpCenterTapped)
 
-            externalLinkRow(Localizations.privacyPolicy, action: .privacyPolicyTapped)
+            externalLinkRow(Localizations.privacyPolicy, symbol: "hand.raised", action: .privacyPolicyTapped)
 
-            externalLinkRow(Localizations.webVault, action: .webVaultTapped)
+            externalLinkRow(Localizations.webVault, symbol: "globe", action: .webVaultTapped)
 
-            externalLinkRow(Localizations.learnOrg, action: .learnAboutOrganizationsTapped)
+            externalLinkRow(Localizations.learnOrg, symbol: "building.2", action: .learnAboutOrganizationsTapped)
 
-            SettingsListItem(store.state.version) {
-                Task {
-                    await store.perform(.copyVersionInfo)
-                }
-            } trailingContent: {
-                SharedAsset.Icons.copy24.swiftUIImage
-                    .imageStyle(.rowIcon)
-            }
+            NativeSettingsRow(
+                accessory: .symbol("doc.on.doc"),
+                action: {
+                    Task {
+                        await store.perform(.copyVersionInfo)
+                    }
+                },
+                symbol: "info.circle",
+                title: store.state.version,
+            )
+        } footer: {
+            Text(store.state.copyrightText)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
         }
     }
 
     /// The submit crash logs toggle.
     private var submitCrashLogs: some View {
-        ContentBlock {
-            BitwardenToggle(
+        Section {
+            Toggle(
                 Localizations.submitCrashLogs,
                 isOn: store.binding(
                     get: \.isSubmitCrashLogsToggleOn,
                     send: AboutAction.toggleSubmitCrashLogs,
                 ),
-                accessibilityIdentifier: "SubmitCrashLogsSwitch",
             )
+            .accessibilityIdentifier("SubmitCrashLogsSwitch")
+            .accessibilityLabel(Localizations.submitCrashLogs)
         }
     }
 
-    /// Returns a `SettingsListItem` configured for an external web link.
+    /// Returns a native row configured for an external web link.
     ///
     /// - Parameters:
     ///   - name: The localized name of the row.
+    ///   - symbol: The SF Symbol shown before the name.
     ///   - action: An action to send when the row is tapped.
-    /// - Returns: A `SettingsListItem` configured for an external web link.
+    /// - Returns: A row configured for an external web link.
     ///
-    private func externalLinkRow(_ name: String, action: AboutAction) -> some View {
-        SettingsListItem(name) {
-            store.send(action)
-        } trailingContent: {
-            SharedAsset.Icons.externalLink24.swiftUIImage
-                .imageStyle(.rowIcon)
-        }
+    private func externalLinkRow(_ name: String, symbol: String, action: AboutAction) -> some View {
+        NativeSettingsRow(
+            accessory: .symbol("arrow.up.right.square"),
+            action: { store.send(action) },
+            symbol: symbol,
+            title: name,
+        )
     }
 }
 

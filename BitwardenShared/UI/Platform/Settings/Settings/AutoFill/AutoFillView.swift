@@ -18,7 +18,7 @@ struct AutoFillView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 16) {
+        Form {
             autofillActionCard
 
             autoFillSection
@@ -26,7 +26,6 @@ struct AutoFillView: View {
             additionalOptionsSection
         }
         .animation(.easeInOut, value: store.state.badgeState?.autofillSetupProgress == .complete)
-        .scrollView()
         .navigationBar(title: Localizations.autofill, titleDisplayMode: .inline)
         .onChange(of: store.state.url) { newValue in
             guard let url = newValue else { return }
@@ -50,91 +49,113 @@ struct AutoFillView: View {
     /// The action card for setting up autofill.
     @ViewBuilder private var autofillActionCard: some View {
         if store.state.shouldShowAutofillActionCard {
-            if #available(iOS 18, *) {
-                ActionCard(
-                    title: Localizations.autofillWithBitwarden,
-                    message: Localizations.autofillWithBitwardenDescriptionLong,
-                    actionButtonState: ActionCard.ButtonState(title: Localizations.turnOnNow) {
-                        await store.perform(.setUpAutofill)
-                    },
-                    dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                        await store.perform(.dismissSetUpAutofillActionCard)
-                    },
-                    secondaryButtonState: ActionCard.ButtonState(title: Localizations.learnMoreAboutAutofill) {
-                        store.send(.learnMoreAboutAutofillTapped)
-                    },
-                ) {
-                    BitwardenBadge(badgeValue: "1")
-                }
-            } else {
-                ActionCard(
-                    title: Localizations.setUpAutofill,
-                    actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
-                        await store.perform(.setUpAutofill)
-                    },
-                    dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                        await store.perform(.dismissSetUpAutofillActionCard)
-                    },
-                ) {
-                    BitwardenBadge(badgeValue: "1")
+            Section {
+                if #available(iOS 18, *) {
+                    ActionCard(
+                        title: Localizations.autofillWithBitwarden,
+                        message: Localizations.autofillWithBitwardenDescriptionLong,
+                        actionButtonState: ActionCard.ButtonState(title: Localizations.turnOnNow) {
+                            await store.perform(.setUpAutofill)
+                        },
+                        dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
+                            await store.perform(.dismissSetUpAutofillActionCard)
+                        },
+                        secondaryButtonState: ActionCard.ButtonState(title: Localizations.learnMoreAboutAutofill) {
+                            store.send(.learnMoreAboutAutofillTapped)
+                        },
+                    ) {
+                        BitwardenBadge(badgeValue: "1")
+                    }
+                } else {
+                    ActionCard(
+                        title: Localizations.setUpAutofill,
+                        actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
+                            await store.perform(.setUpAutofill)
+                        },
+                        dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
+                            await store.perform(.dismissSetUpAutofillActionCard)
+                        },
+                    ) {
+                        BitwardenBadge(badgeValue: "1")
+                    }
                 }
             }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
         }
     }
 
     /// The additional options section.
     private var additionalOptionsSection: some View {
-        SectionView(Localizations.additionalOptions, contentSpacing: 8) {
+        Group {
             if store.state.isFillAssistFeatureFlagEnabled {
-                BitwardenToggle(
-                    footer: Localizations.turnOnFillAssistDescriptionLong,
-                    isOn: store.binding(
-                        get: \.isFillAssistEnabled,
-                        send: AutoFillAction.toggleFillAssist,
-                    ),
-                    accessibilityIdentifier: "FillAssistSwitch",
-                    accessibilityLabel: Localizations.turnOnFillAssist,
-                    helpURL: ExternalLinksConstants.fillAssistHelp,
-                    title: {
-                        Text(Localizations.turnOnFillAssist)
-                    },
-                )
-                .contentBlock()
+                Section {
+                    Toggle(
+                        isOn: store.binding(
+                            get: \.isFillAssistEnabled,
+                            send: AutoFillAction.toggleFillAssist,
+                        ),
+                    ) {
+                        HStack(spacing: 8) {
+                            Text(Localizations.turnOnFillAssist)
+                            Button {
+                                openURL(ExternalLinksConstants.fillAssistHelp)
+                            } label: {
+                                Image(systemName: "questionmark.circle")
+                                    .font(.footnote)
+                                    .accessibilityLabel(Localizations.learnMore)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityIdentifier("FillAssistSwitch")
+                    .accessibilityLabel(Localizations.turnOnFillAssist)
+                } header: {
+                    Text(Localizations.additionalOptions)
+                } footer: {
+                    Text(Localizations.turnOnFillAssistDescriptionLong)
+                }
             }
 
-            BitwardenToggle(
-                Localizations.copyTotpAutomatically,
-                footer: Localizations.copyTotpAutomaticallyDescription,
-                isOn: store.binding(
-                    get: \.isCopyTOTPToggleOn,
-                    send: AutoFillAction.toggleCopyTOTPToggle,
-                ),
-                accessibilityIdentifier: "CopyTotpAutomaticallySwitch",
-            )
-            .contentBlock()
+            Section {
+                Toggle(
+                    Localizations.copyTotpAutomatically,
+                    isOn: store.binding(
+                        get: \.isCopyTOTPToggleOn,
+                        send: AutoFillAction.toggleCopyTOTPToggle,
+                    ),
+                )
+                .accessibilityIdentifier("CopyTotpAutomaticallySwitch")
+                .accessibilityLabel(Localizations.copyTotpAutomatically)
+            } header: {
+                if !store.state.isFillAssistFeatureFlagEnabled {
+                    Text(Localizations.additionalOptions)
+                }
+            } footer: {
+                Text(Localizations.copyTotpAutomaticallyDescription)
+            }
 
-            BitwardenMenuField(
-                title: Localizations.defaultUriMatchDetection,
-                accessibilityIdentifier: "DefaultUriMatchDetectionChooser",
-                options: store.state.uriMatchTypeOptions,
-                selection: store.binding(
-                    get: \.defaultUriMatchType,
-                    send: AutoFillAction.defaultUriMatchTypeChanged,
-                ),
-            ) {
-                VStack(alignment: .leading, spacing: 0) {
+            Section {
+                Picker(
+                    Localizations.defaultUriMatchDetection,
+                    selection: store.binding(
+                        get: \.defaultUriMatchType,
+                        send: AutoFillAction.defaultUriMatchTypeChanged,
+                    ),
+                ) {
+                    ForEach(store.state.uriMatchTypeOptions, id: \.self) { option in
+                        Text(option.localizedName).tag(option)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("DefaultUriMatchDetectionChooser")
+            } footer: {
+                VStack(alignment: .leading, spacing: 8) {
                     Text(Localizations.uriMatchDetectionControlsHowBitwardenIdentifiesAutofillSuggestions)
-                        .bitwardenMenuFooterText(
-                            topPadding: 12,
-                            bottomPadding: store.state.warningMessage == nil ? 12 : 4,
-                        )
 
-                    store.state.warningMessage.map { warningMessage in
+                    if let warningMessage = store.state.warningMessage {
                         Text(LocalizedStringKey(warningMessage))
-                            .bitwardenMenuFooterText(
-                                topPadding: 0,
-                                bottomPadding: 12,
-                            )
                     }
                 }
             }
@@ -143,18 +164,20 @@ struct AutoFillView: View {
 
     /// The auto-fill section.
     private var autoFillSection: some View {
-        SectionView(Localizations.autofill, contentSpacing: 8) {
-            ContentBlock(dividerLeadingPadding: 16) {
-                if store.state.shouldShowPasswordAutofill {
-                    SettingsListItem(Localizations.passwordAutofill) {
-                        store.send(.passwordAutoFillTapped)
-                    }
-                }
-
-                SettingsListItem(Localizations.appExtension) {
-                    store.send(.appExtensionTapped)
-                }
+        Section(Localizations.autofill) {
+            if store.state.shouldShowPasswordAutofill {
+                NativeSettingsRow(
+                    action: { store.send(.passwordAutoFillTapped) },
+                    symbol: "key.viewfinder",
+                    title: Localizations.passwordAutofill,
+                )
             }
+
+            NativeSettingsRow(
+                action: { store.send(.appExtensionTapped) },
+                symbol: "puzzlepiece.extension",
+                title: Localizations.appExtension,
+            )
         }
     }
 }
