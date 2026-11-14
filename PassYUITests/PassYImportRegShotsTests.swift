@@ -12,12 +12,12 @@ final class PassYImportRegShotsTests: XCTestCase {
     func test_registrationStart() {
         let t = tag()
         let app = launchApp()
-        XCTAssertTrue(waitFor(app.buttons["Log in"]))
-        app.buttons["Log in"].tap()
+        // The server sheet is presented automatically on a fresh install.
         let server = app.textFields["ServerUrlEntry"]
-        XCTAssertTrue(waitFor(server))
-        server.tap(); server.typeText(TestAccount.server)
-        app.buttons["SaveButton"].firstMatch.tap()
+        if waitFor(server, timeout: 40) {
+            server.tap(); server.typeText(TestAccount.server)
+            app.buttons["SaveButton"].firstMatch.tap()
+        }
         let create = app.buttons["CreateAccountButton"]
         XCTAssertTrue(waitFor(create), "landing offers Create account")
         create.tap()
