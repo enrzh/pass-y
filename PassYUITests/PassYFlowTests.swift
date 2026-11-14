@@ -181,8 +181,7 @@ final class PassYFlowTests: XCTestCase {
     func test09_searchCancelRestoresVault() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        let search = app.searchFields.firstMatch
-        search.tap(); sleep(3)
+        focusSearch(app)
         for ch in "Perf" { app.typeText(String(ch)); usleep(150_000) }
         XCTAssertFalse(app.buttons["AddItemFloatingActionButton"].exists, "add button is hidden while searching")
         let cancel = app.buttons["VaultSearchCancel"]
@@ -197,8 +196,7 @@ final class PassYFlowTests: XCTestCase {
     func test10_searchOpenCloseCancel() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        let search = app.searchFields.firstMatch
-        search.tap(); sleep(3)
+        focusSearch(app)
         for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
         let hit = app.staticTexts["GitHub"].firstMatch
         XCTAssertTrue(hit.waitForExistence(timeout: 20), "search finds GitHub")
@@ -217,8 +215,7 @@ final class PassYFlowTests: XCTestCase {
 
     /// Opens the seeded "GitHub" login through the bottom search bar and returns once the item sheet is up.
     private func openGitHubViaSearch(_ app: XCUIApplication) {
-        let search = app.searchFields.firstMatch
-        search.tap(); sleep(3)
+        focusSearch(app)
         for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
         let hit = app.staticTexts["GitHub"].firstMatch
         XCTAssertTrue(hit.waitForExistence(timeout: 20), "search finds GitHub")

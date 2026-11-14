@@ -17,6 +17,25 @@ It is a fork of the [Bitwarden iOS client](https://github.com/bitwarden/ios) (GP
 Removed from the upstream repository: the Authenticator app, the Apple Watch app/widget, TestHarness, Bitwarden CI workflows and
 fastlane release automation.
 
+## Status of v1.19 (read this first)
+
+**Apple-style (native SwiftUI structure, Apple-like look):** vault list and search results (`List`), vault home bar (profile menu top right, search and `+` menu in a floating bottom bar), item view (large title, tap to copy), Add/Edit item (`Form`), generator (`Form`), Send (bottom bar, native empty state, `List`), Folders (`List`, last row clear of the add button), Settings (account row, `List`), Appearance / Other / Account security / Autofill / About (settings worker), Export and Registration start (import/registration worker), SF Symbols for all icons, P logo (black/white).
+
+**Not native / UNVERIFIED (be skeptical of these):**
+- Navigation between screens is still UIKit coordinators; `NavigationStack` / `NavigationSplitView` are not used (only the root tab/sidebar shell is native, iOS 18+).
+- Mac window screenshot: not possible (`My Mac (Designed for iPad)` builds, but UI tests are unsupported there and `open` on the product fails with "incorrect executable format"; no Mac Catalyst target).
+- Extensions (Action, AutoFill, Share, Notification) and the Watch app are embedded in the signed device build but were not run or screenshotted; widgets/complications, Duo poses and Stage Manager are unverified.
+- The Send empty state (SF Symbol instead of the illustration) has no screenshot (the test vault always contains sends); `Docs/screenshots/send-add-menu-light.png` is from the older state.
+- The Send add form and several sub-screens (Import file picker flow, Two-step login screens) still use the shared card components (`ContentBlock`/`BitwardenField`).
+- Known edge case: after opening a search result, switching tabs and back can leave a keyboard without caret until the cancel (X) button is tapped once.
+- The Unit plan crashed once in `CombinedSingleAutofillVaultListDirectorStrategyTests` on a first run after a fresh DerivedData and passed on every rerun (alone, too).
+- UI tests that need a fresh install (`test01`, `PassYLandingShotsTests`, `PassYImportRegShotsTests/test_registrationStart`) must run right after an uninstall; the others log in themselves. Under heavy machine load several UI tests failed in the login step and passed alone.
+- Earlier validator verdict files that lived in a local `~/harness` folder were lost in a cleanup; verdicts from `Docs/verdicts/` on are kept in the repository.
+
+**Tests at this version:** Bitwarden-Unit 5859 XCTest + 725 Swift Testing, ViewInspector 606, BitwardenKit unit, UI tests test01-18 (+ perf, dark mode, large text, shots, export, registration) on an iPhone 17 Pro simulator against a throwaway Vaultwarden.
+
+**Please check on your iPhone:** bottom search bar and `+` menu, profile menu, light/dark switch, item view (reveal, copy), Send tab (create a text send: the system share sheet for the link opens), folders list, settings sub-screens.
+
 ## Origin and license
 
 Pass-Y is derived from <https://github.com/bitwarden/ios> (full git history is preserved). Copyright (c) Bitwarden Inc. and contributors.
