@@ -91,36 +91,6 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         XCTAssertEqual(processor.dispatchedActions.last, .removePasskeyPressed)
     }
 
-    /// Tapping the dismiss button in the learn new login  action card sends the
-    /// `.dismissNewLoginActionCard` effect.
-    @MainActor
-    func test_learnNewLoginActionCard_visible_tapDismiss() async throws {
-        processor.state = CipherItemState(
-            hasPremium: true,
-        )
-        processor.state.isLearnNewLoginActionCardEligible = true
-        let actionCard = try subject.inspect().find(actionCard: Localizations.learnAboutNewLogins)
-
-        let button = try actionCard.find(asyncButton: Localizations.dismiss)
-        try await button.tap()
-        XCTAssertEqual(processor.effects, [.dismissNewLoginActionCard])
-    }
-
-    /// Tapping the 'Get started' button in the learn new login  action card sends the
-    /// `.showLearnNewLoginGuidedTour` effect.
-    @MainActor
-    func test_learnNewLoginActionCard_visible_tapGetStarted() async throws {
-        processor.state = CipherItemState(
-            hasPremium: true,
-        )
-        processor.state.isLearnNewLoginActionCardEligible = true
-        let actionCard = try subject.inspect().find(actionCard: Localizations.learnAboutNewLogins)
-
-        let button = try actionCard.find(asyncButton: Localizations.getStarted)
-        try await button.tap()
-        XCTAssertEqual(processor.effects, [.showLearnNewLoginGuidedTour])
-    }
-
     /// Tapping the dismiss button dispatches the `.dismissPressed` action.
     @MainActor
     func test_dismissButton_tap() throws {

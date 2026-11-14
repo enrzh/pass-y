@@ -64,53 +64,42 @@ struct AddEditItemView: View {
     }
 
     private var content: some View {
-        GuidedTourScrollView(
-            store: store.child(
-                state: \.guidedTourViewState,
-                mapAction: AddEditItemAction.guidedTourViewAction,
-                mapEffect: nil,
-            ),
-        ) {
-            VStack(spacing: 16) {
-                if isPolicyEnabled {
+        // A native `Form`: every block is one clear row so the existing field cards keep their look while the
+        // screen scrolls, avoids the keyboard and pads like any system form. The "learn new logins" tour card is
+        // Bitwarden onboarding and is no longer shown.
+        Form {
+            if isPolicyEnabled {
+                formRow {
                     InfoContainer(Localizations.personalOwnershipPolicyInEffect)
                         .accessibilityIdentifier("PersonalOwnershipPolicyLabel")
                 }
+            }
 
-                if store.state.shouldShowLearnNewLoginActionCard {
-                    ActionCard(
-                        title: Localizations.learnAboutNewLogins,
-                        message: Localizations.weWillWalkYouThroughTheKeyFeaturesToAddANewLogin,
-                        actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
-                            await store.perform(.showLearnNewLoginGuidedTour)
-                        },
-                        dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                            await store.perform(.dismissNewLoginActionCard)
-                        },
-                    )
-                }
-
-                if store.state.shouldDisplayAsArchived {
+            if store.state.shouldDisplayAsArchived {
+                formRow {
                     InfoContainer(text: store.state.archiveInfoText, icon: SharedAsset.Icons.archive24)
                         .accessibilityIdentifier("ArchivedLabel")
                 }
-
-                itemDetailsSection
-                itemTypeSection
-                    .disabled(store.state.isReadOnly)
-                additionalOptions
-                    .disabled(store.state.isReadOnly)
             }
-            .padding(12)
+
+            formRow { itemDetailsSection }
+            formRow { itemTypeSection.disabled(store.state.isReadOnly) }
+            formRow { additionalOptions.disabled(store.state.isReadOnly) }
         }
         .animation(.default, value: store.state.collectionsForOwner)
         .backport.dismissKeyboardImmediately()
-        .background(
-            SharedAsset.Colors.backgroundPrimary.swiftUIColor
-                .ignoresSafeArea(),
-        )
         .navigationBarTitleDisplayMode(.inline)
         .backport.scrollContentMargins(Edge.Set.bottom, 30.0)
+    }
+
+    /// One transparent form row hosting an existing card block.
+    private func formRow<Row: View>(@ViewBuilder _ content: () -> Row) -> some View {
+        Section {
+            content()
+                .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+        }
     }
 
     private var existing: some View {
