@@ -333,7 +333,8 @@ final class PassYFlowTests: XCTestCase {
         var app = launchApp()
         ensureUnlockedVault(app)
         tabBarButton(app, "Send").tap()
-        let name = "PassY Send A"
+        // A unique name proves this run created the send (earlier runs leave sends with fixed names behind).
+        let name = "PassY Send \(Int(Date().timeIntervalSince1970) % 100000)"
         let add = app.buttons["AddItemFloatingActionButton"]
         XCTAssertTrue(add.waitForExistence(timeout: 10), "add control in the Send bottom bar")
         add.tap(); sleep(1)
