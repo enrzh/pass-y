@@ -2,7 +2,8 @@ import XCTest
 
 /// Throwaway test account on a local Vaultwarden (see Scripts-passy/vaultwarden/seed_account.py).
 enum TestAccount {
-    static let server = "http://localhost:8088"
+    /// Defaults to port 8088; override with `TEST_RUNNER_PASSY_VW_URL=http://localhost:<port>` for a parallel Vaultwarden.
+    static let server = ProcessInfo.processInfo.environment["PASSY_VW_URL"] ?? "http://localhost:8088"
     static let email = "passy-test@example.test"
     static let password = "PassY-Test-Only-2026!"
 }

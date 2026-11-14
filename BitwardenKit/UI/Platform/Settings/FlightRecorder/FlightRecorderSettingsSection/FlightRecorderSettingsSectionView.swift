@@ -32,14 +32,12 @@ public struct FlightRecorderSettingsSectionView: View {
     // MARK: View
 
     public var body: some View {
-        ContentBlock(dividerLeadingPadding: 16) {
-            BitwardenToggle(
+        Group {
+            Toggle(
                 isOn: store.bindingAsync(
                     get: { $0.activeLog != nil },
                     perform: FlightRecorderSettingsSectionEffect.toggleFlightRecorder,
                 ),
-                accessibilityIdentifier: "FlightRecorderSwitch",
-                accessibilityLabel: store.state.flightRecorderToggleAccessibilityLabel,
             ) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 8) {
@@ -48,24 +46,39 @@ public struct FlightRecorderSettingsSectionView: View {
                         Button {
                             openURL(ExternalLinksConstants.flightRecorderHelp)
                         } label: {
-                            SharedAsset.Icons.questionCircle16.swiftUIImage
-                                .scaledFrame(width: 16, height: 16)
+                            Image(systemName: "questionmark.circle")
+                                .font(.footnote)
                                 .accessibilityLabel(Localizations.learnMore)
                         }
-                        .buttonStyle(.fieldLabelIcon)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
                     }
 
                     if let log = store.state.activeLog {
                         Text(Localizations.loggingEndsOnDateAtTime(log.formattedEndDate, log.formattedEndTime))
-                            .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                            .styleGuide(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .font(.subheadline)
                     }
                 }
             }
+            .accessibilityIdentifier("FlightRecorderSwitch")
+            .accessibilityLabel(store.state.flightRecorderToggleAccessibilityLabel)
 
-            SettingsListItem(Localizations.viewRecordedLogs) {
+            Button {
                 store.send(.viewLogsTapped)
+            } label: {
+                HStack {
+                    Label(Localizations.viewRecordedLogs, systemImage: "doc.text.magnifyingglass")
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
         }
     }
 
@@ -85,23 +98,23 @@ public struct FlightRecorderSettingsSectionView: View {
 
 #if DEBUG
 #Preview("Disabled") {
-    FlightRecorderSettingsSectionView(
-        store: Store(processor: StateProcessor(state: FlightRecorderSettingsSectionState())),
-    )
-    .padding()
-    .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
+    Form {
+        FlightRecorderSettingsSectionView(
+            store: Store(processor: StateProcessor(state: FlightRecorderSettingsSectionState())),
+        )
+    }
 }
 
 #Preview("Enabled") {
-    FlightRecorderSettingsSectionView(
-        store: Store(processor: StateProcessor(state: FlightRecorderSettingsSectionState(
-            activeLog: FlightRecorderData.LogMetadata(
-                duration: .eightHours,
-                startDate: Date(timeIntervalSinceNow: 60 * 60 * -4),
-            ),
-        ))),
-    )
-    .padding()
-    .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
+    Form {
+        FlightRecorderSettingsSectionView(
+            store: Store(processor: StateProcessor(state: FlightRecorderSettingsSectionState(
+                activeLog: FlightRecorderData.LogMetadata(
+                    duration: .eightHours,
+                    startDate: Date(timeIntervalSinceNow: 60 * 60 * -4),
+                ),
+            ))),
+        )
+    }
 }
 #endif
