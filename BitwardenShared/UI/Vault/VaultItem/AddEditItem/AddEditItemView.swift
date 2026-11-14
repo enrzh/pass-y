@@ -86,6 +86,16 @@ struct AddEditItemView: View {
             formRow { itemTypeSection.disabled(store.state.isReadOnly) }
             formRow { additionalOptions.disabled(store.state.isReadOnly) }
         }
+        // The form is presented in a sheet whose grouped background is raised in dark mode and would share one color
+        // with the field cards; keep the app's primary background so the cards stay visible.
+        .apply { view in
+            if #available(iOS 16, *) {
+                view.scrollContentBackground(.hidden)
+            } else {
+                view
+            }
+        }
+        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
         .animation(.default, value: store.state.collectionsForOwner)
         .backport.dismissKeyboardImmediately()
         .navigationBarTitleDisplayMode(.inline)

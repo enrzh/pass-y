@@ -9,9 +9,10 @@ import SwiftUI
 struct AppearanceView: View {
     // MARK: Properties
 
-    /// The store used to render the view.
+    /// An action that opens URLs.
     @Environment(\.openURL) private var openURL
 
+    /// The store used to render the view.
     @ObservedObject var store: Store<AppearanceState, AppearanceAction, AppearanceEffect>
 
     // MARK: View
