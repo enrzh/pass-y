@@ -89,6 +89,10 @@ struct FoldersView: View {
             }
         }
         .listStyle(.insetGrouped)
+        // Keep the last row clear of the floating add button.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: FloatingActionButton.bottomOffsetPadding)
+        }
     }
 }
 

@@ -328,6 +328,71 @@ final class PassYFlowTests: XCTestCase {
             || app.navigationBars.firstMatch.exists, "add send form is shown")
     }
 
+    /// Creates a text send through the UI (real taps), restarts the app and shows the native populated Send list.
+    func test16_createSendAndShowList() {
+        var app = launchApp()
+        ensureUnlockedVault(app)
+        tabBarButton(app, "Send").tap()
+        let name = "PassY Send A"
+        let add = app.buttons["AddItemFloatingActionButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10), "add control in the Send bottom bar")
+        add.tap(); sleep(1)
+        let menuText = app.menuItems["Text"]
+        let text = app.buttons.matching(NSPredicate(format: "label == 'Text'")).firstMatch
+        XCTAssertTrue(menuText.waitForExistence(timeout: 5) || text.waitForExistence(timeout: 5), "add menu offers Text")
+        (menuText.exists ? menuText : text).tap()
+        let nameField = app.textFields["SendNameEntry"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: 10), "send name field")
+        nameField.tap(); nameField.typeText(name)
+        let body = app.textViews["SendTextContentEntry"]
+        if !body.exists { for _ in 0 ..< 3 where !body.exists { app.swipeUp() } }
+        body.tap(); body.typeText("secret for \(name)")
+        app.buttons["SaveButton"].firstMatch.tap()
+        sleep(4)
+        attach(app, "16-after-save-share-sheet")
+        // The system share sheet for the new link is shown after saving; a relaunch starts from a clean screen.
+        app.terminate()
+        app = launchApp()
+        ensureUnlockedVault(app)
+        tabBarButton(app, "Send").tap()
+        XCTAssertTrue(app.staticTexts[name].firstMatch.waitForExistence(timeout: 15), "the send is listed")
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Optional('")).firstMatch.exists,
+                       "section headers show plain names")
+        XCTAssertTrue(app.buttons["AddItemFloatingActionButton"].exists, "add control stays reachable below the list")
+        sleep(1)
+        attach(app, "16-send-list")
+    }
+
+    /// Creates folders through the UI, then checks the native folders list and that the last row can be scrolled clear of the add button.
+    func test17_foldersListLastRowClearOfAddButton() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        tabBarButton(app, "Settings").tap()
+        app.buttons["VaultSettingsButton"].tap(); sleep(1)
+        app.buttons["FoldersLabel"].tap(); sleep(2)
+        let add = app.buttons["AddItemFloatingActionButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10), "folders screen has the add button")
+        let existing = app.buttons.matching(identifier: "FolderCell").count
+        for i in existing ..< 12 {
+            add.tap()
+            let field = app.textFields.firstMatch
+            XCTAssertTrue(field.waitForExistence(timeout: 10), "folder name field")
+            field.tap(); field.typeText("PassY Folder \(String(format: "%02d", i))")
+            app.buttons["SaveButton"].firstMatch.tap()
+            XCTAssertTrue(add.waitForExistence(timeout: 10), "back on the folders list")
+            sleep(1)
+        }
+        attach(app, "17-folders-filled")
+        for _ in 0 ..< 6 { app.swipeUp() }
+        sleep(1)
+        attach(app, "17-folders-scrolled-to-end")
+        let cells = app.buttons.matching(identifier: "FolderCell")
+        let last = cells.element(boundBy: cells.count - 1)
+        XCTAssertTrue(last.exists && last.isHittable, "the last folder row is reachable")
+        XCTAssertLessThanOrEqual(last.frame.maxY, add.frame.minY + 1,
+                                 "last row (\(last.frame)) sits above the add button (\(add.frame))")
+    }
+
     func test05_generator() {
         let app = launchApp()
         ensureUnlockedVault(app)

@@ -79,7 +79,7 @@ struct VaultBottomBar: View {
 // MARK: - BarBackground
 
 /// Glass on iOS 26, material before.
-private struct BarBackground<S: Shape>: ViewModifier {
+struct BarBackground<S: Shape>: ViewModifier {
     let shape: S
 
     func body(content: Content) -> some View {
@@ -94,7 +94,7 @@ private struct BarBackground<S: Shape>: ViewModifier {
 // MARK: - VaultSearchBarRepresentable
 
 /// A native `UISearchBar` (minimal style, no cancel button until editing) bound to the search text.
-private struct VaultSearchBarRepresentable: UIViewRepresentable {
+struct VaultSearchBarRepresentable: UIViewRepresentable {
     @Binding var isEditing: Bool
     @Binding var text: String
 

@@ -13,8 +13,8 @@ import SwiftUI
 private struct MainSendListView: View {
     // MARK: Properties
 
-    /// A flag indicating if the search bar is focused.
-    @Environment(\.isSearching) private var isSearching
+    /// Whether the bottom search field is being edited.
+    var isSearchEditing: Bool
 
     /// The `Store` for this view.
     @ObservedObject var store: Store<SendListState, SendListAction, SendListEffect>
@@ -31,29 +31,16 @@ private struct MainSendListView: View {
         // which is not ideal.
 
         ZStack {
-            let isSearching = store.state.isSearching
+            let isSearching = isSearchEditing
+                || store.state.isSearching
                 || !store.state.searchText.isEmpty
                 || !store.state.searchResults.isEmpty
 
             content
                 .hidden(isSearching)
-                .overlay(alignment: .bottomTrailing) {
-                    if let sendType = store.state.type ?? store.state.restrictedSendType {
-                        addItemFloatingActionButton {
-                            await store.perform(.addItemPressed(sendType))
-                        }
-                    } else {
-                        addSendItemFloatingActionMenu { sendType in
-                            await store.perform(.addItemPressed(sendType))
-                        }
-                    }
-                }
 
             search
                 .hidden(!isSearching)
-        }
-        .onChange(of: isSearching) { newValue in
-            store.send(.searchStateChanged(isSearching: newValue))
         }
         .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
     }
@@ -71,16 +58,9 @@ private struct MainSendListView: View {
         }
     }
 
-    /// The empty state for this view, displayed when there are no items.
+    /// The empty state for this view, displayed when there are no items (native unavailable-content style).
     @ViewBuilder private var empty: some View {
-        VStack(spacing: 24) {
-            if store.state.shouldShowUpgradedToPremiumActionCard {
-                UpgradedToPremiumActionCardView(
-                    onDismiss: { await store.perform(.dismissUpgradedToPremiumActionCard) },
-                    onLearnMore: { store.send(.learnMoreAboutPremium) },
-                )
-            }
-
+        VStack(spacing: 16) {
             if store.state.isSendDisabled {
                 InfoContainer(Localizations.sendDisabledWarning)
                     .accessibilityIdentifier("SendPolicyLabel")
@@ -88,51 +68,50 @@ private struct MainSendListView: View {
 
             Spacer()
 
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.send,
-                title: Localizations.sendSensitiveInformationSafely,
-                message: Localizations
-                    .shareFilesAndDataSecurelyWithAnyoneOnAnyPlatformYourInformationWillRemainEndToEndEncrypted,
-            ) {
-                Group {
-                    let newSendLabel = Label(Localizations.newSend, image: SharedAsset.Icons.plus16.swiftUIImage)
-                    if let sendType = store.state.type ?? store.state.restrictedSendType {
-                        AsyncButton {
-                            await store.perform(.addItemPressed(sendType))
-                        } label: {
-                            newSendLabel
-                        }
-                    } else {
-                        Menu {
-                            ForEach(SendType.allCases.reversed()) { sendType in
-                                AsyncButton(sendType.localizedName) {
-                                    await store.perform(.addItemPressed(sendType))
-                                }
-                            }
-                        } label: {
-                            newSendLabel
-                        }
-                        .apply { view in
-                            if #available(iOS 17, *) {
-                                // Handled by the `buttonStyle(_:)` applied to the `Group`.
-                                view
-                            } else {
-                                // Prior to iOS 17, applying a custom button style to a Menu
-                                // component has no effect, so a custom menu style is needed instead.
-                                view.menuStyle(.primary(shouldFillWidth: false))
+            Image(systemName: "paperplane")
+                .font(.system(size: 56, weight: .light))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+
+            Text(Localizations.sendSensitiveInformationSafely)
+                .font(.title2.weight(.bold))
+                .multilineTextAlignment(.center)
+
+            Text(Localizations
+                .shareFilesAndDataSecurelyWithAnyoneOnAnyPlatformYourInformationWillRemainEndToEndEncrypted)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            Group {
+                let newSendLabel = Label(Localizations.newSend, systemImage: "plus")
+                if let sendType = store.state.type ?? store.state.restrictedSendType {
+                    AsyncButton {
+                        await store.perform(.addItemPressed(sendType))
+                    } label: {
+                        newSendLabel
+                    }
+                } else {
+                    Menu {
+                        ForEach(SendType.allCases.reversed()) { sendType in
+                            AsyncButton(sendType.localizedName) {
+                                await store.perform(.addItemPressed(sendType))
                             }
                         }
+                    } label: {
+                        newSendLabel
                     }
                 }
-                .buttonStyle(.primary(shouldFillWidth: false))
-                .padding(.top, 8)
-                // Disable from VoiceOver in favor of the FAB which provides the same functionality.
-                .accessibilityHidden(true)
             }
+            .buttonStyle(.borderedProminent)
+            .padding(.top, 8)
+            // The bottom bar offers the same action.
+            .accessibilityHidden(true)
 
             Spacer()
         }
-        .scrollView(centerContentVertically: true)
+        .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity)
     }
 
     /// A view that displays the search interface, including search results, an empty search
@@ -167,8 +146,10 @@ private struct MainSendListView: View {
                 Section {
                     sendRows(items: section.items)
                 } header: {
-                    Text("\(section.name) (\(section.items.count))")
-                        .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
+                    if let name = section.name {
+                        Text("\(name) (\(section.items.count))")
+                            .accessibilityLabel("\(name), \(Localizations.xItems(section.items.count))")
+                    }
                 }
             }
         }
@@ -250,21 +231,30 @@ struct SendListView: View {
     /// An action that opens URLs.
     @Environment(\.openURL) private var openURL
 
+    /// Whether the bottom search field is being edited.
+    @SwiftUI.State private var isSearchEditing = false
+
     /// The `Store` for this view.
     @ObservedObject var store: Store<SendListState, SendListAction, SendListEffect>
 
     // MARK: View
 
     var body: some View {
-        MainSendListView(store: store)
-            .searchable(
-                text: store.binding(
-                    get: \.searchText,
-                    send: SendListAction.searchTextChanged,
-                ),
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: Localizations.search,
-            )
+        MainSendListView(isSearchEditing: isSearchEditing, store: store)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                SendBottomBar(
+                    addSend: { await store.perform(.addItemPressed($0)) },
+                    restrictedSendType: store.state.type ?? store.state.restrictedSendType,
+                    isEditing: $isSearchEditing,
+                    text: store.binding(
+                        get: \.searchText,
+                        send: SendListAction.searchTextChanged,
+                    ),
+                )
+            }
+            .onChange(of: isSearchEditing || !store.state.searchText.isEmpty) { newValue in
+                store.send(.searchStateChanged(isSearching: newValue))
+            }
             .autocorrectionDisabled(true)
             .refreshable { [weak store] in
                 await store?.perform(.refresh)

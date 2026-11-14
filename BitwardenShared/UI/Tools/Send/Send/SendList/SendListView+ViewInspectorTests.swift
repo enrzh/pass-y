@@ -33,38 +33,35 @@ class SendListViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// When restricted to a single Send type by policy, tapping the floating action button opens
-    /// that type directly, performing the `.addItemPressed` effect without showing the menu.
+    /// When restricted to a single Send type by policy, tapping the add control in the bottom bar opens
+    /// that type directly (no menu).
     @MainActor
-    func test_addItemFloatingActionButton_restrictedSendType_tap() async throws {
-        processor.state.restrictedSendType = .text
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "AddItemFloatingActionButton",
+    func test_addControl_restrictedSendType_tap() async throws {
+        var added: [SendType] = []
+        let bar = SendBottomBar(
+            addSend: { added.append($0) },
+            restrictedSendType: .text,
+            isEditing: .constant(false),
+            text: .constant(""),
         )
-        try await fab.tap()
-        XCTAssertEqual(processor.effects.last, .addItemPressed(.text))
+        let button = try bar.inspect().find(asyncButtonWithAccessibilityIdentifier: "AddItemFloatingActionButton")
+        try await button.tap()
+        XCTAssertEqual(added, [.text])
     }
 
-    /// Tapping the add item floating action button in the file type list performs the `.addItemPressed` effect.
+    /// Without a restriction, the bottom bar menu offers Text and File and each adds that type.
     @MainActor
-    func test_addItemFloatingActionButton_sendTypeFile_tap() async throws {
-        processor.state.type = .file
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "AddItemFloatingActionButton",
+    func test_addControl_menu_offersTextAndFile() async throws {
+        var added: [SendType] = []
+        let bar = SendBottomBar(
+            addSend: { added.append($0) },
+            restrictedSendType: nil,
+            isEditing: .constant(false),
+            text: .constant(""),
         )
-        try await fab.tap()
-        XCTAssertEqual(processor.effects.last, .addItemPressed(.file))
-    }
-
-    /// Tapping the add item floating action button in the text type list performs the `.addItemPressed` effect.
-    @MainActor
-    func test_addItemFloatingActionButton_sendTypeText_tap() async throws {
-        processor.state.type = .text
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "AddItemFloatingActionButton",
-        )
-        try await fab.tap()
-        XCTAssertEqual(processor.effects.last, .addItemPressed(.text))
+        try await bar.inspect().find(asyncButton: Localizations.text).tap()
+        try await bar.inspect().find(asyncButton: Localizations.file).tap()
+        XCTAssertEqual(added, [.text, .file])
     }
 
     /// Tapping the add item floating action menu and selecting the file type performs the `.addItemPressed` effect.
