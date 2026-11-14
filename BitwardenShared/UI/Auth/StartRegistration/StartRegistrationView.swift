@@ -41,6 +41,85 @@ struct StartRegistrationView: View {
 
     // MARK: Private views
 
+    /// The main content: native grouped form with header, fields and prominent continue button.
+    private var mainContent: some View {
+        Form {
+            Section {
+                VStack(spacing: 12) {
+                    Image(systemName: "person.crop.circle.badge.plus")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                    Text(Localizations.createAccount)
+                        .font(.title2.weight(.semibold))
+                        .accessibilityAddTraits(.isHeader)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .listRowBackground(Color.clear)
+            }
+
+            Section {
+                regionRow
+
+                TextField(Localizations.emailAddress, text: store.binding(
+                    get: \.emailText,
+                    send: StartRegistrationAction.emailTextChanged,
+                ))
+                .textContentType(.emailAddress)
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+                .accessibilityIdentifier("EmailAddressEntry")
+                .id(Localizations.emailAddress)
+
+                TextField(Localizations.name, text: store.binding(
+                    get: \.nameText,
+                    send: StartRegistrationAction.nameTextChanged,
+                ))
+                .textContentType(.name)
+                .accessibilityIdentifier("NameEntry")
+                .id(Localizations.name)
+
+                receiveMarketingToggle
+            } footer: {
+                Text(LocalizedStringKey(store.state.termsAndPrivacyDisclaimerText))
+                    .font(.footnote)
+                    .accessibilityLinks(in: store.state.termsAndPrivacyDisclaimerText)
+            }
+
+            Section {
+                continueButton
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+        }
+        .passYNativeFormBackground()
+    }
+
+    /// The server row.
+    private var regionRow: some View {
+        Button {
+            Task { await store.perform(.regionTapped) }
+        } label: {
+            HStack {
+                Label(Localizations.server, systemImage: "server.rack")
+                    .foregroundStyle(.primary)
+                Spacer()
+                Text(store.state.serverHost ?? Localizations.serverNotSet)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("RegionSelectorDropdown")
+        .accessibilityLabel("\(Localizations.server): \(store.state.serverHost ?? Localizations.serverNotSet)")
+    }
+
     /// The button pressed when the user attempts to create the account.
     private var continueButton: some View {
         Button {
@@ -49,112 +128,28 @@ struct StartRegistrationView: View {
             }
         } label: {
             Text(Localizations.continue)
+                .frame(maxWidth: .infinity)
         }
         .accessibilityIdentifier("ContinueButton")
-        .buttonStyle(.primary())
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .padding(.horizontal, 16)
     }
 
-    /// The text fields for the user's email and password.
-    private var email: some View {
-        BitwardenTextField(
-            title: Localizations.emailAddress,
-            text: store.binding(
-                get: \.emailText,
-                send: StartRegistrationAction.emailTextChanged,
-            ),
-            accessibilityIdentifier: "EmailAddressEntry",
-            footerContent: {
-                RegionSelector(
-                    selectorLabel: Localizations.server,
-                    regionName: store.state.serverHost ?? Localizations.serverNotSet,
-                ) {
-                    await store.perform(.regionTapped)
-                }
-                .padding(.vertical, 14)
-            },
-        )
-        .textFieldConfiguration(.email)
-    }
-
-    /// The main content view that displays a scrollable layout of registration details.
-    private var mainContent: some View {
-        GeometryReader { proxy in
-            VStack(spacing: 0) {
-                Spacer(minLength: 24)
-
-                Image(decorative: Asset.Images.logo)
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundColor(SharedAsset.Colors.iconSecondary.swiftUIColor)
-                    .frame(maxWidth: .infinity, maxHeight: 34)
-                    .padding(.horizontal, 12)
-
-                Spacer(minLength: 24)
-
-                registrationDetails
-            }
-            .padding(.top, 0)
-            .padding(.bottom, 16)
-            .frame(minHeight: proxy.size.height)
-            .scrollView(addVerticalPadding: false, showsIndicators: false)
-        }
-    }
-
-    /// The text fields for the user's email and password.
-    private var name: some View {
-        BitwardenTextField(
-            title: Localizations.name,
-            text: store.binding(
-                get: \.nameText,
-                send: StartRegistrationAction.nameTextChanged,
-            ),
-            accessibilityIdentifier: "NameEntry",
-        )
-        .textFieldConfiguration(.username)
-    }
-
-    /// A toggle for the terms and privacy agreement.
+    /// A toggle for the marketing emails.
     @ViewBuilder private var receiveMarketingToggle: some View {
         if store.state.showReceiveMarketingToggle {
-            BitwardenToggle(isOn: store.binding(
+            Toggle(isOn: store.binding(
                 get: \.isReceiveMarketingToggleOn,
                 send: StartRegistrationAction.toggleReceiveMarketing,
             )) {
                 Text(LocalizedStringKey(store.state.receiveMarketingEmailsText))
-                    .tint(SharedAsset.Colors.textInteraction.swiftUIColor)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .styleGuide(.subheadline)
+                    .font(.subheadline)
             }
             .accessibilityIdentifier("ReceiveMarketingToggle")
             .accessibilityLinks(in: store.state.receiveMarketingEmailsText, isDefaultActionEnabled: false)
-            .contentBlock()
             .id(ViewIdentifier.StartRegistration.receiveMarketing)
         }
-    }
-
-    /// The section of the view containing input fields, and action buttons.
-    private var registrationDetails: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 8) {
-                name
-                email
-                receiveMarketingToggle
-            }
-
-            continueButton
-            termsAndPrivacyText
-        }
-    }
-
-    /// The button pressed when the user attempts to create the account.
-    private var termsAndPrivacyText: some View {
-        Text(LocalizedStringKey(store.state.termsAndPrivacyDisclaimerText))
-            .styleGuide(.footnote)
-            .tint(SharedAsset.Colors.textInteraction.swiftUIColor)
-            .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-            .padding([.bottom], 32)
-            .multilineTextAlignment(.center)
-            .accessibilityLinks(in: store.state.termsAndPrivacyDisclaimerText)
     }
 }
 

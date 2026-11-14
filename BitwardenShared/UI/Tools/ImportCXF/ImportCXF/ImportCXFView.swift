@@ -15,59 +15,74 @@ struct ImportCXFView: View {
     // MARK: View
 
     var body: some View {
-        Group {
-            VStack(spacing: 16) {
-                IllustratedMessageView(
-                    image: Image(decorative: store.state.mainIcon),
-                    style: .largeTextTintedIcon,
-                    title: store.state.title,
-                    message: store.state.message,
-                )
-                switch store.state.status {
-                case .start:
-                    EmptyView()
-                case .importing:
-                    ProgressView(value: store.state.progress)
-                        .tint(SharedAsset.Colors.tintPrimary.swiftUIColor)
-                        .frame(maxWidth: .infinity)
-                        .scaleEffect(x: 1, y: 3, anchor: .center)
-                        .accessibilityIdentifier("ImportProgress")
-                case let .success(_, results):
-                    VStack(spacing: 16) {
-                        ForEach(results) { result in
-                            importedTypeRow(result: result)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
-                case .failure:
-                    EmptyView()
+        Form {
+            Section {
+                VStack(spacing: 12) {
+                    Image(systemName: symbolName)
+                        .font(.system(size: 52))
+                        .foregroundStyle(symbolStyle)
+                        .accessibilityHidden(true)
+                    Text(store.state.title)
+                        .font(.title2.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(store.state.message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .listRowBackground(Color.clear)
+                .accessibilityElement(children: .combine)
             }
-            .padding(.top, 8)
-            .frame(maxWidth: .infinity)
-            .scrollView(backgroundColor: SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-            .safeAreaInset(edge: .bottom) {
-                VStack {
-                    if store.state.showMainButton {
-                        AsyncButton(store.state.mainButtonTitle) {
-                            await store.perform(.mainButtonTapped)
-                        }
-                        .buttonStyle(.primary())
-                        .accessibilityIdentifier("MainButton")
-                    }
 
-                    if store.state.showCancelButton {
-                        AsyncButton(Localizations.cancel) {
-                            await store.perform(.cancel)
-                        }
-                        .buttonStyle(.secondary())
-                        .accessibilityIdentifier("CancelButton")
+            switch store.state.status {
+            case .importing:
+                Section {
+                    ProgressView(value: store.state.progress)
+                        .accessibilityIdentifier("ImportProgress")
+                        .accessibilityLabel(store.state.title)
+                }
+            case let .success(_, results):
+                Section {
+                    ForEach(results) { result in
+                        importedTypeRow(result: result)
                     }
                 }
-                .padding(.horizontal, 12)
-                .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
+            case .start,
+                 .failure:
+                EmptyView()
             }
+        }
+        .passYNativeFormBackground()
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 8) {
+                if store.state.showMainButton {
+                    AsyncButton {
+                        await store.perform(.mainButtonTapped)
+                    } label: {
+                        Text(store.state.mainButtonTitle).frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("MainButton")
+                }
+
+                if store.state.showCancelButton {
+                    AsyncButton {
+                        await store.perform(.cancel)
+                    } label: {
+                        Text(Localizations.cancel).frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("CancelButton")
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(.bar)
         }
         .transition(.opacity)
         .animation(.easeInOut, value: store.state.status)
@@ -75,11 +90,29 @@ struct ImportCXFView: View {
             await store.perform(.appeared)
         }
         .apply { view in
-            if #available(iOSApplicationExtension 16.0, *) {
+            if #available(iOS 16.0, *) {
                 view.toolbar(.hidden)
             } else {
                 view.navigationBarHidden(true)
             }
+        }
+    }
+
+    /// The SF Symbol for the current status.
+    private var symbolName: String {
+        switch store.state.status {
+        case .start, .importing: "square.and.arrow.down"
+        case .success: "checkmark.circle.fill"
+        case .failure: "xmark.circle.fill"
+        }
+    }
+
+    /// The symbol color for the current status.
+    private var symbolStyle: Color {
+        switch store.state.status {
+        case .success: .green
+        case .failure: .red
+        default: .accentColor
         }
     }
 
@@ -90,12 +123,12 @@ struct ImportCXFView: View {
     private func importedTypeRow(result: CXFCredentialsResult) -> some View {
         HStack {
             Text(result.localizedTypePlural)
-                .styleGuide(.body)
             Spacer()
             Text("\(result.count)")
-                .styleGuide(.body)
+                .foregroundStyle(.secondary)
                 .accessibilityIdentifier("\(result.type)ImportTotal")
         }
+        .accessibilityElement(children: .combine)
     }
 }
 

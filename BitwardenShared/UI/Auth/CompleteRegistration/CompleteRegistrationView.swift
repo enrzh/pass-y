@@ -19,36 +19,70 @@ struct CompleteRegistrationView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.lock,
-                title: Localizations.chooseYourMasterPassword,
-                message: Localizations.chooseAUniqueAndStrongPasswordToKeepYourInformationSafe,
-            )
-            .padding(.top, 12)
-
-            learnMoreSection
-
-            VStack(spacing: 8) {
-                ContentBlock {
-                    passwordField
-
-                    retypePassword
-
-                    passwordHint
+        Form {
+            Section {
+                VStack(spacing: 12) {
+                    Image(systemName: "lock.shield")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                    Text(Localizations.chooseYourMasterPassword)
+                        .font(.title2.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(Localizations.chooseAUniqueAndStrongPasswordToKeepYourInformationSafe)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button(Localizations.learnMore) {
+                        store.send(.learnMoreTapped)
+                    }
+                    .font(.subheadline)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .listRowBackground(Color.clear)
+            }
 
+            Section {
+                passwordField
+                retypePassword
+                PasswordStrengthIndicator(
+                    passwordStrengthScore: store.state.passwordStrengthScore,
+                    passwordTextCount: store.state.passwordText.count,
+                    requiredTextCount: store.state.requiredPasswordCount,
+                )
+            }
+
+            Section {
+                passwordHint
+            } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(Localizations.bitwardenCannotResetALostOrForgottenMasterPassword)
+                    Button(Localizations.learnAboutWaysToPreventAccountLockout) {
+                        store.send(.preventAccountLockTapped)
+                    }
+                    .font(.footnote)
+                    .multilineTextAlignment(.leading)
+                }
+            }
+
+            Section {
                 checkBreachesToggle
             }
 
-            createAccountButton
+            Section {
+                createAccountButton
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
+        .passYNativeFormBackground()
         .animation(.default, value: store.state.passwordStrengthScore)
         .navigationBar(
             title: Localizations.createAccount,
             titleDisplayMode: .inline,
         )
-        .scrollView()
         .toolbar {
             cancelToolbarItem {
                 store.send(.dismiss)
@@ -67,124 +101,100 @@ struct CompleteRegistrationView: View {
 
     /// A toggle to check the user's password for security breaches.
     private var checkBreachesToggle: some View {
-        BitwardenToggle(isOn: store.binding(
+        Toggle(isOn: store.binding(
             get: \.isCheckDataBreachesToggleOn,
             send: CompleteRegistrationAction.toggleCheckDataBreaches,
         )) {
             Text(Localizations.checkKnownDataBreachesForThisPassword)
-                .styleGuide(.footnote)
+                .font(.subheadline)
         }
         .accessibilityIdentifier("CheckExposedMasterPasswordToggle")
         .id(ViewIdentifier.CompleteRegistration.checkBreaches)
-        .contentBlock()
     }
 
-    /// The section where the user can learn more about passwords.
-    private var learnMoreSection: some View {
-        HStack(alignment: .center, spacing: 16) {
-            Image(decorative: SharedAsset.Icons.questionCircle24)
-                .foregroundStyle(SharedAsset.Colors.iconSecondary.swiftUIColor)
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text(Localizations.whatMakesAPasswordStrong)
-                    .styleGuide(.body, weight: .semibold)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .multilineTextAlignment(.leading)
-
-                Button {
-                    store.send(.learnMoreTapped)
-                } label: {
-                    Text(Localizations.learnMore)
-                        .styleGuide(.subheadline)
-                        .foregroundStyle(SharedAsset.Colors.textInteraction.swiftUIColor)
-                }
+    /// A password field with a reveal button.
+    private func secureRow(
+        title: String,
+        text: Binding<String>,
+        visible: Binding<Bool>,
+        fieldId: String,
+        toggleId: String,
+    ) -> some View {
+        HStack {
+            if visible.wrappedValue {
+                TextField(title, text: text)
+                    .textContentType(.newPassword)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .accessibilityIdentifier(fieldId)
+                    .id(title)
+            } else {
+                SecureField(title, text: text)
+                    .textContentType(.newPassword)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .accessibilityIdentifier(fieldId)
+                    .id(title)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button {
+                visible.wrappedValue.toggle()
+            } label: {
+                Image(systemName: visible.wrappedValue ? "eye.slash" : "eye")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityIdentifier(toggleId)
+            .accessibilityLabel(
+                visible.wrappedValue
+                    ? Localizations.passwordIsVisibleTapToHide
+                    : Localizations.passwordIsNotVisibleTapToShow,
+            )
         }
-        .padding(16)
-        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    /// The text fields for the user's email and password.
+    /// The master password field.
     private var passwordField: some View {
-        BitwardenTextField(
+        secureRow(
             title: Localizations.masterPasswordRequired,
             text: store.binding(
                 get: \.passwordText,
                 send: CompleteRegistrationAction.passwordTextChanged,
             ),
-            accessibilityIdentifier: "MasterPasswordEntry",
-            passwordVisibilityAccessibilityId: "PasswordVisibilityToggle",
-            isPasswordVisible: store.binding(
+            visible: store.binding(
                 get: \.arePasswordsVisible,
                 send: CompleteRegistrationAction.togglePasswordVisibility,
             ),
-            footerContent: {
-                passwordStrengthIndicator
-                    .padding(.vertical, 12)
-                    .padding(.trailing, 12)
-            },
+            fieldId: "MasterPasswordEntry",
+            toggleId: "PasswordVisibilityToggle",
         )
-        .textFieldConfiguration(.password)
     }
 
     /// The master password hint.
     private var passwordHint: some View {
-        BitwardenTextField(
-            title: Localizations.masterPasswordHint,
-            text: store.binding(
-                get: \.passwordHintText,
-                send: CompleteRegistrationAction.passwordHintTextChanged,
-            ),
-            accessibilityIdentifier: "MasterPasswordHintLabel",
-            footerContent: {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(Localizations.bitwardenCannotResetALostOrForgottenMasterPassword)
-                        .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-                        .styleGuide(.footnote)
-
-                    Button {
-                        store.send(.preventAccountLockTapped)
-                    } label: {
-                        Text(Localizations.learnAboutWaysToPreventAccountLockout)
-                            .foregroundColor(SharedAsset.Colors.textInteraction.swiftUIColor)
-                            .styleGuide(.footnote, weight: .bold)
-                            .multilineTextAlignment(.leading)
-                    }
-                }
-                .padding(.vertical, 12)
-            },
-        )
-    }
-
-    /// The password strength indicator.
-    private var passwordStrengthIndicator: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            PasswordStrengthIndicator(
-                passwordStrengthScore: store.state.passwordStrengthScore,
-                passwordTextCount: store.state.passwordText.count,
-                requiredTextCount: store.state.requiredPasswordCount,
-            )
-        }
+        TextField(Localizations.masterPasswordHint, text: store.binding(
+            get: \.passwordHintText,
+            send: CompleteRegistrationAction.passwordHintTextChanged,
+        ))
+        .accessibilityIdentifier("MasterPasswordHintLabel")
+        .id(Localizations.masterPasswordHint)
     }
 
     /// The text field for re-typing the master password.
     private var retypePassword: some View {
-        BitwardenTextField(
+        secureRow(
             title: Localizations.retypeMasterPasswordRequired,
             text: store.binding(
                 get: \.retypePasswordText,
                 send: CompleteRegistrationAction.retypePasswordTextChanged,
             ),
-            accessibilityIdentifier: "ConfirmMasterPasswordEntry",
-            passwordVisibilityAccessibilityId: "ConfirmPasswordVisibilityToggle",
-            isPasswordVisible: store.binding(
+            visible: store.binding(
                 get: \.arePasswordsVisible,
                 send: CompleteRegistrationAction.togglePasswordVisibility,
             ),
+            fieldId: "ConfirmMasterPasswordEntry",
+            toggleId: "ConfirmPasswordVisibilityToggle",
         )
-        .textFieldConfiguration(.password)
     }
 
     /// The button pressed when the user attempts to create the account.
@@ -195,9 +205,12 @@ struct CompleteRegistrationView: View {
             }
         } label: {
             Text(Localizations.continue)
+                .frame(maxWidth: .infinity)
         }
         .accessibilityIdentifier("CreateAccountButton")
-        .buttonStyle(.primary())
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .padding(.horizontal, 16)
         .disabled(!store.state.continueButtonEnabled)
     }
 }

@@ -15,60 +15,74 @@ struct ExportCXFView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            IllustratedMessageView(
-                image: Image(decorative: store.state.mainIcon),
-                style: .largeTextTintedIcon,
-                title: store.state.title,
-                message: store.state.message,
-            )
-            .padding(.horizontal, 30)
-            .frame(maxWidth: .infinity)
-
-            if case .prepared = store.state.status {
-                Text(Localizations.itemsToExport)
-                    .styleGuide(.title, weight: .bold)
-                    .padding(.horizontal, 20)
-                    .accessibilityIdentifier("SectionTitle")
+        Form {
+            Section {
+                VStack(spacing: 12) {
+                    Image(systemName: symbolName)
+                        .font(.system(size: 52))
+                        .foregroundStyle(isFailure ? Color.red : Color.accentColor)
+                        .accessibilityHidden(true)
+                    Text(store.state.title)
+                        .font(.title2.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(store.state.message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .listRowBackground(Color.clear)
+                .accessibilityElement(children: .combine)
             }
 
             switch store.state.status {
             case .start:
-                CircularActivityIndicator()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Section {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                }
             case let .prepared(results):
-                VStack(spacing: 16) {
+                Section {
                     ForEach(results) { result in
                         exportingTypeRow(result: result)
                     }
+                } header: {
+                    Text(Localizations.itemsToExport)
+                        .accessibilityIdentifier("SectionTitle")
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
             case .failure:
                 EmptyView()
             }
         }
-        .padding(.top, 8)
-        .frame(maxWidth: .infinity)
-        .scrollView(backgroundColor: SharedAsset.Colors.backgroundSecondary.swiftUIColor)
+        .passYNativeFormBackground()
         .safeAreaInset(edge: .bottom) {
-            VStack {
+            VStack(spacing: 8) {
                 if store.state.showMainButton {
-                    AsyncButton(store.state.mainButtonTitle) {
+                    AsyncButton {
                         await store.perform(.mainButtonTapped)
+                    } label: {
+                        Text(store.state.mainButtonTitle).frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.primary())
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .accessibilityIdentifier("MainButton")
                 }
 
-                AsyncButton(Localizations.cancel) {
+                AsyncButton {
                     await store.perform(.cancel)
+                } label: {
+                    Text(Localizations.cancel).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.secondary())
+                .buttonStyle(.bordered)
+                .controlSize(.large)
                 .accessibilityIdentifier("CancelButton")
             }
-            .padding(.horizontal, 12)
-            .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(.bar)
         }
         .transition(.opacity)
         .animation(.easeInOut, value: store.state.status)
@@ -86,17 +100,28 @@ struct ExportCXFView: View {
 
     // MARK: Private
 
+    /// Whether the export failed.
+    private var isFailure: Bool {
+        if case .failure = store.state.status { return true }
+        return false
+    }
+
+    /// The SF Symbol for the current status.
+    private var symbolName: String {
+        isFailure ? "xmark.circle.fill" : "square.and.arrow.up"
+    }
+
     /// The row for an exporting type result.
     @ViewBuilder
     private func exportingTypeRow(result: CXFCredentialsResult) -> some View {
         HStack {
             Text(result.localizedTypePlural)
-                .styleGuide(.body)
             Spacer()
             Text("\(result.count)")
-                .styleGuide(.body)
+                .foregroundStyle(.secondary)
                 .accessibilityIdentifier("\(result.type)ExportTotal")
         }
+        .accessibilityElement(children: .combine)
     }
 }
 

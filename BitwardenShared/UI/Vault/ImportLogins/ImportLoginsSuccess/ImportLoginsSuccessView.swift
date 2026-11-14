@@ -15,42 +15,60 @@ struct ImportLoginsSuccessView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.devices,
-                style: .mediumImage,
-                title: Localizations.importSuccessful,
-                message: Localizations.manageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop,
-            )
+        Form {
+            Section {
+                VStack(spacing: 12) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 52))
+                        .foregroundStyle(.green)
+                        .accessibilityHidden(true)
+                    Text(Localizations.importSuccessful)
+                        .font(.title2.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(Localizations.manageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .listRowBackground(Color.clear)
+            }
 
-            ContentBlock(dividerLeadingPadding: 48) {
+            Section {
                 rowView(
-                    image: SharedAsset.Icons.puzzle24,
+                    symbol: "puzzlepiece.extension",
                     title: Localizations.downloadTheBrowserExtension,
                     subtitle: Localizations
                         .goToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience,
                 )
-
                 rowView(
-                    image: SharedAsset.Icons.desktop24,
+                    symbol: "desktopcomputer",
                     title: Localizations.useTheWebApp,
                     subtitle: Localizations.logInAtBitwardenToEasilyManageYourAccountAndUpdateSettings,
                 )
-
                 rowView(
-                    image: SharedAsset.Icons.shield24,
+                    symbol: "checkmark.shield",
                     title: Localizations.autofillPasswords,
                     subtitle: Localizations.setUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere,
                 )
             }
 
-            AsyncButton(Localizations.gotIt) {
-                await store.perform(.dismiss)
+            Section {
+                AsyncButton {
+                    await store.perform(.dismiss)
+                } label: {
+                    Text(Localizations.gotIt).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding(.horizontal, 16)
             }
-            .buttonStyle(.primary())
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
-        .padding(.top, 12)
-        .scrollView()
+        .passYNativeFormBackground()
         .navigationBar(title: Localizations.bitwardenTools, titleDisplayMode: .inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -65,37 +83,20 @@ struct ImportLoginsSuccessView: View {
 
     // MARK: Private
 
-    /// Returns a view for displaying a row of content within the view.
-    ///
-    /// - Parameters:
-    ///   - image: The image to display on the leading edge of the title and subtitle.
-    ///   - title: The title text to display in the row.
-    ///   - subtitle: The subtitle text to display in the row.
-    /// - Returns: A view for displaying a row of content in the view.
-    ///
-    @ViewBuilder
-    private func rowView(
-        image: SharedImageAsset,
-        title: String,
-        subtitle: String? = nil,
-    ) -> some View {
+    /// A row with a leading SF Symbol, title and subtitle.
+    private func rowView(symbol: String, title: String, subtitle: String) -> some View {
         HStack(spacing: 12) {
-            Image(decorative: image)
-                .foregroundStyle(SharedAsset.Colors.iconSecondary.swiftUIColor)
-
+            Image(systemName: symbol)
+                .font(.title3)
+                .foregroundStyle(.tint)
+                .frame(width: 28)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .styleGuide(.body, weight: .bold)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-
-                if let subtitle {
-                    Text(subtitle)
-                        .styleGuide(.subheadline)
-                        .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                }
+                Text(title).font(.body.weight(.semibold))
+                Text(subtitle).font(.subheadline).foregroundStyle(.secondary)
             }
         }
-        .padding(12)
+        .accessibilityElement(children: .combine)
     }
 }
 

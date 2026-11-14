@@ -91,7 +91,7 @@ class TwoFactorAuthViewTests: BitwardenTestCase {
     /// Updating the value in the verification code text field dispatches the `.verificationCodeChanged(_)` action.
     @MainActor
     func test_verificationCode_updateValue() throws {
-        let textField = try subject.inspect().find(textField: "")
+        let textField = try subject.inspect().find(ViewType.TextField.self)
         try textField.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .verificationCodeChanged("text"))
     }
