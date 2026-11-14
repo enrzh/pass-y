@@ -39,8 +39,8 @@ class AppearanceViewTests: BitwardenTestCase {
     @MainActor
     func test_appThemeChanged_updateValue() throws {
         processor.state.appTheme = .light
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.theme)
-        try menuField.select(newValue: AppTheme.dark)
+        let picker = try subject.inspect().find(ViewType.Picker.self, containing: Localizations.theme)
+        try picker.select(value: AppTheme.dark)
         XCTAssertEqual(processor.dispatchedActions.last, .appThemeChanged(.dark))
     }
 

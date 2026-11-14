@@ -271,6 +271,44 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["SettingsAccountRow"].waitForExistence(timeout: 5), "still logged in after cancelling")
     }
 
+    /// Real taps through the native settings sub-screens (Appearance form, Other form, Vault list, Folders list).
+    func test14_settingsSubscreens() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        tabBarButton(app, "Settings").tap()
+        func back() { app.navigationBars.buttons.firstMatch.tap(); sleep(1) }
+
+        let appearance = app.buttons["AppearanceSettingsButton"]
+        XCTAssertTrue(appearance.waitForExistence(timeout: 10), "settings list shows Appearance")
+        appearance.tap(); sleep(2)
+        let theme = app.buttons["ThemeChooser"]
+        XCTAssertTrue(theme.waitForExistence(timeout: 5), "Appearance form has the theme picker")
+        attach(app, "14-appearance")
+        theme.tap(); sleep(1)
+        attach(app, "14-appearance-theme-menu")
+        XCTAssertTrue(app.buttons["Dark"].waitForExistence(timeout: 5), "theme menu offers Dark")
+        app.buttons["Dark"].tap(); sleep(1)
+        attach(app, "14-appearance-dark")
+        app.buttons["ThemeChooser"].tap(); sleep(1)
+        if app.buttons["Default (System)"].exists { app.buttons["Default (System)"].tap() } else { app.buttons["Light"].tap() }
+        sleep(1)
+        back()
+
+        app.buttons["OtherSettingsButton"].tap(); sleep(2)
+        XCTAssertTrue(app.buttons["SyncNowButton"].waitForExistence(timeout: 5), "Other form has Sync now")
+        attach(app, "14-other")
+        back()
+
+        app.buttons["VaultSettingsButton"].tap(); sleep(2)
+        let folders = app.buttons["FoldersLabel"]
+        XCTAssertTrue(folders.waitForExistence(timeout: 5), "Vault settings list has My folders")
+        attach(app, "14-vault-settings")
+        folders.tap(); sleep(2)
+        XCTAssertTrue(app.buttons["FolderCell"].firstMatch.waitForExistence(timeout: 10)
+            || app.staticTexts["NoFoldersLabel"].exists, "folders list or empty state is shown")
+        attach(app, "14-folders")
+    }
+
     func test05_generator() {
         let app = launchApp()
         ensureUnlockedVault(app)

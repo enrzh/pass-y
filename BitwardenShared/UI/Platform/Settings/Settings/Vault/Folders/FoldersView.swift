@@ -21,7 +21,6 @@ struct FoldersView: View {
                     .background(Color(asset: SharedAsset.Colors.backgroundPrimary))
             } else {
                 folders
-                    .scrollView()
             }
         }
         .navigationBar(title: Localizations.myFolders, titleDisplayMode: .inline)
@@ -55,7 +54,7 @@ struct FoldersView: View {
 
     /// The section listing all the user's folders.
     private var folders: some View {
-        ContentBlock(dividerLeadingPadding: 16) {
+        List {
             ForEach(
                 store.state.folders.sorted { first, second in
                     if first.name.localizedStandardCompare(second.name) == .orderedSame {
@@ -66,14 +65,30 @@ struct FoldersView: View {
                 },
                 id: \.id,
             ) { folder in
-                SettingsListItem(folder.name, nameAccessibilityID: "FolderName") {
+                Button {
                     guard let id = folder.id else { return }
                     store.send(.folderTapped(id: id))
+                } label: {
+                    HStack {
+                        Label {
+                            Text(folder.name)
+                                .foregroundStyle(.primary)
+                                .accessibilityIdentifier("FolderName")
+                        } icon: {
+                            Image(systemName: "folder")
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .accessibilityIdentifier("FolderCell")
             }
         }
-        .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
+        .listStyle(.insetGrouped)
     }
 }
 

@@ -10,77 +10,81 @@ struct AppearanceView: View {
     // MARK: Properties
 
     /// The store used to render the view.
+    @Environment(\.openURL) private var openURL
+
     @ObservedObject var store: Store<AppearanceState, AppearanceAction, AppearanceEffect>
 
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 8) {
-            language
+        Form {
+            Section {
+                Button {
+                    store.send(.languageTapped)
+                } label: {
+                    HStack {
+                        Text(Localizations.language).foregroundStyle(.primary)
+                        Spacer()
+                        Text(store.state.currentLanguage.title).foregroundStyle(.secondary)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } footer: {
+                Text(Localizations.languageChangeRequiresAppRestart)
+            }
 
-            theme
+            Section {
+                Picker(
+                    Localizations.theme,
+                    selection: store.binding(
+                        get: \.appTheme,
+                        send: AppearanceAction.appThemeChanged,
+                    ),
+                ) {
+                    ForEach(AppTheme.allCases, id: \.self) { theme in
+                        Text(theme.localizedName).tag(theme)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("ThemeChooser")
+            } footer: {
+                Text(Localizations.themeDescription)
+            }
 
-            webSiteIconsToggle
+            Section {
+                Toggle(
+                    isOn: store.binding(
+                        get: \.isShowWebsiteIconsToggleOn,
+                        send: AppearanceAction.toggleShowWebsiteIcons,
+                    ),
+                ) {
+                    HStack(spacing: 8) {
+                        Text(Localizations.showWebsiteIcons)
+                        Button {
+                            openURL(ExternalLinksConstants.websiteIconsHelp)
+                        } label: {
+                            Image(systemName: "questionmark.circle")
+                                .font(.footnote)
+                                .accessibilityLabel(Localizations.learnMore)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityIdentifier("ShowWebsiteIconsSwitch")
+                .accessibilityLabel(Localizations.showWebsiteIcons)
+            } footer: {
+                Text(Localizations.showWebsiteIconsDescription)
+            }
         }
-        .scrollView()
         .navigationBar(title: Localizations.appearance, titleDisplayMode: .inline)
         .task {
             await store.perform(.loadData)
         }
-    }
-
-    // MARK: Private views
-
-    /// The language picker view
-    private var language: some View {
-        Button {
-            store.send(.languageTapped)
-        } label: {
-            BitwardenField(
-                title: Localizations.language,
-                footer: Localizations.languageChangeRequiresAppRestart,
-            ) {
-                Text(store.state.currentLanguage.title)
-                    .styleGuide(.body)
-                    .foregroundColor(Color(asset: SharedAsset.Colors.textPrimary))
-                    .multilineTextAlignment(.leading)
-            } accessoryContent: {
-                SharedAsset.Icons.chevronDown24.swiftUIImage
-                    .imageStyle(.rowIcon)
-            }
-        }
-    }
-
-    /// The application's color theme picker view
-    private var theme: some View {
-        BitwardenMenuField(
-            title: Localizations.theme,
-            footer: Localizations.themeDescription,
-            accessibilityIdentifier: "ThemeChooser",
-            options: AppTheme.allCases,
-            selection: store.binding(
-                get: \.appTheme,
-                send: AppearanceAction.appThemeChanged,
-            ),
-        )
-    }
-
-    /// The show website icons toggle.
-    private var webSiteIconsToggle: some View {
-        BitwardenToggle(
-            footer: Localizations.showWebsiteIconsDescription,
-            isOn: store.binding(
-                get: \.isShowWebsiteIconsToggleOn,
-                send: AppearanceAction.toggleShowWebsiteIcons,
-            ),
-            accessibilityIdentifier: "ShowWebsiteIconsSwitch",
-            accessibilityLabel: Localizations.showWebsiteIcons,
-            helpURL: ExternalLinksConstants.websiteIconsHelp,
-            title: {
-                Text(Localizations.showWebsiteIcons)
-            },
-        )
-        .contentBlock()
     }
 }
 
