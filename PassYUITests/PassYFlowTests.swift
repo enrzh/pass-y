@@ -644,4 +644,66 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(tile.frame.width, 150, "tile width \(tile.frame.width)")
         attach(app, "21-tiles")
     }
+
+    // MARK: 22 to 24: ui-r3 phase B (native look)
+
+    /// Item view: Edit is a toolbar button (no floating pencil); Send list: About Send sits in the "..." menu.
+    func test22_editInToolbarAndSendInfoInMenu() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let tile = app.buttons["CategoryTile_login"]
+        XCTAssertTrue(tile.waitForExistence(timeout: 10))
+        tile.tap()
+        let row = app.buttons["VaultListItemRowButton"].firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 10), "an item row")
+        row.tap()
+        let edit = app.buttons["EditItemButton"]
+        XCTAssertTrue(edit.waitForExistence(timeout: 10), "Edit is a toolbar button")
+        XCTAssertFalse(app.buttons["EditItemFloatingActionButton"].exists, "no floating edit button")
+        XCTAssertLessThan(edit.frame.midY, 160, "Edit sits in the navigation bar: \(edit.frame)")
+        attach(app, "22-item-view-toolbar")
+        app.buttons["CloseButton"].firstMatch.tap()
+        // Back from the item list to the vault root (the avatar menu is on root screens only).
+        let back = app.navigationBars.buttons.firstMatch
+        if back.waitForExistence(timeout: 5) { back.tap() }
+        goTo(app, "Send")
+        let options = app.buttons["HeaderBarOptionsButton"].firstMatch
+        XCTAssertTrue(options.waitForExistence(timeout: 10), "Send has an options menu next to the avatar")
+        XCTAssertFalse(app.buttons["About Send"].exists, "no separate info button")
+        options.tap()
+        XCTAssertTrue(app.buttons["About Send"].waitForExistence(timeout: 5), "menu offers About Send")
+        attach(app, "22-send-menu")
+    }
+
+    /// The bottom search bar exists at the bottom on the vault, generator and send pages (screenshots show the
+    /// uniform backdrop; the colour itself is not asserted).
+    func test23_barBackdropIsPageIndependent() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        for place in ["My vault", "Generator", "Send"] {
+            goTo(app, place); sleep(1)
+            let bar = app.searchFields.firstMatch
+            XCTAssertTrue(bar.waitForExistence(timeout: 10), "\(place) has the bottom bar")
+            XCTAssertGreaterThan(bar.frame.midY, app.windows.firstMatch.frame.height * 0.8, "\(place): bar at the bottom")
+            attach(app, "23-bar-\(place)")
+        }
+    }
+
+    /// Vault settings are a native list and the folders page adds folders from the toolbar.
+    func test24_settingsFoldersNative() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        goTo(app, "Settings")
+        app.buttons["VaultSettingsButton"].tap(); sleep(1)
+        XCTAssertTrue(app.buttons["FoldersLabel"].exists && app.buttons["ExportVaultLabel"].exists
+            && app.buttons["ImportItemsLinkItemView"].exists, "vault settings rows")
+        app.buttons["FoldersLabel"].tap(); sleep(1)
+        let add = app.buttons["AddItemButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10), "folders: add in the toolbar")
+        XCTAssertFalse(app.buttons["AddItemFloatingActionButton"].exists, "no leftover blue plus next to the bar")
+        add.tap()
+        let name = app.textFields["FolderNameField"]
+        XCTAssertTrue(name.waitForExistence(timeout: 10), "native name field in a Form")
+        attach(app, "24-add-folder")
+    }
 }
