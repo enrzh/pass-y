@@ -66,7 +66,7 @@ struct PassYShellControllerTests {
     init() {
         window = UIWindow(frame: UIScreen.main.bounds)
         window.layer.speed = 100
-        subject = PassYShellController()
+        subject = PassYShellController(model: PassYShellModel())
         window.rootViewController = subject
         window.makeKeyAndVisible()
     }

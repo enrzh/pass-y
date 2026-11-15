@@ -295,17 +295,17 @@ struct SendListView: View {
 
                 if store.state.type == nil {
                     PassYAvatarToolbarItem()
-                } else {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        if !store.state.isInfoButtonHidden {
-                            Button {
-                                store.send(.infoButtonPressed)
-                            } label: {
-                                Image(asset: SharedAsset.Icons.questionCircle24, label: Text(Localizations.aboutSend))
-                                    .foregroundColor(SharedAsset.Colors.iconSecondary.swiftUIColor)
-                            }
-                            .frame(minHeight: 44)
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !store.state.isInfoButtonHidden {
+                        Button {
+                            store.send(.infoButtonPressed)
+                        } label: {
+                            Image(asset: SharedAsset.Icons.questionCircle24, label: Text(Localizations.aboutSend))
+                                .foregroundColor(SharedAsset.Colors.iconSecondary.swiftUIColor)
                         }
+                        .frame(minHeight: 44)
                     }
                 }
             }

@@ -233,7 +233,9 @@ private struct PassYSearchTargetModifier: ViewModifier {
                 // The screen cleared or changed its own text (for example a processor reset).
                 if isActive, newValue != model.text { model.text = newValue }
             }
-            .onChange(of: entries.map { "\($0.id)|\($0.title)" }) { _ in
+            // `task(id:)` instead of `onChange`: its closure is created with the newest `entries`
+            // (an `onChange` action would still see the previous ones).
+            .task(id: entries.map { "\($0.id)|\($0.title)" }) {
                 model.updateEntries(id: id, entries: entries)
             }
     }
@@ -343,25 +345,26 @@ private struct PassYAddMenu: View {
     }
 
     var body: some View {
-        Group {
-            if entries.count == 1, let entry = entries.first {
-                Button(action: entry.action) { symbol }
-                    .buttonStyle(.plain)
-            } else {
-                Menu {
-                    ForEach(entries) { entry in
-                        if entry.dividerBefore { Divider() }
-                        Button(action: entry.action) {
-                            Label(entry.title, systemImage: entry.symbol)
-                        }
+        // A lone folder entry (item types not loaded yet) still opens a menu; only a real single action is a plain button.
+        if entries.count == 1, let entry = entries.first, !entry.dividerBefore {
+            Button(action: entry.action) { symbol }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Localizations.add)
+                .accessibilityIdentifier("AddItemFloatingActionButton")
+        } else {
+            Menu {
+                ForEach(entries) { entry in
+                    if entry.dividerBefore { Divider() }
+                    Button(action: entry.action) {
+                        Label(entry.title, systemImage: entry.symbol)
                     }
-                } label: {
-                    symbol
                 }
+            } label: {
+                symbol
             }
+            .accessibilityLabel(Localizations.add)
+            .accessibilityIdentifier("AddItemFloatingActionButton")
         }
-        .accessibilityLabel(Localizations.add)
-        .accessibilityIdentifier("AddItemFloatingActionButton")
     }
 }
 

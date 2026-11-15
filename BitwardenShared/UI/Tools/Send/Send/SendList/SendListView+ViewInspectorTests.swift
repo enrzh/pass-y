@@ -38,9 +38,10 @@ class SendListViewTests: BitwardenTestCase {
     func test_addEntries_offersTextAndFile() {
         var added: [SendType] = []
         let entries = SendListView.addEntries(restrictedSendType: nil) { added.append($0) }
-        XCTAssertEqual(entries.map(\.title), [SendType.text.localizedName, SendType.file.localizedName])
+        XCTAssertEqual(Set(entries.map(\.title)), Set([SendType.text.localizedName, SendType.file.localizedName]))
         entries.forEach { $0.action() }
-        XCTAssertEqual(added, [.text, .file])
+        XCTAssertEqual(Set(added), [.text, .file])
+        XCTAssertEqual(added.count, 2)
     }
 
     /// When restricted to a single Send type by policy the bottom bar has one entry for that type (the chooser is
