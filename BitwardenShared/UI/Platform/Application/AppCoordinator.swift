@@ -274,7 +274,7 @@ class AppCoordinator: Coordinator, HasRootNavigator { // swiftlint:disable:this 
             coordinator.navigate(to: route)
         } else {
             guard let rootNavigator else { return }
-            let tabNavigator = BitwardenTabBarController()
+            let tabNavigator = PassYShellController()
             let coordinator = module.makeTabCoordinator(
                 errorReporter: services.errorReporter,
                 rootNavigator: rootNavigator,

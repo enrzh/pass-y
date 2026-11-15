@@ -24,7 +24,7 @@ struct CategoryTilesView: View {
     private var columns: [GridItem] {
         (dynamicTypeSize.isAccessibilitySize || singleColumn)
             ? [GridItem(.flexible(), spacing: 12)]
-            : [GridItem(.adaptive(minimum: 150), spacing: 12)]
+            : [GridItem(.adaptive(minimum: 160), spacing: 12)]
     }
 
     // MARK: View
@@ -60,32 +60,32 @@ private struct CategoryTile: View {
     let count: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top) {
                 Image(systemName: group.tileSymbol)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
+                    .frame(width: 42, height: 42)
                     .background(group.tileColor, in: Circle())
                     .accessibilityHidden(true)
                 Spacer(minLength: 4)
                 Text("\(count)")
-                    .font(.title2.weight(.bold))
+                    .font(.title.weight(.bold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
             }
             Text(group.name)
-                .font(.headline)
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.leading)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(12)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 

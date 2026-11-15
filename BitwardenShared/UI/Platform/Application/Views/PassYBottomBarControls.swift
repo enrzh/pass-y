@@ -2,87 +2,6 @@ import BitwardenResources
 import SwiftUI
 import UIKit
 
-// MARK: - Notification.Name
-
-extension Notification.Name {
-    /// Asks the bottom search bar to resign first responder immediately (posted when the vault tab disappears).
-    static let vaultSearchResign = Notification.Name("de.aiity.passy.vaultSearchResign")
-}
-
-// MARK: - VaultBottomBar
-
-/// The bottom bar of the vault screen: a native search field and the "new item" menu, floating above the tab bar
-/// (like the search + compose pair in Apple apps).
-///
-struct VaultBottomBar: View {
-    // MARK: Properties
-
-    /// Called when the user adds a folder.
-    let addFolder: () -> Void
-
-    /// Called with the chosen item type.
-    let addItem: (BitwardenShared.CipherType) -> Void
-
-    /// The item types the user can create.
-    let availableItemTypes: [BitwardenShared.CipherType]
-
-    /// Whether the search field is being edited.
-    @Binding var isEditing: Bool
-
-    /// The search text.
-    @Binding var text: String
-
-    // MARK: View
-
-    var body: some View {
-        HStack(spacing: 10) {
-            VaultSearchBarRepresentable(isEditing: $isEditing, text: $text)
-                .frame(height: 44)
-                .modifier(BarBackground(shape: Capsule()))
-
-            if isEditing || !text.isEmpty {
-                SearchCancelButton {
-                    text = ""
-                    isEditing = false
-                    NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
-                }
-                .transition(.scale.combined(with: .opacity))
-            } else {
-                VaultAddMenuView(
-                    availableItemTypes: availableItemTypes,
-                    addItem: addItem,
-                    addFolder: addFolder,
-                )
-                .frame(width: 44, height: 44)
-                .modifier(BarBackground(shape: Circle()))
-                .transition(.scale.combined(with: .opacity))
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        // The bar swallows touches in its whole area so they never reach list rows underneath.
-        .contentShape(Rectangle())
-        // Like system toolbars, the floating bar stops growing at the largest non-accessibility size.
-        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .background {
-            // Solid below, soft fade above: rows never show through the glass or behind the tab bar.
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [Color(.systemGroupedBackground).opacity(0), Color(.systemGroupedBackground)],
-                    startPoint: .top,
-                    endPoint: .bottom,
-                )
-                .frame(height: 28)
-                Color(.systemGroupedBackground)
-            }
-            .padding(.top, -28)
-            .ignoresSafeArea(edges: .bottom)
-            .allowsHitTesting(false)
-        }
-        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isEditing || !text.isEmpty)
-    }
-}
-
 // MARK: - BarBackground
 
 /// Glass on iOS 26, material before.
@@ -137,6 +56,10 @@ struct VaultSearchBarRepresentable: UIViewRepresentable {
         bar.autocapitalizationType = .none
         bar.delegate = context.coordinator
         bar.backgroundImage = UIImage()
+        // One container only: the glass capsule around the bar. The text field's own fill would be a second one.
+        bar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
+        bar.searchTextField.backgroundColor = .clear
+        bar.searchTextField.borderStyle = .none
         bar.accessibilityIdentifier = "VaultSearchField"
         context.coordinator.observeResign(of: bar)
         return bar

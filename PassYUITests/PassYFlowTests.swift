@@ -29,10 +29,6 @@ final class PassYFlowTests: XCTestCase {
         sleep(3)
     }
 
-    private func tabBarButton(_ app: XCUIApplication, _ label: String) -> XCUIElement {
-        app.tabBars.buttons[label]
-    }
-
     // MARK: 01 Landing: server first, no cloud preset
 
     func test01_landingAsksForServerAndHasNoCloudPreset() {
@@ -251,7 +247,7 @@ final class PassYFlowTests: XCTestCase {
     func test13_settingsAccountMenu() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Settings").tap()
+        goTo(app, "Settings")
         let row = app.buttons["SettingsAccountRow"]
         XCTAssertTrue(row.waitForExistence(timeout: 10), "account row exists")
         XCTAssertTrue(app.staticTexts["passy-test@example.test"].exists, "account row shows the e-mail")
@@ -272,7 +268,7 @@ final class PassYFlowTests: XCTestCase {
     func test14_settingsSubscreens() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Settings").tap()
+        goTo(app, "Settings")
         func back() { app.navigationBars.buttons.firstMatch.tap(); sleep(1) }
 
         let appearance = app.buttons["AppearanceSettingsButton"]
@@ -310,7 +306,7 @@ final class PassYFlowTests: XCTestCase {
     func test16_settingsAccountSecurityAutofillAbout() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Settings").tap()
+        goTo(app, "Settings")
         func noOptional(_ page: String) { XCTAssertFalse(app.allLabels.contains("Optional("), "\(page) shows Optional( in visible text") }
         func back() { app.navigationBars.buttons.firstMatch.tap(); sleep(1) }
 
@@ -356,7 +352,7 @@ final class PassYFlowTests: XCTestCase {
     func test15_sendTabAddMenu() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Send").tap()
+        goTo(app, "Send")
         let add = app.buttons["AddItemFloatingActionButton"]
         XCTAssertTrue(add.waitForExistence(timeout: 10), "Send tab shows the add button")
         attach(app, "15-send-list")
@@ -375,7 +371,7 @@ final class PassYFlowTests: XCTestCase {
     func test16_createSendAndShowList() {
         var app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Send").tap()
+        goTo(app, "Send")
         // A unique name proves this run created the send (earlier runs leave sends with fixed names behind).
         let name = "PassY Send \(Int(Date().timeIntervalSince1970) % 100000)"
         let add = app.buttons["AddItemFloatingActionButton"]
@@ -398,7 +394,7 @@ final class PassYFlowTests: XCTestCase {
         app.terminate()
         app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Send").tap()
+        goTo(app, "Send")
         XCTAssertTrue(app.staticTexts[name].firstMatch.waitForExistence(timeout: 15), "the send is listed")
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Optional('")).firstMatch.exists,
                        "section headers show plain names")
@@ -411,7 +407,7 @@ final class PassYFlowTests: XCTestCase {
     func test17_foldersListLastRowClearOfAddButton() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Settings").tap()
+        goTo(app, "Settings")
         app.buttons["VaultSettingsButton"].tap(); sleep(1)
         app.buttons["FoldersLabel"].tap(); sleep(2)
         let add = app.buttons["AddItemFloatingActionButton"]
@@ -471,7 +467,7 @@ final class PassYFlowTests: XCTestCase {
         closeX.tap(); sleep(2)
         XCTAssertTrue(app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 5), "vault back to normal after the X")
         // Send list.
-        tabBarButton(app, "Send").tap(); sleep(2)
+        goTo(app, "Send"); sleep(2)
         assertNoOptional("send")
         for _ in 0 ..< 4 { app.swipeUp() }
         sleep(1)
@@ -482,7 +478,7 @@ final class PassYFlowTests: XCTestCase {
             XCTAssertLessThanOrEqual(lastSend.frame.maxY, sendBar.frame.minY + 1, "send: last row (\(lastSend.frame)) above the bar (\(sendBar.frame))")
         }
         // Settings and its sub-screens.
-        tabBarButton(app, "Settings").tap(); sleep(2)
+        goTo(app, "Settings"); sleep(2)
         attach(app, "18-settings")
         assertNoOptional("settings")
         for id in ["AccountSecuritySettingsButton", "AutofillSettingsButton", "VaultSettingsButton", "AppearanceSettingsButton",
@@ -498,7 +494,7 @@ final class PassYFlowTests: XCTestCase {
     func test05_generator() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Generator").tap()
+        goTo(app, "Generator")
         let label = app.staticTexts["GeneratedPasswordLabel"]
         XCTAssertTrue(waitFor(label), "generated password is shown")
         let first = label.label
@@ -509,7 +505,7 @@ final class PassYFlowTests: XCTestCase {
             regen.tap(); sleep(1)
             XCTAssertNotEqual(app.staticTexts["GeneratedPasswordLabel"].label, first, "regenerate changes password")
         }
-        tabBarButton(app, "My vault").tap()
+        goTo(app, "My vault")
     }
 
     // MARK: 06 Settings and no upsell
@@ -517,13 +513,13 @@ final class PassYFlowTests: XCTestCase {
     func test06_settingsHasNoPremiumUpsell() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        tabBarButton(app, "Settings").tap()
+        goTo(app, "Settings")
         XCTAssertTrue(waitFor(app.buttons["AccountSecuritySettingsButton"]))
         attach(app, "06-settings")
         let all = app.allLabels.lowercased()
         XCTAssertFalse(all.contains("premium"), "no premium upsell in settings")
         XCTAssertFalse(all.contains("bitwarden"), "no Bitwarden branding in settings:\n\(all)")
-        tabBarButton(app, "My vault").tap()
+        goTo(app, "My vault")
     }
 
     // MARK: 07 Lock and unlock
@@ -543,5 +539,110 @@ final class PassYFlowTests: XCTestCase {
         ensureUnlockedVault(app2)
         XCTAssertTrue(app2.staticTexts["My vault"].exists)
         attach(app2, "07-unlocked")
+    }
+
+    // MARK: 19 to 22: ui-r3 shell (no tab bar, avatar menu, persistent bottom search, bigger tiles)
+
+    /// There is no tab bar; Vault, Send, Generator and Settings are only reachable from the avatar menu, which
+    /// is a single plain avatar (no second container) in the top right.
+    func test19_noTabBarAndAvatarMenuNavigates() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        XCTAssertEqual(app.tabBars.count, 0, "no tab bar on the vault screen")
+        let avatar = app.buttons["CurrentActiveAccount"]
+        XCTAssertTrue(avatar.waitForExistence(timeout: 10), "avatar menu button exists")
+        XCTAssertLessThanOrEqual(avatar.frame.width, 48, "avatar is a plain 30 pt avatar, not wrapped in a capsule: \(avatar.frame)")
+        XCTAssertLessThanOrEqual(avatar.frame.height, 48, "avatar height: \(avatar.frame)")
+        let window = app.windows.firstMatch.frame
+        XCTAssertGreaterThan(avatar.frame.midX, window.width * 0.8, "avatar is at the trailing edge")
+        XCTAssertLessThan(avatar.frame.midY, 120, "avatar is in the navigation bar")
+        attach(app, "19-vault-avatar")
+        avatar.tap()
+        for label in ["My vault", "Send", "Generator", "Settings"] {
+            XCTAssertTrue(avatarMenuEntry(app, label).exists, "avatar menu has \(label)")
+        }
+        attach(app, "19-avatar-menu")
+        // Close the menu by choosing Send.
+        avatarMenuEntry(app, "Send").tap()
+        let title = app.staticTexts["HeaderBarPageTitle"]
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        XCTAssertEqual(title.label, "Send", "Send opened from the avatar menu")
+        XCTAssertEqual(app.tabBars.count, 0)
+        XCTAssertTrue(app.buttons["CurrentActiveAccount"].exists, "avatar also on the Send screen")
+        attach(app, "19-send")
+        goTo(app, "Generator")
+        XCTAssertTrue(waitFor(app.staticTexts["GeneratedPasswordLabel"]), "Generator opened from the avatar menu")
+        XCTAssertEqual(app.staticTexts["HeaderBarPageTitle"].label, "Generator")
+        attach(app, "19-generator")
+        goTo(app, "Settings")
+        XCTAssertTrue(waitFor(app.buttons["AccountSecuritySettingsButton"]), "Settings opened from the avatar menu")
+        XCTAssertEqual(app.tabBars.count, 0)
+        attach(app, "19-settings")
+        goTo(app, "My vault")
+        XCTAssertTrue(waitFor(app.buttons["AddItemFloatingActionButton"]), "vault shown again")
+        XCTAssertEqual(app.staticTexts["HeaderBarPageTitle"].label, "My vault")
+        attach(app, "19-vault")
+    }
+
+    /// The search field stays at the bottom of the screen on every page: root screens and pushed pages.
+    func test20_searchBarPersistentAtBottom() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let screen = app.windows.firstMatch.frame
+        func assertBarAtBottom(_ page: String) {
+            let fields = app.searchFields
+            XCTAssertTrue(fields.firstMatch.waitForExistence(timeout: 10), "\(page): search field exists")
+            XCTAssertEqual(fields.count, 1, "\(page): exactly one search field (single container)")
+            let frame = fields.firstMatch.frame
+            XCTAssertGreaterThan(frame.maxY, screen.height - 90, "\(page): search field at the bottom (maxY \(frame.maxY) of \(screen.height))")
+            XCTAssertGreaterThan(frame.minY, screen.height * 0.8, "\(page): search field in the lower fifth")
+            XCTAssertLessThanOrEqual(frame.height, 56, "\(page): single capsule height \(frame.height)")
+        }
+        assertBarAtBottom("vault")
+        attach(app, "20-vault-bar")
+        // Pushed page of the vault: a category list.
+        let tile = app.buttons["CategoryTile_login"]
+        XCTAssertTrue(tile.waitForExistence(timeout: 10), "login tile")
+        tile.tap(); sleep(2)
+        assertBarAtBottom("item list")
+        attach(app, "20-item-list-bar")
+        app.navigationBars.buttons.firstMatch.tap(); sleep(1)
+        // Root screens.
+        goTo(app, "Send"); sleep(1)
+        assertBarAtBottom("send")
+        goTo(app, "Generator"); sleep(1)
+        assertBarAtBottom("generator")
+        attach(app, "20-generator-bar")
+        // Settings and pushed settings pages.
+        goTo(app, "Settings"); sleep(1)
+        assertBarAtBottom("settings")
+        app.buttons["VaultSettingsButton"].tap(); sleep(2)
+        assertBarAtBottom("vault settings")
+        let folders = app.buttons["FoldersLabel"]
+        XCTAssertTrue(folders.waitForExistence(timeout: 5))
+        folders.tap(); sleep(2)
+        assertBarAtBottom("folders")
+        attach(app, "20-folders-bar")
+        // Typing in the bar on a page that cannot search opens the vault search with results.
+        focusSearch(app)
+        for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+        XCTAssertTrue(app.staticTexts["GitHub"].firstMatch.waitForExistence(timeout: 20), "searching from a pushed settings page shows vault results")
+        XCTAssertEqual(app.staticTexts["HeaderBarPageTitle"].label, "My vault", "search routed to the vault")
+        attach(app, "20-search-from-folders")
+        let cancel = app.buttons["VaultSearchCancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+        cancel.tap(); sleep(1)
+        assertBarAtBottom("vault after cancel")
+    }
+
+    /// The category tiles are large (about 180 x 100 pt on an iPhone, two per row).
+    func test21_categoryTilesAreLarge() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let tile = app.buttons["CategoryTile_login"]
+        XCTAssertTrue(tile.waitForExistence(timeout: 10))
+        XCTAssertGreaterThanOrEqual(tile.frame.height, 96, "tile height \(tile.frame.height)")
+        XCTAssertGreaterThanOrEqual(tile.frame.width, 150, "tile width \(tile.frame.width)")
+        attach(app, "21-tiles")
     }
 }

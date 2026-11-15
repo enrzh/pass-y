@@ -51,7 +51,7 @@ final class PassYImportRegShotsTests: XCTestCase {
         let t = tag()
         let app = launchApp()
         ensureUnlockedVault(app)
-        app.tabBars.buttons["Settings"].tap()
+        goTo(app, "Settings")
         let vault = app.buttons["VaultSettingsButton"]
         XCTAssertTrue(waitFor(vault, timeout: 10)); vault.tap()
         let export = app.buttons["ExportVaultLabel"]

@@ -27,7 +27,7 @@ struct VaultAddMenuView: View {
                 Button {
                     addItem(type)
                 } label: {
-                    Label(type.localizedName, systemImage: type.addMenuSymbol)
+                    Label(type.localizedName, systemImage: type.passYAddMenuSymbol)
                 }
             }
             Divider()
@@ -54,9 +54,9 @@ struct VaultAddMenuView: View {
     }
 }
 
-private extension CipherType {
+extension CipherType {
     /// The SF Symbol used for this type in the add menu.
-    var addMenuSymbol: String {
+    var passYAddMenuSymbol: String {
         switch self {
         case .login: "key"
         case .card: "creditcard"

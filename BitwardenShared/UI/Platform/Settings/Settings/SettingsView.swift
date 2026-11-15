@@ -43,6 +43,10 @@ struct SettingsView: View {
                 Localizations.settings,
                 hidden: store.state.presentationMode != .tab,
             )
+
+            if store.state.presentationMode == .tab {
+                PassYAvatarToolbarItem()
+            }
         }
     }
 

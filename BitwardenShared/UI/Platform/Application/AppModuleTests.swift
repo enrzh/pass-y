@@ -187,7 +187,7 @@ class AppModuleTests: BitwardenTestCase {
     @MainActor
     func test_makeTabCoordinator() {
         let errorReporter = MockErrorReporter()
-        let tabBarController = BitwardenTabBarController()
+        let tabBarController = PassYShellController()
         let settingsDelegate = MockSettingsCoordinatorDelegate()
         let vaultDelegate = MockVaultCoordinatorDelegate()
         let vaultRepository = MockVaultRepository()

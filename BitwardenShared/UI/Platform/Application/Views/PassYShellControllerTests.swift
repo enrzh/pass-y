@@ -7,7 +7,7 @@ import UIKit
 @testable import BitwardenShared
 
 @MainActor
-struct BitwardenTabBarControllerTests {
+struct PassYShellControllerTests {
     // MARK: Types
 
     enum TestRoute: Int, Equatable, Hashable, TabRepresentable {
@@ -58,7 +58,7 @@ struct BitwardenTabBarControllerTests {
 
     // MARK: Properties
 
-    let subject: BitwardenTabBarController
+    let subject: PassYShellController
     let window: UIWindow
 
     // MARK: Setup
@@ -66,7 +66,7 @@ struct BitwardenTabBarControllerTests {
     init() {
         window = UIWindow(frame: UIScreen.main.bounds)
         window.layer.speed = 100
-        subject = BitwardenTabBarController()
+        subject = PassYShellController()
         window.rootViewController = subject
         window.makeKeyAndVisible()
     }
@@ -88,14 +88,14 @@ struct BitwardenTabBarControllerTests {
         #expect(subject.rootViewController === subject)
     }
 
-    /// `navigator(for:)` with `.firstTab` returns the correct view controller.
+    /// `navigator(for:)` with `.firstTab` returns the navigator of that tab.
     @Test
     func navigatorFor_firstTab() {
-        let viewController = UINavigationController()
-        subject.viewControllers = [viewController]
+        let navigator = MockRootNavigator()
+        navigator.rootViewController = UIViewController()
+        subject.setNavigators([TestRoute.firstTab: navigator])
 
-        let testController = subject.navigator(for: TestRoute.firstTab)
-        #expect(testController === viewController)
+        #expect(subject.navigator(for: TestRoute.firstTab) === navigator)
     }
 
     /// `navigator(for:)` with a `TabRoute` uses the stored dictionary and returns the correct
@@ -144,78 +144,54 @@ struct BitwardenTabBarControllerTests {
         #expect(subject.navigator(for: TabRoute.settings(.about)) === settingsNavigator)
     }
 
-    /// Re-applying the same navigators (as happens on a light/dark change) keeps the existing tabs instead of
-    /// replacing them, which would crash UIKit once the controllers are installed.
+    /// The shell has no tab bar: it is a plain container that shows the selected navigator and a bottom bar.
     @Test
-    func setNavigators_twiceKeepsTabs() throws {
-        guard #available(iOS 18.0, *) else { return }
-        let tabs: [TestRoute: MockRootNavigator] = [
-            .firstTab: MockRootNavigator(),
-            .secondTab: MockRootNavigator(),
-            .thirdTab: MockRootNavigator(),
-        ]
-        tabs[.firstTab]?.rootViewController = UIViewController()
-        tabs[.secondTab]?.rootViewController = UIViewController()
-        tabs[.thirdTab]?.rootViewController = UIViewController()
-        subject.setNavigators(tabs)
-        let first = subject.tabs
-        subject.setNavigators(tabs)
-        #expect(subject.tabs.count == 3)
-        #expect(zip(first, subject.tabs).allSatisfy { $0 === $1 })
+    func setNavigators_showsSelectedNavigatorWithoutTabBar() {
+        let vault = MockRootNavigator()
+        let settings = MockRootNavigator()
+        let vaultController = UIViewController()
+        let settingsController = UIViewController()
+        vault.rootViewController = vaultController
+        settings.rootViewController = settingsController
+        subject.setNavigators([TabRoute.vault(.list): vault, TabRoute.settings(.settings(.tab)): settings])
+
+        let base: UIViewController = subject
+        #expect(!(base is UITabBarController))
+        #expect(vaultController.parent === subject)
+        #expect(settingsController.parent == nil)
+        #expect(subject.model.availableDestinations == [.vault, .settings])
     }
 
-    /// `setNavigators(_:)` sets the `viewControllers` property correctly.
+    /// Selecting an index or a destination swaps the shown navigator.
     @Test
-    func setNavigators() throws {
-        let firstTabViewController = UIViewController()
-        let secondTabViewController = UIViewController()
-        let thirdTabViewController = UIViewController()
+    func selectedIndex_swapsChild() {
+        let vault = MockRootNavigator()
+        let settings = MockRootNavigator()
+        let vaultController = UIViewController()
+        let settingsController = UIViewController()
+        vault.rootViewController = vaultController
+        settings.rootViewController = settingsController
+        subject.setNavigators([TabRoute.vault(.list): vault, TabRoute.settings(.settings(.tab)): settings])
 
-        let tabs: [TestRoute: MockRootNavigator] = [
-            .thirdTab: MockRootNavigator(),
-            .firstTab: MockRootNavigator(),
-            .secondTab: MockRootNavigator(),
-        ]
-        tabs[.firstTab]?.rootViewController = firstTabViewController
-        tabs[.secondTab]?.rootViewController = secondTabViewController
-        tabs[.thirdTab]?.rootViewController = thirdTabViewController
+        subject.selectedIndex = 1
+        #expect(settingsController.parent === subject)
+        #expect(vaultController.parent == nil)
+        #expect(subject.model.destination == .settings)
 
-        subject.setNavigators(tabs)
+        subject.model.select(.vault)
+        #expect(vaultController.parent === subject)
+        #expect(subject.selectedIndex == 0)
+    }
 
-        if #available(iOS 18.0, *) {
-            // iOS 18+: adaptive tab bar / sidebar built from `UITab`s with lazy view controller providers.
-            let uiTabs = subject.tabs
-            #expect(uiTabs.count == 3)
-            #expect(uiTabs.map(\.title) == ["first", "second", "third"])
-            #expect(uiTabs[0].image?.pngData() == TestRoute.firstTabImage?.pngData())
-            #expect(uiTabs[1].image?.pngData() == TestRoute.secondTabImage?.pngData())
-            #expect(uiTabs[2].image?.pngData() == TestRoute.thirdTabImage?.pngData())
-            if #available(iOS 26.1, *) {
-                #expect(uiTabs[0].selectedImage?.pngData() == TestRoute.firstTabSelectedImage?.pngData())
-                #expect(uiTabs[1].selectedImage?.pngData() == TestRoute.secondTabSelectedImage?.pngData())
-                #expect(uiTabs[2].selectedImage?.pngData() == TestRoute.thirdTabSelectedImage?.pngData())
-            }
-            return
-        }
-
-        #expect(subject.viewControllers?.count == 3)
-
-        let firstTab = try #require(subject.viewControllers?[0])
-        #expect(firstTab === firstTabViewController)
-        #expect(firstTab.tabBarItem.title == "first")
-        #expect(firstTab.tabBarItem.image?.pngData() == TestRoute.firstTabImage?.pngData())
-        #expect(firstTab.tabBarItem.selectedImage?.pngData() == TestRoute.firstTabSelectedImage?.pngData())
-
-        let secondTab = try #require(subject.viewControllers?[1])
-        #expect(secondTab === secondTabViewController)
-        #expect(secondTab.tabBarItem.title == "second")
-        #expect(secondTab.tabBarItem.image?.pngData() == TestRoute.secondTabImage?.pngData())
-        #expect(secondTab.tabBarItem.selectedImage?.pngData() == TestRoute.secondTabSelectedImage?.pngData())
-
-        let thirdTab = try #require(subject.viewControllers?[2])
-        #expect(thirdTab === thirdTabViewController)
-        #expect(thirdTab.tabBarItem.title == "third")
-        #expect(thirdTab.tabBarItem.image?.pngData() == TestRoute.thirdTabImage?.pngData())
-        #expect(thirdTab.tabBarItem.selectedImage?.pngData() == TestRoute.thirdTabSelectedImage?.pngData())
+    /// Re-applying the same navigators (as happens on a light/dark change) keeps the shown child.
+    @Test
+    func setNavigators_twiceKeepsChild() {
+        let navigator = MockRootNavigator()
+        let controller = UIViewController()
+        navigator.rootViewController = controller
+        subject.setNavigators([TabRoute.vault(.list): navigator])
+        subject.setNavigators([TabRoute.vault(.list): navigator])
+        #expect(controller.parent === subject)
+        #expect(subject.children.filter { $0 === controller }.count == 1)
     }
 }

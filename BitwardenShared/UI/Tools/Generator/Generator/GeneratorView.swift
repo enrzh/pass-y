@@ -86,6 +86,10 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
                 hidden: store.state.presentationMode != .tab,
             )
 
+            if store.state.presentationMode == .tab {
+                PassYAvatarToolbarItem()
+            }
+
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if store.state.presentationMode.isOptionsButtonVisible {
                     optionsToolbarMenu {
