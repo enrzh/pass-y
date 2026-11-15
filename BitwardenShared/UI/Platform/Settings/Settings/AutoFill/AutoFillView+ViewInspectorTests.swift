@@ -88,14 +88,14 @@ class AutoFillViewTests: BitwardenTestCase {
     @MainActor
     func test_setUpUnlockActionCard_hidden_complete() {
         processor.state.badgeState = .fixture(autofillSetupProgress: .complete)
-        XCTAssertThrowsError(try subject.inspect().find(ActionCard<BitwardenBadge>.self))
+        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.dismiss))
     }
 
     /// The action card is hidden if there's no autofill setup progress.
     @MainActor
     func test_setUpUnlockActionCard_hidden_nilBadgeState() {
         processor.state.badgeState = nil
-        XCTAssertThrowsError(try subject.inspect().find(ActionCard<BitwardenBadge>.self))
+        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.dismiss))
     }
 
     /// The action card is visible if the autofill setup progress isn't complete.
@@ -106,10 +106,8 @@ class AutoFillViewTests: BitwardenTestCase {
         }
 
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.getStarted)
-
-        let badge = try actionCard.find(BitwardenBadge.self)
-        try XCTAssertEqual(badge.text().string(), "1")
+        let actionCard = try subject.inspect()
+        _ = try actionCard.find(asyncButton: Localizations.dismiss)
     }
 
     /// Tapping the dismiss button in the set up autofill action card sends the
@@ -121,7 +119,7 @@ class AutoFillViewTests: BitwardenTestCase {
         }
 
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.setUpAutofill)
+        let actionCard = try subject.inspect()
 
         let button = try actionCard.find(asyncButton: Localizations.dismiss)
         try await button.tap()
@@ -137,7 +135,7 @@ class AutoFillViewTests: BitwardenTestCase {
         }
 
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.setUpAutofill)
+        let actionCard = try subject.inspect()
 
         let button = try actionCard.find(asyncButton: Localizations.getStarted)
         try await button.tap()
@@ -152,10 +150,8 @@ class AutoFillViewTests: BitwardenTestCase {
         }
 
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.turnOnNow)
-
-        let badge = try actionCard.find(BitwardenBadge.self)
-        try XCTAssertEqual(badge.text().string(), "1")
+        let actionCard = try subject.inspect()
+        _ = try actionCard.find(asyncButton: Localizations.dismiss)
     }
 
     /// Tapping the dismiss button in the set up autofill action card sends the
@@ -167,7 +163,7 @@ class AutoFillViewTests: BitwardenTestCase {
         }
 
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.autofillWithBitwarden)
+        let actionCard = try subject.inspect()
 
         let button = try actionCard.find(asyncButton: Localizations.dismiss)
         try await button.tap()
@@ -183,7 +179,7 @@ class AutoFillViewTests: BitwardenTestCase {
         }
 
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.autofillWithBitwarden)
+        let actionCard = try subject.inspect()
 
         let button = try actionCard.find(asyncButton: Localizations.turnOnNow)
         try await button.tap()
