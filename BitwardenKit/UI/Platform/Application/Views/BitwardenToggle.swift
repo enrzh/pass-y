@@ -92,6 +92,7 @@ public struct BitwardenToggle<TitleContent: View, FooterContent: View>: View {
                 .padding(.horizontal, 16)
             }
         }
+        .nativeRowInsetsZero()
     }
 
     // MARK: Initialization

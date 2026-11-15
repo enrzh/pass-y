@@ -71,6 +71,7 @@ public struct BitwardenStepper<Label: View, Footer: View>: View {
 
             footerView()
         }
+        .nativeRowInsetsZero()
     }
 
     // MARK: Initialization

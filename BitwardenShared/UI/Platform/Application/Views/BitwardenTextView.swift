@@ -36,9 +36,7 @@ struct BitwardenTextView: View {
 
     var body: some View {
         contentView()
-            .padding(.leading, 16)
-            .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .fieldCard(leadingPadding: 16)
             .onTapGesture {
                 isFocused = true
             }

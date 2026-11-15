@@ -64,52 +64,35 @@ struct AddEditItemView: View {
     }
 
     private var content: some View {
-        // A native `Form`: every block is one clear row so the existing field cards keep their look while the
-        // screen scrolls, avoids the keyboard and pads like any system form. The "learn new logins" tour card is
+        // A native `Form` (Apple Passwords look): sections, rows and separators come from the system; the shared
+        // field components render as plain rows via `nativeFormRows()`. The "learn new logins" tour card is
         // Bitwarden onboarding and is no longer shown.
         Form {
             if isPolicyEnabled {
-                formRow {
+                Section {
                     InfoContainer(Localizations.personalOwnershipPolicyInEffect)
                         .accessibilityIdentifier("PersonalOwnershipPolicyLabel")
+                        .listRowBackground(Color.clear)
                 }
             }
 
             if store.state.shouldDisplayAsArchived {
-                formRow {
+                Section {
                     InfoContainer(text: store.state.archiveInfoText, icon: SharedAsset.Icons.archive24)
                         .accessibilityIdentifier("ArchivedLabel")
+                        .listRowBackground(Color.clear)
                 }
             }
 
-            formRow { itemDetailsSection }
-            formRow { itemTypeSection.disabled(store.state.isReadOnly) }
-            formRow { additionalOptions.disabled(store.state.isReadOnly) }
+            itemDetailsSection
+            itemTypeSection.disabled(store.state.isReadOnly)
+            additionalOptions.disabled(store.state.isReadOnly)
         }
-        // The form is presented in a sheet whose grouped background is raised in dark mode and would share one color
-        // with the field cards; keep the app's primary background so the cards stay visible.
-        .apply { view in
-            if #available(iOS 16, *) {
-                view.scrollContentBackground(.hidden)
-            } else {
-                view
-            }
-        }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
+        .nativeFormRows()
         .animation(.default, value: store.state.collectionsForOwner)
         .backport.dismissKeyboardImmediately()
         .navigationBarTitleDisplayMode(.inline)
         .backport.scrollContentMargins(Edge.Set.bottom, 30.0)
-    }
-
-    /// One transparent form row hosting an existing card block.
-    private func formRow<Row: View>(@ViewBuilder _ content: () -> Row) -> some View {
-        Section {
-            content()
-                .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-        }
     }
 
     private var existing: some View {
@@ -239,10 +222,11 @@ private extension AddEditItemView {
             ),
         ) {
             if store.state.type != .secureNote {
-                notesField
+                Section { notesField }
             }
 
             if store.state.showMasterPasswordReprompt {
+                Section {
                 BitwardenToggle(
                     isOn: store.binding(
                         get: \.isMasterPasswordRePromptOn,
@@ -257,7 +241,7 @@ private extension AddEditItemView {
                     },
                 )
                 .toggleStyle(.bitwarden)
-                .contentBlock()
+                }
             }
 
             customSection
@@ -365,11 +349,7 @@ private extension AddEditItemView {
         case .login:
             loginItems
         case .secureNote:
-            notesField
-                // The secure note type doesn't have a top-level section header for its field, so
-                // remove the extra top padding (8 points of total padding from the last field as
-                // opposed to 16)
-                .padding(.top, -8)
+            Section { notesField }
         case .identity:
             identityItems
         case .sshKey:

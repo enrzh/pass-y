@@ -19,7 +19,20 @@ public struct ContentBlock<Content: View>: View {
 
     // MARK: View
 
+    @Environment(\.isNativeForm) private var isNativeForm
+
     public var body: some View {
+        if isNativeForm {
+            // Native `Form`: every child is its own row, separators and corners come from the system.
+            _VariadicView.Tree(NativeRows()) {
+                content
+            }
+        } else {
+            variadicBody
+        }
+    }
+
+    private var variadicBody: some View {
         // This uses SwiftUI's `VariadicView` API, which isn't part of SwiftUI's public API but
         // since much of SwiftUI itself uses this, there's a low likelihood of this being removed.
         _VariadicView.Tree(Layout(dividerLeadingPadding: dividerLeadingPadding)) {
@@ -43,6 +56,17 @@ public struct ContentBlock<Content: View>: View {
 }
 
 extension ContentBlock {
+    /// Rows of a native form: each child is a row with zero insets (children pad themselves).
+    private struct NativeRows: _VariadicView_MultiViewRoot {
+        func body(children: _VariadicView.Children) -> some View {
+            ForEach(children) { child in
+                child
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .listRowInsets(EdgeInsets())
+            }
+        }
+    }
+
     /// The layout for the content block.
     private struct Layout: _VariadicView_UnaryViewRoot {
         // MARK: Properties

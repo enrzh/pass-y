@@ -19,12 +19,12 @@ struct AttachmentsView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .center, spacing: 16) {
+        Form {
             currentAttachments
 
             addAttachmentView
         }
-        .scrollView()
+        .nativeFormRows()
         .navigationBar(title: Localizations.attachments, titleDisplayMode: .inline)
         .toolbar {
             cancelToolbarItem {
@@ -54,26 +54,22 @@ struct AttachmentsView: View {
     /// The add attachment view.
     private var addAttachmentView: some View {
         SectionView(Localizations.addNewAttachment, contentSpacing: 8) {
-            VStack(spacing: 12) {
-                chosenFile
+            chosenFile
 
-                chooseFileButton
-            }
+            chooseFileButton
         }
     }
 
     /// The choose file button and the maximum size text beneath it.
     private var chooseFileButton: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 4) {
             Button(Localizations.chooseFile) {
                 store.send(.chooseFilePressed)
             }
-            .buttonStyle(.secondary())
 
             Text(Localizations.maxFileSize)
-                .styleGuide(.subheadline)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .padding(.leading, 12)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -85,7 +81,6 @@ struct AttachmentsView: View {
                     .styleGuide(.body)
                     .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
             }
-            .contentBlock()
         }
     }
 

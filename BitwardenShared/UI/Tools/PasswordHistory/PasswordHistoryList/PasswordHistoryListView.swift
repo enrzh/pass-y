@@ -23,7 +23,6 @@ struct PasswordHistoryListView: View {
                 passwordHistoryList()
             }
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
         .navigationTitle(Localizations.passwordHistory)
         .toast(store.binding(
             get: \.toast,
@@ -73,12 +72,11 @@ struct PasswordHistoryListView: View {
 
     /// Returns a view for displaying the list of password history items.
     private func passwordHistoryList() -> some View {
-        ContentBlock(dividerLeadingPadding: 16) {
+        List {
             ForEach(store.state.passwordHistory) { passwordHistory in
                 passwordHistoryRow(passwordHistory)
             }
         }
-        .scrollView()
     }
 
     /// Return a view for a single row in the password history list.
@@ -110,7 +108,6 @@ struct PasswordHistoryListView: View {
         .accessibilityAction(named: Localizations.copyPassword) {
             store.send(.copyPassword(passwordHistory))
         }
-        .padding(.horizontal, 16)
     }
 }
 

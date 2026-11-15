@@ -60,7 +60,6 @@ struct ViewItemView: View {
                 details(for: viewState)
             }
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
         .navigationTitle(store.state.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toast(
@@ -133,7 +132,8 @@ struct ViewItemView: View {
     /// added to all of them at once.
     @ViewBuilder
     private func details(for state: ViewVaultItemState) -> some View {
-        LazyVStack(alignment: .leading, spacing: 16) {
+        // Native `Form`: sections, rows and separators come from the system (Apple Passwords look).
+        Form {
             ViewItemDetailsView(
                 store: store.child(
                     state: { _ in state },
@@ -143,7 +143,7 @@ struct ViewItemView: View {
                 timeProvider: timeProvider,
             )
         }
-        .scrollView()
+        .nativeFormRows()
     }
 }
 

@@ -22,7 +22,22 @@ public struct SectionView<Content: View>: View {
 
     // MARK: View
 
+    @Environment(\.isNativeForm) private var isNativeForm
+
     public var body: some View {
+        if isNativeForm {
+            Section {
+                content
+            } header: {
+                Text(title)
+                    .textCase(nil)
+            }
+        } else {
+            cardBody
+        }
+    }
+
+    private var cardBody: some View {
         VStack(alignment: .leading, spacing: titleSpacing) {
             SectionHeaderView(title)
 
