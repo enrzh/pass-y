@@ -93,7 +93,7 @@ final class PassYFlowTests: XCTestCase {
 
         // Search
         let search = app.searchFields.firstMatch
-        search.tap(); sleep(2)
+        focusSearch(app) // the first tap on the bottom search bar is sometimes ignored; make sure the keyboard is up
         // Type slowly: with a 2000-item vault the main thread is busy after each keystroke and fast typing drops characters.
         for ch in itemName { app.typeText(String(ch)); usleep(150_000) }
         attach(app, "03-search")
