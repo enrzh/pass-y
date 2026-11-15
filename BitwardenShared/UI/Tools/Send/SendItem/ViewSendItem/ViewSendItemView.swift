@@ -16,7 +16,6 @@ struct ViewSendItemView: View {
 
     var body: some View {
         content
-            .scrollView()
             .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .inline)
             .task { await store.perform(.loadData) }
             .task { await store.perform(.streamSend) }
@@ -50,13 +49,15 @@ struct ViewSendItemView: View {
         } label: {
             Label(Localizations.deleteSend, image: SharedAsset.Icons.trash16.swiftUIImage, scaleImageDimension: 16)
         }
-        .buttonStyle(.secondary(isDestructive: true, size: .medium))
+        .foregroundStyle(SharedAsset.Colors.error.swiftUIColor)
+        .frame(maxWidth: .infinity)
         .accessibilityIdentifier("ViewSendDeleteButton")
     }
 
     /// The main content of the view.
     @ViewBuilder private var content: some View {
-        VStack(spacing: 16) {
+        // Native `Form` (Apple Passwords look).
+        Form {
             restrictionBanner
 
             if !store.state.isDisabled {
@@ -67,8 +68,9 @@ struct ViewSendItemView: View {
 
             additionalOptions
 
-            deleteSendButton
+            Section { deleteSendButton }
         }
+        .nativeFormRows()
         .animation(.default, value: store.state.isAdditionalOptionsExpanded)
     }
 
@@ -84,15 +86,18 @@ struct ViewSendItemView: View {
                 buttonAccessibilityIdentifier: "SendShowHideOptionsButton",
             ) {
                 if let maxAccessCount = store.state.sendView.maxAccessCount {
-                    SendItemAccessCountStepper(
-                        currentAccessCount: Int(store.state.sendView.accessCount),
-                        displayInfoText: false,
-                        maximumAccessCount: .constant(Int(maxAccessCount)),
-                    )
-                    .disabled(true)
+                    Section {
+                        SendItemAccessCountStepper(
+                            currentAccessCount: Int(store.state.sendView.accessCount),
+                            displayInfoText: false,
+                            maximumAccessCount: .constant(Int(maxAccessCount)),
+                        )
+                        .disabled(true)
+                    }
                 }
 
                 if let notes = store.state.sendView.notes, !notes.isEmpty {
+                    Section {
                     BitwardenTextValueField(
                         title: Localizations.privateNote,
                         value: notes,
@@ -103,6 +108,7 @@ struct ViewSendItemView: View {
                         },
                     )
                     .accessibilityIdentifier("ViewSendNotes")
+                    }
                 }
             }
         }
@@ -124,45 +130,40 @@ struct ViewSendItemView: View {
                     .foregroundStyle(SharedAsset.Colors.iconSecondary.swiftUIColor)
             }
             .accessibilityIdentifier("ViewSendRestrictionBanner")
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
     }
 
-    /// The card containing the send link with copy and share buttons.
+    /// The send link with copy and share rows.
     @ViewBuilder private var sendLink: some View {
-        ContentBlock {
+        Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(Localizations.sendLink)
-                    .styleGuide(.title3, weight: .bold, includeLinePadding: false, includeLineSpacing: false)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+                    .font(.headline)
 
                 if let displayShareURL = store.state.displayShareURL {
                     Text(displayShareURL)
-                        .styleGuide(.subheadline)
-                        .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .accessibilityIdentifier("ViewSendShareLinkText")
                 }
             }
-            .padding(16)
 
-            VStack(spacing: 12) {
-                Button {
-                    store.send(.copyShareURL)
-                } label: {
-                    Label(Localizations.copy, image: SharedAsset.Icons.copy16.swiftUIImage, scaleImageDimension: 16)
-                }
-                .buttonStyle(.primary(size: .medium))
-                .accessibilityIdentifier("ViewSendCopyButton")
-
-                Button {
-                    store.send(.shareSend)
-                } label: {
-                    Label(Localizations.share, image: SharedAsset.Icons.share16.swiftUIImage, scaleImageDimension: 16)
-                }
-                .buttonStyle(.secondary(size: .medium))
-                .accessibilityIdentifier("ViewSendShareButton")
+            Button {
+                store.send(.copyShareURL)
+            } label: {
+                Label(Localizations.copy, systemImage: "doc.on.doc")
             }
-            .padding(16)
+            .accessibilityIdentifier("ViewSendCopyButton")
+
+            Button {
+                store.send(.shareSend)
+            } label: {
+                Label(Localizations.share, systemImage: "square.and.arrow.up")
+            }
+            .accessibilityIdentifier("ViewSendShareButton")
         }
     }
 
