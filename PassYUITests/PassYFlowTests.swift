@@ -728,8 +728,8 @@ final class PassYFlowTests: XCTestCase {
         attach(app, "25-tiles-equal")
     }
 
-    /// Item view and the Send add form are native lists (collection view/table), not a plain scroll view of cards.
-    func test26_itemViewAndSendAddAreNativeForms() {
+    /// Item view, item edit and the Send add form are native lists (collection view/table), not a plain scroll view of cards.
+    func test26_itemViewItemEditAndSendAddAreNativeForms() {
         let app = launchApp()
         ensureUnlockedVault(app)
         let tile = app.buttons["CategoryTile_login"]
@@ -744,22 +744,44 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(app.textFields["ItemNameEntry"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.collectionViews.firstMatch.exists || app.tables.firstMatch.exists, "item edit is a native Form")
         attach(app, "26-item-edit-form")
+        app.buttons["CancelButton"].firstMatch.tap()
+        if app.buttons["Cancel"].waitForExistence(timeout: 2) { app.buttons["Cancel"].tap() }
+        app.buttons["CloseButton"].firstMatch.tap()
+        let back = app.navigationBars.buttons.firstMatch
+        if back.waitForExistence(timeout: 5) { back.tap() }
+        // Send add (text): a native Form with the name field and the deletion date row.
+        goTo(app, "Send")
+        let add = app.buttons["AddItemFloatingActionButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10))
+        add.tap()
+        let menuText = app.menuItems["Text"]
+        let text = app.buttons.matching(NSPredicate(format: "label == 'Text'")).firstMatch
+        if !menuText.waitForExistence(timeout: 3), !text.exists { add.tap() }
+        (menuText.waitForExistence(timeout: 3) ? menuText : text).tap()
+        XCTAssertTrue(app.textFields["SendNameEntry"].waitForExistence(timeout: 10), "send add form")
+        XCTAssertTrue(app.collectionViews.firstMatch.exists || app.tables.firstMatch.exists, "send add is a native Form")
+        XCTAssertTrue(app.buttons["SendDeletionOptionsPicker"].exists || app.staticTexts["Deletion date"].exists, "deletion date row")
+        attach(app, "26-send-add-form")
+        app.buttons["CancelButton"].firstMatch.tap()
+        if app.buttons["Cancel"].waitForExistence(timeout: 2) { app.buttons["Cancel"].tap() }
     }
 
-    /// The autofill "set up" prompt is a native section (no Bitwarden action card): action and dismiss rows.
+    /// The autofill "set up" prompt is a native section (no Bitwarden action card): action, learn-more and dismiss rows.
+    /// A fresh install shows it; tapping Dismiss removes it.
     func test27_setupSectionIsNativeRows() {
         let app = launchApp()
         ensureUnlockedVault(app)
         goTo(app, "Settings")
         app.buttons["AutofillSettingsButton"].tap()
         let action = app.buttons["SetupSectionActionButton"]
-        if action.waitForExistence(timeout: 8) {
-            XCTAssertTrue(app.buttons["SetupSectionDismissButton"].exists, "dismiss row")
-            XCTAssertTrue(app.collectionViews.firstMatch.exists || app.tables.firstMatch.exists)
-            attach(app, "27-setup-section")
-        } else {
-            attach(app, "27-setup-section-dismissed")
-            XCTAssertFalse(app.buttons["Turn on now"].exists, "no old action card")
-        }
+        XCTAssertTrue(action.waitForExistence(timeout: 10), "the set-up section is shown on a fresh install\n\(app.debugDescription)")
+        XCTAssertTrue(app.buttons["SetupSectionDismissButton"].exists, "dismiss row")
+        XCTAssertTrue(app.staticTexts["SetupSectionTitle"].exists || app.staticTexts["Autofill with Pass-Y"].exists, "headline row")
+        XCTAssertTrue(app.collectionViews.firstMatch.exists || app.tables.firstMatch.exists, "native list")
+        XCTAssertFalse(app.buttons["Turn on now"].exists && !action.exists, "no old action card")
+        attach(app, "27-setup-section")
+        app.buttons["SetupSectionDismissButton"].tap()
+        sleep(1)
+        XCTAssertFalse(app.buttons["SetupSectionActionButton"].exists, "dismiss removes the section")
     }
 }

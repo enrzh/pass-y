@@ -95,7 +95,11 @@ final class PassYUiR4ShotsTests: XCTestCase {
                 if item.waitForExistence(timeout: 3) { item.tap() } else if btn.waitForExistence(timeout: 2) { btn.tap() } else { app.tap(); continue }
                 sleep(2)
                 shot(app, mode, n, "add-\(type.lowercased().replacingOccurrences(of: " ", with: "-"))"); n += 1
-                if type == "Login" { app.swipeUp(); sleep(1); shot(app, mode, n, "add-login-bottom"); n += 1 }
+                if type == "Login" {
+                    let list = app.collectionViews.firstMatch.exists ? app.collectionViews.firstMatch : app.tables.firstMatch
+                    for _ in 0 ..< 3 { list.swipeUp(velocity: .fast); usleep(400_000) }
+                    shot(app, mode, n, "add-login-bottom"); n += 1
+                }
                 cancelOrClose(app); discardIfAsked(app)
             }
             app.terminate()
