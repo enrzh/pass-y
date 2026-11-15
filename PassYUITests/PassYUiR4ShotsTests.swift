@@ -163,6 +163,20 @@ final class PassYUiR4ShotsTests: XCTestCase {
         XCUIDevice.shared.appearance = .light
     }
 
+    /// Vault home (category tiles) in both appearances and with larger text.
+    func test_tiles() {
+        for (mode, size) in [("light", ""), ("dark", ""), ("light", "UICTContentSizeCategoryXL"), ("light", "UICTContentSizeCategoryAccessibilityL")] {
+            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            let extra = size.isEmpty ? [] : ["-UIPreferredContentSizeCategoryName", size]
+            let app = launchApp(extraArguments: extra)
+            ensureUnlockedVault(app)
+            XCTAssertTrue(app.buttons["CategoryTile_totp"].waitForExistence(timeout: 10))
+            shot(app, mode, size.isEmpty ? 70 : (size.contains("Accessibility") ? 72 : 71), size.isEmpty ? "tiles" : (size.contains("Accessibility") ? "tiles-accessibility" : "tiles-xl"))
+            app.terminate()
+        }
+        XCUIDevice.shared.appearance = .light
+    }
+
     /// Settings pages with the "set up" sections (autofill "Turn on now", account security, vault settings).
     func test_setupSections() {
         for mode in ["light", "dark"] {

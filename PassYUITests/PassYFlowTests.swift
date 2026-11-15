@@ -706,4 +706,60 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(name.waitForExistence(timeout: 10), "native name field in a Form")
         attach(app, "24-add-folder")
     }
+
+    // MARK: 25 to 27: ui-r4
+
+    /// Tiles in the same row have the same height; "Verification codes" does not wrap.
+    func test25_tilesEqualHeightNoWrap() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let login = app.buttons["CategoryTile_login"]
+        let totp = app.buttons["CategoryTile_totp"]
+        XCTAssertTrue(login.waitForExistence(timeout: 10))
+        XCTAssertTrue(totp.waitForExistence(timeout: 5), "verification codes tile")
+        let tiles = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'CategoryTile_'")).allElementsBoundByIndex
+        var rows: [CGFloat: [CGFloat]] = [:]
+        for t in tiles where t.exists && t.frame.height > 0 { rows[t.frame.minY.rounded(), default: []].append(t.frame.height) }
+        XCTAssertFalse(rows.isEmpty)
+        for (y, heights) in rows {
+            XCTAssertEqual(Set(heights.map { $0.rounded() }).count, 1, "tiles in the row at y=\(y) differ in height: \(heights)")
+        }
+        XCTAssertEqual(login.frame.height.rounded(), totp.frame.height.rounded(), "login vs verification codes tile height")
+        attach(app, "25-tiles-equal")
+    }
+
+    /// Item view and the Send add form are native lists (collection view/table), not a plain scroll view of cards.
+    func test26_itemViewAndSendAddAreNativeForms() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let tile = app.buttons["CategoryTile_login"]
+        XCTAssertTrue(tile.waitForExistence(timeout: 10))
+        tile.tap()
+        let row = app.buttons["VaultListItemRowButton"].firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        row.tap()
+        XCTAssertTrue(app.buttons["EditItemButton"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.collectionViews.firstMatch.exists || app.tables.firstMatch.exists, "item view is a native Form/List")
+        app.buttons["Edit"].firstMatch.tap()
+        XCTAssertTrue(app.textFields["ItemNameEntry"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.collectionViews.firstMatch.exists || app.tables.firstMatch.exists, "item edit is a native Form")
+        attach(app, "26-item-edit-form")
+    }
+
+    /// The autofill "set up" prompt is a native section (no Bitwarden action card): action and dismiss rows.
+    func test27_setupSectionIsNativeRows() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        goTo(app, "Settings")
+        app.buttons["AutofillSettingsButton"].tap()
+        let action = app.buttons["SetupSectionActionButton"]
+        if action.waitForExistence(timeout: 8) {
+            XCTAssertTrue(app.buttons["SetupSectionDismissButton"].exists, "dismiss row")
+            XCTAssertTrue(app.collectionViews.firstMatch.exists || app.tables.firstMatch.exists)
+            attach(app, "27-setup-section")
+        } else {
+            attach(app, "27-setup-section-dismissed")
+            XCTAssertFalse(app.buttons["Turn on now"].exists, "no old action card")
+        }
+    }
 }

@@ -76,11 +76,13 @@ private struct CategoryTile: View {
                     .minimumScaleFactor(0.5)
             }
             Text(group.name)
-                .font(.title3.weight(.semibold))
+                .font(.headline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.leading)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
+                // One line, always: long names ("Verification codes") shrink instead of wrapping, so tiles in the
+                // same row keep the same height. Accessibility sizes use a single column (see `columns`).
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(16)
