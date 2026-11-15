@@ -299,13 +299,12 @@ struct SendListView: View {
 
                 ToolbarItem(placement: .topBarTrailing) {
                     if !store.state.isInfoButtonHidden {
-                        Button {
-                            store.send(.infoButtonPressed)
-                        } label: {
-                            Image(asset: SharedAsset.Icons.questionCircle24, label: Text(Localizations.aboutSend))
-                                .foregroundColor(SharedAsset.Colors.iconSecondary.swiftUIColor)
+                        // Same "..." menu as on the generator, next to the avatar.
+                        optionsToolbarMenu {
+                            Button(Localizations.aboutSend) {
+                                store.send(.infoButtonPressed)
+                            }
                         }
-                        .frame(minHeight: 44)
                     }
                 }
             }

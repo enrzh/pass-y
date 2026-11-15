@@ -69,7 +69,7 @@ extension ContentBlock {
                 }
             }
             .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
     }
 }

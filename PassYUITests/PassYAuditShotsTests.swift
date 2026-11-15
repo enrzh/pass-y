@@ -181,4 +181,30 @@ final class PassYAuditShotsTests: XCTestCase {
         }
         XCUIDevice.shared.appearance = .light
     }
+
+    /// Send: add form (text) and the typed list.
+    func test_d_send() {
+        for mode in ["light", "dark"] {
+            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            let app = launchApp()
+            ensureUnlockedVault(app)
+            open(app, "Send"); sleep(2)
+            shot(app, mode, 39, "send-list")
+            let add = app.buttons["AddItemFloatingActionButton"]
+            if add.waitForExistence(timeout: 10) {
+                add.tap(); sleep(1)
+                let menuText = app.menuItems["Text"]
+                let text = app.buttons.matching(NSPredicate(format: "label == 'Text'")).firstMatch
+                if menuText.waitForExistence(timeout: 5) || text.waitForExistence(timeout: 5) {
+                    (menuText.exists ? menuText : text).tap(); sleep(2)
+                    shot(app, mode, 40, "send-add")
+                    let c = app.buttons["CancelButton"].firstMatch
+                    if c.exists { c.tap(); sleep(1) }
+                    if app.buttons["Cancel"].waitForExistence(timeout: 2) { app.buttons["Cancel"].tap() }
+                }
+            }
+            app.terminate()
+        }
+        XCUIDevice.shared.appearance = .light
+    }
 }

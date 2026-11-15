@@ -89,7 +89,8 @@ class SendListViewTests: BitwardenTestCase {
     /// Tapping the info button dispatches the `.infoButtonPressed` action.
     @MainActor
     func test_infoButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.aboutSend)
+        let menu = try subject.inspect().find(ViewType.Menu.self, containing: Localizations.options)
+        let button = try menu.find(button: Localizations.aboutSend)
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .infoButtonPressed)
     }
