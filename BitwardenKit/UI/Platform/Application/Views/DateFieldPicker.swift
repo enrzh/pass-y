@@ -82,12 +82,7 @@ public struct DateFieldPicker: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .background(
-            isEnabled
-                ? SharedAsset.Colors.backgroundSecondary.swiftUIColor
-                : SharedAsset.Colors.backgroundSecondaryDisabled.swiftUIColor,
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .fieldCard(isEnabled: isEnabled)
         .accessibilityIdentifier(resolvedAccessibilityIdentifier)
     }
 

@@ -10,6 +10,17 @@ enum TestAccount {
     static let password = "PassY-Test-Only-2026!"
 }
 
+extension XCUIElement {
+    /// Clears a text/secure field (a failed login attempt leaves the typed text in the field) and types `text`.
+    func replaceText(_ text: String) {
+        tap()
+        if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
+            typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+        }
+        typeText(text)
+    }
+}
+
 extension XCTestCase {
     /// Taps the search field and makes sure the soft keyboard is up (the simulator occasionally ignores the first tap).
     func focusSearch(_ app: XCUIApplication) {
@@ -79,14 +90,12 @@ extension XCTestCase {
             }
             let loginPw = app.secureTextFields["LoginMasterPasswordEntry"]
             if loginPw.exists {
-                loginPw.tap()
-                loginPw.typeText(TestAccount.password)
+                loginPw.replaceText(TestAccount.password)
                 app.buttons["LogInWithMasterPasswordButton"].tap()
             }
             let unlockPw = app.secureTextFields["MasterPasswordEntry"]
             if unlockPw.exists {
-                unlockPw.tap()
-                unlockPw.typeText(TestAccount.password)
+                unlockPw.replaceText(TestAccount.password)
                 app.buttons["UnlockVaultButton"].tap()
             }
             sleep(2)

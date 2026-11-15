@@ -83,12 +83,7 @@ public struct BitwardenMenuField<
 
             footerView()
         }
-        .background(
-            isEnabled
-                ? SharedAsset.Colors.backgroundSecondary.swiftUIColor
-                : SharedAsset.Colors.backgroundSecondaryDisabled.swiftUIColor,
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .fieldCard(isEnabled: isEnabled)
     }
 
     // MARK: Private views

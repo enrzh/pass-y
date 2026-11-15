@@ -26,12 +26,26 @@ struct ExpandableContent<Content: View>: View {
 
     // MARK: View
 
+    @Environment(\.isNativeForm) private var isNativeForm
+
     var body: some View {
-        VStack(spacing: 8) {
-            expandButton
+        if isNativeForm {
+            // Native `Form`: the toggle is its own row, the (section) content follows.
+            Section {
+                expandButton
+                    .listRowBackground(Color.clear)
+            }
 
             if isExpanded {
                 content
+            }
+        } else {
+            VStack(spacing: 8) {
+                expandButton
+
+                if isExpanded {
+                    content
+                }
             }
         }
     }

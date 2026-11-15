@@ -120,13 +120,7 @@ public struct BitwardenTextField<FooterContent: View, TrailingContent: View>: Vi
 
             footerView
         }
-        .padding(.leading, 20)
-        .background(
-            isEnabled
-                ? SharedAsset.Colors.backgroundSecondary.swiftUIColor
-                : SharedAsset.Colors.backgroundSecondaryDisabled.swiftUIColor,
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .fieldCard(isEnabled: isEnabled, leadingPadding: 20)
         .onChange(of: text) { newValue in
             if let count = pendingEchoes[newValue], count > 0 {
                 pendingEchoes[newValue] = count == 1 ? nil : count - 1

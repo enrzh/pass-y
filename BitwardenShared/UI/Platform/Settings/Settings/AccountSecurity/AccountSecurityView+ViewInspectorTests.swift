@@ -63,17 +63,17 @@ class AccountSecurityViewTests: BitwardenTestCase {
     @MainActor
     func test_setUpUnlockActionCard_hidden() {
         processor.state.badgeState = .fixture(vaultUnlockSetupProgress: .complete)
-        XCTAssertThrowsError(try subject.inspect().find(ActionCard<BitwardenBadge>.self))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: Localizations.setUpUnlock))
+        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.getStarted))
     }
 
     /// The action card is visible if the vault unlock setup progress isn't complete.
     @MainActor
     func test_setUpUnlockActionCard_visible() async throws {
         processor.state.badgeState = .fixture(vaultUnlockSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.getStarted)
-
-        let badge = try actionCard.find(BitwardenBadge.self)
-        try XCTAssertEqual(badge.text().string(), "1")
+        let section = try subject.inspect().find(setupSection: Localizations.setUpUnlock)
+        _ = try section.find(asyncButton: Localizations.getStarted)
+        _ = try section.find(asyncButton: Localizations.dismiss)
     }
 
     /// Tapping the dismiss button in the set up unlock action card sends the
@@ -81,7 +81,7 @@ class AccountSecurityViewTests: BitwardenTestCase {
     @MainActor
     func test_setUpUnlockActionCard_visible_tapDismiss() async throws {
         processor.state.badgeState = .fixture(vaultUnlockSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.setUpUnlock)
+        let actionCard = try subject.inspect().find(setupSection: Localizations.setUpUnlock)
 
         let button = try actionCard.find(asyncButton: Localizations.dismiss)
         try await button.tap()
@@ -93,7 +93,7 @@ class AccountSecurityViewTests: BitwardenTestCase {
     @MainActor
     func test_setUpUnlockActionCard_visible_tapGetStarted() async throws {
         processor.state.badgeState = .fixture(vaultUnlockSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(actionCard: Localizations.setUpUnlock)
+        let actionCard = try subject.inspect().find(setupSection: Localizations.setUpUnlock)
 
         let button = try actionCard.find(asyncButton: Localizations.getStarted)
         try await button.tap()

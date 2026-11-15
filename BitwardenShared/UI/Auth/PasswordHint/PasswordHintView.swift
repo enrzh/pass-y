@@ -13,19 +13,22 @@ struct PasswordHintView: View {
     @ObservedObject var store: Store<PasswordHintState, PasswordHintAction, PasswordHintEffect>
 
     var body: some View {
-        VStack(spacing: 24) {
-            BitwardenTextField(
-                title: Localizations.emailAddress,
-                text: store.binding(
+        Form {
+            Section {
+                TextField(Localizations.emailAddress, text: store.binding(
                     get: \.emailAddress,
                     send: PasswordHintAction.emailAddressChanged,
-                ),
-                footer: Localizations.enterEmailForHint,
-            )
-            .textFieldConfiguration(.email)
+                ))
+                .textContentType(.emailAddress)
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+                .accessibilityIdentifier("EmailAddressEntry")
+            } footer: {
+                Text(Localizations.enterEmailForHint)
+            }
         }
-        .scrollView()
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
+        .passYNativeFormBackground()
         .navigationBar(title: Localizations.passwordHint, titleDisplayMode: .inline)
         .toolbar {
             cancelToolbarItem {

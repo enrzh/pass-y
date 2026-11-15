@@ -2,6 +2,7 @@
 import BitwardenKit
 import BitwardenKitMocks
 import BitwardenResources
+import ViewInspector
 import XCTest
 
 @testable import BitwardenShared
@@ -43,7 +44,8 @@ class SingleSignOnViewTests: BitwardenTestCase {
     /// Updating the text field dispatches the `.identifierTextChanged()` action.
     @MainActor
     func test_identifierField_updateValue() throws {
-        let textfield = try subject.inspect().find(viewWithId: Localizations.orgIdentifier).textField()
+        let textfield = try subject.inspect().find(ViewType.TextField.self)
+        XCTAssertEqual(try textfield.labelView().text().string(), Localizations.orgIdentifier)
         try textfield.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .identifierTextChanged("text"))
     }

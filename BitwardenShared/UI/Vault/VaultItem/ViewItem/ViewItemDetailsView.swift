@@ -41,7 +41,10 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
 
         attachmentsSection
 
-        updatedDate
+        Section {
+            updatedDate
+                .listRowBackground(Color.clear)
+        }
     }
 
     // MARK: Private Views
@@ -80,8 +83,7 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
                         .frame(maxWidth: .infinity, minHeight: 28, alignment: .leading)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .listRowInsets(EdgeInsets())
                     } else {
                         BitwardenField(title: customField.name) {
                             switch customField.type {
@@ -287,10 +289,12 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
 
     /// The item header section.
     private var itemHeaderSection: some View {
-        ContentBlock(dividerLeadingPadding: 12) {
+        Section {
             itemHeaderMainDetails
+                .listRowInsets(EdgeInsets())
 
             itemHeaderAdditionalDetails
+                .listRowInsets(EdgeInsets())
         }
         .onChange(of: store.state.isShowingMultipleCollections) { value in
             if value {
@@ -381,11 +385,9 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("CipherNotesLabel")
             if store.state.type == .secureNote {
-                notesView
-                    // The secure note type doesn't have a top-level section header for its field, so
-                    // remove the extra top padding (8 points of total padding from the last section as
-                    // opposed to 16)
-                    .padding(.top, -8)
+                Section {
+                    notesView
+                }
             } else {
                 SectionView(Localizations.additionalOptions) {
                     notesView
@@ -423,7 +425,6 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
         }
         .multilineTextAlignment(.leading)
         .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-        .padding(.leading, 12)
     }
 
     /// The URIs section (login only).

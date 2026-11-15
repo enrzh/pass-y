@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Adds N throwaway login ciphers to the local test account (performance testing).
-Usage: seed_ciphers.py [count] [server_url]"""
+"""Adds N throwaway login ciphers to the local test account (performance testing) and the named fixtures the UI tests
+search for: GitHub (with an authenticator key, so the "Verification codes" tile exists), Netflix and Bank
+(skipped when an item with that name already exists). Usage: seed_ciphers.py [count] [server_url]"""
 import base64, hashlib, hmac, json, os, sys, urllib.parse, urllib.request
 from cryptography.hazmat.primitives import hashes, padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -42,6 +43,33 @@ payload = tok["access_token"].split(".")[1]; payload += "=" * (-len(payload) % 4
 UID = json.loads(base64.urlsafe_b64decode(payload))["sub"]
 H = {"Authorization": "Bearer " + tok["access_token"], "Content-Type": "application/json",
      "Bitwarden-Client-Version": CLIENT_VERSION}
+def post(body):
+    try:
+        urllib.request.urlopen(urllib.request.Request(SERVER + "/api/ciphers", json.dumps(body).encode(), H)).read()
+    except urllib.error.HTTPError as e:
+        print(e.code, e.read()[:400]); raise SystemExit(1)
+
+existing = set()
+try:
+    sync = json.load(urllib.request.urlopen(urllib.request.Request(SERVER + "/api/sync?excludeDomains=true", headers=H)))
+    for c in sync.get("ciphers") or sync.get("Ciphers") or []:
+        try:
+            existing.add(dec_string(sym, c.get("name") or c.get("Name")).decode())
+        except Exception:
+            pass
+except urllib.error.HTTPError as e:
+    print("sync failed (fixtures may be duplicated):", e.code)
+for name, user, pw, totp in [("GitHub", "octo@example.test", "Gh-Pass-1234", "JBSWY3DPEHPK3PXP"),
+                             ("Netflix", "movie@example.test", "Nf-Pass-5678", None),
+                             ("Bank", "me@example.test", "Bk-Pass-9012", None)]:
+    if name in existing:
+        continue
+    login = {"username": enc_string(sym, user.encode()), "password": enc_string(sym, pw.encode()),
+             "totp": enc_string(sym, totp.encode()) if totp else None, "uris": None}
+    post({"encryptedFor": UID, "type": 1, "name": enc_string(sym, name.encode()), "notes": None, "favorite": False,
+          "login": login, "fields": None})
+    print("fixture", name)
+
 for i in range(COUNT):
     body = {"encryptedFor": UID, "type": 1, "name": enc_string(sym, f"Perf Item {i:04d}".encode()), "notes": None, "favorite": i % 50 == 0,
             "login": {"username": enc_string(sym, f"user{i}@example.test".encode()), "password": enc_string(sym, b"pw-%d" % i),

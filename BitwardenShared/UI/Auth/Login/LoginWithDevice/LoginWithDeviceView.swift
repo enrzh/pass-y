@@ -15,24 +15,35 @@ struct LoginWithDeviceView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            VStack(alignment: .center, spacing: 12) {
-                titleText
+        Form {
+            Section {
+                VStack(alignment: .center, spacing: 8) {
+                    Image(systemName: "iphone.and.arrow.forward")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.tint)
 
-                explanationText
+                    titleText
+
+                    explanationText
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .multilineTextAlignment(.center)
+                .listRowBackground(Color.clear)
             }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .multilineTextAlignment(.center)
 
             fingerprintView
 
-            resendNotificationButton
+            if store.state.isResendNotificationVisible {
+                Section { resendNotificationButton }
+            }
 
-            allLoginOptionsView
-                .frame(maxWidth: .infinity, alignment: .center)
+            Section {
+                allLoginOptionsView
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .listRowBackground(Color.clear)
+            }
         }
-        .padding(.top, 12)
-        .scrollView()
+        .passYNativeFormBackground()
         .navigationBar(title: store.state.navBarText, titleDisplayMode: .inline)
         .toolbar {
             cancelToolbarItem {
@@ -71,11 +82,11 @@ struct LoginWithDeviceView: View {
 
     /// The fingerprint phrase title and display.
     private var fingerprintView: some View {
-        ContentBlock {
+        Section {
             VStack(alignment: .leading, spacing: 2) {
                 Text(Localizations.fingerprintPhrase)
-                    .styleGuide(.body, weight: .semibold)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("FingerprintValueLabel")
 
                 Text(store.state.fingerprintPhrase ?? "")
@@ -84,20 +95,15 @@ struct LoginWithDeviceView: View {
                     .multilineTextAlignment(.leading)
                     .accessibilityIdentifier("FingerprintPhraseValue")
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
     }
 
     /// The button to resend the login notification.
     @ViewBuilder private var resendNotificationButton: some View {
-        if store.state.isResendNotificationVisible {
-            AsyncButton(Localizations.resendNotification) {
-                await store.perform(.resendNotification)
-            }
-            .buttonStyle(.secondary())
-            .accessibilityIdentifier("ResendNotificationButton")
+        AsyncButton(Localizations.resendNotification) {
+            await store.perform(.resendNotification)
         }
+        .accessibilityIdentifier("ResendNotificationButton")
     }
 
     /// The title text.

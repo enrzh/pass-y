@@ -24,30 +24,40 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
 
     var body: some View {
         ZStack {
-            VStack(alignment: .leading, spacing: 16) {
+            // Native `Form` (Apple Passwords look): sections and rows come from the system.
+            Form {
                 if store.state.isSendDisabled {
-                    InfoContainer(Localizations.sendDisabledWarning)
-                        .accessibilityIdentifier("DisabledSendPolicyLabel")
+                    Section {
+                        InfoContainer(Localizations.sendDisabledWarning)
+                            .accessibilityIdentifier("DisabledSendPolicyLabel")
+                            .listRowBackground(Color.clear)
+                    }
                 } else if store.state.shouldShowHideEmailPolicyBanner {
-                    InfoContainer(Localizations.sendOptionsPolicyInEffect)
-                        .accessibilityIdentifier("HideEmailAddressPolicyLabel")
+                    Section {
+                        InfoContainer(Localizations.sendOptionsPolicyInEffect)
+                            .accessibilityIdentifier("HideEmailAddressPolicyLabel")
+                            .listRowBackground(Color.clear)
+                    }
                 }
 
                 sendDetails
 
+                Section { deletionDate }
+
+                Section { whoCanView }
+
                 additionalOptions
 
                 if store.state.mode == .edit {
-                    deleteSendButton
+                    Section { deleteSendButton }
                 }
             }
-            .scrollView()
+            .nativeFormRows()
             .disabled(store.state.isSendDisabled)
 
             profileSwitcher
         }
         .backport.dismissKeyboardInteractively()
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
         .navigationBar(
             title: store.state.navigationTitle,
             titleDisplayMode: .inline,
@@ -143,6 +153,7 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
             ),
             buttonAccessibilityIdentifier: "SendShowHideOptionsButton",
         ) {
+            Section {
             SendItemAccessCountStepper(
                 currentAccessCount: store.state.currentAccessCount,
                 maximumAccessCount: store.binding(
@@ -150,9 +161,10 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                     send: AddEditSendItemAction.maximumAccessCountStepperChanged,
                 ),
             )
+            }
 
             if store.state.shouldShowHideEmailField {
-                ContentBlock(dividerLeadingPadding: 16) {
+                Section {
                     BitwardenToggle(Localizations.hideEmail, isOn: store.binding(
                         get: \.isHideMyEmailOn,
                         send: AddEditSendItemAction.hideMyEmailChanged,
@@ -162,13 +174,15 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                 }
             }
 
-            BitwardenTextView(
-                title: Localizations.privateNote,
-                text: store.binding(
-                    get: \.notes,
-                    send: AddEditSendItemAction.notesChanged,
-                ),
-            )
+            Section {
+                BitwardenTextView(
+                    title: Localizations.privateNote,
+                    text: store.binding(
+                        get: \.notes,
+                        send: AddEditSendItemAction.notesChanged,
+                    ),
+                )
+            }
         }
     }
 
@@ -179,7 +193,8 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
         } label: {
             Label(Localizations.deleteSend, image: SharedAsset.Icons.trash16.swiftUIImage, scaleImageDimension: 16)
         }
-        .buttonStyle(.secondary(isDestructive: true, size: .medium))
+        .foregroundStyle(SharedAsset.Colors.error.swiftUIColor)
+        .frame(maxWidth: .infinity)
     }
 
     /// The deletion date field.
@@ -203,7 +218,7 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
 
     /// The attributes for a file type send.
     @ViewBuilder private var fileSendAttributes: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        Group {
             switch store.state.mode {
             case .add, .shareExtension:
                 if let fileName = store.state.fileName {
@@ -215,12 +230,11 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
                     if store.state.mode == .add {
                         Button(Localizations.chooseFile) {
                             store.send(.chooseFilePressed)
                         }
-                        .buttonStyle(.secondary())
                         .accessibilityIdentifier("SendChooseFileButton")
                     }
 
@@ -230,9 +244,8 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                             countStyle: .binary,
                         ),
                     ))
-                    .styleGuide(.subheadline)
-                    .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    .padding(.leading, 12)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 }
 
             case .edit:
@@ -306,18 +319,12 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
             }
 
             if store.state.type == .text {
-                ContentBlock {
-                    BitwardenToggle(Localizations.hideTextByDefault, isOn: store.binding(
-                        get: \.isHideTextByDefaultOn,
-                        send: AddEditSendItemAction.hideTextByDefaultChanged,
-                    ))
-                    .accessibilityIdentifier("SendHideTextByDefaultToggle")
-                }
+                BitwardenToggle(Localizations.hideTextByDefault, isOn: store.binding(
+                    get: \.isHideTextByDefaultOn,
+                    send: AddEditSendItemAction.hideTextByDefaultChanged,
+                ))
+                .accessibilityIdentifier("SendHideTextByDefaultToggle")
             }
-
-            deletionDate
-
-            whoCanView
         }
     }
 
@@ -399,7 +406,7 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
 
     /// The list of recipient emails for "Specific people" access type.
     @ViewBuilder private var recipientEmailsList: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        Group {
             ForEach(store.state.recipientEmails.indices, id: \.self) { index in
                 BitwardenTextField(
                     title: Localizations.email,
@@ -426,9 +433,6 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                 }
                 .textFieldConfiguration(.email)
                 .accessibilityIdentifier("EmailRecipientCell")
-
-                Divider()
-                    .padding(.leading, 16)
             }
 
             Button {

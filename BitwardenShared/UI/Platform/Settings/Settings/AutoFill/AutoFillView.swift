@@ -49,39 +49,33 @@ struct AutoFillView: View {
     /// The action card for setting up autofill.
     @ViewBuilder private var autofillActionCard: some View {
         if store.state.shouldShowAutofillActionCard {
-            Section {
-                if #available(iOS 18, *) {
-                    ActionCard(
-                        title: Localizations.autofillWithBitwarden,
-                        message: Localizations.autofillWithBitwardenDescriptionLong,
-                        actionButtonState: ActionCard.ButtonState(title: Localizations.turnOnNow) {
-                            await store.perform(.setUpAutofill)
-                        },
-                        dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                            await store.perform(.dismissSetUpAutofillActionCard)
-                        },
-                        secondaryButtonState: ActionCard.ButtonState(title: Localizations.learnMoreAboutAutofill) {
-                            store.send(.learnMoreAboutAutofillTapped)
-                        },
-                    ) {
-                        BitwardenBadge(badgeValue: "1")
-                    }
-                } else {
-                    ActionCard(
-                        title: Localizations.setUpAutofill,
-                        actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
-                            await store.perform(.setUpAutofill)
-                        },
-                        dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                            await store.perform(.dismissSetUpAutofillActionCard)
-                        },
-                    ) {
-                        BitwardenBadge(badgeValue: "1")
-                    }
-                }
+            if #available(iOS 18, *) {
+                NativeSetupSection(
+                    title: Localizations.autofillWithBitwarden,
+                    message: Localizations.autofillWithBitwardenDescriptionLong,
+                    systemImage: "text.badge.checkmark",
+                    action: NativeSetupSection.Row(title: Localizations.turnOnNow) {
+                        await store.perform(.setUpAutofill)
+                    },
+                    secondary: NativeSetupSection.Row(title: Localizations.learnMoreAboutAutofill) {
+                        store.send(.learnMoreAboutAutofillTapped)
+                    },
+                    dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
+                        await store.perform(.dismissSetUpAutofillActionCard)
+                    },
+                )
+            } else {
+                NativeSetupSection(
+                    title: Localizations.setUpAutofill,
+                    systemImage: "text.badge.checkmark",
+                    action: NativeSetupSection.Row(title: Localizations.getStarted) {
+                        await store.perform(.setUpAutofill)
+                    },
+                    dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
+                        await store.perform(.dismissSetUpAutofillActionCard)
+                    },
+                )
             }
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
         }
     }
 
