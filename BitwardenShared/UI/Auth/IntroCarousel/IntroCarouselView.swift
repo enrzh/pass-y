@@ -34,23 +34,33 @@ struct IntroCarouselView: View {
             .animation(.default, value: store.state.currentPageIndex)
 
             VStack(spacing: 12) {
-                AsyncButton(Localizations.createAccount) {
+                AsyncButton {
                     await store.perform(.createAccount)
+                } label: {
+                    Text(Localizations.createAccount)
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.primary())
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .controlSize(.large)
 
-                Button(Localizations.logIn) {
+                Button {
                     store.send(.logIn)
+                } label: {
+                    Text(Localizations.logIn)
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.secondary())
+                .buttonStyle(.plain)
+                .foregroundStyle(.tint)
+                .controlSize(.large)
+                .padding(.vertical, 8)
             }
             .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor.ignoresSafeArea())
-        .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .multilineTextAlignment(.center)
     }
 
@@ -64,11 +74,12 @@ struct IntroCarouselView: View {
     ) -> some View {
         Group {
             if verticalSizeClass == .regular {
-                VStack(spacing: 80) {
+                VStack(spacing: 48) {
                     imageContent()
                     textContent()
                 }
                 .padding(.vertical, 16)
+                .padding(.horizontal, 24)
                 .frame(maxWidth: .infinity, minHeight: minHeight)
             } else {
                 HStack(alignment: .top, spacing: 40) {
@@ -89,7 +100,7 @@ struct IntroCarouselView: View {
         }
         .scrollView(
             addVerticalPadding: false,
-            backgroundColor: SharedAsset.Colors.backgroundSecondary.swiftUIColor,
+            backgroundColor: Color(uiColor: .systemBackground),
         )
     }
 
@@ -100,18 +111,22 @@ struct IntroCarouselView: View {
             dynamicStackView(minHeight: reader.size.height) {
                 page.image
                     .resizable()
+                    .scaledToFit()
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.tint)
                     .frame(
-                        width: verticalSizeClass == .regular ? 152 : 124,
-                        height: verticalSizeClass == .regular ? 152 : 124,
+                        width: verticalSizeClass == .regular ? 96 : 80,
+                        height: verticalSizeClass == .regular ? 96 : 80,
                     )
                     .accessibilityHidden(true)
             } textContent: {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     Text(page.title)
-                        .styleGuide(.title, weight: .bold)
+                        .font(.largeTitle.bold())
 
                     Text(page.message)
-                        .styleGuide(.title3)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
                 }
             }
         }

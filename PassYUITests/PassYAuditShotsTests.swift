@@ -36,6 +36,15 @@ final class PassYAuditShotsTests: XCTestCase {
             let app = launchApp()
             XCTAssertTrue(waitFor(app.buttons["Log in"]), "landing")
             shot(app, mode, 1, "landing")
+            if app.buttons["Create account"].exists {
+                app.buttons["Create account"].tap()
+                if waitFor(app.textFields["EmailAddressEntry"], timeout: 10) {
+                    shot(app, mode, 5, "registration")
+                    let cancel = app.buttons["CancelButton"].firstMatch
+                    if cancel.exists { cancel.tap() } else { app.navigationBars.buttons.firstMatch.tap() }
+                    sleep(1)
+                }
+            }
             app.buttons["Log in"].tap()
             if waitFor(app.textFields["ServerUrlEntry"], timeout: 10) {
                 shot(app, mode, 2, "server-setup")
@@ -143,6 +152,22 @@ final class PassYAuditShotsTests: XCTestCase {
                 }
             }
             app.terminate()
+        }
+        XCUIDevice.shared.appearance = .light
+    }
+
+    /// Locked vault: master password unlock screen in both appearances.
+    func test_c_unlock() {
+        for mode in ["light", "dark"] {
+            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            let app = launchApp()
+            ensureUnlockedVault(app)
+            app.terminate()
+            let app2 = launchApp()
+            if waitFor(app2.secureTextFields["MasterPasswordEntry"], timeout: 30) {
+                shot(app2, mode, 6, "unlock")
+            }
+            app2.terminate()
         }
         XCUIDevice.shared.appearance = .light
     }
