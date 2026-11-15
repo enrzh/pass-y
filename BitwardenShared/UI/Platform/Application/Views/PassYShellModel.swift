@@ -312,17 +312,21 @@ struct PassYShellBar: View {
             }
             .padding(.horizontal, 16)
             .frame(height: Self.barHeight)
-            .background(Color(.systemGroupedBackground))
         }
         .frame(height: Self.barHeight + Self.fadeHeight)
-        .background(alignment: .top) {
-            LinearGradient(
-                colors: [Color(.systemGroupedBackground).opacity(0), Color(.systemGroupedBackground)],
-                startPoint: .top,
-                endPoint: .bottom,
-            )
-            .frame(height: Self.fadeHeight)
-            .allowsHitTesting(false)
+        // One page-independent backdrop: a blurred material that fades in from the top (like a system scroll edge
+        // effect), so white and grey pages show the same bar and no differently coloured band.
+        .background(alignment: .bottom) {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .mask(
+                    LinearGradient(
+                        colors: [.clear, .black],
+                        startPoint: .top,
+                        endPoint: UnitPoint(x: 0.5, y: 0.45),
+                    ),
+                )
+                .allowsHitTesting(false)
         }
         // Like system toolbars, the floating bar stops growing at the largest non-accessibility size.
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
@@ -340,6 +344,7 @@ private struct PassYAddMenu: View {
         // The whole 44 pt circle is the tap target (the symbol alone is only ~18 pt).
         Image(systemName: "plus")
             .font(.system(size: 17, weight: .semibold))
+            .foregroundStyle(.tint)
             .frame(width: 44, height: 44)
             .contentShape(Circle())
     }

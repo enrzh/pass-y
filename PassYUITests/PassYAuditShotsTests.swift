@@ -207,4 +207,47 @@ final class PassYAuditShotsTests: XCTestCase {
         }
         XCUIDevice.shared.appearance = .light
     }
+
+    /// Password history, item attachments and the item "..." menu.
+    func test_e_sheets() {
+        for mode in ["light", "dark"] {
+            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            let app = launchApp()
+            ensureUnlockedVault(app)
+            open(app, "Generator"); sleep(2)
+            let options = app.buttons["HeaderBarOptionsButton"].exists ? app.buttons["HeaderBarOptionsButton"] : app.buttons["Options"]
+            if options.waitForExistence(timeout: 5) {
+                options.tap(); sleep(1)
+                let hist = app.buttons["Password history"]
+                if hist.waitForExistence(timeout: 3) {
+                    hist.tap(); sleep(2)
+                    shot(app, mode, 50, "password-history")
+                    let c = app.buttons["CloseButton"].exists ? app.buttons["CloseButton"] : app.buttons["Close"]
+                    if c.exists { c.firstMatch.tap(); sleep(1) }
+                }
+            }
+            open(app, "My vault"); sleep(2)
+            let tile = app.buttons["CategoryTile_login"]
+            if tile.waitForExistence(timeout: 5) {
+                tile.tap(); sleep(2)
+                let row = app.buttons["VaultListItemRowButton"].firstMatch
+                if row.waitForExistence(timeout: 5) {
+                    row.tap(); sleep(2)
+                    shot(app, mode, 51, "item-view-toolbar")
+                    let opt = app.buttons["CipherOptionsButton"].exists ? app.buttons["CipherOptionsButton"].firstMatch : app.buttons["Options"].firstMatch
+                    if opt.exists {
+                        opt.tap(); sleep(1)
+                        shot(app, mode, 52, "item-menu")
+                        let att = app.buttons["Attachments"]
+                        if att.waitForExistence(timeout: 3) {
+                            att.tap(); sleep(2)
+                            shot(app, mode, 53, "attachments")
+                        }
+                    }
+                }
+            }
+            app.terminate()
+        }
+        XCUIDevice.shared.appearance = .light
+    }
 }

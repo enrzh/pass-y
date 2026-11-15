@@ -49,21 +49,23 @@ class ViewSendItemViewTests: BitwardenTestCase {
 
     /// Tapping the edit button sends the `.editItem` action.
     @MainActor
-    func test_editItemFloatingActionButton_tap() async throws {
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "EditItemFloatingActionButton",
-        )
-        try await fab.tap()
+    func test_editToolbarButton_tap() async throws {
+        let fab = try subject.inspect().find(ViewType.Button.self) { view in
+            try view.accessibilityIdentifier() == "EditItemButton"
+        }
+        try fab.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .editItem)
     }
 
     /// The edit floating action button is hidden when the Send is disabled/restricted.
     @MainActor
-    func test_editItemFloatingActionButton_hiddenWhenRestricted() throws {
+    func test_editToolbarButton_hiddenWhenRestricted() throws {
         processor.state = ViewSendItemState(sendView: .fixture(type: .text, disabled: true))
 
         XCTAssertThrowsError(
-            try subject.inspect().find(floatingActionButtonWithAccessibilityIdentifier: "EditItemFloatingActionButton"),
+            try subject.inspect().find(ViewType.Button.self) { view in
+                try view.accessibilityIdentifier() == "EditItemButton"
+            },
         )
     }
 

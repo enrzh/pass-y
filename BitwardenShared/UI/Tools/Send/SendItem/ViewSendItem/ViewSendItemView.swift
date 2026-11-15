@@ -18,13 +18,6 @@ struct ViewSendItemView: View {
         content
             .scrollView()
             .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .inline)
-            .overlay(alignment: .bottomTrailing) {
-                if !store.state.isDisabled {
-                    editItemFloatingActionButton {
-                        store.send(.editItem)
-                    }
-                }
-            }
             .task { await store.perform(.loadData) }
             .task { await store.perform(.streamSend) }
             .toast(
@@ -32,11 +25,18 @@ struct ViewSendItemView: View {
                     get: \.toast,
                     send: ViewSendItemAction.toastShown,
                 ),
-                additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
             )
             .toolbar {
                 cancelToolbarItem {
                     store.send(.dismiss)
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !store.state.isDisabled {
+                        editToolbarButton {
+                            store.send(.editItem)
+                        }
+                    }
                 }
             }
     }
@@ -70,7 +70,6 @@ struct ViewSendItemView: View {
             deleteSendButton
         }
         .animation(.default, value: store.state.isAdditionalOptionsExpanded)
-        .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
     }
 
     /// The expandable additional options section.
