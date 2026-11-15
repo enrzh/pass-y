@@ -65,20 +65,23 @@ struct AddEditFolderView: View {
 
     /// The content of the view in either mode.
     private var content: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            nameEntryTextField
+        Form {
+            Section {
+                nameEntryTextField
+            }
         }
-        .scrollView()
     }
 
     /// The name entry text field.
     private var nameEntryTextField: some View {
-        BitwardenTextField(
-            title: Localizations.name,
+        TextField(
+            Localizations.name,
             text: store.binding(
                 get: \.folderName,
                 send: AddEditFolderAction.folderNameTextChanged,
             ),
         )
+        .id(Localizations.name)
+        .accessibilityIdentifier("FolderNameField")
     }
 }

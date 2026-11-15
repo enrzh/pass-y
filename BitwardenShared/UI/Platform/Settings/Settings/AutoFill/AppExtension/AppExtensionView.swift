@@ -61,19 +61,21 @@ struct AppExtensionView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(alignment: .center) {
-                instructionsContent
-
                 Spacer()
 
                 image
 
+                instructionsContent
+                    .padding(.horizontal, 24)
+
                 Spacer()
 
                 activateButton
+                    .padding(.horizontal, 16)
             }
             .padding(.vertical, 16)
             .frame(minHeight: geometry.size.height)
-            .scrollView(addVerticalPadding: false)
+            .scrollView(addVerticalPadding: false, backgroundColor: Color(uiColor: .systemGroupedBackground))
         }
         .navigationBar(title: Localizations.appExtension, titleDisplayMode: .inline)
     }
@@ -89,15 +91,20 @@ struct AppExtensionView: View {
         ) {
             store.send(.activateButtonTapped)
         }
-        .buttonStyle(.secondary())
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
+        .controlSize(.large)
     }
 
-    /// The instruction image.
+    /// The instruction image: an SF Symbol reflecting the activation state.
     private var image: some View {
-        Image(asset: imageAsset)
+        Image(systemName: store.state.extensionEnabled ? "checkmark.seal.fill" : "puzzlepiece.extension.fill")
             .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(height: 281)
+            .scaledToFit()
+            .symbolRenderingMode(.hierarchical)
+            .foregroundStyle(.tint)
+            .frame(height: 96)
+            .padding(.bottom, 24)
             .accessibilityHidden(true)
     }
 
@@ -113,8 +120,8 @@ struct AppExtensionView: View {
     /// The instructions body.
     private var instructionsBody: some View {
         Text(message)
-            .styleGuide(.body)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+            .font(.body)
+            .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -122,8 +129,8 @@ struct AppExtensionView: View {
     /// The instructions title.
     private var instructionsTitle: some View {
         Text(title)
-            .styleGuide(.title)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+            .font(.title.bold())
+            .foregroundStyle(.primary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
     }

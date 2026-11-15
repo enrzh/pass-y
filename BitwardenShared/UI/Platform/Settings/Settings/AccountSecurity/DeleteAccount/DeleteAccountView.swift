@@ -15,11 +15,10 @@ struct DeleteAccountView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        Form {
             viewContent
         }
         .navigationBar(title: Localizations.deleteAccount, titleDisplayMode: .inline)
-        .scrollView()
         .toolbar {
             cancelToolbarItem {
                 store.send(.dismiss)
@@ -51,23 +50,23 @@ struct DeleteAccountView: View {
                     .styleGuide(.subheadline)
             }
         }
-        .padding(12)
-        .contentBlock()
 
         if store.state.showDeleteAccountButtons {
-            VStack(spacing: 12) {
-                AsyncButton(Localizations.deleteAccount) {
+            Section {
+                AsyncButton(role: .destructive) {
                     await store.perform(.deleteAccount)
+                } label: {
+                    Text(Localizations.deleteAccount)
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.primary(isDestructive: true))
                 .accessibilityIdentifier("DELETE ACCOUNT")
 
                 Button {
                     store.send(.dismiss)
                 } label: {
                     Text(Localizations.cancel)
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.secondary(isDestructive: true))
                 .accessibilityIdentifier("CancelDeletionButton")
             }
         }

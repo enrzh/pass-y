@@ -138,6 +138,12 @@ final class PassYAuditShotsTests: XCTestCase {
                 if row.waitForExistence(timeout: 5) {
                     row.tap(); sleep(2)
                     shot(app, mode, n, "settings-\(name)"); n += 1
+                    if name == "autofill", app.buttons["AppExtensionLabel"].exists || app.buttons["App extension"].exists {
+                        let ext = app.buttons["AppExtensionLabel"].exists ? app.buttons["AppExtensionLabel"] : app.buttons["App extension"]
+                        ext.tap(); sleep(2)
+                        shot(app, mode, n, "settings-app-extension"); n += 1
+                        back(app)
+                    }
                     back(app)
                 }
             }
@@ -149,6 +155,10 @@ final class PassYAuditShotsTests: XCTestCase {
                 if folders.waitForExistence(timeout: 5) {
                     folders.tap(); sleep(2)
                     shot(app, mode, n, "folders"); n += 1
+                    let add = app.buttons["AddItemButton"]
+                    if add.exists { add.tap(); sleep(2); shot(app, mode, n, "add-folder"); n += 1
+                        let c = app.buttons["CancelButton"].firstMatch
+                        if c.exists { c.tap() } }
                 }
             }
             app.terminate()

@@ -410,8 +410,9 @@ final class PassYFlowTests: XCTestCase {
         goTo(app, "Settings")
         app.buttons["VaultSettingsButton"].tap(); sleep(1)
         app.buttons["FoldersLabel"].tap(); sleep(2)
-        let add = app.buttons["AddItemFloatingActionButton"]
-        XCTAssertTrue(add.waitForExistence(timeout: 10), "folders screen has the add button")
+        let add = app.buttons["AddItemButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10), "folders screen has the add button in the toolbar")
+        XCTAssertFalse(app.buttons["AddItemFloatingActionButton"].exists, "no floating add button on the folders list")
         let existing = app.buttons.matching(identifier: "FolderCell").count
         for i in existing ..< 12 {
             add.tap()
@@ -429,8 +430,9 @@ final class PassYFlowTests: XCTestCase {
         let cells = app.buttons.matching(identifier: "FolderCell")
         let last = cells.element(boundBy: cells.count - 1)
         XCTAssertTrue(last.exists && last.isHittable, "the last folder row is reachable")
-        XCTAssertLessThanOrEqual(last.frame.maxY, add.frame.minY + 1,
-                                 "last row (\(last.frame)) sits above the add button (\(add.frame))")
+        let bar = app.searchFields.firstMatch
+        XCTAssertLessThanOrEqual(last.frame.maxY, bar.frame.minY + 1,
+                                 "last row (\(last.frame)) sits above the bottom search bar (\(bar.frame))")
     }
 
     /// Walks the main screens and asserts that no visible text contains a leaked Optional (`Optional("...")`), and that
