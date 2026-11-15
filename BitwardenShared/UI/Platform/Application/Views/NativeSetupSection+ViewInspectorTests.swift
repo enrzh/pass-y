@@ -68,3 +68,14 @@ class NativeSetupSectionTests: BitwardenTestCase {
         XCTAssertNoThrow(try inspected.find(text: "B"))
     }
 }
+
+// MARK: - InspectableView + NativeSetupSection
+
+extension InspectableView {
+    /// Finds the `Section` of a `NativeSetupSection` by its headline (the `Label` title).
+    func find(setupSection title: String) throws -> InspectableView<ViewType.Section> {
+        try find(ViewType.Section.self) { section in
+            ((try? section.find(ViewType.Label.self).title().text().string()) ?? nil) == title
+        }
+    }
+}

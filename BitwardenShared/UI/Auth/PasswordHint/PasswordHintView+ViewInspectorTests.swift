@@ -45,6 +45,7 @@ class PasswordHintViewTests: BitwardenTestCase {
     @MainActor
     func test_emailAddress_change() throws {
         let textField = try subject.inspect().find(ViewType.TextField.self)
+        XCTAssertEqual(try textField.labelView().text().string(), Localizations.emailAddress)
         try textField.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .emailAddressChanged("text"))
     }

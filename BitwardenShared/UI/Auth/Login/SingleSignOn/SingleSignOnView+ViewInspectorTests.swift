@@ -45,6 +45,7 @@ class SingleSignOnViewTests: BitwardenTestCase {
     @MainActor
     func test_identifierField_updateValue() throws {
         let textfield = try subject.inspect().find(ViewType.TextField.self)
+        XCTAssertEqual(try textfield.labelView().text().string(), Localizations.orgIdentifier)
         try textfield.setInput("text")
         XCTAssertEqual(processor.dispatchedActions.last, .identifierTextChanged("text"))
     }

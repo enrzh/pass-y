@@ -60,18 +60,20 @@ class VaultSettingsViewTests: BitwardenTestCase {
     @MainActor
     func test_importLoginsActionCard_hidden() {
         processor.state.badgeState = .fixture(importLoginsSetupProgress: .incomplete)
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.dismiss))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: Localizations.importSavedLogins))
 
         processor.state.badgeState = .fixture(importLoginsSetupProgress: .complete)
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.dismiss))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: Localizations.importSavedLogins))
     }
 
     /// The action card is visible if the import logins setup progress is set up later.
     @MainActor
     func test_importLoginsActionCard_visible() async throws {
         processor.state.badgeState = .fixture(importLoginsSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect()
-        _ = try actionCard.find(asyncButton: Localizations.dismiss)
+        let section = try subject.inspect().find(setupSection: Localizations.importSavedLogins)
+        _ = try section.find(text: Localizations.importSavedLoginsDescriptionLong)
+        _ = try section.find(asyncButton: Localizations.getStarted)
+        _ = try section.find(asyncButton: Localizations.dismiss)
     }
 
     /// Tapping the dismiss button in the import logins action card sends the
@@ -79,7 +81,7 @@ class VaultSettingsViewTests: BitwardenTestCase {
     @MainActor
     func test_importLoginsActionCard_visible_tapDismiss() async throws {
         processor.state.badgeState = .fixture(importLoginsSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect()
+        let actionCard = try subject.inspect().find(setupSection: Localizations.importSavedLogins)
 
         let button = try actionCard.find(asyncButton: Localizations.dismiss)
         try await button.tap()
@@ -91,7 +93,7 @@ class VaultSettingsViewTests: BitwardenTestCase {
     @MainActor
     func test_importLoginsActionCard_visible_tapGetStarted() async throws {
         processor.state.badgeState = .fixture(importLoginsSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect()
+        let actionCard = try subject.inspect().find(setupSection: Localizations.importSavedLogins)
 
         let button = try actionCard.find(asyncButton: Localizations.getStarted)
         try await button.tap()
