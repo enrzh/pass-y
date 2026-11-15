@@ -13,25 +13,40 @@ struct SetMasterPasswordView: View {
     @ObservedObject var store: Store<SetMasterPasswordState, SetMasterPasswordAction, SetMasterPasswordEffect>
 
     var body: some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.lock,
-                title: Localizations.chooseYourMasterPassword,
-                message: store.state.explanationText,
-            )
-            .padding(.top, 12)
+        Form {
+            Section {
+                VStack(spacing: 8) {
+                    Image(systemName: "lock.shield")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.tint)
+                    Text(Localizations.chooseYourMasterPassword)
+                        .font(.title3.weight(.semibold))
+                    Text(store.state.explanationText)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
+            }
 
             if store.state.resetPasswordAutoEnroll {
-                InfoContainer(Localizations.resetPasswordAutoEnrollInviteWarning)
+                Section {
+                    Text(Localizations.resetPasswordAutoEnrollInviteWarning)
+                        .font(.subheadline)
+                }
             }
 
             if let policy = store.state.masterPasswordPolicy,
                policy.isInEffect,
                let policySummary = policy.policySummary {
-                InfoContainer(policySummary)
+                Section {
+                    Text(policySummary)
+                        .font(.subheadline)
+                }
             }
 
-            ContentBlock {
+            Section {
                 BitwardenTextField(
                     title: Localizations.masterPasswordRequired,
                     text: store.binding(
@@ -88,8 +103,8 @@ struct SetMasterPasswordView: View {
                 )
             }
         }
-        .scrollView()
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
+        .nativeFormRows()
+        .passYNativeFormBackground()
         .navigationTitle(Localizations.setMasterPassword)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

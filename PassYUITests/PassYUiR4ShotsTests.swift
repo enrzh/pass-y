@@ -163,6 +163,28 @@ final class PassYUiR4ShotsTests: XCTestCase {
         XCUIDevice.shared.appearance = .light
     }
 
+    /// Settings pages with the "set up" sections (autofill "Turn on now", account security, vault settings).
+    func test_setupSections() {
+        for mode in ["light", "dark"] {
+            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            let app = launchApp()
+            ensureUnlockedVault(app)
+            goTo(app, "Settings"); sleep(2)
+            for (n, id, name) in [(60, "AutofillSettingsButton", "autofill"), (61, "AccountSecuritySettingsButton", "account-security"),
+                                  (62, "VaultSettingsButton", "vault-settings")] {
+                let row = app.buttons[id]
+                if row.waitForExistence(timeout: 5) {
+                    row.tap(); sleep(2)
+                    shot(app, mode, n, "setup-\(name)")
+                    let b = app.navigationBars.buttons["BackButton"].exists ? app.navigationBars.buttons["BackButton"] : app.navigationBars.buttons.firstMatch
+                    if b.exists { b.tap(); sleep(1) }
+                }
+            }
+            app.terminate()
+        }
+        XCUIDevice.shared.appearance = .light
+    }
+
     /// Rare auth screens reachable from the login page (needs a fresh install): password hint, login with device, SSO.
     func test_a_auth() {
         for mode in ["light", "dark"] {

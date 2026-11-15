@@ -63,21 +63,16 @@ struct AccountSecurityView: View {
     /// The action card for setting up vault unlock methods.
     @ViewBuilder private var setUpUnlockActionCard: some View {
         if let progress = store.state.badgeState?.vaultUnlockSetupProgress, progress != .complete {
-            Section {
-                ActionCard(
-                    title: Localizations.setUpUnlock,
-                    actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
-                        store.send(.showSetUpUnlock)
-                    },
-                    dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
-                        await store.perform(.dismissSetUpUnlockActionCard)
-                    },
-                ) {
-                    BitwardenBadge(badgeValue: "1")
-                }
-            }
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
+            NativeSetupSection(
+                title: Localizations.setUpUnlock,
+                systemImage: "lock.open",
+                action: NativeSetupSection.Row(title: Localizations.getStarted) {
+                    store.send(.showSetUpUnlock)
+                },
+                dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
+                    await store.perform(.dismissSetUpUnlockActionCard)
+                },
+            )
         }
     }
 

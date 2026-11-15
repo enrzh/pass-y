@@ -19,13 +19,7 @@ struct VaultSettingsView: View {
 
     var body: some View {
         Form {
-            if store.state.shouldShowImportLoginsActionCard {
-                Section {
-                    importLoginsActionCard
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
-            }
+            importLoginsActionCard
 
             vaultSettings
         }
@@ -46,18 +40,17 @@ struct VaultSettingsView: View {
     /// The action card for setting up vault unlock methods.
     @ViewBuilder private var importLoginsActionCard: some View {
         if store.state.shouldShowImportLoginsActionCard {
-            ActionCard(
+            NativeSetupSection(
                 title: Localizations.importSavedLogins,
                 message: Localizations.importSavedLoginsDescriptionLong,
-                actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
+                systemImage: "square.and.arrow.down",
+                action: NativeSetupSection.Row(title: Localizations.getStarted) {
                     store.send(.showImportLogins)
                 },
-                dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
+                dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
                     await store.perform(.dismissImportLoginsActionCard)
                 },
-            ) {
-                BitwardenBadge(badgeValue: "1")
-            }
+            )
         }
     }
 

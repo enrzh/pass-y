@@ -14,13 +14,15 @@ struct SingleSignOnView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            instructionsText
-
-            identifierTextField
+        Form {
+            Section {
+                identifierTextField
+            } header: {
+                instructionsText
+                    .textCase(nil)
+            }
         }
-        .padding(.top, 12)
-        .scrollView()
+        .passYNativeFormBackground()
         .navigationBar(title: Localizations.bitwarden, titleDisplayMode: .inline)
         .toolbar {
             cancelToolbarItem {
@@ -43,23 +45,21 @@ struct SingleSignOnView: View {
 
     /// The identifier text field.
     private var identifierTextField: some View {
-        BitwardenTextField(
-            title: Localizations.orgIdentifier,
-            text: store.binding(
-                get: \.identifierText,
-                send: SingleSignOnAction.identifierTextChanged,
-            ),
-            accessibilityIdentifier: "SSOOrgIdField",
-        )
-        .textFieldConfiguration(.organizationIdentifier)
+        TextField(Localizations.orgIdentifier, text: store.binding(
+            get: \.identifierText,
+            send: SingleSignOnAction.identifierTextChanged,
+        ))
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled(true)
+        .accessibilityIdentifier("SSOOrgIdField")
     }
 
     /// The instructions text.
     private var instructionsText: some View {
         Text(Localizations.logInSsoSummary)
-            .styleGuide(.body)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-            .multilineTextAlignment(.center)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.leading)
     }
 }
 
