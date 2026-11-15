@@ -13,6 +13,15 @@ final class PassYUiR4ShotsTests: XCTestCase {
         attach(app, "\(tag)-\(mode)-\(String(format: "%02d", n))-\(name)")
     }
 
+    /// Whole-screen shot (system menus are not part of the app screenshot).
+    private func screenShot(_ mode: String, _ n: Int, _ name: String) {
+        sleep(1)
+        let a = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        a.name = "\(tag)-\(mode)-\(String(format: "%02d", n))-\(name)"
+        a.lifetime = .keepAlways
+        add(a)
+    }
+
     private func cancelOrClose(_ app: XCUIApplication) {
         for id in ["CancelButton", "CloseButton", "Close", "Cancel"] {
             let b = app.buttons[id].firstMatch
@@ -46,7 +55,7 @@ final class PassYUiR4ShotsTests: XCTestCase {
             print("R4DEBUG nav buttons: \(app.navigationBars.buttons.allElementsBoundByIndex.map { $0.label + "|" + $0.identifier })")
             if opt.waitForExistence(timeout: 3) {
                 opt.tap(); sleep(1)
-                shot(app, mode, 3, "item-menu")
+                screenShot(mode, 3, "item-menu")
                 print("R4DEBUG menu: \(app.menuItems.allElementsBoundByIndex.map(\.label)) buttons: \(app.buttons.allElementsBoundByIndex.map(\.label))")
                 let att = app.menuItems["Attachments"].exists ? app.menuItems["Attachments"] : app.buttons["Attachments"]
                 if att.waitForExistence(timeout: 3) {
