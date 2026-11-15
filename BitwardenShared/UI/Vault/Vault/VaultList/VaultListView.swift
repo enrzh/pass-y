@@ -466,31 +466,24 @@ struct VaultListView: View {
     /// the vault filter type changes.
     @SwiftUI.State private var vaultListTask: Task<Void, Never>?
 
-    /// Whether the bottom search field is being edited.
-    @SwiftUI.State private var isSearchEditing = false
+    /// The shell model that owns the persistent bottom search field.
+    @ObservedObject private var shell = PassYShellModel.shared
 
     var body: some View {
         ZStack {
             SearchableVaultListView(
-                isSearching: isSearchEditing || !store.state.searchText.isEmpty,
+                isSearching: shell.isEditing || !store.state.searchText.isEmpty,
                 store: store,
                 timeProvider: timeProvider,
             )
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                VaultBottomBar(
-                    addFolder: { store.send(.addFolder) },
-                    addItem: { store.send(.addItemPressed($0)) },
-                    availableItemTypes: store.state.itemTypesUserCanCreate,
-                    isEditing: $isSearchEditing,
-                    text: store.binding(
-                        get: \.searchText,
-                        send: VaultListAction.searchTextChanged,
-                    ),
-                )
-            }
-            .onChange(of: isSearchEditing || !store.state.searchText.isEmpty) { newValue in
-                store.send(.searchStateChanged(isSearching: newValue))
-            }
+            .passYSearchTarget(
+                id: ObjectIdentifier(store),
+                isPushed: false,
+                text: store.state.searchText,
+                entries: addEntries,
+                setText: { store.send(.searchTextChanged($0)) },
+                setSearching: { store.send(.searchStateChanged(isSearching: $0)) },
+            )
             .autocorrectionDisabled(true)
             .searchDebouncedTask(id: store.state.searchText) {
                 await store.perform(.search(store.state.searchText))
@@ -512,27 +505,13 @@ struct VaultListView: View {
         .toolbar {
             largeNavigationTitleToolbarItem(store.state.navigationTitle)
 
-            ToolbarItem(placement: .topBarTrailing) {
-                VaultProfileMenuView(
-                    onSync: { await store.perform(.refreshVault) },
-                    onSettings: { store.send(.settingsPressed) },
-                    store: store.child(
-                        state: { state in
-                            state.profileSwitcherState
-                        },
-                        mapAction: { action in
-                            .profileSwitcher(action)
-                        },
-                        mapEffect: { effect in
-                            .profileSwitcher(effect)
-                        },
-                    ),
-                )
-            }
+            PassYAvatarToolbarItem()
         }
         .task {
             await store.perform(.refreshAccountProfiles)
         }
+        .onAppear { publishProfileMenu() }
+        .onChange(of: store.state.profileSwitcherState) { _ in publishProfileMenu() }
         .task {
             await store.perform(.appeared)
         }
@@ -556,10 +535,9 @@ struct VaultListView: View {
         .onDisappear {
             vaultListTask?.cancel()
             vaultListTask = nil
-            // Leaving the tab ends editing in the bottom search bar (UIKit resigns it without telling us),
-            // so reset the flag; the search text is kept and the bar shows its cancel button.
-            isSearchEditing = false
-            // Close the keyboard right away; otherwise UIKit restores the search focus when the tab comes back.
+            // Opening a result ends editing in the bottom search bar; the search text is kept and the bar
+            // shows its cancel button.
+            shell.isEditing = false
             NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
         }
         .onAppear {
@@ -573,6 +551,45 @@ struct VaultListView: View {
         .requestReview(isEligible: store.state.isEligibleForAppReview, windowScene: windowScene) {
             store.send(.appReviewPromptShown)
         }
+    }
+
+    // MARK: Private methods
+
+    /// The "+" menu of the persistent bottom bar: the item types and a folder.
+    private var addEntries: [PassYAddEntry] {
+        var entries = store.state.itemTypesUserCanCreate.map { type in
+            PassYAddEntry(
+                id: "type-\(type.hashValue)",
+                action: { store.send(.addItemPressed(type)) },
+                symbol: type.passYAddMenuSymbol,
+                title: type.localizedName,
+            )
+        }
+        entries.append(PassYAddEntry(
+            id: "folder",
+            action: { store.send(.addFolder) },
+            dividerBefore: true,
+            symbol: "folder",
+            title: Localizations.folder,
+        ))
+        return entries
+    }
+
+    /// Publishes the accounts and actions for the avatar menu that every top-level screen shows.
+    private func publishProfileMenu() {
+        let state = store.state.profileSwitcherState
+        shell.profileMenu = PassYProfileMenuSource(
+            accounts: state.accounts,
+            activeAccountId: state.activeAccountId,
+            activeProfile: state.activeAccountProfile,
+            addAccount: { Task { await store.perform(.profileSwitcher(.addAccountPressed)) } },
+            canLock: state.allowLockAndLogout && state.activeAccountProfile?.canBeLocked == true,
+            lock: { account in Task { await store.perform(.profileSwitcher(.accessibility(.lock(account)))) } },
+            select: { account in Task { await store.perform(.profileSwitcher(.accountPressed(account))) } },
+            showsAddAccount: state.showsAddAccount,
+            showsPlaceholder: state.showPlaceholderToolbarIcon,
+            sync: { Task { await store.perform(.refreshVault) } },
+        )
     }
 
     // MARK: Private properties

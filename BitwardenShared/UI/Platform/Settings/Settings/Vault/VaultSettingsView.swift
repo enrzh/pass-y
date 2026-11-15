@@ -18,13 +18,18 @@ struct VaultSettingsView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            importLoginsActionCard
+        Form {
+            if store.state.shouldShowImportLoginsActionCard {
+                Section {
+                    importLoginsActionCard
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+            }
 
             vaultSettings
         }
         .animation(.easeInOut, value: store.state.badgeState?.importLoginsSetupProgress == .complete)
-        .scrollView()
         .navigationBar(title: Localizations.vault, titleDisplayMode: .inline)
         .onChange(of: store.state.url) { newValue in
             guard let url = newValue else { return }
@@ -56,24 +61,43 @@ struct VaultSettingsView: View {
         }
     }
 
+    /// A native navigation row.
+    private func row(
+        _ title: String,
+        systemImage: String,
+        trailing: String = "chevron.right",
+        action: @escaping () -> Void,
+    ) -> some View {
+        Button(action: action) {
+            HStack {
+                Label(title, systemImage: systemImage)
+                    .foregroundStyle(.primary)
+                Spacer()
+                Image(systemName: trailing)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
     /// The vault settings section.
     private var vaultSettings: some View {
-        ContentBlock(dividerLeadingPadding: 16) {
-            SettingsListItem(Localizations.myFolders) {
+        Section {
+            row(Localizations.myFolders, systemImage: "folder") {
                 store.send(.foldersTapped)
             }
             .accessibilityIdentifier("FoldersLabel")
 
-            SettingsListItem(Localizations.exportVault) {
+            row(Localizations.exportVault, systemImage: "square.and.arrow.up") {
                 store.send(.exportVaultTapped)
             }
             .accessibilityIdentifier("ExportVaultLabel")
 
-            SettingsListItem(Localizations.importItems) {
+            row(Localizations.importItems, systemImage: "square.and.arrow.down", trailing: "arrow.up.right") {
                 store.send(.importItemsTapped)
-            } trailingContent: {
-                Image(asset: SharedAsset.Icons.externalLink24)
-                    .imageStyle(.rowIcon)
             }
             .accessibilityIdentifier("ImportItemsLinkItemView")
         }

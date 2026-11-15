@@ -24,13 +24,13 @@ struct VaultGroupView: View {
 
     var body: some View {
         content
-            .searchable(
-                text: store.binding(
-                    get: \.searchText,
-                    send: VaultGroupAction.searchTextChanged,
-                ),
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: Localizations.search,
+            .passYSearchTarget(
+                id: ObjectIdentifier(store),
+                isPushed: true,
+                text: store.state.searchText,
+                entries: addEntries,
+                setText: { store.send(.searchTextChanged($0)) },
+                setSearching: { store.send(.searchStateChanged(isSearching: $0)) },
             )
             .navigationTitle(store.state.group.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
@@ -57,6 +57,29 @@ struct VaultGroupView: View {
     }
 
     // MARK: Private
+
+    /// The "+" menu of the persistent bottom bar for this group.
+    private var addEntries: [PassYAddEntry] {
+        guard let type = store.state.newItemButtonType else { return [] }
+        switch type {
+        case .button:
+            return [PassYAddEntry(
+                id: "group-add",
+                action: { store.send(.addItemPressed(nil)) },
+                symbol: "plus",
+                title: store.state.addItemButtonTitle,
+            )]
+        case .menu:
+            return store.state.itemTypesUserCanCreate.map { type in
+                PassYAddEntry(
+                    id: "type-\(type.hashValue)",
+                    action: { store.send(.addItemPressed(type)) },
+                    symbol: type.passYAddMenuSymbol,
+                    title: type.localizedName,
+                )
+            }
+        }
+    }
 
     /// The action card for Premium subscription ended for archive.
     @ViewBuilder private var archivePremiumSubscriptionEndedCard: some View {
@@ -138,22 +161,6 @@ struct VaultGroupView: View {
                 emptyView
             } else {
                 groupView(with: items)
-            }
-        }
-        .overlay(alignment: .bottomTrailing) {
-            if let floatingActionButtonType = store.state.newItemButtonType {
-                switch floatingActionButtonType {
-                case .button:
-                    addItemFloatingActionButton {
-                        store.send(.addItemPressed(nil))
-                    }
-                case .menu:
-                    addVaultItemFloatingActionMenu(
-                        availableItemTypes: store.state.itemTypesUserCanCreate,
-                    ) { type in
-                        store.send(.addItemPressed(type))
-                    }
-                }
             }
         }
     }

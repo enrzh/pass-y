@@ -22,14 +22,12 @@ struct SelfHostedView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 16) {
+        Form {
             selfHostedEnvironment
             customEnvironment
             clientCertificateSection
         }
-        .textFieldConfiguration(.url)
         .navigationBar(title: Localizations.settings, titleDisplayMode: .inline)
-        .scrollView()
         .toolbar {
             cancelToolbarItem {
                 store.send(.dismiss)
@@ -128,91 +126,72 @@ struct SelfHostedView: View {
 
     // MARK: Private views
 
+    /// A native text field row bound to a store value.
+    private func urlField(
+        _ title: String,
+        id: String,
+        get: @escaping (SelfHostedState) -> String,
+        send: @escaping (String) -> SelfHostedAction,
+    ) -> some View {
+        TextField(title, text: store.binding(get: get, send: send))
+            .keyboardType(.URL)
+            .textContentType(.URL)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .accessibilityIdentifier(id)
+    }
+
     /// The custom environment section.
     private var customEnvironment: some View {
-        SectionView(Localizations.customEnvironment, contentSpacing: 8) {
-            BitwardenTextField(
-                title: Localizations.webVaultUrl,
-                text: store.binding(
-                    get: \.webVaultServerUrl,
-                    send: SelfHostedAction.webVaultUrlChanged,
-                ),
-            )
-            .accessibilityIdentifier("WebVaultUrlEntry")
-
-            BitwardenTextField(
-                title: Localizations.apiUrl,
-                text: store.binding(
-                    get: \.apiServerUrl,
-                    send: SelfHostedAction.apiUrlChanged,
-                ),
-            )
-            .accessibilityIdentifier("ApiUrlEntry")
-
-            BitwardenTextField(
-                title: Localizations.identityUrl,
-                text: store.binding(
-                    get: \.identityServerUrl,
-                    send: SelfHostedAction.identityUrlChanged,
-                ),
-            )
-            .accessibilityIdentifier("IdentityUrlEntry")
-
-            BitwardenTextField(
-                title: Localizations.iconsUrl,
-                text: store.binding(
-                    get: \.iconsServerUrl,
-                    send: SelfHostedAction.iconsUrlChanged,
-                ),
-                footer: Localizations.customEnvironmentFooter,
-            )
-            .accessibilityIdentifier("IconsUrlEntry")
+        Section {
+            urlField(Localizations.webVaultUrl, id: "WebVaultUrlEntry", get: \.webVaultServerUrl, send: SelfHostedAction.webVaultUrlChanged)
+            urlField(Localizations.apiUrl, id: "ApiUrlEntry", get: \.apiServerUrl, send: SelfHostedAction.apiUrlChanged)
+            urlField(Localizations.identityUrl, id: "IdentityUrlEntry", get: \.identityServerUrl, send: SelfHostedAction.identityUrlChanged)
+            urlField(Localizations.iconsUrl, id: "IconsUrlEntry", get: \.iconsServerUrl, send: SelfHostedAction.iconsUrlChanged)
+        } header: {
+            Text(Localizations.customEnvironment)
+        } footer: {
+            Text(Localizations.customEnvironmentFooter)
         }
     }
 
     /// The self-hosted environment section.
     private var selfHostedEnvironment: some View {
-        SectionView(Localizations.selfHostedEnvironment) {
-            BitwardenTextField(
-                title: Localizations.serverUrl,
-                text: store.binding(
-                    get: \.serverUrl,
-                    send: SelfHostedAction.serverUrlChanged,
-                ),
-                footer: Localizations.selfHostedEnvironmentFooter,
-            )
-            .accessibilityIdentifier("ServerUrlEntry")
-            .autocorrectionDisabled()
-            .keyboardType(.URL)
-            .textContentType(.URL)
-            .textInputAutocapitalization(.never)
+        Section {
+            urlField(Localizations.serverUrl, id: "ServerUrlEntry", get: \.serverUrl, send: SelfHostedAction.serverUrlChanged)
+        } header: {
+            Text(Localizations.selfHostedEnvironment)
+        } footer: {
+            Text(Localizations.selfHostedEnvironmentFooter)
         }
     }
 
     /// The client certificate (mTLS) section.
     private var clientCertificateSection: some View {
-        SectionView(Localizations.clientCertificateMtls, contentSpacing: 8) {
-            BitwardenTextField(
-                title: Localizations.certificateAlias,
-                text: .constant(store.state.keyAlias),
-                footer: Localizations.certificateUsedForClientAuthentication,
-            )
+        Section {
+            HStack {
+                Text(Localizations.certificateAlias)
+                Spacer()
+                Text(store.state.keyAlias)
+                    .foregroundStyle(.secondary)
+            }
             .accessibilityIdentifier("KeyAliasEntry")
-            .disabled(true)
 
             Button(Localizations.importCertificate) {
                 store.send(.importCertificateTapped)
             }
             .accessibilityIdentifier("ImportCertificateButton")
-            .buttonStyle(.primary())
 
             if !store.state.keyAlias.isEmpty {
-                Button(Localizations.removeCertificate) {
+                Button(Localizations.removeCertificate, role: .destructive) {
                     store.send(.removeCertificateTapped)
                 }
                 .accessibilityIdentifier("RemoveCertificateButton")
-                .buttonStyle(.secondary(isDestructive: true))
             }
+        } header: {
+            Text(Localizations.clientCertificateMtls)
+        } footer: {
+            Text(Localizations.certificateUsedForClientAuthentication)
         }
     }
 }

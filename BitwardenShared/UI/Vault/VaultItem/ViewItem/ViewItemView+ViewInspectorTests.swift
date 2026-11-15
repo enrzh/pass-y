@@ -181,24 +181,23 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertEqual(processor.dispatchedActions.last, .downloadAttachment(.fixture(id: "2")))
     }
 
-    /// Tapping the floating action button dispatches the `.editPressed` action.`
+    /// Tapping the edit toolbar button dispatches the `.editPressed` action.`
     @MainActor
-    func test_editItemFloatingActionButton() async throws {
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "EditItemFloatingActionButton",
-        )
-        try await fab.tap()
+    func test_editToolbarButton() async throws {
+        let fab = try subject.inspect().find(ViewType.Button.self) { view in
+            try view.accessibilityIdentifier() == "EditItemButton"
+        }
+        try fab.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .editPressed)
     }
 
-    /// The edit item FAB is hidden if the item has been deleted.
+    /// The edit toolbar button is hidden if the item has been deleted.
     @MainActor
-    func test_editItemFloatingActionButton_hidden_cipherDeleted() async throws {
+    func test_editToolbarButton_hidden_cipherDeleted() async throws {
         processor.state.loadingState = .data(CipherItemState(existing: .fixture(deletedDate: .now), hasPremium: true)!)
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "EditItemFloatingActionButton",
-        )
-        XCTAssertTrue(fab.isHidden())
+        XCTAssertThrowsError(try subject.inspect().find(ViewType.Button.self) { view in
+            try view.accessibilityIdentifier() == "EditItemButton"
+        })
     }
 
     /// Tapping the password history button dispatches the `passwordHistoryPressed` action.

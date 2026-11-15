@@ -15,11 +15,11 @@ public struct SectionHeaderView: View {
 
     public var body: some View {
         Text(title)
-            .styleGuide(.caption1, weight: .bold)
+            .font(.footnote)
             .accessibilityAddTraits(.isHeader)
             .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-            .textCase(.uppercase)
-            .padding(.leading, 12)
+            .textCase(nil)
+            .padding(.leading, 16)
     }
 
     // MARK: Initialization

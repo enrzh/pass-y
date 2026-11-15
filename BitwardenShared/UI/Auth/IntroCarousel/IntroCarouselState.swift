@@ -34,25 +34,25 @@ struct IntroCarouselState: Equatable {
     /// The list of scrollable pages displayed in the carousel.
     let pages: [CarouselPage] = [
         CarouselPage(
-            image: Asset.Images.Illustrations.items.swiftUIImage,
+            image: Image(systemName: "lock.shield.fill"),
             message: Localizations.introCarouselPage1Message,
             title: Localizations.introCarouselPage1Title,
         ),
 
         CarouselPage(
-            image: Asset.Images.Illustrations.biometricsPhone.swiftUIImage,
+            image: Image(systemName: "faceid"),
             message: Localizations.introCarouselPage2Message,
             title: Localizations.introCarouselPage2Title,
         ),
 
         CarouselPage(
-            image: Asset.Images.Illustrations.generate.swiftUIImage,
+            image: Image(systemName: "wand.and.stars"),
             message: Localizations.introCarouselPage3Message,
             title: Localizations.introCarouselPage3Title,
         ),
 
         CarouselPage(
-            image: Asset.Images.Illustrations.secureDevices.swiftUIImage,
+            image: Image(systemName: "macbook.and.iphone"),
             message: Localizations.introCarouselPage4Message,
             title: Localizations.introCarouselPage4Title,
         ),

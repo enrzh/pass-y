@@ -68,7 +68,6 @@ struct ViewItemView: View {
                 get: \.toast,
                 send: ViewItemAction.toastShown,
             ),
-            additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
         )
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -78,6 +77,12 @@ struct ViewItemView: View {
             }
 
             ToolbarItemGroup(placement: .topBarTrailing) {
+                if store.state.canEdit {
+                    editToolbarButton {
+                        store.send(.editPressed)
+                    }
+                }
+
                 VaultItemManagementMenuView(
                     isArchiveEnabled: isArchiveEnabled,
                     isCloneEnabled: store.state.canClone,
@@ -101,11 +106,6 @@ struct ViewItemView: View {
                         },
                     ),
                 )
-            }
-        }
-        .overlay(alignment: .bottomTrailing) {
-            editItemFloatingActionButton(hidden: !store.state.canEdit) {
-                store.send(.editPressed)
             }
         }
         .onAppear {
@@ -143,7 +143,6 @@ struct ViewItemView: View {
                 timeProvider: timeProvider,
             )
         }
-        .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
         .scrollView()
     }
 }

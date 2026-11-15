@@ -38,11 +38,11 @@ final class PassYShotsTests: XCTestCase {
             if close.exists { close.firstMatch.tap() }
             if app.buttons["Cancel"].waitForExistence(timeout: 3) { app.buttons["Cancel"].tap() }
         }
-        tab(app, "Generator").tap(); sleep(1)
+        goTo(app, "Generator"); sleep(1)
         attach(app, "\(tag)-3-generator")
-        tab(app, "Settings").tap(); sleep(1)
+        goTo(app, "Settings"); sleep(1)
         attach(app, "\(tag)-4-settings")
-        tab(app, "My vault").tap()
+        goTo(app, "My vault")
         // iOS 26 shows the search bar cancel as an X button (label "Cancel" or "Close" depending on the OS build).
         // The cancel/X button belongs to the bottom search bar (other "Close" buttons, e.g. sheets, must not match).
         let cancel = app.buttons["VaultSearchCancel"]

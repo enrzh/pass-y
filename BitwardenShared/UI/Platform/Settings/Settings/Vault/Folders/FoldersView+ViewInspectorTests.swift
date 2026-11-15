@@ -1,6 +1,7 @@
 // swiftlint:disable:this file_name
 import BitwardenKit
 import BitwardenKitMocks
+import ViewInspector
 import XCTest
 
 @testable import BitwardenShared
@@ -32,13 +33,13 @@ class FoldersViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// Tapping the new folder floating action button dispatches the `.add` action.`
+    /// Tapping the new folder toolbar button dispatches the `.add` action.`
     @MainActor
-    func test_addItemFloatingActionButton_tap() async throws {
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "AddItemFloatingActionButton",
-        )
-        try await fab.tap()
+    func test_addToolbarButton_tap() throws {
+        let button = try subject.inspect().find(ViewType.Button.self) { view in
+            try view.accessibilityIdentifier() == "AddItemButton"
+        }
+        try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .add)
     }
 

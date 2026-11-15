@@ -1,0 +1,214 @@
+import BitwardenKit
+import Combine
+import SwiftUI
+import UIKit
+
+// MARK: - PassYShellController
+
+/// The root shell of the signed-in app. It shows one top-level navigator at a time (Vault, Send, Generator or
+/// Settings; they are chosen from the avatar menu, there is no tab bar) and keeps the search bar pinned to the bottom
+/// of the screen on every page, also on pushed pages. It conforms to `TabNavigator`, so the coordinators keep working.
+///
+class PassYShellController: UIViewController, TabNavigator {
+    // MARK: Properties
+
+    /// The model shared with the bottom bar and the avatar menu.
+    let model: PassYShellModel
+
+    // MARK: Private Properties
+
+    /// The hosting controller of the persistent bottom bar.
+    private var barHost: UIHostingController<PassYShellBar>?
+
+    /// A solid strip below the bar content, behind the home indicator.
+    private let bottomBacking = UIView()
+
+    /// The container for the selected navigator.
+    private let contentView = UIView()
+
+    /// The shown child view controller.
+    private var currentChild: UIViewController?
+
+    /// The navigators sorted by their route index.
+    private var entries: [(index: Int, navigator: any Navigator)] = []
+
+    /// The route index of the selected navigator.
+    private var selectedRouteIndex = 0
+
+    /// The tabs by route, to answer `navigator(for:)`.
+    private var tabsAndNavigators: [TabRoute: any Navigator] = [:]
+
+    /// Subscriptions to the shared model.
+    private var cancellables = Set<AnyCancellable>()
+
+    // MARK: Initialization
+
+    /// Creates the shell.
+    ///
+    /// - Parameter model: The model shared with the bottom bar and the avatar menu.
+    ///
+    @MainActor
+    init(model: PassYShellModel? = nil) {
+        self.model = model ?? PassYShellModel.shared
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
+
+    // MARK: Navigator
+
+    var rootViewController: UIViewController? {
+        self
+    }
+
+    // MARK: TabNavigator
+
+    var selectedIndex: Int {
+        get { entries.firstIndex { $0.index == selectedRouteIndex } ?? 0 }
+        set {
+            guard entries.indices.contains(newValue) else { return }
+            show(routeIndex: entries[newValue].index, resetSearch: false)
+        }
+    }
+
+    func navigator<Tab: TabRepresentable>(for tab: Tab) -> Navigator? {
+        if let tabRoute = tab as? TabRoute {
+            return tabsAndNavigators.first(where: { $0.key.index == tabRoute.index })?.value
+        }
+        return entries.first(where: { $0.index == tab.index })?.navigator
+    }
+
+    func setNavigators<Tab: Hashable & TabRepresentable>(_ tabs: [Tab: Navigator]) {
+        tabsAndNavigators = tabs as? [TabRoute: Navigator] ?? [:]
+        entries = tabs
+            .sorted { $0.key.index < $1.key.index }
+            .map { (index: $0.key.index, navigator: $0.value) }
+        model.availableDestinations = entries.compactMap { PassYDestination(rawValue: $0.index) }
+
+        // Keep the selection if it still exists (for example when Send is switched off by policy).
+        let target = entries.contains { $0.index == selectedRouteIndex }
+            ? selectedRouteIndex
+            : (entries.first?.index ?? 0)
+        show(routeIndex: target, resetSearch: false)
+    }
+
+    // MARK: Lifecycle
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemGroupedBackground
+
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(contentView)
+        NSLayoutConstraint.activate([
+            contentView.topAnchor.constraint(equalTo: view.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+
+        bottomBacking.backgroundColor = .systemGroupedBackground
+        bottomBacking.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(bottomBacking)
+        NSLayoutConstraint.activate([
+            bottomBacking.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            bottomBacking.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomBacking.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomBacking.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+
+        let host = UIHostingController(rootView: PassYShellBar(model: model))
+        host.view.backgroundColor = .clear
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        addChild(host)
+        view.addSubview(host.view)
+        host.didMove(toParent: self)
+        NSLayoutConstraint.activate([
+            host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            host.view.heightAnchor.constraint(
+                equalToConstant: PassYShellBar.barHeight + PassYShellBar.fadeHeight,
+            ),
+            // Rests on the bottom safe area; rides above the keyboard while the search field is edited.
+            host.view.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+        ])
+        barHost = host
+
+        model.selectDestination = { [weak self] destination in
+            guard let self else { return }
+            let reselect = destination == model.destination
+            show(routeIndex: destination.rawValue, resetSearch: true)
+            if reselect { popToRoot() }
+        }
+
+        // Typing in the bar on a page that cannot search (Settings, Generator, an item) opens the vault search.
+        Publishers.CombineLatest(model.$isEditing, model.$text)
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] editing, text in
+                guard let self, editing || !text.isEmpty, model.activeTarget == nil else { return }
+                routeToSearch()
+            }
+            .store(in: &cancellables)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // Pages end where the bar content begins (also above the keyboard), so lists and forms clear the bar.
+        guard let host = barHost?.view else { return }
+        let barTop = host.frame.minY + PassYShellBar.fadeHeight
+        let inset = max(0, view.bounds.height - barTop - view.safeAreaInsets.bottom)
+        if currentChild?.additionalSafeAreaInsets.bottom != inset {
+            currentChild?.additionalSafeAreaInsets.bottom = inset
+        }
+        view.bringSubviewToFront(bottomBacking)
+        view.bringSubviewToFront(host)
+    }
+
+    // MARK: Private Methods
+
+    /// Pops the selected navigator to its root.
+    private func popToRoot() {
+        (entries.first { $0.index == selectedRouteIndex }?.navigator.rootViewController as? UINavigationController)?
+            .popToRootViewController(animated: UI.animated)
+    }
+
+    /// Shows the vault (or Send) root so the search text can be consumed.
+    private func routeToSearch() {
+        if model.destination != .vault, model.destination != .send {
+            show(routeIndex: PassYDestination.vault.rawValue, resetSearch: false)
+        }
+        popToRoot()
+    }
+
+    /// Shows the navigator for a route index.
+    private func show(routeIndex: Int, resetSearch: Bool) {
+        guard let entry = entries.first(where: { $0.index == routeIndex }),
+              let child = entry.navigator.rootViewController else { return }
+        let changed = selectedRouteIndex != routeIndex
+        selectedRouteIndex = routeIndex
+        if let destination = PassYDestination(rawValue: routeIndex) { model.destination = destination }
+        if changed, resetSearch { model.cancelSearch() }
+        guard currentChild !== child else { return }
+
+        currentChild?.willMove(toParent: nil)
+        currentChild?.view.removeFromSuperview()
+        currentChild?.removeFromParent()
+
+        addChild(child)
+        child.view.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(child.view)
+        NSLayoutConstraint.activate([
+            child.view.topAnchor.constraint(equalTo: contentView.topAnchor),
+            child.view.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            child.view.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            child.view.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+        ])
+        child.didMove(toParent: self)
+        currentChild = child
+        view.setNeedsLayout()
+    }
+}

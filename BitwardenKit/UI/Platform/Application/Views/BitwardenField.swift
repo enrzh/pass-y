@@ -35,13 +35,13 @@ public struct BitwardenField<Content: View, AccessoryContent: View, FooterConten
 
             footerView()
         }
-        .padding(.leading, 16)
+        .padding(.leading, 20)
         .background(
             isEnabled
                 ? SharedAsset.Colors.backgroundSecondary.swiftUIColor
                 : SharedAsset.Colors.backgroundSecondaryDisabled.swiftUIColor,
         )
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
     // MARK: Initialization

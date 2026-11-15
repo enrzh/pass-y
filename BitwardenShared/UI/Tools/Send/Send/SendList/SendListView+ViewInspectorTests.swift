@@ -33,59 +33,26 @@ class SendListViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// When restricted to a single Send type by policy, tapping the add control in the bottom bar opens
-    /// that type directly (no menu).
+    /// Without a restriction the bottom bar menu offers Text and File and each adds that type.
     @MainActor
-    func test_addControl_restrictedSendType_tap() async throws {
+    func test_addEntries_offersTextAndFile() {
         var added: [SendType] = []
-        let bar = SendBottomBar(
-            addSend: { added.append($0) },
-            restrictedSendType: .text,
-            isEditing: .constant(false),
-            text: .constant(""),
-        )
-        let button = try bar.inspect().find(asyncButtonWithAccessibilityIdentifier: "AddItemFloatingActionButton")
-        try await button.tap()
+        let entries = SendListView.addEntries(restrictedSendType: nil) { added.append($0) }
+        XCTAssertEqual(Set(entries.map(\.title)), Set([SendType.text.localizedName, SendType.file.localizedName]))
+        entries.forEach { $0.action() }
+        XCTAssertEqual(Set(added), [.text, .file])
+        XCTAssertEqual(added.count, 2)
+    }
+
+    /// When restricted to a single Send type by policy the bottom bar has one entry for that type (the chooser is
+    /// bypassed).
+    @MainActor
+    func test_addEntries_restrictedSendType_singleEntry() {
+        var added: [SendType] = []
+        let entries = SendListView.addEntries(restrictedSendType: .text) { added.append($0) }
+        XCTAssertEqual(entries.count, 1)
+        entries.first?.action()
         XCTAssertEqual(added, [.text])
-    }
-
-    /// Without a restriction, the bottom bar menu offers Text and File and each adds that type.
-    @MainActor
-    func test_addControl_menu_offersTextAndFile() async throws {
-        var added: [SendType] = []
-        let bar = SendBottomBar(
-            addSend: { added.append($0) },
-            restrictedSendType: nil,
-            isEditing: .constant(false),
-            text: .constant(""),
-        )
-        try await bar.inspect().find(asyncButton: Localizations.text).tap()
-        try await bar.inspect().find(asyncButton: Localizations.file).tap()
-        XCTAssertEqual(added, [.text, .file])
-    }
-
-    /// Tapping the add item floating action menu and selecting the file type performs the `.addItemPressed` effect.
-    @MainActor
-    func test_addItemFloatingActionMenu_file_tap() async throws {
-        let fabMenuButton = try subject.inspect().find(asyncButton: Localizations.file)
-        try await fabMenuButton.tap()
-        XCTAssertEqual(processor.effects.last, .addItemPressed(.file))
-    }
-
-    /// When restricted to a single Send type by policy, the add item floating action menu is not
-    /// shown (the chooser is bypassed).
-    @MainActor
-    func test_addItemFloatingActionMenu_restrictedSendType_hidden() throws {
-        processor.state.restrictedSendType = .text
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.file))
-    }
-
-    /// Tapping the add item floating action menu and selecting the text type performs the `.addItemPressed` effect.
-    @MainActor
-    func test_addItemFloatingActionMenu_text_tap() async throws {
-        let fabMenuButton = try subject.inspect().find(asyncButton: Localizations.text)
-        try await fabMenuButton.tap()
-        XCTAssertEqual(processor.effects.last, .addItemPressed(.text))
     }
 
     /// When restricted to a single Send type by policy, tapping the empty state's New Send button
@@ -122,7 +89,8 @@ class SendListViewTests: BitwardenTestCase {
     /// Tapping the info button dispatches the `.infoButtonPressed` action.
     @MainActor
     func test_infoButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.aboutSend)
+        let menu = try subject.inspect().find(ViewType.Menu.self, containing: Localizations.options)
+        let button = try menu.find(button: Localizations.aboutSend)
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .infoButtonPressed)
     }

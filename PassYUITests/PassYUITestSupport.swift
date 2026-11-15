@@ -142,8 +142,31 @@ extension XCTestCase {
     }
 }
 
-/// A tab bar item that works for the iPhone tab bar and the iPad/Duo floating tab bar.
-func tab(_ app: XCUIApplication, _ label: String) -> XCUIElement {
-    let inBar = app.tabBars.buttons[label]
-    return inBar.exists ? inBar : app.buttons[label].firstMatch
+/// Opens the avatar menu (top right) and returns the entry for a destination ("My vault", "Send", "Generator",
+/// "Settings"). There is no tab bar: these entries are the only way to switch top-level screens.
+func avatarMenuEntry(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+    let ids = ["My vault": "ProfileMenuVaultButton", "Send": "ProfileMenuSendButton",
+               "Generator": "ProfileMenuGeneratorButton", "Settings": "ProfileMenuSettingsButton"]
+    func lookup() -> XCUIElement? {
+        let byId = app.buttons[ids[label] ?? label]
+        if byId.exists { return byId }
+        let byLabel = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+        if byLabel.exists { return byLabel }
+        let item = app.menuItems[label]
+        return item.exists ? item : nil
+    }
+    if let found = lookup() { return found }
+    // The menu is closed: open it (once) and look again.
+    let avatar = app.buttons["CurrentActiveAccount"]
+    if avatar.waitForExistence(timeout: 10) { avatar.tap() }
+    for _ in 0 ..< 10 {
+        if let found = lookup() { return found }
+        usleep(300_000)
+    }
+    return app.buttons[ids[label] ?? label]
+}
+
+/// Switches to a top-level screen through the avatar menu.
+func goTo(_ app: XCUIApplication, _ label: String) {
+    avatarMenuEntry(app, label).tap()
 }

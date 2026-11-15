@@ -231,30 +231,57 @@ struct SendListView: View {
     /// An action that opens URLs.
     @Environment(\.openURL) private var openURL
 
-    /// Whether the bottom search field is being edited.
-    @SwiftUI.State private var isSearchEditing = false
+    /// The shell model that owns the persistent bottom search field.
+    @ObservedObject private var shell = PassYShellModel.shared
 
     /// The `Store` for this view.
     @ObservedObject var store: Store<SendListState, SendListAction, SendListEffect>
 
+    // MARK: Static
+
+    /// The "+" menu entries of the persistent bottom bar: Text and File, or the single allowed type.
+    ///
+    /// - Parameters:
+    ///   - restrictedSendType: The send type that is the only one that can be created, if restricted.
+    ///   - addSend: Called with the chosen send type.
+    ///
+    static func addEntries(
+        restrictedSendType: SendType?,
+        addSend: @escaping (SendType) -> Void,
+    ) -> [PassYAddEntry] {
+        if let restrictedSendType {
+            return [PassYAddEntry(
+                id: "send-\(restrictedSendType)",
+                action: { addSend(restrictedSendType) },
+                symbol: "plus",
+                title: Localizations.newSend,
+            )]
+        }
+        return SendType.allCases.map { type in
+            PassYAddEntry(
+                id: "send-\(type)",
+                action: { addSend(type) },
+                symbol: type == .text ? "doc.text" : "doc",
+                title: type.localizedName,
+            )
+        }
+    }
+
     // MARK: View
 
     var body: some View {
-        MainSendListView(isSearchEditing: isSearchEditing, store: store)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                SendBottomBar(
-                    addSend: { await store.perform(.addItemPressed($0)) },
+        MainSendListView(isSearchEditing: shell.isEditing, store: store)
+            .passYSearchTarget(
+                id: ObjectIdentifier(store),
+                isPushed: store.state.type != nil,
+                text: store.state.searchText,
+                entries: Self.addEntries(
                     restrictedSendType: store.state.type ?? store.state.restrictedSendType,
-                    isEditing: $isSearchEditing,
-                    text: store.binding(
-                        get: \.searchText,
-                        send: SendListAction.searchTextChanged,
-                    ),
-                )
-            }
-            .onChange(of: isSearchEditing || !store.state.searchText.isEmpty) { newValue in
-                store.send(.searchStateChanged(isSearching: newValue))
-            }
+                    addSend: { type in Task { await store.perform(.addItemPressed(type)) } },
+                ),
+                setText: { store.send(.searchTextChanged($0)) },
+                setSearching: { store.send(.searchStateChanged(isSearching: $0)) },
+            )
             .autocorrectionDisabled(true)
             .refreshable { [weak store] in
                 await store?.perform(.refresh)
@@ -266,15 +293,18 @@ struct SendListView: View {
                     hidden: store.state.type != nil,
                 )
 
+                if store.state.type == nil {
+                    PassYAvatarToolbarItem()
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     if !store.state.isInfoButtonHidden {
-                        Button {
-                            store.send(.infoButtonPressed)
-                        } label: {
-                            Image(asset: SharedAsset.Icons.questionCircle24, label: Text(Localizations.aboutSend))
-                                .foregroundColor(SharedAsset.Colors.iconSecondary.swiftUIColor)
+                        // Same "..." menu as on the generator, next to the avatar.
+                        optionsToolbarMenu {
+                            Button(Localizations.aboutSend) {
+                                store.send(.infoButtonPressed)
+                            }
                         }
-                        .frame(minHeight: 44)
                     }
                 }
             }

@@ -88,25 +88,6 @@ class VaultGroupViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .addItemPressed(.secureNote))
     }
 
-    /// Tapping the add item floating action button dispatches the `.addItemPressed` action.`
-    @MainActor
-    func test_addItemFloatingActionButton_tap() async throws {
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "AddItemFloatingActionButton",
-        )
-        try await fab.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .addItemPressed(nil))
-    }
-
-    /// Tapping the add item floating action menu dispatches the `.addItemPressed` action.`
-    @MainActor
-    func test_addItemFloatingActionMenu_tap() throws {
-        processor.state.group = .folder(id: "1", name: "Folder")
-        let button = try subject.inspect().find(button: Localizations.typeCard)
-        try button.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .addItemPressed(.card))
-    }
-
     /// Tapping a vault item dispatches the `.itemPressed` effect.
     @MainActor
     func test_vaultItem_tap() async throws {

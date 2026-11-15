@@ -326,28 +326,38 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         XCTAssertEqual(processor.effects, [.dismissOrganizationBanner(fromActionButton: true)])
     }
 
-    /// The profile menu offers settings, sync and account switching.
+    /// The avatar menu offers the four destinations, sync and account switching.
     @MainActor
-    func test_profileMenu_actions() async throws {
-        var settingsTapped = false
+    func test_avatarMenu_actions() async throws {
+        let model = PassYShellModel.shared
+        var selected: [PassYDestination] = []
         var syncTapped = false
-        let profileProcessor = MockProcessor<ProfileSwitcherState, ProfileSwitcherAction, ProfileSwitcherEffect>(
-            state: .dualAccounts,
+        var selectedAccount: ProfileSwitcherItem?
+        let accounts = ProfileSwitcherState.dualAccounts.accounts
+        model.selectDestination = { selected.append($0) }
+        model.profileMenu = PassYProfileMenuSource(
+            accounts: accounts,
+            activeAccountId: accounts[0].userId,
+            activeProfile: accounts[0],
+            addAccount: {},
+            canLock: false,
+            lock: { _ in },
+            select: { selectedAccount = $0 },
+            showsAddAccount: false,
+            showsPlaceholder: false,
+            sync: { syncTapped = true },
         )
-        let menu = VaultProfileMenuView(
-            onSync: { syncTapped = true },
-            onSettings: { settingsTapped = true },
-            store: Store(processor: profileProcessor),
-        )
-        try menu.inspect().find(button: Localizations.settings).tap()
-        XCTAssertTrue(settingsTapped)
+        let menu = PassYAvatarMenu()
+        for destination in PassYDestination.allCases {
+            try menu.inspect().find(button: destination.title).tap()
+        }
+        XCTAssertEqual(selected, PassYDestination.allCases)
         try menu.inspect().find(button: Localizations.syncNow).tap()
-        try await Task.sleep(nanoseconds: 300_000_000)
         XCTAssertTrue(syncTapped)
-        let account = profileProcessor.state.accounts[1]
-        try menu.inspect().find(button: account.email).tap()
-        try await Task.sleep(nanoseconds: 300_000_000)
-        XCTAssertEqual(profileProcessor.effects.last, .accountPressed(account))
+        try menu.inspect().find(button: accounts[1].email).tap()
+        XCTAssertEqual(selectedAccount, accounts[1])
+        model.selectDestination = nil
+        model.profileMenu = nil
     }
 
     /// Tapping the search result dispatches the `.itemPressed` effect.

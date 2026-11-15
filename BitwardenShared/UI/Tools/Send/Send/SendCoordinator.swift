@@ -121,14 +121,10 @@ final class SendCoordinator: Coordinator, HasStackNavigator {
         )
 
         let viewController = UIHostingController(rootView: view)
-        let searchController = UISearchController()
-        searchController.searchBar.placeholder = Localizations.search
-        searchController.searchResultsUpdater = searchHandler
-
+        // The search field is the persistent bottom bar of the shell (no search controller in the navigation bar).
         stackNavigator?.push(
             viewController,
             navigationTitle: type.localizedName,
-            searchController: searchController,
         )
     }
 
