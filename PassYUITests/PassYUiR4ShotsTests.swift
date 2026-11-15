@@ -186,6 +186,38 @@ final class PassYUiR4ShotsTests: XCTestCase {
         XCUIDevice.shared.appearance = .light
     }
 
+    /// iPad: vault, item view/edit, send, settings (run with an iPad destination).
+    func test_ipad() {
+        for mode in ["light", "dark"] {
+            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            let app = launchApp()
+            ensureUnlockedVault(app)
+            sleep(2)
+            shot(app, mode, 80, "ipad-vault")
+            let tile = app.buttons["CategoryTile_login"]
+            if tile.waitForExistence(timeout: 5) {
+                tile.tap(); sleep(2)
+                shot(app, mode, 81, "ipad-item-list")
+                let row = app.buttons["VaultListItemRowButton"].firstMatch
+                if row.waitForExistence(timeout: 5) {
+                    row.tap(); sleep(2)
+                    shot(app, mode, 82, "ipad-item-view")
+                    let edit = app.buttons["Edit"].firstMatch
+                    if edit.exists { edit.tap(); sleep(2); shot(app, mode, 83, "ipad-item-edit"); cancelOrClose(app); discardIfAsked(app) }
+                    cancelOrClose(app)
+                }
+                let back = app.navigationBars.buttons.firstMatch
+                if back.waitForExistence(timeout: 5) { back.tap(); sleep(1) }
+            }
+            goTo(app, "Send"); sleep(2)
+            shot(app, mode, 84, "ipad-send")
+            goTo(app, "Settings"); sleep(2)
+            shot(app, mode, 85, "ipad-settings")
+            app.terminate()
+        }
+        XCUIDevice.shared.appearance = .light
+    }
+
     /// Settings pages with the "set up" sections (autofill "Turn on now", account security, vault settings).
     func test_setupSections() {
         for mode in ["light", "dark"] {
