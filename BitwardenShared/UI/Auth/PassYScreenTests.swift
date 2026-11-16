@@ -10,14 +10,19 @@ import XCTest
 @testable import BitwardenShared
 
 /// ui-r5: enabled snapshot tests for the screens that the throwaway test account cannot reach in the UI tests
-/// (login with device, set master password, two-factor email/recovery, PIN unlock, SSH key form). Light, dark and the
-/// largest accessibility text size. The references in `__Snapshots__` are the screenshots in `Docs/screenshots/ui-r5`.
+/// (login with device, set master password, two-factor email/recovery, PIN unlock, SSH key form). Light and dark (a key-window render is needed for lists;
+/// it cannot render the very tall accessibility sizes, those are covered by the UI tests). The references in `__Snapshots__` are the screenshots in `Docs/screenshots/ui-r5`.
 class PassYScreenSnapshotTests: BitwardenTestCase {
-    private let strategies: [String: Snapshotting<UIViewController, UIImage>] = [
-        "portrait": .portrait(),
-        "portraitDark": .portraitDark(),
-        "tallPortraitAX5": .tallPortraitAX5(),
-    ]
+    @MainActor
+    private func snap(_ view: some View, file: StaticString = #file, testName: String = #function, line: UInt = #line) {
+        assertSnapshots(
+            of: view,
+            as: ["portrait": .portrait(drawHierarchyInKeyWindow: true), "portraitDark": .portraitDark(drawHierarchyInKeyWindow: true)],
+            file: file,
+            testName: testName,
+            line: line,
+        )
+    }
 
     @MainActor
     func test_snapshot_loginWithDevice() {
@@ -25,7 +30,7 @@ class PassYScreenSnapshotTests: BitwardenTestCase {
             state: LoginWithDeviceState(fingerprintPhrase: "some-weird-long-text-thing-as-a-placeholder"),
         )
         let subject = LoginWithDeviceView(store: Store(processor: processor))
-        assertSnapshots(of: subject.navStackWrapped, as: strategies)
+        snap(subject.navStackWrapped)
     }
 
     @MainActor
@@ -37,7 +42,7 @@ class PassYScreenSnapshotTests: BitwardenTestCase {
         processor.state.masterPasswordRetype = "password123"
         processor.state.masterPasswordHint = "hint hint"
         let subject = SetMasterPasswordView(store: Store(processor: processor))
-        assertSnapshots(of: subject.navStackWrapped, as: strategies)
+        snap(subject.navStackWrapped)
     }
 
     @MainActor
@@ -47,7 +52,7 @@ class PassYScreenSnapshotTests: BitwardenTestCase {
         )
         processor.state.authMethod = .email
         let subject = TwoFactorAuthView(store: Store(processor: processor))
-        assertSnapshots(of: subject.navStackWrapped, as: strategies)
+        snap(subject.navStackWrapped)
     }
 
     @MainActor
@@ -57,7 +62,7 @@ class PassYScreenSnapshotTests: BitwardenTestCase {
         )
         processor.state.authMethod = .recoveryCode
         let subject = TwoFactorAuthView(store: Store(processor: processor))
-        assertSnapshots(of: subject.navStackWrapped, as: strategies)
+        snap(subject.navStackWrapped)
     }
 
     @MainActor
@@ -71,7 +76,7 @@ class PassYScreenSnapshotTests: BitwardenTestCase {
             ),
         )
         let subject = VaultUnlockView(store: Store(processor: processor))
-        assertSnapshots(of: subject.navStackWrapped, as: strategies)
+        snap(subject.navStackWrapped)
     }
 
     @MainActor
@@ -83,6 +88,6 @@ class PassYScreenSnapshotTests: BitwardenTestCase {
         processor.state.type = .sshKey
         processor.state.name = "Server key"
         let subject = AddEditItemView(store: Store(processor: processor))
-        assertSnapshots(of: subject.navStackWrapped, as: strategies)
+        snap(subject.navStackWrapped)
     }
 }
