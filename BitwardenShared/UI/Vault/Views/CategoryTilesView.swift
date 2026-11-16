@@ -67,6 +67,8 @@ private struct CategoryTile: View {
                     .foregroundStyle(.white)
                     .frame(width: 36, height: 36)
                     .background(group.tileColor, in: Circle())
+                    // ui-r7: light badge colors are darkened so the white symbol passes the contrast audit.
+                    .overlay(Circle().fill(Color.black.opacity(group.tileBadgeDarkening)))
                     .accessibilityHidden(true)
                 Spacer(minLength: 4)
                 Text("\(count)")
@@ -124,6 +126,15 @@ extension VaultListGroup {
         case .sshKey: "terminal.fill"
         case .totp: "lock.rotation"
         case .trash: "trash.fill"
+        }
+    }
+
+    /// How much black is laid over the badge color (0 to 1) so that the white symbol has enough contrast.
+    var tileBadgeDarkening: Double {
+        switch self {
+        case .secureNote: 0.45
+        case .passport, .totp, .driversLicense, .bankAccount: 0.3
+        default: 0
         }
     }
 

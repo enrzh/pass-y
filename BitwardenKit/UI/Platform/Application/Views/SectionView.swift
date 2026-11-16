@@ -31,6 +31,7 @@ public struct SectionView<Content: View>: View {
             } header: {
                 Text(title)
                     .textCase(nil)
+                    .foregroundStyle(Color(.label).opacity(0.72)) // ui-r7: contrast (accessibility audit)
             }
         } else {
             cardBody

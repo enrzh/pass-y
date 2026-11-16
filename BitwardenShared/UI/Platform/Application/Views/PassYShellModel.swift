@@ -446,12 +446,16 @@ struct PassYAvatarMenu: View {
         let profile = (source?.showsPlaceholder ?? true) ? nil : source?.activeProfile
         return ZStack {
             Circle().fill(profile?.color ?? Color(.tertiarySystemFill))
+            if profile?.userInitials != nil {
+                // ui-r7: darkened so the white initials pass the contrast audit on any account color.
+                Circle().fill(Color.black.opacity(0.3))
+            }
             if let initials = profile?.userInitials {
                 Text(initials)
                     .font(Font.system(.footnote, design: .rounded).weight(.semibold))
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
-                    .foregroundStyle(profile?.profileIconTextColor ?? .primary)
+                    .foregroundStyle(Color.white)
             } else {
                 Image(systemName: "person.fill")
                     .font(.system(size: 14))
