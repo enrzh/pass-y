@@ -17,7 +17,7 @@ public struct SectionHeaderView: View {
         Text(title)
             .font(.footnote)
             .accessibilityAddTraits(.isHeader)
-            .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
+            .foregroundColor(Color(.label).opacity(0.72)) // ui-r6: contrast (accessibility audit)
             .textCase(nil)
             .padding(.leading, 16)
     }

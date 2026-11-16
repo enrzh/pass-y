@@ -98,6 +98,7 @@ struct ViewLoginItemView: View {
             } label: {
                 Label(Localizations.checkPasswordForDataBreaches, systemImage: "checkmark.shield")
                     .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
             }
