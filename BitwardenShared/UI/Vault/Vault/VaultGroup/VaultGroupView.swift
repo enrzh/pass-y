@@ -96,11 +96,13 @@ struct VaultGroupView: View {
             if isSelecting {
                 Menu {
                     Button(Localizations.folderNone) {
-                        Task { await store.perform(.moveItems(selectedItems, folderId: nil)) }
+                        let items = selectedItems
+                        Task { await store.perform(.moveItems(items, folderId: nil)) }
                     }
                     ForEach(store.state.folders, id: \.id) { folder in
                         Button(folder.name) {
-                            Task { await store.perform(.moveItems(selectedItems, folderId: folder.id)) }
+                            let items = selectedItems
+                            Task { await store.perform(.moveItems(items, folderId: folder.id)) }
                         }
                     }
                 } label: {
@@ -111,7 +113,8 @@ struct VaultGroupView: View {
                 .accessibilityIdentifier("SelectMoveButton")
 
                 Button(role: .destructive) {
-                    Task { await store.perform(.deleteItems(selectedItems)) }
+                    let items = selectedItems
+                    Task { await store.perform(.deleteItems(items)) }
                     isSelecting = false
                     selection = []
                 } label: {

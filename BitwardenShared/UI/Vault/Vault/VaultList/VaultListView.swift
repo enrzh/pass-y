@@ -317,7 +317,7 @@ private struct SearchableVaultListView: View {
                         }
                         .textCase(nil)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("SectionExpandButton_\(section.id)")
