@@ -1128,4 +1128,42 @@ class VaultGroupProcessorTests: BitwardenTestCase { // swiftlint:disable:this ty
         let first = try XCTUnwrap(errorReporter.errors.first as? TestError)
         XCTAssertEqual(first, TestError())
     }
+
+    // MARK: ui-r6: delete and move
+
+    /// `perform(.deleteItems)` asks for confirmation and soft deletes the item after "Yes".
+    @MainActor
+    func test_perform_deleteItems_softDeletes() async throws {
+        let cipher = CipherView.fixture(id: "1", name: "A")
+        vaultRepository.fetchCipherResult = .success(cipher)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        await subject.perform(.deleteItems([item]))
+        let alert = try XCTUnwrap(coordinator.alertShown.last)
+        XCTAssertEqual(alert.title, Localizations.doYouReallyWantToSoftDeleteCipher)
+        try await alert.tapAction(title: Localizations.yes)
+        XCTAssertEqual(vaultRepository.softDeletedCipher.map(\.id), ["1"])
+        XCTAssertEqual(subject.state.toast?.title, Localizations.itemSoftDeleted)
+    }
+
+    /// In the trash `perform(.deleteItems)` deletes permanently.
+    @MainActor
+    func test_perform_deleteItems_trashDeletesPermanently() async throws {
+        subject.state.group = .trash
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "7", name: "T")))
+        await subject.perform(.deleteItems([item]))
+        let alert = try XCTUnwrap(coordinator.alertShown.last)
+        XCTAssertEqual(alert.title, Localizations.doYouReallyWantToPermanentlyDeleteCipher)
+        try await alert.tapAction(title: Localizations.yes)
+        XCTAssertTrue(vaultRepository.softDeletedCipher.isEmpty)
+        XCTAssertEqual(subject.state.toast?.title, Localizations.itemDeleted)
+    }
+
+    /// `perform(.moveItems)` updates the ciphers with the new folder id.
+    @MainActor
+    func test_perform_moveItems_setsFolder() async throws {
+        vaultRepository.fetchCipherResult = .success(CipherView.fixture(id: "1", name: "A"))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        await subject.perform(.moveItems([item], folderId: "folder-1"))
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.map(\.folderId), ["folder-1"])
+    }
 }
