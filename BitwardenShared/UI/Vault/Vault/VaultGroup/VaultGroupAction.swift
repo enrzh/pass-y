@@ -31,6 +31,12 @@ enum VaultGroupAction: Equatable, Sendable {
     /// The selected vault filter for search changed.
     case searchVaultFilterChanged(VaultFilterType)
 
+    /// The selection in Select mode changed (item ids).
+    case selectionChanged(Set<String>)
+
+    /// Select mode was turned on or off (clears the selection).
+    case setSelecting(Bool)
+
     /// The toast was shown or hidden.
     case toastShown(Toast?)
 }

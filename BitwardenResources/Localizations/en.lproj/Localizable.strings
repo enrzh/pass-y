@@ -1287,3 +1287,7 @@
 /* Primary button on the generator screen that opens the add login screen, prefilled with the generated value. */
 "CreateLogin" = "Create login";
 "ServerNotSet" = "Not set – tap to enter your server";
+/* Error shown when some of the selected items could not be deleted; %1$d failed of %2$d. They stay selected. */
+"SomeItemsCouldNotBeDeleted" = "%1$d of %2$d items could not be deleted. They stay selected so you can try again.";
+/* Error shown when some of the selected items could not be moved; %1$d failed of %2$d. They stay selected. */
+"SomeItemsCouldNotBeMoved" = "%1$d of %2$d items could not be moved. They stay selected so you can try again.";

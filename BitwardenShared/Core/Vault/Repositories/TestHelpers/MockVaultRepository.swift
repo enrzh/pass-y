@@ -50,6 +50,10 @@ class MockVaultRepository: VaultRepository { // swiftlint:disable:this type_body
 
     var fetchCipherId: String?
     var fetchCipherResult: Result<CipherView?, Error> = .success(nil)
+    /// Per-id overrides of `fetchCipherResult` (ui-r7: partial failures in bulk actions).
+    var fetchCipherResultsById = [String: Result<CipherView?, Error>]()
+    /// Ids for which `deleteCipher` throws.
+    var deleteCipherFailingIds = Set<String>()
 
     var fetchCipherOwnershipOptionsIncludePersonal: Bool? // swiftlint:disable:this identifier_name
     var fetchCipherOwnershipOptions = [CipherOwner]()
@@ -208,6 +212,7 @@ class MockVaultRepository: VaultRepository { // swiftlint:disable:this type_body
 
     func deleteCipher(_ id: String) async throws {
         deletedCipher.append(id)
+        if deleteCipherFailingIds.contains(id) { throw BitwardenTestError.example }
         try deleteCipherResult.get()
     }
 
@@ -223,6 +228,7 @@ class MockVaultRepository: VaultRepository { // swiftlint:disable:this type_body
 
     func fetchCipher(withId id: String) async throws -> CipherView? {
         fetchCipherId = id
+        if let result = fetchCipherResultsById[id] { return try result.get() }
         return try fetchCipherResult.get()
     }
 
