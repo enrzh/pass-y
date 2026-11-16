@@ -173,6 +173,16 @@ final class ViewItemProcessor: StateProcessor<ViewItemState, ViewItemAction, Vie
             }
         case .toggleDisplayMultipleCollections:
             toggleDisplayMultipleCollections()
+        case .toggleFavoritePressed:
+            guard case let .data(cipherState) = state.loadingState else { return }
+            do {
+                try await services.vaultRepository.updateCipher(
+                    cipherState.cipher.update(favorite: !cipherState.cipher.favorite),
+                )
+            } catch {
+                services.errorReporter.log(error: error)
+                coordinator.showAlert(.defaultAlert(title: Localizations.anErrorHasOccurred))
+            }
         case .totpCodeExpired:
             await updateTOTPCode()
         case .unarchivePressed:

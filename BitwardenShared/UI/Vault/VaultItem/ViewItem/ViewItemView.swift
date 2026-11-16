@@ -60,7 +60,7 @@ struct ViewItemView: View {
                 details(for: viewState)
             }
         }
-        .navigationTitle(store.state.navigationTitle)
+        .navigationTitle("")  // Apple Passwords: no title in the item view
         .navigationBarTitleDisplayMode(.inline)
         .toast(
             store.binding(
@@ -76,6 +76,17 @@ struct ViewItemView: View {
             }
 
             ToolbarItemGroup(placement: .topBarTrailing) {
+                if let data = store.state.loadingState.data, store.state.canEdit {
+                    AsyncButton {
+                        await store.perform(.toggleFavoritePressed)
+                    } label: {
+                        Image(systemName: data.isFavoriteOn ? "star.fill" : "star")
+                    }
+                    .accessibilityLabel(Localizations.favorite)
+                    .accessibilityValue(data.isFavoriteOn ? Localizations.on : Localizations.off)
+                    .accessibilityIdentifier("FavoriteToolbarButton")
+                }
+
                 if store.state.canEdit {
                     editToolbarButton {
                         store.send(.editPressed)

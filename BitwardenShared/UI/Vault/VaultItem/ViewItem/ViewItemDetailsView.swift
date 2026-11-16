@@ -283,17 +283,6 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .overlay(alignment: .topTrailing) {
-            let image = store.state.isFavoriteOn
-                ? SharedAsset.Icons.starFilled24.swiftUIImage
-                : SharedAsset.Icons.star24.swiftUIImage
-            image
-                .foregroundStyle(SharedAsset.Colors.iconPrimary.swiftUIColor)
-                .accessibilityLabel(Localizations.favorite)
-                .accessibilityValue(store.state.isFavoriteOn ? Localizations.on : Localizations.off)
-                .buttonStyle(.accessory)
-                .padding(12)
-        }
         .accessibilityElement(children: .contain)
     }
 

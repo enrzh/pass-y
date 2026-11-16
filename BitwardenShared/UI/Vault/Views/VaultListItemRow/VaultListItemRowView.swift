@@ -40,6 +40,12 @@ struct VaultListItemRowView: View {
     /// The `TimeProvider` used to calculate TOTP expiration.
     var timeProvider: (any TimeProvider)?
 
+    /// Optional delete handler; when set the context menu offers "Delete".
+    var onDelete: (() -> Void)?
+
+    /// In Select mode the list handles the tap (selection), not the row button.
+    @Environment(\.editMode) private var editMode
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
@@ -82,26 +88,18 @@ struct VaultListItemRowView: View {
                 // In a `List`, several default-style buttons in one row would all fire on a single tap.
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("VaultListItemRowButton")
+                .allowsHitTesting(editMode?.wrappedValue.isEditing != true)
                 .hoverEffect(.highlight)
 
                 if case let .cipher(cipherItem, _) = store.state.item.itemType,
                    !store.state.isFromExtension, !cipherItem.isDecryptionFailure {
-                    AsyncButton {
-                        await store.perform(.morePressed)
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.title3)
-                            .foregroundColor(Color.secondary)
-                            .frame(minWidth: 44, minHeight: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .hoverEffect(.highlight)
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Localizations.moreOptions)
-                    .accessibilityIdentifier("CipherOptionsButton")
-                    // Each more-options action is exposed individually as a custom action on the
-                    // row, so the combined "More options" action would be redundant.
-                    .accessibilityHidden(true)
+                    // Apple Passwords: a disclosure chevron instead of a "..." button. The options (copy, edit,
+                    // delete ...) live in the long-press context menu and the swipe actions of the list.
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(.tertiaryLabel))
+                        .accessibilityHidden(true)
+                        .accessibilityIdentifier("CipherDisclosureChevron")
                 }
 
                 if case let .totp(_, model) = store.state.item.itemType,
@@ -130,6 +128,21 @@ struct VaultListItemRowView: View {
         .accessibilityIdentifier(store.state.item.vaultItemAccessibilityId)
         .accessibilityMoreOptionsActions(accessibilityMoreOptionsActionKinds) { kind in
             await store.perform(.accessibilityMoreOptionsActionPressed(kind))
+        }
+        .contextMenu {
+            ForEach(accessibilityMoreOptionsActionKinds, id: \.localizedName) { kind in
+                Button {
+                    Task { await store.perform(.accessibilityMoreOptionsActionPressed(kind)) }
+                } label: {
+                    Label(kind.localizedName, systemImage: kind.passYSymbol)
+                }
+            }
+            if let onDelete, !accessibilityMoreOptionsActionKinds.isEmpty {
+                Divider()
+                Button(role: .destructive, action: onDelete) {
+                    Label(Localizations.delete, systemImage: "trash")
+                }
+            }
         }
     }
 
@@ -261,6 +274,26 @@ struct VaultListItemRowView: View {
             Text(model.totpCode.displayCode)
                 .styleGuide(.bodyMonospaced, weight: .regular, monoSpacedDigit: true)
                 .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+        }
+    }
+}
+
+
+// MARK: - MoreOptionsActionKind symbols
+
+extension MoreOptionsActionKind {
+    /// The SF Symbol shown next to this action in the context menu.
+    var passYSymbol: String {
+        switch self {
+        case .archive: "archivebox"
+        case .unarchive: "tray.and.arrow.up"
+        case .edit: "pencil"
+        case .launch: "safari"
+        case .view: "eye"
+        case .copyPassword, .copyPrivateKey: "key"
+        case .copyUsername: "person"
+        case .copyTotp: "timer"
+        default: "doc.on.doc"
         }
     }
 }

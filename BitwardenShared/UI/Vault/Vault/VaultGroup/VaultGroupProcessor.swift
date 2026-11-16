@@ -129,7 +129,12 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
             await loadHasPremiumAccount()
             await checkPersonalOwnershipPolicy()
             await loadItemTypesUserCanCreate()
+            state.folders = (try? await services.vaultRepository.fetchFolders()) ?? []
             await streamVaultList()
+        case let .deleteItems(items):
+            deleteItems(items)
+        case let .moveItems(items, folderId):
+            await moveItems(items, folderId: folderId)
         case let .itemPressed(item):
             handleItemTapped(item)
         case let .morePressed(item):
@@ -197,6 +202,46 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
     }
 
     // MARK: Private Methods
+
+    /// Asks for confirmation and deletes the items: sent to the trash, or permanently inside the trash.
+    private func deleteItems(_ items: [VaultListItem]) {
+        let permanent = state.group == .trash
+        coordinator.showAlert(.deleteCipherConfirmation(isSoftDelete: !permanent) { [weak self] in
+            await self?.performDelete(items, permanent: permanent)
+        })
+    }
+
+    /// Deletes the items without asking.
+    private func performDelete(_ items: [VaultListItem], permanent: Bool) async {
+        do {
+            for item in items {
+                guard case let .cipher(cipherListView, _) = item.itemType, let id = cipherListView.id else { continue }
+                if permanent {
+                    try await services.vaultRepository.deleteCipher(id)
+                } else if let cipher = try await services.vaultRepository.fetchCipher(withId: id) {
+                    try await services.vaultRepository.softDeleteCipher(cipher)
+                }
+            }
+            state.toast = Toast(title: permanent ? Localizations.itemDeleted : Localizations.itemSoftDeleted)
+        } catch {
+            services.errorReporter.log(error: error)
+            coordinator.showAlert(.defaultAlert(title: Localizations.anErrorHasOccurred))
+        }
+    }
+
+    /// Moves the items into a folder.
+    private func moveItems(_ items: [VaultListItem], folderId: String?) async {
+        do {
+            for item in items {
+                guard case let .cipher(cipherListView, _) = item.itemType, let id = cipherListView.id,
+                      let cipher = try await services.vaultRepository.fetchCipher(withId: id) else { continue }
+                try await services.vaultRepository.updateCipher(cipher.update(folderId: folderId))
+            }
+        } catch {
+            services.errorReporter.log(error: error)
+            coordinator.showAlert(.defaultAlert(title: Localizations.unableToMoveTheSelectedItemPleaseTryAgain))
+        }
+    }
 
     /// Checks if the personal ownership policy is enabled.
     ///

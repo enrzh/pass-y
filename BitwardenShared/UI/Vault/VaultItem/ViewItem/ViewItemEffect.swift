@@ -17,6 +17,9 @@ enum ViewItemEffect: Equatable {
     /// Toggles displaying one or multiple collections.
     case toggleDisplayMultipleCollections
 
+    /// The favorite star in the toolbar was tapped.
+    case toggleFavoritePressed
+
     /// The TOTP code for the view expired.
     case totpCodeExpired
 
