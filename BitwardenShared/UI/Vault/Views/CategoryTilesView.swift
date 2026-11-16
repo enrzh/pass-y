@@ -86,6 +86,8 @@ private struct CategoryTile: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(12)
+        // Same height for every tile of a row (the shrinking long names measure a fraction of a point differently).
+        .frame(minHeight: 96, alignment: .topLeading)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }

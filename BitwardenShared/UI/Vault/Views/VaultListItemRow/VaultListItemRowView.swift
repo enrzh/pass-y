@@ -53,7 +53,11 @@ struct VaultListItemRowView: View {
                             showWebIcons: store.state.showWebIcons,
                         )
                         .imageStyle(.rowIcon)
-                        .padding(.vertical, 19)
+                        // Apple Passwords: the icon sits in a 40 pt rounded square with a hairline border.
+                        .frame(width: 40, height: 40)
+                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color(.separator), lineWidth: 0.5))
+                        .padding(.vertical, 8)
 
                         HStack {
                             switch store.state.item.itemType {
@@ -113,7 +117,7 @@ struct VaultListItemRowView: View {
 
             if store.state.hasDivider {
                 Divider()
-                    .padding(.leading, 22 + 16 + 16)
+                    .padding(.leading, 40 + 16 + 16)
             }
         }
         .accessibilityElement(children: .combine)
@@ -142,7 +146,7 @@ struct VaultListItemRowView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 Text(cipherItem.name)
-                    .styleGuide(.body)
+                    .font(.body.weight(.semibold))
                     .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
                     .lineLimit(1)
                     .accessibilityIdentifier("CipherNameLabel")
