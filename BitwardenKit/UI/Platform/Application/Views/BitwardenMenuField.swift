@@ -59,6 +59,10 @@ public struct BitwardenMenuField<
     /// Whether the view allows user interaction.
     @Environment(\.isEnabled) var isEnabled: Bool
 
+    @Environment(\.isNativeForm) private var isNativeForm
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     /// The options displayed in the menu.
     let options: [T]
 
@@ -88,6 +92,46 @@ public struct BitwardenMenuField<
 
     // MARK: Private views
 
+    /// Apple Passwords row (ui-r7): grey label left, the selection right with an up/down chevron.
+    private var nativeLabel: some View {
+        HStack(spacing: 12) {
+            if let title {
+                Text(title)
+                    .font(.body)
+                    .foregroundColor(
+                        isEnabled
+                            ? SharedAsset.Colors.textSecondary.swiftUIColor
+                            : SharedAsset.Colors.buttonFilledDisabledForeground.swiftUIColor,
+                    )
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .layoutPriority(1)
+                    .onSizeChanged { size in
+                        titleWidth = size.width
+                    }
+            }
+
+            Spacer(minLength: 0)
+
+            Text(selection.localizedName)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let trailingContent {
+                trailingContent
+            } else {
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .padding(.vertical, 11)
+        .transaction { transaction in
+            transaction.animation = nil
+        }
+    }
+
     /// The menu that displays the list of options.
     private var menu: some View {
         Menu {
@@ -103,6 +147,9 @@ public struct BitwardenMenuField<
                 additionalMenu
             }
         } label: {
+            if isNativeForm, title != nil, !dynamicTypeSize.isAccessibilitySize {
+                nativeLabel
+            } else {
             HStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
                     if let title {
@@ -143,6 +190,7 @@ public struct BitwardenMenuField<
                 // on this label.
                 transaction.animation = nil
             }
+            }
         }
         .styleGuide(.body)
         .foregroundColor(
@@ -150,7 +198,7 @@ public struct BitwardenMenuField<
                 ? SharedAsset.Colors.textPrimary.swiftUIColor
                 : SharedAsset.Colors.buttonFilledDisabledForeground.swiftUIColor,
         )
-        .frame(minHeight: 64)
+        .frame(minHeight: isNativeForm && title != nil && !dynamicTypeSize.isAccessibilitySize ? 44 : 64)
         .accessibilityIdentifier(accessibilityIdentifier ?? "")
         .overlay {
             if let titleAccessoryContent {

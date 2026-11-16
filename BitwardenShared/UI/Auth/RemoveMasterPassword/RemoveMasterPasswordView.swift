@@ -15,63 +15,73 @@ struct RemoveMasterPasswordView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(Localizations.removeMasterPasswordConfirmDomain)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .styleGuide(.body)
-                Text(Localizations.keyConnectorOrganization)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .styleGuide(.body)
-                Text(store.state.organizationName)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    .styleGuide(.body)
-                Text(Localizations.keyConnectorDomain)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .styleGuide(.body)
-                Text(store.state.keyConnectorUrl)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    .styleGuide(.body)
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(Localizations.removeMasterPasswordConfirmDomain)
+                        .foregroundStyle(.primary)
+                    Text(Localizations.keyConnectorOrganization)
+                        .foregroundStyle(.primary)
+                    Text(store.state.organizationName)
+                        .foregroundStyle(.secondary)
+                    Text(Localizations.keyConnectorDomain)
+                        .foregroundStyle(.primary)
+                    Text(store.state.keyConnectorUrl)
+                        .foregroundStyle(.secondary)
+                }
+                .multilineTextAlignment(.leading)
             }
-            .multilineTextAlignment(.leading)
-            .padding(.horizontal, 12)
 
-            BitwardenTextField(
-                title: Localizations.masterPassword,
-                text: store.binding(
-                    get: \.masterPassword,
-                    send: RemoveMasterPasswordAction.masterPasswordChanged,
-                ),
-                footer: nil,
-                accessibilityIdentifier: "MasterPasswordEntry",
-                passwordVisibilityAccessibilityId: "PasswordVisibilityToggle",
-                isPasswordAutoFocused: true,
-                isPasswordVisible: store.binding(
-                    get: \.isMasterPasswordRevealed,
-                    send: RemoveMasterPasswordAction.revealMasterPasswordFieldPressed,
-                ),
-            )
-            .textFieldConfiguration(.password)
-            .submitLabel(.go)
-            .onSubmit {
-                Task {
-                    await store.perform(.continueFlow)
+            Section {
+                BitwardenTextField(
+                    title: Localizations.masterPassword,
+                    text: store.binding(
+                        get: \.masterPassword,
+                        send: RemoveMasterPasswordAction.masterPasswordChanged,
+                    ),
+                    footer: nil,
+                    accessibilityIdentifier: "MasterPasswordEntry",
+                    passwordVisibilityAccessibilityId: "PasswordVisibilityToggle",
+                    isPasswordAutoFocused: true,
+                    isPasswordVisible: store.binding(
+                        get: \.isMasterPasswordRevealed,
+                        send: RemoveMasterPasswordAction.revealMasterPasswordFieldPressed,
+                    ),
+                )
+                .textFieldConfiguration(.password)
+                .submitLabel(.go)
+                .onSubmit {
+                    Task {
+                        await store.perform(.continueFlow)
+                    }
                 }
             }
 
-            AsyncButton(Localizations.continue) {
-                await store.perform(.continueFlow)
-            }
-            .buttonStyle(.primary())
+            Section {
+                AsyncButton {
+                    await store.perform(.continueFlow)
+                } label: {
+                    Text(Localizations.continue).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
 
-            AsyncButton(Localizations.leaveOrganization) {
-                await store.perform(.leaveOrganizationFlow)
+                AsyncButton {
+                    await store.perform(.leaveOrganizationFlow)
+                } label: {
+                    Text(Localizations.leaveOrganization).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
             }
-            .buttonStyle(.secondary())
         }
+        .nativeFormRows()
+        .passYNativeFormBackground()
         .navigationBar(title: Localizations.removeMasterPassword, titleDisplayMode: .inline)
-        .padding(.top, 12)
-        .scrollView()
     }
 }
 
