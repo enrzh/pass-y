@@ -44,17 +44,16 @@ class VaultListItemRowViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.effects.last, .pressed)
     }
 
-    /// Test that tapping the more button dispatches the `.morePressed` action.
+    /// ui-r6: no "..." button in the row; a disclosure chevron instead (options are in the context menu and swipe).
     @MainActor
-    func test_moreButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.moreOptions)
-        try await button.tap()
-        XCTAssertEqual(processor.effects.last, .morePressed)
+    func test_noMoreButton_hasChevron() throws {
+        XCTAssertThrowsError(try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.moreOptions))
+        XCTAssertNoThrow(try subject.inspect().find(viewWithAccessibilityIdentifier: "CipherDisclosureChevron"))
     }
 
-    /// Test that the more options button isn't shown when displayed from an extension.
+    /// Test that the chevron isn't shown when displayed from an extension.
     @MainActor
-    func test_moreButton_notShownFromExtension() throws {
+    func test_chevron_notShownFromExtension() throws {
         processor.state = VaultListItemRowState(
             isFromExtension: true,
             item: .fixture(),
@@ -62,7 +61,7 @@ class VaultListItemRowViewTests: BitwardenTestCase {
             showWebIcons: true,
         )
         XCTAssertThrowsError(
-            try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.moreOptions),
+            try subject.inspect().find(viewWithAccessibilityIdentifier: "CipherDisclosureChevron"),
         )
     }
 

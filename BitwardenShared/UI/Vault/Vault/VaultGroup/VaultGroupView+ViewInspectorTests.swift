@@ -123,14 +123,14 @@ class VaultGroupViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .copyTOTPCode("123456"))
     }
 
-    /// Tapping the more button on a vault item dispatches the `.morePressed` action.
+    /// ui-r6: list rows have a disclosure chevron and no "..." button; the options live in the context menu and
+    /// the swipe actions.
     @MainActor
-    func test_vaultItem_moreButton_tap() async throws {
+    func test_vaultItem_noMoreButton_hasChevron() throws {
         let item = VaultListItem.fixture()
         let section = VaultListSection(id: "Items", items: [item], name: Localizations.items)
         processor.state.loadingState = .data([section])
-        let button = try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.moreOptions)
-        try await button.tap()
-        XCTAssertEqual(processor.effects.last, .morePressed(item))
+        XCTAssertThrowsError(try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.moreOptions))
+        XCTAssertNoThrow(try subject.inspect().find(viewWithAccessibilityIdentifier: "CipherDisclosureChevron"))
     }
 }

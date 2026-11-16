@@ -61,23 +61,21 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertEqual(processor.effects.last, .checkPasswordPressed)
     }
 
-    /// Tapping the copy username button dispatches the `.copyPressed` action with the username.
+    /// ui-r6 (Apple style): the login rows have no copy icon; copying is a tap on the row or the context menu.
     @MainActor
-    func test_copyUsernameButton_tap() throws {
+    func test_loginRows_haveNoCopyIcons() throws {
         let loginState = CipherItemState(
             existing: .loginFixture(
-                login: .fixture(
-                    username: "username",
-                ),
+                login: .fixture(password: "password", username: "username"),
                 name: "Name",
                 revisionDate: Date(),
             ),
             hasPremium: true,
         )!
         processor.state.loadingState = .data(loginState)
-        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copy)
-        try button.tap()
-        XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(value: "username", field: .username)))
+        XCTAssertThrowsError(try subject.inspect().find(viewWithAccessibilityIdentifier: "LoginCopyUsernameButton"))
+        XCTAssertThrowsError(try subject.inspect().find(viewWithAccessibilityIdentifier: "LoginCopyPasswordButton"))
+        XCTAssertThrowsError(try subject.inspect().find(viewWithAccessibilityIdentifier: "ShowLoginPasswordButton"))
     }
 
     /// Tapping the username row itself (not only the copy icon) copies the username.
@@ -105,10 +103,9 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(value: "username", field: .username)))
     }
 
-    /// Tapping the copy password button dispatches the `.copyPressed` action along with the
-    /// password.
+    /// Tapping the password row copies the password.
     @MainActor
-    func test_copyPasswordButton_tap() throws {
+    func test_passwordRow_tapToCopy() throws {
         let loginState = CipherItemState(
             existing: .loginFixture(
                 login: .fixture(password: "password"),
@@ -117,8 +114,13 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
             hasPremium: true,
         )!
         processor.state.loadingState = .data(loginState)
-        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copy)
-        try button.tap()
+        let value = try subject.inspect().find(viewWithAccessibilityIdentifier: "LoginPasswordEntry")
+        var node = try value.parent()
+        var tapped = false
+        for _ in 0 ..< 12 where !tapped {
+            if (try? node.callOnTapGesture()) != nil { tapped = true } else if let next = try? node.parent() { node = next } else { break }
+        }
+        XCTAssertTrue(tapped, "no ancestor of the password value handles a tap")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(value: "password", field: .password)))
     }
 

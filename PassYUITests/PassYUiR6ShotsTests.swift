@@ -52,35 +52,38 @@ final class PassYUiR6ShotsTests: XCTestCase {
     /// "N Items" subtitle and Select mode with Delete of the created items.
     func test_selectModeDelete() {
         XCUIDevice.shared.appearance = .light
+        let token = Int(Date().timeIntervalSince1970) % 100000
+        let one = "AA R6 Zap \(token) One", two = "AA R6 Zap \(token) Two"
         let app = launchApp()
         ensureUnlockedVault(app)
-        addLogin(app, name: "AA R6 Zap One", user: "one@example.test", password: "x1")
-        addLogin(app, name: "AA R6 Zap Two", user: "two@example.test", password: "x2")
+        addLogin(app, name: one, user: "one@example.test", password: "x1")
+        addLogin(app, name: two, user: "two@example.test", password: "x2")
         app.buttons["CategoryTile_login"].tap(); sleep(2)
-        XCTAssertTrue(app.staticTexts["AA R6 Zap One"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts[one].waitForExistence(timeout: 8))
         let select = app.buttons["SelectButton"]
         XCTAssertTrue(select.waitForExistence(timeout: 5), "Select button in the toolbar")
         shot(app, 10, "list-subtitle")
         select.tap(); sleep(1)
         XCTAssertFalse(app.buttons["SelectDeleteButton"].isEnabled, "delete disabled without selection")
-        app.staticTexts["AA R6 Zap One"].tap(); app.staticTexts["AA R6 Zap Two"].tap(); sleep(1)
+        app.staticTexts[one].tap(); app.staticTexts[two].tap(); sleep(1)
         shot(app, 11, "select-mode")
         XCTAssertTrue(app.buttons["SelectDeleteButton"].isEnabled, "delete enabled with selection")
         app.buttons["SelectDeleteButton"].tap()
         let yes = app.alerts.buttons["Yes"]
         XCTAssertTrue(yes.waitForExistence(timeout: 5))
         yes.tap()
-        XCTAssertTrue(waitForDisappearance(of: app.staticTexts["AA R6 Zap One"], timeout: 15), "selected items are deleted")
-        XCTAssertFalse(app.staticTexts["AA R6 Zap Two"].exists)
+        XCTAssertTrue(waitForDisappearance(of: app.staticTexts[one], timeout: 15), "selected items are deleted")
+        XCTAssertFalse(app.staticTexts[two].exists)
     }
 
     /// Swipe-Delete of a single item.
     func test_swipeDelete() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        addLogin(app, name: "AA R6 Swipe Gone", user: "s@example.test", password: "x")
+        let gone = "AA R6 Swipe \(Int(Date().timeIntervalSince1970) % 100000)"
+        addLogin(app, name: gone, user: "s@example.test", password: "x")
         app.buttons["CategoryTile_login"].tap(); sleep(2)
-        let name = app.staticTexts["AA R6 Swipe Gone"]
+        let name = app.staticTexts[gone]
         XCTAssertTrue(name.waitForExistence(timeout: 8))
         name.swipeLeft(); sleep(1)
         app.buttons["Delete"].firstMatch.tap()
@@ -141,21 +144,44 @@ final class PassYUiR6ShotsTests: XCTestCase {
         if sso.exists {
             sso.tap(); sleep(2)
             shot(app, 43, "\(mode)-sso")
+            let ok = app.alerts.buttons["OK"]
+            if ok.waitForExistence(timeout: 3) { ok.tap(); sleep(1); shot(app, 47, "\(mode)-sso-after-alert") }
             leaveScreen(app)
         }
-        XCTAssertTrue(pw.waitForExistence(timeout: 10), "back on the login screen")
-        pw.tap()
-        if !app.keyboards.firstMatch.waitForExistence(timeout: 3) { pw.tap() }
-        sleep(1)
-        pw.typeText(TestAccount.password)
+        XCUIDevice.shared.appearance = .light
+    }
+
+    /// Two-step login (authenticator, other methods, recovery code) of the 2FA test account; run after a fresh install
+    /// (it starts at the intro or the login screen).
+    func test_auth2FAScreens() {
+        let mode = ProcessInfo.processInfo.environment["PASSY_MODE"] ?? "light"
+        XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+        let app = launchApp()
+        let pw = app.secureTextFields["LoginMasterPasswordEntry"]
+        if !pw.waitForExistence(timeout: 5) {
+            let logIn = app.buttons["Log in"]
+            XCTAssertTrue(logIn.waitForExistence(timeout: 20)); logIn.tap()
+            let server = app.textFields["ServerUrlEntry"]
+            if server.waitForExistence(timeout: 10) {
+                server.tap(); server.typeText(TestAccount.server)
+                app.buttons["SaveButton"].firstMatch.tap(); sleep(2)
+            }
+            let email = app.textFields["LoginEmailAddressEntry"]
+            XCTAssertTrue(email.waitForExistence(timeout: 10))
+            for _ in 0 ..< 10 where !email.isHittable { sleep(1) }
+            email.replaceText("passy-2fa@example.test")
+            app.buttons["ContinueButton"].tap()
+        }
+        XCTAssertTrue(pw.waitForExistence(timeout: 15), "login screen")
+        pw.replaceText(TestAccount.password)
         app.buttons["LogInWithMasterPasswordButton"].tap()
         let code = app.textFields["VerificationCodeEntry"]
         XCTAssertTrue(code.waitForExistence(timeout: 20), "two-step login (authenticator) screen")
         shot(app, 44, "\(mode)-2fa-authenticator")
         print("R6REACH 2fa buttons: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
         let other = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'another method' OR label CONTAINS[c] 'other method'")).firstMatch
-        let opts = app.navigationBars.buttons["Options"]
-        if other.exists { other.tap() } else if opts.exists { opts.tap() }
+        let opts = app.buttons.matching(identifier: "Options").allElementsBoundByIndex.last(where: { $0.isHittable })
+        if other.exists { other.tap() } else { opts?.tap() }
         sleep(2)
         shot(app, 45, "\(mode)-2fa-methods")
         print("R6REACH 2fa methods: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | ")
@@ -165,6 +191,65 @@ final class PassYUiR6ShotsTests: XCTestCase {
             recovery.tap(); sleep(2)
             shot(app, 46, "\(mode)-2fa-recovery")
         }
+        XCUIDevice.shared.appearance = .light
+    }
+
+    // MARK: iPad landscape (step 7)
+
+    /// Rotates with `XCUIDevice.orientation`, then pauses at each stage and writes a marker file `/tmp/r6hold/<stage>`
+    /// (the simulator shares the host's /tmp). `Scripts-passy/ipad_landscape_shots.sh` (a driver outside the test)
+    /// takes a real `simctl io screenshot` of the rotated screen at each marker and removes it. No `sips` involved.
+    func test_ipadLandscapeHold() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        XCUIDevice.shared.orientation = .landscapeLeft
+        sleep(3)
+        func hold(_ stage: String) {
+            try? FileManager.default.createDirectory(atPath: "/tmp/r6hold", withIntermediateDirectories: true)
+            FileManager.default.createFile(atPath: "/tmp/r6hold/\(stage)", contents: Data())
+            for _ in 0 ..< 40 where FileManager.default.fileExists(atPath: "/tmp/r6hold/\(stage)") { sleep(1) }
+        }
+        hold("home")
+        let tile = app.buttons["CategoryTile_login"]
+        if tile.waitForExistence(timeout: 5) {
+            tile.tap(); sleep(2)
+            hold("list")
+            let row = app.buttons["VaultListItemRowButton"].firstMatch
+            if row.waitForExistence(timeout: 5) {
+                row.tap(); sleep(2)
+                hold("detail")
+            }
+        }
+        XCUIDevice.shared.orientation = .portrait
+    }
+
+    /// "Log in with device" is only offered for a known device: after a normal login and a log out of the test account the
+    /// server knows this app id, so the login screen shows the button and the screen can be opened and shot.
+    func test_loginWithDeviceAfterLogout() {
+        let mode = ProcessInfo.processInfo.environment["PASSY_MODE"] ?? "light"
+        XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        goTo(app, "Settings")
+        let row = app.buttons["SettingsAccountRow"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        row.tap(); sleep(1)
+        app.buttons["Log out"].tap()
+        let yes = app.alerts.buttons["Yes"]
+        XCTAssertTrue(yes.waitForExistence(timeout: 5)); yes.tap()
+        let email = app.textFields["LoginEmailAddressEntry"]
+        let logIn = app.buttons["Log in"]
+        if !email.waitForExistence(timeout: 15), logIn.waitForExistence(timeout: 5) { logIn.tap() }
+        XCTAssertTrue(email.waitForExistence(timeout: 15))
+        for _ in 0 ..< 10 where !email.isHittable { sleep(1) }
+        email.replaceText(TestAccount.email)
+        app.buttons["ContinueButton"].tap()
+        let device = app.buttons["LogInWithAnotherDeviceButton"]
+        XCTAssertTrue(device.waitForExistence(timeout: 20), "known device: Log in with device is offered")
+        shot(app, 50, "\(mode)-login-known-device")
+        device.tap(); sleep(4)
+        shot(app, 51, "\(mode)-login-with-device")
+        print("R6REACH login-with-device screen buttons: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
         XCUIDevice.shared.appearance = .light
     }
 }
