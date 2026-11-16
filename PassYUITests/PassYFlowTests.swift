@@ -110,7 +110,9 @@ final class PassYFlowTests: XCTestCase {
         }
         let editName = app.textFields["ItemNameEntry"]
         XCTAssertTrue(waitFor(editName))
-        editName.tap()
+        // ui-r7: edit rows are right-aligned (Apple style), so a tap in the middle of the field puts the caret in the
+        // middle of the text; tap at the trailing edge to put the caret at the end, then append.
+        editName.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
         editName.typeText(" Edited")
         app.buttons["SaveButton"].firstMatch.tap()
         XCTAssertTrue(waitFor(app.staticTexts["\(itemName) Edited"]), "edit saved")
