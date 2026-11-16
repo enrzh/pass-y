@@ -1,5 +1,6 @@
 import BitwardenKit
 import BitwardenResources
+import BitwardenSdk
 import Foundation
 
 // MARK: - VaultListState
@@ -51,6 +52,15 @@ struct VaultListState: Equatable {
 
     /// An array of results matching the `searchText`.
     var searchResults = [VaultListItem]()
+
+    /// The folders the user can move search results to (Select mode).
+    var folders = [FolderView]()
+
+    /// Whether the search results are in Select mode (Apple Passwords, like the group lists).
+    var isSelecting = false
+
+    /// The ids of the search results selected in Select mode.
+    var selection = Set<String>()
 
     /// The text that the user is currently searching for.
     var searchText = ""

@@ -115,7 +115,7 @@ private struct SearchableVaultListView: View {
     /// interface, and a message indicating that no results were found.
     @ViewBuilder private var search: some View {
         if store.state.searchText.isEmpty || !store.state.searchResults.isEmpty {
-            List {
+            List(selection: store.binding(get: \.selection, send: VaultListAction.selectionChanged)) {
                 Section {
                     searchVaultFilterRow
                 }
@@ -129,8 +129,14 @@ private struct SearchableVaultListView: View {
                             isLastInSection: store.state.searchResults.last?.id == item.id,
                         )
                         .listRowInsets(EdgeInsets())
+                        .tag(item.id)
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             if case .cipher = item.itemType {
+                                Button(role: .destructive) {
+                                    Task { await store.perform(.deleteItems([item])) }
+                                } label: {
+                                    Label(Localizations.delete, systemImage: "trash")
+                                }
                                 Button {
                                     Task { await store.perform(.morePressed(item)) }
                                 } label: {
@@ -142,6 +148,7 @@ private struct SearchableVaultListView: View {
                     }
                 }
             }
+            .environment(\.editMode, .constant(store.state.isSelecting ? .active : .inactive))
             .listStyle(.insetGrouped)
             .softBottomScrollEdge()
         } else {
@@ -375,6 +382,7 @@ private struct SearchableVaultListView: View {
                 },
             ),
             timeProvider: timeProvider,
+            onDelete: item.isCipherItem ? { Task { await store.perform(.deleteItems([item])) } } : nil,
         )
     }
 }
@@ -504,6 +512,7 @@ struct VaultListView: View {
         }
         .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .large)
         .toolbar {
+            searchSelectToolbar
             PassYAvatarToolbarItem()
         }
         .task {
@@ -553,6 +562,53 @@ struct VaultListView: View {
     }
 
     // MARK: Private methods
+
+    /// The search results that are selected in Select mode.
+    private var selectedSearchItems: [VaultListItem] {
+        store.state.searchResults.filter { store.state.selection.contains($0.id) }
+    }
+
+    /// Select / Done for the search results and, in Select mode, Move and Delete (like the group lists).
+    @ToolbarContentBuilder private var searchSelectToolbar: some ToolbarContent {
+        ToolbarItemGroup(placement: .navigationBarLeading) {
+            if shell.isEditing || !store.state.searchText.isEmpty,
+               store.state.searchResults.contains(where: \.isCipherItem) {
+                if store.state.isSelecting {
+                    Menu {
+                        Button(Localizations.folderNone) {
+                            let items = selectedSearchItems
+                            Task { await store.perform(.moveItems(items, folderId: nil)) }
+                        }
+                        ForEach(store.state.folders, id: \.id) { folder in
+                            Button(folder.name) {
+                                let items = selectedSearchItems
+                                Task { await store.perform(.moveItems(items, folderId: folder.id)) }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "folder")
+                    }
+                    .disabled(store.state.selection.isEmpty)
+                    .accessibilityLabel(Localizations.move)
+                    .accessibilityIdentifier("SelectMoveButton")
+
+                    Button(role: .destructive) {
+                        let items = selectedSearchItems
+                        Task { await store.perform(.deleteItems(items)) }
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .disabled(store.state.selection.isEmpty)
+                    .accessibilityLabel(Localizations.delete)
+                    .accessibilityIdentifier("SelectDeleteButton")
+                }
+                Button(store.state.isSelecting ? Localizations.done : "Select") {
+                    store.send(.setSelecting(!store.state.isSelecting))
+                }
+                .accessibilityIdentifier("SelectButton")
+            }
+        }
+    }
 
     /// The "+" menu of the persistent bottom bar: the item types and a folder.
     private var addEntries: [PassYAddEntry] {

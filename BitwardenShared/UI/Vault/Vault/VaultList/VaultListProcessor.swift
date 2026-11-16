@@ -148,6 +148,10 @@ final class VaultListProcessor: StateProcessor<
         case .dismissUpgradedToPremiumActionCard:
             state.shouldShowUpgradedToPremiumActionCard = false
             await services.billingService.setUpgradedToPremiumActionCardDismissed()
+        case let .deleteItems(items):
+            deleteItems(items)
+        case let .moveItems(items, folderId):
+            await moveItems(items, folderId: folderId)
         case let .itemPressed(item):
             handleItemTapped(item)
         case let .morePressed(item):
@@ -203,7 +207,16 @@ final class VaultListProcessor: StateProcessor<
             coordinator.navigate(to: .flightRecorderSettings)
         case let .profileSwitcher(profileAction):
             handleProfileSwitcherAction(profileAction)
+        case let .selectionChanged(selection):
+            state.selection = selection
+        case let .setSelecting(isSelecting):
+            state.isSelecting = isSelecting
+            state.selection = []
         case let .searchStateChanged(isSearching: isSearching):
+            if !isSearching {
+                state.isSelecting = false
+                state.selection = []
+            }
             searchStateChanged(isSearching: isSearching)
         case let .searchTextChanged(newValue):
             state.searchText = newValue
@@ -263,6 +276,7 @@ extension VaultListProcessor {
 
     /// Called when the vault list appears on screen.
     private func appeared() async {
+        state.folders = (try? await services.vaultRepository.fetchFolders()) ?? []
         // This is being loaded before and after syncing to avoid glitches on which cipher types
         // are allowed while the vault is being refreshed/synced, as feature flags or policies may change that.
         await loadItemTypesUserCanCreate()
@@ -773,6 +787,59 @@ extension VaultListProcessor {
                 self?.state.url = url
             },
         )
+    }
+
+    /// Asks for confirmation and sends the search results to the trash. Cancelling changes nothing.
+    private func deleteItems(_ items: [VaultListItem]) {
+        coordinator.showAlert(.deleteCipherConfirmation(isSoftDelete: true) { [weak self] in
+            await self?.performDelete(items)
+        })
+    }
+
+    /// Deletes without asking; failed items are reported (never toasted as deleted) and stay selected.
+    private func performDelete(_ items: [VaultListItem]) async {
+        let ids = items.compactMap(\.cipherId)
+        let outcome = await CipherBulkActions.delete(
+            ids: ids,
+            permanent: false,
+            repository: services.vaultRepository,
+            errorReporter: services.errorReporter,
+        )
+        applyBulkOutcome(outcome)
+        if outcome.isComplete {
+            state.toast = Toast(title: Localizations.itemSoftDeleted)
+        } else {
+            coordinator.showAlert(.defaultAlert(
+                title: Localizations.anErrorHasOccurred,
+                message: Localizations.someItemsCouldNotBeDeleted(outcome.failedIds.count, ids.count),
+            ))
+        }
+    }
+
+    /// Moves the search results into a folder; failed items are reported and stay selected.
+    private func moveItems(_ items: [VaultListItem], folderId: String?) async {
+        let ids = items.compactMap(\.cipherId)
+        let outcome = await CipherBulkActions.move(
+            ids: ids,
+            folderId: folderId,
+            repository: services.vaultRepository,
+            errorReporter: services.errorReporter,
+        )
+        applyBulkOutcome(outcome)
+        if !outcome.isComplete {
+            coordinator.showAlert(.defaultAlert(
+                title: Localizations.anErrorHasOccurred,
+                message: Localizations.someItemsCouldNotBeMoved(outcome.failedIds.count, ids.count),
+            ))
+        }
+    }
+
+    /// Processed items leave the selection, failed ones stay; Select mode ends only if nothing failed.
+    private func applyBulkOutcome(_ outcome: CipherBulkOutcome) {
+        state.selection.subtract(outcome.succeededIds)
+        if outcome.isComplete, state.selection.isEmpty {
+            state.isSelecting = false
+        }
     }
 
     /// Handles state updates after a Premium upgrade is confirmed.

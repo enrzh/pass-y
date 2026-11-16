@@ -59,6 +59,12 @@ enum VaultListEffect: Equatable {
     /// Refresh the vault list's data.
     case refreshVault
 
+    /// Delete (send to the trash) the given search results after a confirmation.
+    case deleteItems(_ items: [VaultListItem])
+
+    /// Move the given search results to a folder (`nil` = no folder).
+    case moveItems(_ items: [VaultListItem], folderId: String?)
+
     /// Searches based on the keyword.
     case search(String)
 
