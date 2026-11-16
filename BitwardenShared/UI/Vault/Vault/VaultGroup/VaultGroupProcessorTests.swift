@@ -1275,6 +1275,19 @@ class VaultGroupProcessorTests: BitwardenTestCase { // swiftlint:disable:this ty
         XCTAssertEqual(coordinator.alertShown.last?.message, Localizations.someItemsCouldNotBeMoved(1, 2))
     }
 
+    /// Deleting only non-cipher rows (no ids) shows no success toast and touches nothing.
+    @MainActor
+    func test_perform_deleteItems_noCipherIds_noToast() async throws {
+        let group = VaultListItem(id: "g", itemType: .group(.login, 3))
+        subject.receive(.setSelecting(true))
+        await subject.perform(.deleteItems([group]))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertNil(subject.state.toast)
+        XCTAssertTrue(vaultRepository.softDeletedCipher.isEmpty)
+        XCTAssertTrue(vaultRepository.deletedCipher.isEmpty)
+        XCTAssertEqual(coordinator.alertShown.count, 1, "only the confirmation, no error alert")
+    }
+
     /// `.setSelecting` toggles Select mode and clears the selection.
     @MainActor
     func test_receive_setSelecting_clearsSelection() {

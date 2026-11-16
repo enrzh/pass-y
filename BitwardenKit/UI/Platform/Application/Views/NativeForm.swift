@@ -29,7 +29,25 @@ public extension EnvironmentValues {
     }
 }
 
+private struct IsTitlePlaceholderKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    /// Whether a native-form text field shows its title as the placeholder of a free, left-aligned field (Apple's
+    /// name field) instead of as a label on the left (ui-r7).
+    var isTitlePlaceholder: Bool {
+        get { self[IsTitlePlaceholderKey.self] }
+        set { self[IsTitlePlaceholderKey.self] = newValue }
+    }
+}
+
 public extension View {
+    /// The title of the text field becomes its placeholder; no label on the left (native forms only).
+    func nativeTitleAsPlaceholder() -> some View {
+        environment(\.isTitlePlaceholder, true)
+    }
+
     /// Shows `BitwardenField` rows with a primary label and a secondary value (Apple Passwords view state).
     func readOnlyFieldStyle() -> some View {
         environment(\.isReadOnlyFieldStyle, true)

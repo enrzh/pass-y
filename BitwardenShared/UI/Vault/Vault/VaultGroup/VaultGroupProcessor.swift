@@ -221,6 +221,8 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
     /// that cannot be fetched) are reported, never toasted as deleted, and stay selected.
     private func performDelete(_ items: [VaultListItem], permanent: Bool) async {
         let ids = items.compactMap(\.cipherId)
+        // Only non-cipher rows (groups, TOTP rows): nothing was deleted, so no success toast.
+        guard !ids.isEmpty else { return }
         let outcome = await CipherBulkActions.delete(
             ids: ids,
             permanent: permanent,

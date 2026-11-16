@@ -138,6 +138,9 @@ public struct BitwardenTextField<FooterContent: View, TrailingContent: View>: Vi
         }
     }
 
+    /// The title is the placeholder (native forms with `nativeTitleAsPlaceholder()`).
+    @Environment(\.isTitlePlaceholder) private var isTitlePlaceholder
+
     // MARK: Private views
 
     /// The main content for the view, containing the title label and text field.
@@ -214,7 +217,7 @@ public struct BitwardenTextField<FooterContent: View, TrailingContent: View>: Vi
                     )
                     .disabled(isTextFieldDisabled)
             } else {
-                TextField("", text: textFieldBinding)
+                TextField(isTitlePlaceholder ? (title ?? "") : "", text: textFieldBinding)
                     .focused($isTextFieldFocused)
                     .focused(focus)
                     .styleGuide(isPassword ? .bodyMonospaced : .body, includeLineSpacing: false)

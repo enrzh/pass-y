@@ -1268,3 +1268,19 @@ When adding a new test:
 2. Add the new test within that group
 3. Order within the group by logical flow (not strict alphabetical)
 4. If testing a new function, insert the group alphabetically by function name
+
+## Local UI test runs (Pass-Y, ui-r7)
+
+Everything lives outside `/tmp` (it gets cleaned from outside): `~/Library/Caches/passy-vw/` holds the Vaultwarden source/binary (`src/`, built as in the README), its data (`data/`), logs and result bundles (`out/`) and DerivedData (`dd/`).
+
+```sh
+Scripts-passy/vaultwarden/run_local.sh --fresh &        # port 8088, flag pm-32009-new-item-types, rate limit relaxed
+python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:8088
+python3 Scripts-passy/vaultwarden/seed_ciphers.py 25
+# 2FA account: PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/seed_account.py ... ; python3 Scripts-passy/vaultwarden/enable_2fa.py
+Scripts-passy/run_plan.sh unit Bitwarden-Unit            # logs: ~/Library/Caches/passy-vw/out/unit.log
+Scripts-passy/run_ui.sh flow 1 PassYUITests/PassYFlowTests   # 1 = uninstall the app first
+Scripts-passy/export_shots.sh ~/Library/Caches/passy-vw/out/flow.xcresult /path/to/dir
+```
+
+The runners wait for a 1-minute load below 8 and end a hung `xcodebuild` after the result line. Never count UI results taken under load. After a red run read `~/Library/Caches/passy-vw/out/vaultwarden.log` (a failed login names the user).

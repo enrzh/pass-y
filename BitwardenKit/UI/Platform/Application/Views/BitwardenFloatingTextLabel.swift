@@ -34,6 +34,9 @@ public struct BitwardenFloatingTextLabel<Content: View, TrailingContent: View>: 
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    /// The title is the placeholder of a free field (Apple's name row), not a label.
+    @Environment(\.isTitlePlaceholder) private var isTitlePlaceholder
+
     // MARK: View
 
     public var body: some View {
@@ -47,7 +50,7 @@ public struct BitwardenFloatingTextLabel<Content: View, TrailingContent: View>: 
     /// Apple Passwords edit row: grey label on the left, the value right-aligned, one line.
     private var nativeRow: some View {
         HStack(spacing: 12) {
-            if let title {
+            if let title, !isTitlePlaceholder {
                 Text(title)
                     .font(.body)
                     .foregroundStyle(
@@ -62,7 +65,7 @@ public struct BitwardenFloatingTextLabel<Content: View, TrailingContent: View>: 
             }
 
             content
-                .multilineTextAlignment(.trailing)
+                .multilineTextAlignment(isTitlePlaceholder ? .leading : .trailing)
 
             trailingContent
         }

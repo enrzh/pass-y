@@ -46,12 +46,15 @@ final class PassYUiR7ShotsTests: XCTestCase {
                 if type == "Login" {
                     let name = app.textFields["ItemNameEntry"]
                     XCTAssertTrue(name.waitForExistence(timeout: 10))
+                    let user = app.textFields["LoginUsernameEntry"]
                     app.dismissNewLoginCard()
                     let ok = app.alerts.buttons["OK"]
                     if ok.waitForExistence(timeout: 3) { ok.tap(); sleep(1) }
-                    // Stacked rows start at the leading edge (x = 20); inline rows start after the label.
-                    XCTAssertGreaterThan(name.frame.minX, 100, "name field sits right of its label (inline row)")
-                    XCTAssertLessThan(name.frame.height, 50)
+                    // Stacked rows start at the leading edge (x = 20); inline rows start after the label. The name is
+                    // a free field without a label (its title is the placeholder), so the username row is checked.
+                    XCTAssertGreaterThan(user.frame.minX, 100, "username field sits right of its label (inline row)")
+                    XCTAssertLessThan(user.frame.height, 50)
+                    XCTAssertLessThan(name.frame.minX, 60, "name field is a free field starting at the leading edge")
                 }
                 shot(app, n, "\(mode)-add-\(type.lowercased().replacingOccurrences(of: " ", with: "-"))"); n += 1
                 if type == "Login" {
@@ -139,5 +142,33 @@ final class PassYUiR7ShotsTests: XCTestCase {
         app.buttons["Delete"].firstMatch.tap()
         XCTAssertTrue(app.alerts.buttons["Yes"].waitForExistence(timeout: 5)); app.alerts.buttons["Yes"].tap()
         XCTAssertTrue(waitForDisappearance(of: last, timeout: 15), "swipe delete on a search result")
+    }
+
+    /// The masked password of the edit form is really there: the secure field is not empty (iOS reports one bullet
+    /// per character; simulator screenshots do not draw the dots of secure fields), and the eye shows the value.
+    /// Written for the validator finding "password row shows neither dots nor value"; needs the throwaway server.
+    func test_editFormPasswordMaskedAndRevealed() {
+        XCUIDevice.shared.appearance = .light
+        let name = "AA Qzx Pw \(Int(Date().timeIntervalSince1970) % 100000)"
+        let password = "Sup3rSecret"
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        addLogin(app, name: name, user: "pw@example.test", password: password)
+        focusSearch(app)
+        app.searchFields.firstMatch.typeText("Qzx")
+        XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 10))
+        app.staticTexts[name].tap()
+        let edit = app.buttons["EditItemButton"]
+        XCTAssertTrue(edit.waitForExistence(timeout: 8)); edit.tap(); sleep(2)
+        let masked = app.secureTextFields["LoginPasswordEntry"]
+        XCTAssertTrue(masked.waitForExistence(timeout: 8), "masked password field")
+        let bullets = masked.value as? String ?? ""
+        XCTAssertEqual(bullets.count, password.count, "masked field holds one bullet per character: '\(bullets)'")
+        attach(app, "r7-60-edit-password-masked")
+        app.buttons["ViewPasswordButton"].firstMatch.tap(); sleep(1)
+        let revealed = app.textFields["LoginPasswordEntry"]
+        XCTAssertTrue(revealed.waitForExistence(timeout: 5), "revealed password field")
+        XCTAssertEqual(revealed.value as? String, password, "revealed value")
+        attach(app, "r7-61-edit-password-revealed")
     }
 }
