@@ -501,10 +501,8 @@ struct VaultListView: View {
                 profileSwitcher
             }
         }
-        .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .inline)
+        .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .large)
         .toolbar {
-            largeNavigationTitleToolbarItem(store.state.navigationTitle)
-
             PassYAvatarToolbarItem()
         }
         .task {

@@ -240,9 +240,9 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
         }
     }
 
-    /// The main details header section.
+    /// The main details header section: big centered icon and title (Apple Passwords), favorite star trailing.
     private var itemHeaderMainDetails: some View {
-        HStack(spacing: 12) {
+        VStack(spacing: 12) {
             VaultItemDecorativeImageView(
                 item: store.state,
                 iconBaseURL: store.state.iconBaseURL,
@@ -253,25 +253,29 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
                     .scaledToFit()
                     .foregroundStyle(SharedAsset.Colors.illustrationStroke.swiftUIColor)
                     .accessibilityHidden(true)
-                    .imageStyle(.viewIcon(size: 24))
+                    .imageStyle(.viewIcon(size: 36))
                     .withCircularBackground(
                         color: SharedAsset.Colors.illustrationFillPrimary.swiftUIColor,
-                        width: 36,
-                        height: 36,
+                        width: 64,
+                        height: 64,
                     )
             }
-            .imageStyle(.viewIcon())
+            .imageStyle(.viewIcon(size: 64))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .accessibilityHidden(true)
-            .padding(.vertical, 5)
+            .padding(.top, 8)
 
             Text(store.state.name)
                 .styleGuide(.title, weight: .bold, includeLinePadding: false, includeLineSpacing: false)
-                .multilineTextAlignment(.leading)
+                .multilineTextAlignment(.center)
                 .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
                 .accessibilityIdentifier(store.state.name)
                 .accessibilityLabel(Localizations.itemNameX(store.state.name))
-                .frame(maxWidth: .infinity, alignment: .leading)
-
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .overlay(alignment: .topTrailing) {
             let image = store.state.isFavoriteOn
                 ? SharedAsset.Icons.starFilled24.swiftUIImage
                 : SharedAsset.Icons.star24.swiftUIImage
@@ -280,10 +284,8 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
                 .accessibilityLabel(Localizations.favorite)
                 .accessibilityValue(store.state.isFavoriteOn ? Localizations.on : Localizations.off)
                 .buttonStyle(.accessory)
+                .padding(12)
         }
-        .padding(.leading, 16)
-        .padding(.trailing, 16)
-        .frame(minHeight: 64)
         .accessibilityElement(children: .contain)
     }
 
@@ -292,6 +294,7 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
         Section {
             itemHeaderMainDetails
                 .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
 
             itemHeaderAdditionalDetails
                 .listRowInsets(EdgeInsets())
