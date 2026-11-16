@@ -186,6 +186,10 @@ final class PassYUiR6ShotsTests: XCTestCase {
         shot(app, 45, "\(mode)-2fa-methods")
         print("R6REACH 2fa methods: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | ")
               + " / " + app.menuItems.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
+        let another = app.buttons["Use another two-step login method"].firstMatch
+        if another.exists { another.tap(); sleep(2); shot(app, 48, "\(mode)-2fa-method-sheet") }
+        print("R6REACH 2fa sheet: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | ")
+              + " / " + app.sheets.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
         let recovery = app.buttons["Recovery code"].exists ? app.buttons["Recovery code"] : app.menuItems["Recovery code"]
         if recovery.exists {
             recovery.tap(); sleep(2)
