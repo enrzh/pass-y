@@ -38,6 +38,8 @@ struct ViewLoginItemView: View {
                     }
                 }
 
+                checkPasswordRow
+
                 if let totpModel = store.state.totpCode {
                     if store.state.isTOTPAvailable {
                         totpRow(totpModel)
@@ -60,41 +62,50 @@ struct ViewLoginItemView: View {
                 .styleGuide(.body)
                 .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
                 .accessibilityIdentifier("LoginPasswordEntry")
-        } accessoryContent: {
-            if store.state.canViewPassword {
-                PasswordVisibilityButton(
-                    accessibilityIdentifier: "ShowLoginPasswordButton",
-                    isPasswordVisible: store.state.isPasswordVisible,
-                ) {
-                    store.send(.passwordVisibilityPressed)
-                }
-
-                Button {
-                    store.send(.copyPressed(value: password, field: .password))
-                } label: {
-                    SharedAsset.Icons.copy24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-                .accessibilityLabel(Localizations.copy)
-                .accessibilityIdentifier("LoginCopyPasswordButton")
-            }
-        } footerContent: {
-            if store.state.canViewPassword {
-                AsyncButton(Localizations.checkPasswordForDataBreaches) {
-                    await store.perform(.checkPasswordPressed)
-                }
-                .buttonStyle(.bitwardenBorderless)
-                .padding(.vertical, 14)
-                .accessibilityLabel(Localizations.checkPassword)
-                .accessibilityIdentifier("CheckPasswordButton")
-            }
         }
         .accessibilityElement(children: .contain)
         .contentShape(Rectangle())
+        // Apple Passwords: tap copies, long press offers Reveal and Copy (no eye or copy icons).
         .onTapGesture {
             guard store.state.canViewPassword else { return }
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             store.send(.copyPressed(value: password, field: .password))
+        }
+        .contextMenu {
+            if store.state.canViewPassword {
+                Button {
+                    store.send(.passwordVisibilityPressed)
+                } label: {
+                    Label(
+                        store.state.isPasswordVisible ? "Hide" : "Reveal",
+                        systemImage: store.state.isPasswordVisible ? "eye.slash" : "eye",
+                    )
+                }
+                Button {
+                    store.send(.copyPressed(value: password, field: .password))
+                } label: {
+                    Label(Localizations.copy, systemImage: "doc.on.doc")
+                }
+            }
+        }
+    }
+
+    /// "Check password for data breaches" as a plain row with a symbol (Apple style, no blue link).
+    @ViewBuilder private var checkPasswordRow: some View {
+        if store.state.canViewPassword, !store.state.password.isEmpty {
+            AsyncButton {
+                await store.perform(.checkPasswordPressed)
+            } label: {
+                Label(Localizations.checkPasswordForDataBreaches, systemImage: "checkmark.shield")
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(.vertical, 6)
+            .accessibilityLabel(Localizations.checkPassword)
+            .accessibilityIdentifier("CheckPasswordButton")
         }
     }
 
@@ -142,21 +153,19 @@ struct ViewLoginItemView: View {
             title: Localizations.username,
             value: username,
             valueAccessibilityIdentifier: "LoginUsernameEntry",
-        ) {
-            Button {
-                store.send(.copyPressed(value: username, field: .username))
-            } label: {
-                SharedAsset.Icons.copy24.swiftUIImage
-                    .imageStyle(.accessoryIcon24)
-            }
-            .accessibilityLabel(Localizations.copy)
-            .accessibilityIdentifier("LoginCopyUsernameButton")
-        }
+        )
         .accessibilityElement(children: .contain)
         .contentShape(Rectangle())
         .onTapGesture {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             store.send(.copyPressed(value: username, field: .username))
+        }
+        .contextMenu {
+            Button {
+                store.send(.copyPressed(value: username, field: .username))
+            } label: {
+                Label(Localizations.copy, systemImage: "doc.on.doc")
+            }
         }
     }
 
@@ -199,16 +208,20 @@ struct ViewLoginItemView: View {
                         }
                     },
                 )
-                Button {
-                    store.send(.copyPressed(value: model.code, field: .totp))
-                } label: {
-                    SharedAsset.Icons.copy24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-                .accessibilityLabel(Localizations.copy)
-                .accessibilityIdentifier("CopyTotpValueButton")
             },
         )
         .accessibilityElement(children: .contain)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            store.send(.copyPressed(value: model.code, field: .totp))
+        }
+        .contextMenu {
+            Button {
+                store.send(.copyPressed(value: model.code, field: .totp))
+            } label: {
+                Label(Localizations.copy, systemImage: "doc.on.doc")
+            }
+        }
     }
 }

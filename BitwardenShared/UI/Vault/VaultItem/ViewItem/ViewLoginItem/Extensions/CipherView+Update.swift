@@ -399,6 +399,19 @@ extension CipherView {
         )
     }
 
+    /// Returns a copy of the existing cipher with the favorite flag set.
+    func update(favorite: Bool) -> CipherView {
+        update(
+            archivedDate: archivedDate,
+            collectionIds: collectionIds,
+            deletedDate: deletedDate,
+            folderId: folderId,
+            login: login,
+            organizationId: organizationId,
+            favorite: favorite,
+        )
+    }
+
     /// Returns a copy of the existing cipher with updated login properties.
     ///
     /// - Parameter login: The login property to update.
@@ -435,6 +448,7 @@ extension CipherView {
         folderId: String?,
         login: BitwardenSdk.LoginView?,
         organizationId: String?,
+        favorite: Bool? = nil,
     ) -> CipherView {
         CipherView(
             id: id,
@@ -453,7 +467,7 @@ extension CipherView {
             bankAccount: bankAccount,
             driversLicense: driversLicense,
             passport: passport,
-            favorite: favorite,
+            favorite: favorite ?? self.favorite,
             reprompt: reprompt,
             organizationUseTotp: organizationUseTotp,
             edit: edit,

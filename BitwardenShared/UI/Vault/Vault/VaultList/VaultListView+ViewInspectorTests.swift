@@ -427,13 +427,11 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         XCTAssertEqual(processor.dispatchedActions.last, .copyTOTPCode("123456"))
     }
 
-    /// Tapping the vault item more button dispatches the `.morePressed` action.
+    /// ui-r6: no "..." button in the vault list rows (chevron, context menu and swipe instead).
     @MainActor
-    func test_vaultItem_moreButton_tap() async throws {
+    func test_vaultItem_noMoreButton() throws {
         let item = VaultListItem.fixture()
         processor.state.loadingState = .data([VaultListSection(id: "1", items: [item], name: "Group")])
-        let button = try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.moreOptions)
-        try await button.tap()
-        XCTAssertEqual(processor.effects.last, .morePressed(item))
+        XCTAssertThrowsError(try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.moreOptions))
     }
 }

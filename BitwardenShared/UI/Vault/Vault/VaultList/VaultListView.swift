@@ -317,7 +317,7 @@ private struct SearchableVaultListView: View {
                         }
                         .textCase(nil)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("SectionExpandButton_\(section.id)")
@@ -1063,7 +1063,7 @@ struct VaultListView: View {
 
 // MARK: - Soft bottom scroll edge
 
-private extension View {
+extension View {
     /// Fades list content out under the floating bottom bar (iOS 26 scroll edge effect) so rows do not shine through.
     @ViewBuilder
     func softBottomScrollEdge() -> some View {

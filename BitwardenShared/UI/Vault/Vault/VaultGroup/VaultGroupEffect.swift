@@ -13,6 +13,12 @@ enum VaultGroupEffect: Equatable {
     /// The vault group view appeared on screen.
     case appeared
 
+    /// Delete (send to trash, or permanently in the trash) the given items after a confirmation.
+    case deleteItems(_ items: [VaultListItem])
+
+    /// Move the given items to a folder (`nil` = no folder).
+    case moveItems(_ items: [VaultListItem], folderId: String?)
+
     /// An item in the vault group was tapped to be opened.
     ///
     /// - Parameter item: The item that was tapped.

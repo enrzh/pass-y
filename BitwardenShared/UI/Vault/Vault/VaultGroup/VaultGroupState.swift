@@ -1,5 +1,6 @@
 import BitwardenKit
 import BitwardenResources
+import BitwardenSdk
 import Foundation
 
 // MARK: - VaultGroupState
@@ -128,6 +129,9 @@ struct VaultGroupState: Equatable, Sendable {
             nil
         }
     }
+
+    /// The folders the user can move items to.
+    var folders = [FolderView]()
 
     /// The list of organizations the user is a member of.
     var organizations = [Organization]()

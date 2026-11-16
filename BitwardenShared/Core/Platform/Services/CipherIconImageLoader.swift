@@ -62,7 +62,11 @@ final class CipherIconImageLoader: NSObject, @unchecked Sendable {
             guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
                 return nil
             }
-            return UIImage(data: data)
+            guard let image = UIImage(data: data) else { return nil }
+            // Vaultwarden answers with its generic globe (a 19 x 19 px PNG) when a site has no icon. Treat that
+            // like "no icon" so the row shows the letter placeholder (Apple Passwords) instead of a globe.
+            if Int(image.size.width * image.scale) == 19, Int(image.size.height * image.scale) == 19 { return nil }
+            return image
         } catch {
             return nil
         }

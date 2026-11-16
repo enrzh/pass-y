@@ -219,28 +219,46 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["LoginUsernameEntry"].waitForExistence(timeout: 10), "item view is open")
     }
 
-    /// Real taps in the item view: the eye reveals the password, the copy icons and the rows copy (toast "copied").
+    /// Real taps in the item view (Apple style, no eye or copy icons): long press offers Reveal and Copy, tapping a row
+    /// copies (toast "copied"), the breach check is a plain row, the favorite star is in the toolbar and toggles.
     func test12_itemViewRevealAndCopyTaps() {
         let app = launchApp()
         ensureUnlockedVault(app)
         openGitHubViaSearch(app)
         let password = app.descendants(matching: .any)["LoginPasswordEntry"]
         XCTAssertTrue(password.waitForExistence(timeout: 5), "password row exists")
+        XCTAssertFalse(app.buttons["ShowLoginPasswordButton"].exists, "no eye button")
+        XCTAssertFalse(app.buttons["LoginCopyUsernameButton"].exists, "no copy icon")
+        XCTAssertFalse(app.buttons["LoginCopyPasswordButton"].exists, "no copy icon")
         let hiddenLabel = password.label
         attach(app, "12-item-hidden")
-        let eye = app.buttons["ShowLoginPasswordButton"]
-        XCTAssertTrue(eye.waitForExistence(timeout: 5), "reveal (eye) button exists")
-        eye.tap(); sleep(1)
+        password.press(forDuration: 1.2); sleep(1)
+        let reveal = app.buttons["Reveal"].exists ? app.buttons["Reveal"] : app.menuItems["Reveal"]
+        XCTAssertTrue(reveal.waitForExistence(timeout: 5), "context menu offers Reveal")
+        attach(app, "12-item-context-menu")
+        reveal.tap(); sleep(1)
         attach(app, "12-item-revealed")
-        XCTAssertNotEqual(app.descendants(matching: .any)["LoginPasswordEntry"].label, hiddenLabel, "eye reveals the password")
+        XCTAssertNotEqual(app.descendants(matching: .any)["LoginPasswordEntry"].label, hiddenLabel, "Reveal shows the password")
         let copied = NSPredicate(format: "label CONTAINS[c] 'copied'")
-        app.buttons["LoginCopyUsernameButton"].tap(); sleep(1)
-        XCTAssertTrue(app.staticTexts.matching(copied).firstMatch.waitForExistence(timeout: 5), "copy icon shows a copied toast")
-        attach(app, "12-item-copy-icon-toast")
+        let user = app.descendants(matching: .any)["LoginUsernameEntry"]
+        user.press(forDuration: 1.2); sleep(1)
+        let copy = app.buttons["Copy"].exists ? app.buttons["Copy"] : app.menuItems["Copy"]
+        XCTAssertTrue(copy.waitForExistence(timeout: 5), "context menu offers Copy")
+        copy.tap(); sleep(1)
+        XCTAssertTrue(app.staticTexts.matching(copied).firstMatch.waitForExistence(timeout: 5), "context menu copy shows a copied toast")
+        attach(app, "12-item-copy-toast")
         sleep(4)
         app.descendants(matching: .any)["LoginUsernameEntry"].tap(); sleep(1)
         XCTAssertTrue(app.staticTexts.matching(copied).firstMatch.waitForExistence(timeout: 5), "tapping the row copies and shows the toast")
         attach(app, "12-item-row-tap-toast")
+        XCTAssertTrue(app.buttons["CheckPasswordButton"].waitForExistence(timeout: 5), "breach check is a plain row")
+        let star = app.buttons["FavoriteToolbarButton"]
+        XCTAssertTrue(star.exists, "favorite star in the toolbar")
+        let before = star.value as? String
+        star.tap(); sleep(3)
+        XCTAssertNotEqual(app.buttons["FavoriteToolbarButton"].value as? String, before, "tapping the star toggles favorite")
+        app.buttons["FavoriteToolbarButton"].tap(); sleep(3)
+        XCTAssertEqual(app.buttons["FavoriteToolbarButton"].value as? String, before, "toggled back")
     }
 
     /// Real taps in Settings: the account row menu offers Lock and Log out; Log out asks for confirmation.

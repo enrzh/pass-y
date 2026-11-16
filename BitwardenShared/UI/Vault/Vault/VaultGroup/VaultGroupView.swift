@@ -1,5 +1,6 @@
 import BitwardenKit
 import BitwardenResources
+import BitwardenSdk
 import SwiftUI
 
 // MARK: - VaultGroupView
@@ -20,10 +21,17 @@ struct VaultGroupView: View {
     /// The `TimeProvider` used to calculate TOTP expiration.
     var timeProvider: any TimeProvider
 
+    /// Whether the list is in Select mode (Apple Passwords).
+    @SwiftUI.State private var isSelecting = false
+
+    /// The ids of the selected items in Select mode.
+    @SwiftUI.State private var selection = Set<String>()
+
     // MARK: View
 
     var body: some View {
         content
+            .toolbar { selectToolbar }
             .passYSearchTarget(
                 id: ObjectIdentifier(store),
                 isPushed: true,
@@ -33,6 +41,7 @@ struct VaultGroupView: View {
                 setSearching: { store.send(.searchStateChanged(isSearching: $0)) },
             )
             .navigationTitle(store.state.group.navigationTitle)
+            .passYItemCountSubtitle(itemCountSubtitle)
             .navigationBarTitleDisplayMode(.inline)
             .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
             .task {
@@ -57,6 +66,76 @@ struct VaultGroupView: View {
     }
 
     // MARK: Private
+
+    /// All cipher items currently shown (not searching).
+    private var allItems: [VaultListItem] {
+        guard case let .data(sections) = store.state.loadingState else { return [] }
+        return sections.flatMap(\.items)
+    }
+
+    /// "N Items" under the title, like Apple Passwords.
+    private var itemCountSubtitle: String? {
+        guard !store.state.isSearching, case .data = store.state.loadingState, !allItems.isEmpty else { return nil }
+        return Localizations.xItems(allItems.count).replacingOccurrences(of: "items", with: "Items")
+    }
+
+    /// The selected items.
+    private var selectedItems: [VaultListItem] {
+        allItems.filter { selection.contains($0.id) }
+    }
+
+    /// Select / Done and, in Select mode, Move and Delete.
+    @ToolbarContentBuilder private var selectToolbar: some ToolbarContent {
+        ToolbarItemGroup(placement: .navigationBarTrailing) {
+            selectBarContent
+        }
+    }
+
+    @ViewBuilder private var selectBarContent: some View {
+        if !store.state.isSearching, !allItems.isEmpty, !isCipherlessGroup {
+            if isSelecting {
+                Menu {
+                    Button(Localizations.folderNone) {
+                        let items = selectedItems
+                        Task { await store.perform(.moveItems(items, folderId: nil)) }
+                    }
+                    ForEach(store.state.folders, id: \.id) { folder in
+                        Button(folder.name) {
+                            let items = selectedItems
+                            Task { await store.perform(.moveItems(items, folderId: folder.id)) }
+                        }
+                    }
+                } label: {
+                    Image(systemName: "folder")
+                }
+                .disabled(selection.isEmpty || store.state.group == .trash)
+                .accessibilityLabel(Localizations.move)
+                .accessibilityIdentifier("SelectMoveButton")
+
+                Button(role: .destructive) {
+                    let items = selectedItems
+                    Task { await store.perform(.deleteItems(items)) }
+                    isSelecting = false
+                    selection = []
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .disabled(selection.isEmpty)
+                .accessibilityLabel(Localizations.delete)
+                .accessibilityIdentifier("SelectDeleteButton")
+            }
+            Button(isSelecting ? Localizations.done : "Select") {
+                isSelecting.toggle()
+                selection = []
+            }
+            .accessibilityIdentifier("SelectButton")
+        }
+    }
+
+    /// Groups made only of non-cipher rows (e.g. verification codes) have no Select mode.
+    private var isCipherlessGroup: Bool {
+        !allItems.contains { if case .cipher = $0.itemType { true } else { false } }
+    }
 
     /// The "+" menu of the persistent bottom bar for this group.
     private var addEntries: [PassYAddEntry] {
@@ -227,17 +306,53 @@ struct VaultGroupView: View {
     ///
     @ViewBuilder
     private func groupView(with sections: [VaultListSection]) -> some View {
-        VStack(spacing: 16) {
-            archivePremiumSubscriptionEndedCard
+        List(selection: $selection) {
+            if store.state.showArchivePremiumSubscriptionEndedCard {
+                archivePremiumSubscriptionEndedCard
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            }
 
             ForEach(sections) { section in
-                VaultListSectionView(section: section) { item in
-                    vaultItemRow(for: item, isLastInSection: section.items.last == item)
+                Section {
+                    ForEach(section.items) { item in
+                        vaultItemRow(for: item, isLastInSection: section.items.last == item)
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                            .tag(item.id)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                if case .cipher = item.itemType {
+                                    Button(role: .destructive) {
+                                        Task { await store.perform(.deleteItems([item])) }
+                                    } label: {
+                                        Label(Localizations.delete, systemImage: "trash")
+                                    }
+                                    Button {
+                                        Task { await store.perform(.morePressed(item)) }
+                                    } label: {
+                                        Label(Localizations.moreOptions, systemImage: "ellipsis")
+                                    }
+                                    .tint(.gray)
+                                }
+                            }
+                    }
+                } header: {
+                    if itemCountSubtitle == nil {
+                        Text(section.name)
+                    }
                 }
             }
+
+            Section {
+                Color.clear
+                    .frame(height: FloatingActionButton.bottomOffsetPadding)
+                    .listRowBackground(Color.clear)
+                    .accessibilityHidden(true)
+            }
         }
-        .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
-        .scrollView()
+        .listStyle(.plain)
+        .environment(\.editMode, .constant(isSelecting ? .active : .inactive))
+        .softBottomScrollEdge()
     }
 
     /// Creates a row in the list for the provided item.
@@ -277,7 +392,30 @@ struct VaultGroupView: View {
                 },
             ),
             timeProvider: timeProvider,
+            onDelete: item.isCipherItem ? { Task { await store.perform(.deleteItems([item])) } } : nil,
         )
+    }
+}
+
+// MARK: - Item count subtitle
+
+extension View {
+    /// Shows "N Items" under the navigation title (iOS 26 `navigationSubtitle`, like Apple Passwords).
+    @ViewBuilder
+    func passYItemCountSubtitle(_ text: String?) -> some View {
+        if #available(iOS 26, *) {
+            navigationSubtitle(text ?? "")
+        } else {
+            self
+        }
+    }
+}
+
+extension VaultListItem {
+    /// Whether this row is a cipher (rather than a group or TOTP row).
+    var isCipherItem: Bool {
+        if case .cipher = itemType { return true }
+        return false
     }
 }
 
