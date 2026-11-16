@@ -148,3 +148,23 @@ extension VaultItemDecorativeImageView where PlaceholderContent == EmptyView {
         self.showWebIcons = showWebIcons
     }
 }
+
+// MARK: - ItemLetterIcon
+
+/// The placeholder of a login without a website icon, like Apple Passwords: the first letter of the name.
+struct ItemLetterIcon: View {
+    /// The item name.
+    let name: String
+
+    /// The font size of the letter.
+    var fontSize: CGFloat = 20
+
+    var body: some View {
+        Text(String(name.trimmingCharacters(in: .whitespaces).first.map { Character($0.uppercased()) } ?? "?"))
+            .font(.system(size: fontSize, weight: .semibold, design: .rounded))
+            .foregroundStyle(.secondary)
+            .minimumScaleFactor(0.5)
+            .lineLimit(1)
+            .accessibilityHidden(true)
+    }
+}

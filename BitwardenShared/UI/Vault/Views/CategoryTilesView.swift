@@ -60,24 +60,25 @@ private struct CategoryTile: View {
     let count: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 Image(systemName: group.tileSymbol)
-                    .font(.system(size: 21, weight: .semibold))
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
-                    .frame(width: 42, height: 42)
+                    .frame(width: 36, height: 36)
                     .background(group.tileColor, in: Circle())
                     .accessibilityHidden(true)
                 Spacer(minLength: 4)
                 Text("\(count)")
-                    .font(.title.weight(.bold))
-                    .foregroundStyle(.primary)
+                    .font(.title2)
+                    // A little darker than `.secondary` so the count passes the contrast audit on the white tile.
+                    .foregroundStyle(Color.primary.opacity(0.7))
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
             }
             Text(group.name)
-                .font(.headline)
-                .foregroundStyle(.secondary)
+                .font(.title3)
+                .foregroundStyle(.primary)
                 .multilineTextAlignment(.leading)
                 // One line, always: long names ("Verification codes") shrink instead of wrapping, so tiles in the
                 // same row keep the same height. Accessibility sizes use a single column (see `columns`).
@@ -85,9 +86,11 @@ private struct CategoryTile: View {
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(16)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .padding(12)
+        // Same height for every tile of a row (the shrinking long names measure a fraction of a point differently).
+        .frame(minHeight: 96, alignment: .topLeading)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 

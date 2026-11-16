@@ -163,7 +163,8 @@ final class TabCoordinator: Coordinator, HasTabNavigator {
         rootNavigator.show(child: tabNavigator)
 
         let vaultNav = module.makeNavigationController()
-        vaultNav.navigationBar.prefersLargeTitles = false
+        // The vault home shows a left-aligned large title (Apple Passwords); pushed pages set their own inline mode.
+        vaultNav.navigationBar.prefersLargeTitles = true
         vaultNav.navigationBar.accessibilityIdentifier = "MainHeaderBar"
         vaultCoordinator = module.makeVaultCoordinator(
             delegate: vaultDelegate,

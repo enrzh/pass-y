@@ -144,6 +144,7 @@ struct ViewItemView: View {
             )
         }
         .nativeFormRows()
+        .readOnlyFieldStyle()
     }
 }
 

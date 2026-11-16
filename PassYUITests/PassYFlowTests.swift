@@ -634,7 +634,7 @@ final class PassYFlowTests: XCTestCase {
         assertBarAtBottom("vault after cancel")
     }
 
-    /// The category tiles are large (about 180 x 100 pt on an iPhone, two per row).
+    /// The category tiles are large (about 180 x 96 pt on an iPhone, two per row).
     func test21_categoryTilesAreLarge() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -778,10 +778,48 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["SetupSectionDismissButton"].exists, "dismiss row")
         XCTAssertTrue(app.staticTexts["SetupSectionTitle"].exists || app.staticTexts["Autofill with Pass-Y"].exists, "headline row")
         XCTAssertTrue(app.collectionViews.firstMatch.exists || app.tables.firstMatch.exists, "native list")
-        XCTAssertFalse(app.buttons["Turn on now"].exists && !action.exists, "no old action card")
+        let list = app.collectionViews.firstMatch.exists ? app.collectionViews.firstMatch : app.tables.firstMatch
+        XCTAssertTrue(list.buttons["SetupSectionActionButton"].exists, "the action is a row of the native list, not a card outside it")
+        XCTAssertTrue(list.buttons["SetupSectionDismissButton"].exists, "the dismiss row is part of the native list")
         attach(app, "27-setup-section")
         app.buttons["SetupSectionDismissButton"].tap()
-        sleep(1)
-        XCTAssertFalse(app.buttons["SetupSectionActionButton"].exists, "dismiss removes the section")
+        XCTAssertTrue(waitForDisappearance(of: action, timeout: 8), "dismiss removes the section")
+        // The dismissal is persisted: after a relaunch the same page loads (it still has its toggle/rows) without the section.
+        app.terminate()
+        let app2 = launchApp()
+        ensureUnlockedVault(app2)
+        goTo(app2, "Settings")
+        app2.buttons["AutofillSettingsButton"].tap()
+        XCTAssertTrue(app2.switches.firstMatch.waitForExistence(timeout: 10), "autofill page loaded after relaunch")
+        XCTAssertFalse(app2.buttons["SetupSectionActionButton"].exists, "dismissed section stays dismissed")
+    }
+
+    /// ui-r5 (Apple Passwords look): the vault home has a left-aligned large title; the item view shows the name
+    /// centered under a big icon and label/value rows on one line (value to the right of the label).
+    func test28_homeLargeTitleAndInlineItemRows() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let title = app.staticTexts["My vault"].firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        let screenWidth = app.windows.firstMatch.frame.width
+        XCTAssertLessThan(title.frame.minX, screenWidth * 0.2, "large title is left-aligned: \(title.frame)")
+        XCTAssertGreaterThan(title.frame.height, 30, "large title font: \(title.frame)")
+        let tile = app.buttons["CategoryTile_login"]
+        XCTAssertTrue(tile.waitForExistence(timeout: 10))
+        XCTAssertLessThan(title.frame.maxY, tile.frame.minY, "title above the tiles")
+        tile.tap()
+        let row = app.buttons["VaultListItemRowButton"].firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        row.tap()
+        let label = app.staticTexts["Username"].firstMatch
+        XCTAssertTrue(label.waitForExistence(timeout: 10), "item view shows the Username row")
+        let value = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '@'")).firstMatch
+        XCTAssertTrue(value.exists)
+        XCTAssertEqual(label.frame.midY, value.frame.midY, accuracy: 12, "label and value share one line")
+        XCTAssertGreaterThan(value.frame.minX, label.frame.maxX, "value is right of the label")
+        // Name centered over the rows.
+        let name = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Item name'")).firstMatch
+        if name.exists { XCTAssertEqual(name.frame.midX, screenWidth / 2, accuracy: 24, "item name centered") }
+        attach(app, "28-item-view-inline")
     }
 }

@@ -27,6 +27,12 @@ public struct BitwardenField<Content: View, AccessoryContent: View, FooterConten
     /// Whether the view allows user interaction.
     @Environment(\.isEnabled) var isEnabled: Bool
 
+    @Environment(\.isNativeForm) private var isNativeForm
+
+    @Environment(\.isReadOnlyFieldStyle) private var isReadOnlyFieldStyle
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     // MARK: View
 
     public var body: some View {
@@ -70,6 +76,58 @@ public struct BitwardenField<Content: View, AccessoryContent: View, FooterConten
     /// The main content for the view, containing the title and value.
     @ViewBuilder
     private func contentView() -> some View {
+        if #available(iOS 16, *), isNativeForm, isReadOnlyFieldStyle, title != nil, !dynamicTypeSize.isAccessibilitySize {
+            // Apple Passwords layout: label on the left, value on the right, stacked only if it does not fit.
+            ViewThatFits(in: .horizontal) {
+                inlineContentView()
+                stackedContentView()
+            }
+        } else {
+            stackedContentView()
+        }
+    }
+
+    /// Label and value on one line (value trailing), like the rows of Apple's Passwords app.
+    @ViewBuilder
+    private func inlineContentView() -> some View {
+        HStack(spacing: 12) {
+            if let title {
+                Text(title)
+                    .font(.body)
+                    .foregroundColor(
+                        isReadOnlyFieldStyle
+                            ? SharedAsset.Colors.textPrimary.swiftUIColor
+                            : (isEnabled
+                                ? SharedAsset.Colors.textSecondary.swiftUIColor
+                                : SharedAsset.Colors.textDisabled.swiftUIColor),
+                    )
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .accessibilityIdentifier(titleAccessibilityIdentifier ?? title)
+            }
+
+            content
+                // The call sites colour their values explicitly; in the view state Apple shows them secondary.
+                .opacity(isReadOnlyFieldStyle ? 0.6 : 1)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let accessoryContent {
+                HStack(spacing: 16) {
+                    accessoryContent
+                        .buttonStyle(.accessory)
+                }
+            }
+        }
+        .padding(.vertical, 12)
+        .padding(.trailing, 16)
+        .frame(minHeight: 44)
+    }
+
+    /// Label above value (the Bitwarden layout).
+    @ViewBuilder
+    private func stackedContentView() -> some View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
                 if let title {

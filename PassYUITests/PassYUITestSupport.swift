@@ -57,6 +57,12 @@ extension XCTestCase {
         add(shot)
     }
 
+    /// Waits until `element` no longer exists.
+    func waitForDisappearance(of element: XCUIElement, timeout: TimeInterval = 10) -> Bool {
+        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element)
+        return XCTWaiter().wait(for: [expectation], timeout: timeout) == .completed
+    }
+
     @discardableResult
     func waitFor(_ element: XCUIElement, timeout: TimeInterval = 20) -> Bool {
         element.waitForExistence(timeout: timeout)

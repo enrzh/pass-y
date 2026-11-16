@@ -69,3 +69,13 @@ extension CipherType {
         }
     }
 }
+
+extension Array where Element == CipherType {
+    /// The types in the order the bottom "+" menu lists them, nearest to the button first: Login, Card, Identity,
+    /// Secure note, then the new types. The system menu opens upwards, so with accessibility text sizes the far end is
+    /// cut off and scrolls; the most used types must be the ones that stay reachable.
+    var passYAddMenuOrdered: [CipherType] {
+        let priority: [CipherType] = [.login, .card, .identity, .secureNote, .bankAccount, .driversLicense, .passport, .sshKey]
+        return sorted { (priority.firstIndex(of: $0) ?? 99) < (priority.firstIndex(of: $1) ?? 99) }
+    }
+}

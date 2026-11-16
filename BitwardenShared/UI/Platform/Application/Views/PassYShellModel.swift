@@ -448,7 +448,9 @@ struct PassYAvatarMenu: View {
             Circle().fill(profile?.color ?? Color(.tertiarySystemFill))
             if let initials = profile?.userInitials {
                 Text(initials)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(Font.system(.footnote, design: .rounded).weight(.semibold))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
                     .foregroundStyle(profile?.profileIconTextColor ?? .primary)
             } else {
                 Image(systemName: "person.fill")
@@ -456,8 +458,11 @@ struct PassYAvatarMenu: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: 30, height: 30)
+        .frame(width: avatarSize, height: avatarSize)
     }
+
+    /// The avatar diameter: 30 pt at the default text size, grows with Dynamic Type.
+    @ScaledMetric(relativeTo: .footnote) private var avatarSize: CGFloat = 30
 }
 
 // MARK: - PassYAvatarToolbarItem
