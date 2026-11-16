@@ -174,6 +174,7 @@ private struct SearchableVaultListView: View {
                 emptyVault
             } else {
                 vaultContents(with: sections)
+                    .readableContentWidth(760)
             }
         } errorView: { errorMessage in
             errorViewWithRetry(errorMessage: errorMessage)
@@ -555,7 +556,7 @@ struct VaultListView: View {
 
     /// The "+" menu of the persistent bottom bar: the item types and a folder.
     private var addEntries: [PassYAddEntry] {
-        var entries = store.state.itemTypesUserCanCreate.map { type in
+        var entries = store.state.itemTypesUserCanCreate.passYAddMenuOrdered.map { type in
             PassYAddEntry(
                 id: "type-\(type.hashValue)",
                 action: { store.send(.addItemPressed(type)) },

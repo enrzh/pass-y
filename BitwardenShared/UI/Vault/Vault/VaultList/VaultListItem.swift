@@ -112,6 +112,14 @@ extension VaultListItem {
         loginListView
     }
 
+    /// Logins without a passkey show the first letter of their name until a website icon is loaded.
+    var shouldUseCustomPlaceholderContent: Bool {
+        if case let .cipher(cipherItem, fido2CredentialAutofillView) = itemType {
+            if case .login = cipherItem.type { return fido2CredentialAutofillView == nil }
+        }
+        return false
+    }
+
     /// The RpId of the main Fido2 credential.
     var fido2CredentialRpId: String? {
         switch itemType {

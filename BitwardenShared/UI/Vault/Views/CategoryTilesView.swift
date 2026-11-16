@@ -71,7 +71,8 @@ private struct CategoryTile: View {
                 Spacer(minLength: 4)
                 Text("\(count)")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    // A little darker than `.secondary` so the count passes the contrast audit on the white tile.
+                    .foregroundStyle(Color.primary.opacity(0.7))
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
             }

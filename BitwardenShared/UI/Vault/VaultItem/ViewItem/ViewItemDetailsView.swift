@@ -248,17 +248,25 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
                 iconBaseURL: store.state.iconBaseURL,
                 showWebIcons: store.state.showWebIcons,
             ) { placeholderIconAsset in
-                Image(decorative: placeholderIconAsset)
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(SharedAsset.Colors.illustrationStroke.swiftUIColor)
-                    .accessibilityHidden(true)
-                    .imageStyle(.viewIcon(size: 36))
-                    .withCircularBackground(
-                        color: SharedAsset.Colors.illustrationFillPrimary.swiftUIColor,
-                        width: 64,
-                        height: 64,
-                    )
+                Group {
+                    if store.state.type == .login {
+                        ItemLetterIcon(name: store.state.name, fontSize: 34)
+                            .frame(width: 64, height: 64)
+                            .background(Color(.secondarySystemFill))
+                    } else {
+                        Image(decorative: placeholderIconAsset)
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(SharedAsset.Colors.illustrationStroke.swiftUIColor)
+                            .accessibilityHidden(true)
+                            .imageStyle(.viewIcon(size: 36))
+                            .withCircularBackground(
+                                color: SharedAsset.Colors.illustrationFillPrimary.swiftUIColor,
+                                width: 64,
+                                height: 64,
+                            )
+                    }
+                }
             }
             .imageStyle(.viewIcon(size: 64))
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))

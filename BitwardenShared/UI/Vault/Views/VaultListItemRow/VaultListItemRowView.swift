@@ -51,7 +51,13 @@ struct VaultListItemRowView: View {
                             item: store.state.item,
                             iconBaseURL: store.state.iconBaseURL,
                             showWebIcons: store.state.showWebIcons,
-                        )
+                        ) { _ in
+                            Group {
+                                if case let .cipher(cipherItem, _) = store.state.item.itemType {
+                                    ItemLetterIcon(name: cipherItem.name)
+                                }
+                            }
+                        }
                         .imageStyle(.rowIcon)
                         // Apple Passwords: the icon sits in a 40 pt rounded square with a hairline border.
                         .frame(width: 40, height: 40)

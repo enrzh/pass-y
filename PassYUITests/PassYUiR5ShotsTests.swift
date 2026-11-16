@@ -67,8 +67,10 @@ final class PassYUiR5ShotsTests: XCTestCase {
             let app = launchApp(extraArguments: ["-UIPreferredContentSizeCategoryName", size])
             ensureUnlockedVault(app)
             let short = size.replacingOccurrences(of: "UICTContentSizeCategory", with: "").lowercased()
-            if openAdd(app, "Bank account") { shot(app, 1, "\(short)-add-bank"); closeSheet(app) }
-            if openAdd(app, "Login") { shot(app, 2, "\(short)-add-login"); closeSheet(app) }
+            XCTAssertTrue(openAdd(app, "Bank account"), "add menu reaches Bank account at \(short)")
+            shot(app, 1, "\(short)-add-bank"); closeSheet(app)
+            XCTAssertTrue(openAdd(app, "Login"), "add menu reaches Login at \(short)")
+            shot(app, 2, "\(short)-add-login"); closeSheet(app)
             app.terminate()
         }
     }
@@ -180,5 +182,20 @@ final class PassYUiR5ShotsTests: XCTestCase {
             goTo(app, "My vault"); sleep(1)
         }
         XCUIDevice.shared.orientation = .portrait
+    }
+
+    /// The add menu at accessibility sizes lists every entry the user can create (7 with the new item types) and
+    /// "Login" is reachable (system menus scroll; this checks the reachable entries and keeps a whole-screen shot).
+    func test_addMenuAccessibilityXXXL() {
+        let app = launchApp(extraArguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        ensureUnlockedVault(app)
+        let fab = app.buttons["AddItemFloatingActionButton"]
+        XCTAssertTrue(fab.waitForExistence(timeout: 10))
+        fab.tap(); sleep(2)
+        screenShot(1, "axxxl-add-menu")
+        print("R5MENU items: \(app.menuItems.allElementsBoundByIndex.map { $0.label + "@" + String(describing: $0.frame) })")
+        print("R5MENU buttons: \(app.buttons.allElementsBoundByIndex.map(\.label))")
+        let login = app.buttons.matching(NSPredicate(format: "label == 'Login' AND NOT (identifier BEGINSWITH 'CategoryTile')")).firstMatch
+        XCTAssertTrue(app.menuItems["Login"].exists || login.waitForExistence(timeout: 4), "Login is reachable in the add menu at AX-XXXL")
     }
 }

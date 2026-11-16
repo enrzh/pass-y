@@ -70,7 +70,7 @@ struct VaultGroupView: View {
                 title: store.state.addItemButtonTitle,
             )]
         case .menu:
-            return store.state.itemTypesUserCanCreate.map { type in
+            return store.state.itemTypesUserCanCreate.passYAddMenuOrdered.map { type in
                 PassYAddEntry(
                     id: "type-\(type.hashValue)",
                     action: { store.send(.addItemPressed(type)) },
@@ -96,6 +96,7 @@ struct VaultGroupView: View {
 
     @ViewBuilder private var content: some View {
         searchOrGroup
+            .readableContentWidth(760)
             .onChange(of: store.state.url) { newValue in
                 guard let url = newValue else { return }
                 openURL(url)

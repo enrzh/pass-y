@@ -71,6 +71,7 @@ struct ViewSendItemView: View {
             Section { deleteSendButton }
         }
         .nativeFormRows()
+        .readOnlyFieldStyle()
         .animation(.default, value: store.state.isAdditionalOptionsExpanded)
     }
 

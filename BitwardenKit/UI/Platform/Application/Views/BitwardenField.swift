@@ -29,6 +29,8 @@ public struct BitwardenField<Content: View, AccessoryContent: View, FooterConten
 
     @Environment(\.isNativeForm) private var isNativeForm
 
+    @Environment(\.isReadOnlyFieldStyle) private var isReadOnlyFieldStyle
+
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     // MARK: View
@@ -74,7 +76,7 @@ public struct BitwardenField<Content: View, AccessoryContent: View, FooterConten
     /// The main content for the view, containing the title and value.
     @ViewBuilder
     private func contentView() -> some View {
-        if #available(iOS 16, *), isNativeForm, title != nil, !dynamicTypeSize.isAccessibilitySize {
+        if #available(iOS 16, *), isNativeForm, isReadOnlyFieldStyle, title != nil, !dynamicTypeSize.isAccessibilitySize {
             // Apple Passwords layout: label on the left, value on the right, stacked only if it does not fit.
             ViewThatFits(in: .horizontal) {
                 inlineContentView()
@@ -93,9 +95,11 @@ public struct BitwardenField<Content: View, AccessoryContent: View, FooterConten
                 Text(title)
                     .font(.body)
                     .foregroundColor(
-                        isEnabled
-                            ? SharedAsset.Colors.textSecondary.swiftUIColor
-                            : SharedAsset.Colors.textDisabled.swiftUIColor,
+                        isReadOnlyFieldStyle
+                            ? SharedAsset.Colors.textPrimary.swiftUIColor
+                            : (isEnabled
+                                ? SharedAsset.Colors.textSecondary.swiftUIColor
+                                : SharedAsset.Colors.textDisabled.swiftUIColor),
                     )
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
@@ -103,6 +107,8 @@ public struct BitwardenField<Content: View, AccessoryContent: View, FooterConten
             }
 
             content
+                // The call sites colour their values explicitly; in the view state Apple shows them secondary.
+                .opacity(isReadOnlyFieldStyle ? 0.6 : 1)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .multilineTextAlignment(.trailing)
                 .fixedSize(horizontal: false, vertical: true)

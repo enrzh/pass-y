@@ -634,13 +634,13 @@ final class PassYFlowTests: XCTestCase {
         assertBarAtBottom("vault after cancel")
     }
 
-    /// The category tiles are large (about 180 x 100 pt on an iPhone, two per row).
+    /// The category tiles are large (about 180 x 96 pt on an iPhone, two per row).
     func test21_categoryTilesAreLarge() {
         let app = launchApp()
         ensureUnlockedVault(app)
         let tile = app.buttons["CategoryTile_login"]
         XCTAssertTrue(tile.waitForExistence(timeout: 10))
-        XCTAssertGreaterThanOrEqual(tile.frame.height, 88, "tile height \(tile.frame.height)")
+        XCTAssertGreaterThanOrEqual(tile.frame.height, 96, "tile height \(tile.frame.height)")
         XCTAssertGreaterThanOrEqual(tile.frame.width, 150, "tile width \(tile.frame.width)")
         attach(app, "21-tiles")
     }

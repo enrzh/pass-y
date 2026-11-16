@@ -16,7 +16,25 @@ public extension EnvironmentValues {
     }
 }
 
+private struct IsReadOnlyFieldStyleKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    /// Whether native-form fields are shown in Apple's read-only (view) state: black label, grey value.
+    /// In edit forms it stays false (grey label, black value).
+    var isReadOnlyFieldStyle: Bool {
+        get { self[IsReadOnlyFieldStyleKey.self] }
+        set { self[IsReadOnlyFieldStyleKey.self] = newValue }
+    }
+}
+
 public extension View {
+    /// Shows `BitwardenField` rows with a primary label and a secondary value (Apple Passwords view state).
+    func readOnlyFieldStyle() -> some View {
+        environment(\.isReadOnlyFieldStyle, true)
+    }
+
     /// Marks the view hierarchy (a `Form` or `List`) as native: shared field components render as plain rows.
     func nativeFormRows() -> some View {
         environment(\.isNativeForm, true)
