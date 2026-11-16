@@ -14,6 +14,15 @@ final class PassYUiR5ShotsTests: XCTestCase {
         attach(app, "\(tag)-\(String(format: "%02d", n))-\(name)")
     }
 
+    /// Whole-screen shot (the app screenshot of a rotated iPad simulator is cropped and turned by 90 degrees).
+    private func screenShot(_ n: Int, _ name: String) {
+        sleep(2)
+        let a = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        a.name = "\(tag)-\(String(format: "%02d", n))-\(name)"
+        a.lifetime = .keepAlways
+        add(a)
+    }
+
     private func closeSheet(_ app: XCUIApplication) {
         for id in ["CancelButton", "CloseButton", "Close", "Cancel"] {
             let b = app.buttons[id].firstMatch
@@ -147,15 +156,18 @@ final class PassYUiR5ShotsTests: XCTestCase {
         for (name, orientation) in [("portrait", UIDeviceOrientation.portrait), ("landscape", UIDeviceOrientation.landscapeLeft)] {
             XCUIDevice.shared.orientation = orientation
             sleep(2)
-            shot(app, name == "portrait" ? 1 : 10, "ipad-\(name)-home")
+            func take(_ n: Int, _ what: String) {
+                if name == "portrait" { shot(app, n, "ipad-\(name)-\(what)") } else { screenShot(n, "ipad-\(name)-\(what)") }
+            }
+            take(name == "portrait" ? 1 : 10, "home")
             let tile = app.buttons["CategoryTile_login"]
             if tile.waitForExistence(timeout: 5) {
                 tile.tap(); sleep(2)
-                shot(app, name == "portrait" ? 2 : 11, "ipad-\(name)-list")
+                take(name == "portrait" ? 2 : 11, "list")
                 let row = app.buttons["VaultListItemRowButton"].firstMatch
                 if row.waitForExistence(timeout: 5) {
                     row.tap(); sleep(2)
-                    shot(app, name == "portrait" ? 3 : 12, "ipad-\(name)-detail")
+                    take(name == "portrait" ? 3 : 12, "detail")
                     closeSheet(app)
                     let close = app.buttons["Close"].firstMatch
                     if close.exists, close.isHittable { close.tap(); sleep(1) }
@@ -164,7 +176,7 @@ final class PassYUiR5ShotsTests: XCTestCase {
                 if back.exists, back.isHittable { back.tap(); sleep(1) }
             }
             goTo(app, "Settings"); sleep(2)
-            shot(app, name == "portrait" ? 4 : 13, "ipad-\(name)-settings")
+            take(name == "portrait" ? 4 : 13, "settings")
             goTo(app, "My vault"); sleep(1)
         }
         XCUIDevice.shared.orientation = .portrait
