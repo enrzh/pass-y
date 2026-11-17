@@ -7,8 +7,8 @@ export PASSY_REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PASSY_PHONE="${PASSY_PHONE:-3AF691E6-46D6-4436-A0AB-EBDF122F9952}"   # simulator PassY-R3
 export PASSY_IPAD="${PASSY_IPAD:-AE56DC90-336B-4DB7-85C7-17EB9F4EB88E}"     # simulator PassY-iPad-R5
 mkdir -p "$PASSY_OUT" "$PASSY_DD"
-# Waits until the 1-minute load average is below 8 (UI results under load do not count).
-passy_wait_quiet() { while [ "$(sysctl -n vm.loadavg | awk '{print int($2)}')" -ge 8 ]; do sleep 20; done; }
+# Waits until the 1-minute load average is below PASSY_MAX_LOAD (default 8; UI results under load do not count).
+passy_wait_quiet() { while [ "$(sysctl -n vm.loadavg | awk '{print int($2)}')" -ge "${PASSY_MAX_LOAD:-8}" ]; do sleep 20; done; }
 # Ends a hung xcodebuild after the result line appeared in the log: passy_run_xcodebuild <log> <args...>
 passy_run_xcodebuild() {
   local log=$1; shift
