@@ -1284,3 +1284,5 @@ Scripts-passy/export_shots.sh ~/Library/Caches/passy-vw/out/flow.xcresult /path/
 ```
 
 The runners wait for a 1-minute load below 8 and end a hung `xcodebuild` after the result line. Never count UI results taken under load. After a red run read `~/Library/Caches/passy-vw/out/vaultwarden.log` (a failed login names the user).
+
+Known simulator behaviour (iOS 27.0 simulator, PassY-R3): typing into the masked password field of the add/edit login form keeps only the last character; on a device (iPhone Air) all characters stay. UI tests that need a whole password type it into the revealed field first (`typePassword` in `PassYUiR7ShotsTests`). `PASSY_KNOWN_ISSUE_TESTS=1` enables the diagnostic tests. Saving a typed password on a device has not been verified.

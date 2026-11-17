@@ -144,34 +144,91 @@ final class PassYUiR7ShotsTests: XCTestCase {
         XCTAssertTrue(waitForDisappearance(of: last, timeout: 15), "swipe delete on a search result")
     }
 
-    /// The masked password of the edit form is really there: the secure field is not empty (iOS reports one bullet
-    /// per character; simulator screenshots do not draw the dots of secure fields), and the eye shows the value.
-    /// Written for the validator finding "password row shows neither dots nor value"; needs the throwaway server.
-    func test_editFormPasswordMaskedAndRevealed() throws {
-        try XCTSkipUnless(ProcessInfo.processInfo.environment["PASSY_KNOWN_ISSUE_TESTS"] == "1",
-                          "open finding: the add form keeps only the last typed character of a password (also at f4567dce6); see README")
+    /// Types a whole password in the simulator: the iOS 27.0 simulator keeps only the last character typed into a
+    /// masked field (measured; on a device all characters stay, see README), so the eye is switched on, the text is
+    /// typed into the plain field and the eye is switched off again. No product behaviour is changed.
+    private func typePassword(_ app: XCUIApplication, _ password: String) {
+        let eye = app.buttons["ViewPasswordButton"].firstMatch
+        XCTAssertTrue(eye.waitForExistence(timeout: 8))
+        eye.tap(); sleep(1)
+        let plain = app.textFields["LoginPasswordEntry"]
+        XCTAssertTrue(plain.waitForExistence(timeout: 8), "password shown as a plain field")
+        plain.tap()
+        plain.typeText(password)
+        eye.tap(); sleep(1)
+    }
+
+    /// A whole password (12+ characters) survives save and reopen: masked bullet count equals its length, the revealed
+    /// value equals what was typed; editing an existing item appends correctly and is saved. Needs the throwaway server.
+    func test_loginPasswordSaveAndRevealRoundTrip() {
         XCUIDevice.shared.appearance = .light
-        let name = "AA Qzx Pw \(Int(Date().timeIntervalSince1970) % 100000)"
-        let password = "Sup3rSecret"
+        let token = Int(Date().timeIntervalSince1970) % 100000
+        let name = "AA Qzx Pw \(token)"
+        let password = "Sup3rSecret-2026!"
         let app = launchApp()
         ensureUnlockedVault(app)
-        addLogin(app, name: name, user: "pw@example.test", password: password)
-        focusSearch(app)
-        app.searchFields.firstMatch.typeText("Qzx")
-        XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 10))
-        app.staticTexts[name].tap()
-        let edit = app.buttons["EditItemButton"]
-        XCTAssertTrue(edit.waitForExistence(timeout: 8)); edit.tap(); sleep(2)
-        let masked = app.secureTextFields["LoginPasswordEntry"]
-        XCTAssertTrue(masked.waitForExistence(timeout: 8), "masked password field")
-        let bullets = masked.value as? String ?? ""
-        XCTAssertEqual(bullets.count, password.count, "masked field holds one bullet per character: '\(bullets)'")
-        attach(app, "r7-60-edit-password-masked")
-        app.buttons["ViewPasswordButton"].firstMatch.tap(); sleep(1)
+        // Create.
+        XCTAssertTrue(openAdd(app, "Login"))
+        let ok = app.alerts.buttons["OK"]
+        if ok.waitForExistence(timeout: 3) { ok.tap() }
+        let nameField = app.textFields["ItemNameEntry"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: 10))
+        nameField.tap(); nameField.typeText(name)
+        let user = app.textFields["LoginUsernameEntry"]
+        user.tap(); user.typeText("pw@example.test")
+        typePassword(app, password)
+        app.buttons["SaveButton"].firstMatch.tap()
+        _ = app.buttons["Close"].waitForExistence(timeout: 8)
+        let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
+        if close.exists { close.firstMatch.tap() }
+        sleep(2)
+
+        func openEdit() {
+            if (app.searchFields.firstMatch.value as? String) != "Qzx" {
+                focusSearch(app)
+                for ch in "Qzx" { app.typeText(String(ch)); usleep(150_000) }
+            }
+            let row = app.staticTexts[name]
+            XCTAssertTrue(row.waitForExistence(timeout: 10), "search finds the item")
+            row.tap()
+            let edit = app.buttons["EditItemButton"]
+            XCTAssertTrue(edit.waitForExistence(timeout: 8)); edit.tap(); sleep(2)
+        }
+        func checkPassword(_ expected: String, _ label: String) {
+            let masked = app.secureTextFields["LoginPasswordEntry"]
+            XCTAssertTrue(masked.waitForExistence(timeout: 8), "masked password field (\(label))")
+            XCTAssertEqual((masked.value as? String ?? "").count, expected.count, "\(label): one bullet per character")
+            attach(app, "r7-60-\(label)-masked")
+            app.buttons["ViewPasswordButton"].firstMatch.tap(); sleep(1)
+            let revealed = app.textFields["LoginPasswordEntry"]
+            XCTAssertTrue(revealed.waitForExistence(timeout: 5), "revealed password field (\(label))")
+            XCTAssertEqual(revealed.value as? String, expected, "\(label): revealed value equals what was typed")
+            attach(app, "r7-61-\(label)-revealed")
+        }
+        // Reopen after save: compare.
+        openEdit()
+        checkPassword(password, "saved")
+        // Edit an existing item: append through the (now revealed) plain field, save, reopen, compare.
         let revealed = app.textFields["LoginPasswordEntry"]
-        XCTAssertTrue(revealed.waitForExistence(timeout: 5), "revealed password field")
-        XCTAssertEqual(revealed.value as? String, password, "revealed value")
-        attach(app, "r7-61-edit-password-revealed")
+        revealed.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
+        revealed.typeText("+edit")
+        app.buttons["SaveButton"].firstMatch.tap()
+        _ = app.buttons["Close"].waitForExistence(timeout: 8)
+        let close2 = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
+        if close2.exists { close2.firstMatch.tap() }
+        sleep(2)
+        openEdit()
+        checkPassword(password + "+edit", "edited")
+        // Clean up: the item must not stay in the vault.
+        closeSheet(app); sleep(1)
+        closeSheet(app); sleep(1)
+        let row = app.staticTexts[name]
+        if row.waitForExistence(timeout: 8) {
+            row.swipeLeft(); sleep(1)
+            app.buttons["Delete"].firstMatch.tap()
+            if app.alerts.buttons["Yes"].waitForExistence(timeout: 5) { app.alerts.buttons["Yes"].tap() }
+            XCTAssertTrue(waitForDisappearance(of: row, timeout: 15), "test item removed")
+        }
     }
 
     /// Edit form of every item type the app can create (SSH keys can only be imported: render only), light and dark.
