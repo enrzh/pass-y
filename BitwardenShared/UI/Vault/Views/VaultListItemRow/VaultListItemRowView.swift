@@ -47,9 +47,11 @@ struct VaultListItemRowView: View {
     @Environment(\.editMode) private var editMode
 
     var body: some View {
+        let _ = { PassYPerf.rowBodyCount += 1 }()
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 AsyncButton {
+                    PassYPerf.beginTap()
                     await store.perform(.pressed)
                 } label: {
                     HStack(spacing: 16) {
@@ -124,6 +126,7 @@ struct VaultListItemRowView: View {
                     .padding(.leading, 40 + 16 + 16)
             }
         }
+        .onAppear { PassYPerf.rowAppeared(store.state.item.id) }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(store.state.item.vaultItemAccessibilityId)
         .accessibilityMoreOptionsActions(accessibilityMoreOptionsActionKinds) { kind in

@@ -967,6 +967,7 @@ extension VaultListProcessor {
                     // since this might not happen because of the sync in `refreshVault()`.
                     dismissSlowLoadingToast()
                     // If the data is not empty or if a sync is not needed, set the data.
+                    PassYPerf.beginListLoad()
                     state.loadingState = .data(value)
                 } else {
                     // Otherwise mark the state as `.loading` until the sync is complete.

@@ -34,6 +34,7 @@ struct CategoryTilesView: View {
             ForEach(items) { item in
                 if case let .group(group, count) = item.itemType {
                     Button {
+                        PassYPerf.beginTap("tile")
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         onSelect(item)
                     } label: {
