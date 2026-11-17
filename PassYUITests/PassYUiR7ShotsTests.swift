@@ -240,6 +240,7 @@ final class PassYUiR7ShotsTests: XCTestCase {
         for ch in "abcdef" {
             pw.typeText(String(ch)); usleep(700_000)
             slow.append((pw.value as? String ?? "").count)
+            print("R7DIAG after \(ch): value='\(pw.value as? String ?? "")' label='\(pw.label)'")
         }
         print("R7DIAG slow bullets: \(slow)")
         pw.typeText("ghijkl"); sleep(1)
