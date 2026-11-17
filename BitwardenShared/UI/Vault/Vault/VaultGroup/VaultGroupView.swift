@@ -380,6 +380,7 @@ struct VaultGroupView: View {
             state: VaultListItemRowState(
                 iconBaseURL: state.iconBaseURL,
                 hasPremium: state.hasPremium,
+                isSelecting: state.isSelecting,
                 item: item,
                 hasDivider: !isLastInSection,
                 showWebIcons: state.showWebIcons,

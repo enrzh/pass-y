@@ -17,6 +17,9 @@ private struct SearchableVaultListView: View {
     /// An object used to open urls from this view.
     @Environment(\.openURL) private var openURL
 
+    /// The memoized tile/section split of the vault data.
+    @SwiftUI.State private var splitCache = TileSplitCache()
+
     /// The `Store` for this view.
     @ObservedObject var store: Store<VaultListState, VaultListAction, VaultListEffect>
 
@@ -247,6 +250,7 @@ private struct SearchableVaultListView: View {
     ///
     @ViewBuilder
     private func vaultContents(with sections: [VaultListSection]) -> some View {
+        let (tileItems, listSections) = splitCache.split(sections)
         List {
             if store.state.activeActionCard != nil, store.state.activeActionCard != .introducingArchive {
                 Section {
@@ -262,18 +266,56 @@ private struct SearchableVaultListView: View {
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
 
-            VaultHomeTiles(sections: sections, store: store).equatable()
+            if !tileItems.isEmpty {
+                Section {
+                    CategoryTilesView(items: tileItems) { item in
+                        Task { await store.perform(.itemPressed(item)) }
+                    }
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowBackground(Color.clear)
+                }
+            }
 
-            VaultHomeSections(
-                collapsedSectionIds: store.state.collapsedSectionIds,
-                hasPremium: store.state.hasPremium,
-                iconBaseURL: store.state.iconBaseURL,
-                sections: sections,
-                showWebIcons: store.state.showWebIcons,
-                store: store,
-                timeProvider: timeProvider,
-            )
-            .equatable()
+            ForEach(listSections) { section in
+                let isExpanded = !store.state.collapsedSectionIds.contains(section.id)
+                Section {
+                    if isExpanded {
+                        ForEach(section.items) { item in
+                            vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
+                                .listRowInsets(EdgeInsets())
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    if case .cipher = item.itemType {
+                                        Button {
+                                            Task { await store.perform(.morePressed(item)) }
+                                        } label: {
+                                            Label(Localizations.moreOptions, systemImage: "ellipsis")
+                                        }
+                                        .tint(.gray)
+                                    }
+                                }
+                        }
+                    }
+                } header: {
+                    Button {
+                        store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
+                    } label: {
+                        HStack {
+                            Text(section.name)
+                            Spacer()
+                            Text("\(section.items.count)")
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.footnote.weight(.semibold))
+                        }
+                        .textCase(nil)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("SectionExpandButton_\(section.id)")
+                    .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
+                }
+            }
 
             // Space below the last row so the floating action button never covers it.
             Section {
@@ -323,6 +365,7 @@ extension VaultListRowCell {
                 iconBaseURL: state.iconBaseURL,
                 hasPremium: state.hasPremium,
                 isFromExtension: false,
+                isSelecting: state.isSelecting,
                 item: item,
                 hasDivider: !isLastInSection,
                 showWebIcons: state.showWebIcons,
@@ -349,116 +392,36 @@ extension VaultListRowCell {
     }
 }
 
-// MARK: - VaultHomeTiles
+// MARK: - TileSplitCache
 
-/// The category tiles of the vault home (Equatable: only the data matters).
-private struct VaultHomeTiles: View, Equatable {
-    let sections: [VaultListSection]
-    let store: Store<VaultListState, VaultListAction, VaultListEffect>
+/// Splits the vault sections into category tile items and list sections once per data change. `Array` equality
+/// short-circuits when both arrays share their storage, so an unchanged vault costs O(1) per body pass.
+final class TileSplitCache {
+    private var sections: [VaultListSection]?
+    private var result: ([VaultListItem], [VaultListSection]) = ([], [])
 
-    static func == (lhs: VaultHomeTiles, rhs: VaultHomeTiles) -> Bool { lhs.sections == rhs.sections }
-
-    var body: some View {
-        let tileItems = sections.flatMap { section in
-            section.items.filter { item in
-                if case let .group(group, _) = item.itemType { group.isCategoryTile } else { false }
-            }
-        }
-        if !tileItems.isEmpty {
-            Section {
-                CategoryTilesView(items: tileItems) { item in
-                    Task { await store.perform(.itemPressed(item)) }
+    func split(_ new: [VaultListSection]) -> ([VaultListItem], [VaultListSection]) {
+        if let sections, sections == new { return result }
+        var tileItems: [VaultListItem] = []
+        var listSections: [VaultListSection] = []
+        for section in new {
+            var rest: [VaultListItem] = []
+            rest.reserveCapacity(section.items.count)
+            for item in section.items {
+                if case let .group(group, _) = item.itemType, group.isCategoryTile {
+                    tileItems.append(item)
+                } else {
+                    rest.append(item)
                 }
-                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                .listRowBackground(Color.clear)
-            }
-        }
-    }
-}
-
-// MARK: - VaultHomeSections
-
-/// The item sections of the vault home: one collapsible `Section` per group. Equatable on the vault data and the
-/// few values that change how a row looks; the store and closures are ignored.
-private struct VaultHomeSections: View, Equatable {
-    let collapsedSectionIds: Set<String>
-    let hasPremium: Bool
-    let iconBaseURL: URL?
-    let sections: [VaultListSection]
-    let showWebIcons: Bool
-    let store: Store<VaultListState, VaultListAction, VaultListEffect>
-    let timeProvider: any TimeProvider
-
-    static func == (lhs: VaultHomeSections, rhs: VaultHomeSections) -> Bool {
-        lhs.sections == rhs.sections
-            && lhs.collapsedSectionIds == rhs.collapsedSectionIds
-            && lhs.hasPremium == rhs.hasPremium
-            && lhs.iconBaseURL == rhs.iconBaseURL
-            && lhs.showWebIcons == rhs.showWebIcons
-    }
-
-    var body: some View {
-        ForEach(listSections) { section in
-            let isExpanded = !collapsedSectionIds.contains(section.id)
-            Section {
-                if isExpanded {
-                    ForEach(section.items) { item in
-                        VaultListRowCell.make(
-                            for: item,
-                            isLastInSection: section.items.last?.id == item.id,
-                            store: store,
-                            timeProvider: timeProvider,
-                        )
-                        .equatable()
-                        .listRowInsets(EdgeInsets())
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            if case .cipher = item.itemType {
-                                Button {
-                                    Task { await store.perform(.morePressed(item)) }
-                                } label: {
-                                    Label(Localizations.moreOptions, systemImage: "ellipsis")
-                                }
-                                .tint(.gray)
-                            }
-                        }
-                    }
-                }
-            } header: {
-                Button {
-                    store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
-                } label: {
-                    HStack {
-                        Text(section.name)
-                        Spacer()
-                        Text("\(section.items.count)")
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .font(.footnote.weight(.semibold))
-                    }
-                    .textCase(nil)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("SectionExpandButton_\(section.id)")
-                .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
-            }
-        }
-    }
-
-    /// The sections without the category tile items (they are shown as tiles).
-    private var listSections: [VaultListSection] {
-        var result: [VaultListSection] = []
-        for section in sections {
-            let rest = section.items.filter { item in
-                if case let .group(group, _) = item.itemType, group.isCategoryTile { false } else { true }
             }
             if rest.count == section.items.count {
-                result.append(section)
+                listSections.append(section)
             } else if !rest.isEmpty {
-                result.append(VaultListSection(id: section.id, items: rest, name: section.name))
+                listSections.append(VaultListSection(id: section.id, items: rest, name: section.name))
             }
         }
+        sections = new
+        result = (tileItems, listSections)
         return result
     }
 }

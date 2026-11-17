@@ -98,11 +98,14 @@ final class VaultListPerfTests: BitwardenTestCase {
         let buildsBefore = PassYPerf.rowBuildCount
         let storesBefore = StorePerfCounters.childStores
         let start = CFAbsoluteTimeGetCurrent()
+        let cpuStart = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID)
         block()
         settle()
         let elapsed = (CFAbsoluteTimeGetCurrent() - start) * 1000
+        let cpu = Double(clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID) - cpuStart) / 1_000_000
         return Result(
             milliseconds: elapsed,
+            mainThreadCPUMilliseconds: cpu,
             rowBodies: PassYPerf.cellBodyCount + PassYPerf.rowBodyCount - bodiesBefore,
             rowBuilds: PassYPerf.rowBuildCount - buildsBefore,
             childStores: StorePerfCounters.childStores - storesBefore,
@@ -111,13 +114,15 @@ final class VaultListPerfTests: BitwardenTestCase {
 
     struct Result {
         let milliseconds: Double
+        /// CPU time of the main thread (stable under machine load; the wall clock is not).
+        let mainThreadCPUMilliseconds: Double
         let rowBodies: Int
         let rowBuilds: Int
         let childStores: Int
     }
 
     func report(_ name: String, _ result: Result) {
-        print("PERF unit \(name) ms=\(String(format: "%.1f", result.milliseconds)) "
+        print("PERF unit \(name) ms=\(String(format: "%.1f", result.milliseconds)) cpuMs=\(String(format: "%.1f", result.mainThreadCPUMilliseconds)) "
             + "rowBodies=\(result.rowBodies) rowBuilds=\(result.rowBuilds) childStores=\(result.childStores)")
     }
 

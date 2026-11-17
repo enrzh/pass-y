@@ -15,6 +15,10 @@ struct VaultListItemRowState: Equatable {
     /// Whether we are in an extension context.
     var isFromExtension: Bool = false
 
+    /// Whether the list is in Select mode: the list handles the tap (selection), not the row button. A value here
+    /// instead of the `editMode` environment, whose binding changes on every list update and re-evaluated all rows.
+    var isSelecting: Bool = false
+
     /// The item displayed in this row.
     var item: VaultListItem
 

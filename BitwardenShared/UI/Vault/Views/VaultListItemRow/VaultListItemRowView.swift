@@ -97,9 +97,6 @@ struct VaultListItemRowView: View {
         self.onDelete = onDelete
     }
 
-    /// In Select mode the list handles the tap (selection), not the row button.
-    @Environment(\.editMode) private var editMode
-
     var body: some View {
         let _ = { PassYPerf.rowBodyCount += 1 }()
         VStack(alignment: .leading, spacing: 0) {
@@ -161,7 +158,7 @@ struct VaultListItemRowView: View {
                 // In a `List`, several default-style buttons in one row would all fire on a single tap.
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("VaultListItemRowButton")
-                .allowsHitTesting(editMode?.wrappedValue.isEditing != true)
+                .allowsHitTesting(!store.state.isSelecting)
                 .hoverEffect(.highlight)
 
                 if case let .totp(_, model) = store.state.item.itemType,
