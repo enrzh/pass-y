@@ -181,17 +181,23 @@ private struct SearchableVaultListView: View {
     }
 
     /// A view that displays either the my vault or empty vault interface.
+    ///
+    /// ui-r8: wrapped in an `Equatable` boundary. Changes that do not touch what the vault list shows (toast, search
+    /// text and results, bottom bar, profile menu, selection) no longer re-evaluate the list and its rows.
     @ViewBuilder private var vault: some View {
-        LoadingView(state: store.state.loadingState) { sections in
-            if sections.isEmpty {
-                emptyVault
-            } else {
-                vaultContents(with: sections)
-                    .readableContentWidth(760)
+        EquatableContent(key: store.state.homeListKey) {
+            LoadingView(state: store.state.loadingState) { sections in
+                if sections.isEmpty {
+                    emptyVault
+                } else {
+                    vaultContents(with: sections)
+                        .readableContentWidth(760)
+                }
+            } errorView: { errorMessage in
+                errorViewWithRetry(errorMessage: errorMessage)
             }
-        } errorView: { errorMessage in
-            errorViewWithRetry(errorMessage: errorMessage)
         }
+        .equatable()
     }
 
     /// Displays the vault filter row if the user is a member of any.
@@ -389,6 +395,43 @@ extension VaultListRowCell {
             timeProvider: timeProvider,
             onDelete: item.isCipherItem ? { [weak store] in Task { await store?.perform(.deleteItems([item])) } } : nil,
         )
+    }
+}
+
+// MARK: - EquatableContent
+
+/// A view whose body is only evaluated again when `key` changes (the closure is ignored by `==`).
+struct EquatableContent<Key: Equatable, Content: View>: View, Equatable {
+    /// What the content depends on.
+    let key: Key
+
+    /// The content.
+    @ViewBuilder let content: () -> Content
+
+    static func == (lhs: EquatableContent, rhs: EquatableContent) -> Bool { lhs.key == rhs.key }
+
+    var body: some View { content() }
+}
+
+// MARK: - VaultListState + home list key
+
+extension VaultListState {
+    /// The state without everything the vault home list does not show. Two equal keys mean the same list.
+    var homeListKey: VaultListState {
+        var key = self
+        key.flightRecorderToastBanner = FlightRecorderToastBannerState()
+        key.folders = []
+        key.isEligibleForAppReview = false
+        key.isSelecting = false
+        key.itemTypesUserCanCreate = []
+        key.profileSwitcherState = .empty()
+        key.searchResults = []
+        key.searchText = ""
+        key.searchVaultFilterType = .allVaults
+        key.selection = []
+        key.toast = nil
+        key.url = nil
+        return key
     }
 }
 
