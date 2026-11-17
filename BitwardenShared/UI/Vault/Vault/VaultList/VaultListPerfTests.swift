@@ -167,6 +167,17 @@ final class VaultListPerfTests: BitwardenTestCase {
         XCTAssertGreaterThan(visibleCellCount, 3, "the list renders rows")
     }
 
+    /// Control: 30 settle passes without any state change (the fixed cost of the harness itself).
+    @MainActor
+    func test_perf_control_noChange_2000() {
+        processor.state.loadingState = .data(sections(count: 2000))
+        settle()
+        let result = measureBlock {
+            for _ in 0 ..< 30 { settle() }
+        }
+        report("controlNoChange30x2000", result)
+    }
+
     /// 30 changes of state that has nothing to do with the rows (toast on/off): the rows must not be rebuilt.
     @MainActor
     func test_perf_unrelatedStateChurn_2000() {
