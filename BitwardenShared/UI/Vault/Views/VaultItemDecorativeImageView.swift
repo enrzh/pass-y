@@ -164,7 +164,7 @@ struct ItemLetterIcon: View {
     let name: String
 
     /// The text style of the letter (scales with Dynamic Type).
-    var textStyle: Font.TextStyle = .title3
+    var textStyle: SwiftUI.Font.TextStyle = .title3
 
     var body: some View {
         Text(String(name.trimmingCharacters(in: .whitespaces).first.map { Character($0.uppercased()) } ?? "?"))

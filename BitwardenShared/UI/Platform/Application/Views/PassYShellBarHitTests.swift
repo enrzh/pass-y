@@ -24,7 +24,12 @@ final class PassYShellBarHitTests: BitwardenTestCase {
         host = UIHostingController(rootView: PassYShellBar(model: model))
         host.view.backgroundColor = .clear
         let height = PassYShellBar.barHeight + PassYShellBar.fadeHeight
-        hostWindow = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        if let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
+            hostWindow = UIWindow(windowScene: scene)
+            hostWindow.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        } else {
+            hostWindow = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        }
         hostWindow.rootViewController = UIViewController()
         hostWindow.makeKeyAndVisible()
         hostWindow.rootViewController?.addChild(host)

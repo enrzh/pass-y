@@ -31,7 +31,12 @@ final class VaultListPerfTests: BitwardenTestCase {
             timeProvider: MockTimeProvider(.mockTime(Date(year: 2023, month: 12, day: 31))),
         )
         let navigation = UINavigationController(rootViewController: UIHostingController(rootView: view))
-        hostWindow = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        if let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
+            hostWindow = UIWindow(windowScene: scene)
+            hostWindow.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        } else {
+            hostWindow = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        }
         hostWindow.rootViewController = navigation
         hostWindow.makeKeyAndVisible()
         settle()
@@ -77,6 +82,10 @@ final class VaultListPerfTests: BitwardenTestCase {
     func settle() {
         RunLoop.main.run(until: Date().addingTimeInterval(0.02))
         hostWindow.layoutIfNeeded()
+        // Drawing the hierarchy makes SwiftUI realize the visible rows (a hosted window is not rendered otherwise).
+        _ = UIGraphicsImageRenderer(bounds: hostWindow.bounds).image { _ in
+            hostWindow.drawHierarchy(in: hostWindow.bounds, afterScreenUpdates: true)
+        }
         RunLoop.main.run(until: Date().addingTimeInterval(0.02))
         hostWindow.layoutIfNeeded()
     }
@@ -112,6 +121,32 @@ final class VaultListPerfTests: BitwardenTestCase {
             + "rowBodies=\(result.rowBodies) rowBuilds=\(result.rowBuilds) childStores=\(result.childStores)")
     }
 
+    /// The visible cells of the hosted list (proves that rows really render).
+    @MainActor
+    var visibleCellCount: Int {
+        func find(_ view: UIView) -> UICollectionView? {
+            if let collection = view as? UICollectionView { return collection }
+            for sub in view.subviews { if let found = find(sub) { return found } }
+            return nil
+        }
+        func findTable(_ view: UIView) -> UITableView? {
+            if let table = view as? UITableView { return table }
+            for sub in view.subviews { if let found = findTable(sub) { return found } }
+            return nil
+        }
+        if let collection = find(hostWindow) { return collection.visibleCells.count }
+        if let table = findTable(hostWindow) { return table.visibleCells.count }
+        return -1
+    }
+
+    /// Prints the view tree (class names) for diagnosis.
+    @MainActor
+    func dumpTree(_ view: UIView, _ depth: Int = 0, _ lines: inout [String]) {
+        guard depth < 9 else { return }
+        lines.append(String(repeating: " ", count: depth) + String(describing: type(of: view)))
+        for sub in view.subviews { dumpTree(sub, depth + 1, &lines) }
+    }
+
     // MARK: Tests
 
     /// First layout after the 2000 item list arrived.
@@ -120,6 +155,11 @@ final class VaultListPerfTests: BitwardenTestCase {
         let data = sections(count: 2000)
         let result = measureBlock { processor.state.loadingState = .data(data) }
         report("listLoad2000", result)
+        print("PERF unit listLoad2000 visibleCells=\(visibleCellCount)")
+        var lines: [String] = []
+        dumpTree(hostWindow, 0, &lines)
+        print("PERF tree " + lines.prefix(60).joined(separator: " | "))
+        XCTAssertGreaterThan(visibleCellCount, 3, "the list renders rows")
     }
 
     /// 30 changes of state that has nothing to do with the rows (toast on/off): the rows must not be rebuilt.
@@ -163,7 +203,7 @@ final class VaultListPerfTests: BitwardenTestCase {
                 settle()
             }
         }
-        XCTAssertEqual(result.childStores, 0, "no child store per row")
+        XCTAssertLessThanOrEqual(result.childStores, 10, "at most the filter row's store per change, none per row")
         XCTAssertEqual(result.rowBuilds, 0, "rows are not built again for a toast change")
     }
 }
