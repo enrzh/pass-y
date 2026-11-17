@@ -34,6 +34,9 @@ enum PassYPerf {
     /// Interval state of the running list load.
     nonisolated(unsafe) private static var listLoadState: OSSignpostIntervalState?
 
+    /// Counts started list loads so a stale timeout does not end a newer interval.
+    nonisolated(unsafe) private static var listLoadGeneration = 0
+
     /// Interval state and start time of the running tap.
     nonisolated(unsafe) private static var tapState: OSSignpostIntervalState?
 
@@ -46,6 +49,14 @@ enum PassYPerf {
     static func beginListLoad() {
         guard listLoadState == nil else { return }
         listLoadState = signposter.beginInterval("VaultListLoad")
+        listLoadGeneration += 1
+        let generation = listLoadGeneration
+        // A later emission that changes no visible row never produces a new `onAppear`; close the interval then.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            guard listLoadGeneration == generation, let state = listLoadState else { return }
+            signposter.endInterval("VaultListLoad", state, "no row appeared")
+            listLoadState = nil
+        }
     }
 
     /// Ends the "list load" interval when the first row appeared.
