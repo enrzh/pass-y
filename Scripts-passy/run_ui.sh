@@ -7,7 +7,12 @@ U=${U:-$PASSY_PHONE}
 n=$1; un=$2; shift 2; args=(); for t in "$@"; do args+=(-only-testing:"$t"); done
 passy_wait_quiet
 log="$PASSY_OUT/$n.log"; echo "start load $(sysctl -n vm.loadavg)" > "$log"
-[ "$un" = 1 ] && xcrun simctl uninstall "$U" de.aiity.passy
+if [ "$un" = 1 ]; then
+  xcrun simctl uninstall "$U" de.aiity.passy
+  # The keychain survives an uninstall: a leftover account makes the app start on another screen (login/unlock) than
+  # the fresh-install tests expect ("Log in" not found). Reset it for a truly fresh install.
+  xcrun simctl keychain "$U" reset
+fi
 rm -rf "$PASSY_OUT/$n.xcresult"
 passy_run_xcodebuild "$log" test -project Bitwarden.xcodeproj -scheme PassYUITests -destination "id=$U" \
   -derivedDataPath "$PASSY_DD" -skipPackagePluginValidation -skipMacroValidation "${args[@]}" \
