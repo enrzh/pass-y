@@ -95,6 +95,13 @@ private struct CipherIconAsyncImage<Placeholder: View>: View {
 
     @SwiftUI.State private var image: UIImage?
 
+    init(url: URL?, placeholder: @escaping () -> Placeholder) {
+        self.url = url
+        self.placeholder = placeholder
+        // A cache hit is shown in the first frame (no placeholder flash, no state change after appearing).
+        _image = SwiftUI.State(initialValue: url.flatMap { CipherIconImageLoader.shared.cachedImage(for: $0) })
+    }
+
     /// Task managing the current image load, cancelled and restarted when the URL changes.
     @SwiftUI.State private var loadTask: Task<Void, Never>?
 
@@ -109,7 +116,7 @@ private struct CipherIconAsyncImage<Placeholder: View>: View {
                 placeholder()
             }
         }
-        .onAppear { startLoadingImage(from: url) }
+        .onAppear { if image == nil { startLoadingImage(from: url) } }
         .onChange(of: url) { newUrl in startLoadingImage(from: newUrl) }
         .onDisappear {
             loadTask?.cancel()
@@ -156,12 +163,12 @@ struct ItemLetterIcon: View {
     /// The item name.
     let name: String
 
-    /// The font size of the letter.
-    var fontSize: CGFloat = 20
+    /// The text style of the letter (scales with Dynamic Type).
+    var textStyle: Font.TextStyle = .title3
 
     var body: some View {
         Text(String(name.trimmingCharacters(in: .whitespaces).first.map { Character($0.uppercased()) } ?? "?"))
-            .font(.system(size: fontSize, weight: .semibold, design: .rounded))
+            .font(.system(textStyle, design: .rounded).weight(.semibold))
             .foregroundStyle(.secondary)
             .minimumScaleFactor(0.5)
             .lineLimit(1)

@@ -40,8 +40,11 @@ private struct SearchableVaultListView: View {
             vault
                 .hidden(isSearching)
 
-            search
-                .hidden(!isSearching)
+            // ui-r8: the search list only exists while searching. Two scroll views in one screen confuse UIKit's
+            // choice of the content scroll view for the large title, and the hidden one still diffed every change.
+            if isSearching {
+                search
+            }
         }
         .animation(.easeInOut, value: store.state.organizationUserNotificationBannerData)
         .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
@@ -235,38 +238,15 @@ private struct SearchableVaultListView: View {
         .scrollView(centerContentVertically: true)
     }
 
-    /// Splits the sections into category tile items and the remaining list sections in a single pass using a cheap
-    /// case check (no deep `Equatable` comparisons, which were O(items x tiles) on every body evaluation).
-    private static func splitTiles(_ sections: [VaultListSection]) -> ([VaultListItem], [VaultListSection]) {
-        var tileItems: [VaultListItem] = []
-        var listSections: [VaultListSection] = []
-        for section in sections {
-            var rest: [VaultListItem] = []
-            rest.reserveCapacity(section.items.count)
-            for item in section.items {
-                if case let .group(group, _) = item.itemType, group.isCategoryTile {
-                    tileItems.append(item)
-                } else {
-                    rest.append(item)
-                }
-            }
-            if rest.count == section.items.count {
-                listSections.append(section)
-            } else if !rest.isEmpty {
-                listSections.append(VaultListSection(id: section.id, items: rest, name: section.name))
-            }
-        }
-        return (tileItems, listSections)
-    }
-
     /// The vault as a native inset-grouped `List`: action card, vault filter, category tiles and one collapsible section per
-    /// group of items. Rows get a "More" swipe action and pointer hover.
+    /// group of items. Rows get a "More" swipe action and pointer hover. The tiles and the item sections are
+    /// `Equatable` subviews: a change that does not touch the vault data (toast, search text, bar) does not diff
+    /// the (up to thousands of) rows again.
     ///
     /// - Parameter sections: The sections of the vault list to display.
     ///
     @ViewBuilder
     private func vaultContents(with sections: [VaultListSection]) -> some View {
-        let (tileItems, listSections) = Self.splitTiles(sections)
         List {
             if store.state.activeActionCard != nil, store.state.activeActionCard != .introducingArchive {
                 Section {
@@ -282,55 +262,18 @@ private struct SearchableVaultListView: View {
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
 
-            if !tileItems.isEmpty {
-                Section {
-                    CategoryTilesView(items: tileItems) { item in
-                        Task { await store.perform(.itemPressed(item)) }
-                    }
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                    .listRowBackground(Color.clear)
-                }
-            }
+            VaultHomeTiles(sections: sections, store: store).equatable()
 
-            ForEach(listSections) { section in
-                let isExpanded = !store.state.collapsedSectionIds.contains(section.id)
-                Section {
-                    if isExpanded {
-                        ForEach(section.items) { item in
-                            vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
-                                .listRowInsets(EdgeInsets())
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    if case .cipher = item.itemType {
-                                        Button {
-                                            Task { await store.perform(.morePressed(item)) }
-                                        } label: {
-                                            Label(Localizations.moreOptions, systemImage: "ellipsis")
-                                        }
-                                        .tint(.gray)
-                                    }
-                                }
-                        }
-                    }
-                } header: {
-                    Button {
-                        store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
-                    } label: {
-                        HStack {
-                            Text(section.name)
-                            Spacer()
-                            Text("\(section.items.count)")
-                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                .font(.footnote.weight(.semibold))
-                        }
-                        .textCase(nil)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("SectionExpandButton_\(section.id)")
-                    .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
-                }
-            }
+            VaultHomeSections(
+                collapsedSectionIds: store.state.collapsedSectionIds,
+                hasPremium: store.state.hasPremium,
+                iconBaseURL: store.state.iconBaseURL,
+                sections: sections,
+                showWebIcons: store.state.showWebIcons,
+                store: store,
+                timeProvider: timeProvider,
+            )
+            .equatable()
 
             // Space below the last row so the floating action button never covers it.
             Section {
@@ -352,38 +295,171 @@ private struct SearchableVaultListView: View {
     ///
     @ViewBuilder
     private func vaultItemRow(for item: VaultListItem, isLastInSection: Bool = false) -> some View {
-        VaultListItemRowView(
-            store: store.child(
-                state: { state in
-                    VaultListItemRowState(
-                        iconBaseURL: state.iconBaseURL,
-                        hasPremium: state.hasPremium,
-                        isFromExtension: false,
-                        item: item,
-                        hasDivider: !isLastInSection,
-                        showWebIcons: state.showWebIcons,
-                    )
-                },
-                mapAction: { action in
-                    switch action {
-                    case let .copyTOTPCode(code):
-                        .copyTOTPCode(code)
-                    }
-                },
-                mapEffect: { effect in
-                    switch effect {
-                    case let .accessibilityMoreOptionsActionPressed(kind):
-                        .accessibilityMoreOptionsActionPressed(item, kind)
-                    case .morePressed:
-                        .morePressed(item)
-                    case .pressed:
-                        .itemPressed(item)
-                    }
-                },
-            ),
+        VaultListRowCell.make(
+            for: item,
+            isLastInSection: isLastInSection,
+            store: store,
             timeProvider: timeProvider,
-            onDelete: item.isCipherItem ? { Task { await store.perform(.deleteItems([item])) } } : nil,
         )
+        .equatable()
+    }
+}
+
+// MARK: - VaultListRowCell + VaultListState
+
+extension VaultListRowCell {
+    /// Creates a row of the vault or search list. No child `Store` is created: the row gets its state and closures.
+    @MainActor
+    static func make(
+        for item: VaultListItem,
+        isLastInSection: Bool,
+        store: Store<VaultListState, VaultListAction, VaultListEffect>,
+        timeProvider: any TimeProvider,
+    ) -> VaultListRowCell {
+        PassYPerf.rowBuildCount += 1
+        let state = store.state
+        return VaultListRowCell(
+            state: VaultListItemRowState(
+                iconBaseURL: state.iconBaseURL,
+                hasPremium: state.hasPremium,
+                isFromExtension: false,
+                item: item,
+                hasDivider: !isLastInSection,
+                showWebIcons: state.showWebIcons,
+            ),
+            perform: { [weak store] effect in
+                switch effect {
+                case let .accessibilityMoreOptionsActionPressed(kind):
+                    await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
+                case .morePressed:
+                    await store?.perform(.morePressed(item))
+                case .pressed:
+                    await store?.perform(.itemPressed(item))
+                }
+            },
+            send: { [weak store] action in
+                switch action {
+                case let .copyTOTPCode(code):
+                    store?.send(.copyTOTPCode(code))
+                }
+            },
+            timeProvider: timeProvider,
+            onDelete: item.isCipherItem ? { [weak store] in Task { await store?.perform(.deleteItems([item])) } } : nil,
+        )
+    }
+}
+
+// MARK: - VaultHomeTiles
+
+/// The category tiles of the vault home (Equatable: only the data matters).
+private struct VaultHomeTiles: View, Equatable {
+    let sections: [VaultListSection]
+    let store: Store<VaultListState, VaultListAction, VaultListEffect>
+
+    static func == (lhs: VaultHomeTiles, rhs: VaultHomeTiles) -> Bool { lhs.sections == rhs.sections }
+
+    var body: some View {
+        let tileItems = sections.flatMap { section in
+            section.items.filter { item in
+                if case let .group(group, _) = item.itemType { group.isCategoryTile } else { false }
+            }
+        }
+        if !tileItems.isEmpty {
+            Section {
+                CategoryTilesView(items: tileItems) { item in
+                    Task { await store.perform(.itemPressed(item)) }
+                }
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                .listRowBackground(Color.clear)
+            }
+        }
+    }
+}
+
+// MARK: - VaultHomeSections
+
+/// The item sections of the vault home: one collapsible `Section` per group. Equatable on the vault data and the
+/// few values that change how a row looks; the store and closures are ignored.
+private struct VaultHomeSections: View, Equatable {
+    let collapsedSectionIds: Set<String>
+    let hasPremium: Bool
+    let iconBaseURL: URL?
+    let sections: [VaultListSection]
+    let showWebIcons: Bool
+    let store: Store<VaultListState, VaultListAction, VaultListEffect>
+    let timeProvider: any TimeProvider
+
+    static func == (lhs: VaultHomeSections, rhs: VaultHomeSections) -> Bool {
+        lhs.sections == rhs.sections
+            && lhs.collapsedSectionIds == rhs.collapsedSectionIds
+            && lhs.hasPremium == rhs.hasPremium
+            && lhs.iconBaseURL == rhs.iconBaseURL
+            && lhs.showWebIcons == rhs.showWebIcons
+    }
+
+    var body: some View {
+        ForEach(listSections) { section in
+            let isExpanded = !collapsedSectionIds.contains(section.id)
+            Section {
+                if isExpanded {
+                    ForEach(section.items) { item in
+                        VaultListRowCell.make(
+                            for: item,
+                            isLastInSection: section.items.last?.id == item.id,
+                            store: store,
+                            timeProvider: timeProvider,
+                        )
+                        .equatable()
+                        .listRowInsets(EdgeInsets())
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            if case .cipher = item.itemType {
+                                Button {
+                                    Task { await store.perform(.morePressed(item)) }
+                                } label: {
+                                    Label(Localizations.moreOptions, systemImage: "ellipsis")
+                                }
+                                .tint(.gray)
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Button {
+                    store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
+                } label: {
+                    HStack {
+                        Text(section.name)
+                        Spacer()
+                        Text("\(section.items.count)")
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.footnote.weight(.semibold))
+                    }
+                    .textCase(nil)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("SectionExpandButton_\(section.id)")
+                .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
+            }
+        }
+    }
+
+    /// The sections without the category tile items (they are shown as tiles).
+    private var listSections: [VaultListSection] {
+        var result: [VaultListSection] = []
+        for section in sections {
+            let rest = section.items.filter { item in
+                if case let .group(group, _) = item.itemType, group.isCategoryTile { false } else { true }
+            }
+            if rest.count == section.items.count {
+                result.append(section)
+            } else if !rest.isEmpty {
+                result.append(VaultListSection(id: section.id, items: rest, name: section.name))
+            }
+        }
+        return result
     }
 }
 

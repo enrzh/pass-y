@@ -3,7 +3,7 @@ import Foundation
 // MARK: - VaultListItemRowState
 
 /// An object representing the visual state of a `VaultListItemRowView`.
-struct VaultListItemRowState {
+struct VaultListItemRowState: Equatable {
     // MARK: Properties
 
     /// The base url used to fetch icons.

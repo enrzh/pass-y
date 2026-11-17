@@ -31,6 +31,12 @@ enum PassYPerf {
     /// How many row bodies were evaluated (test counter).
     nonisolated(unsafe) static var rowBodyCount = 0
 
+    /// How many rows were built by the list builders (test counter; before ui-r8 every build created a child store).
+    nonisolated(unsafe) static var rowBuildCount = 0
+
+    /// How many cell bodies were evaluated (test counter).
+    nonisolated(unsafe) static var cellBodyCount = 0
+
     /// Interval state of the running list load.
     nonisolated(unsafe) private static var listLoadState: OSSignpostIntervalState?
 

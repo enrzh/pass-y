@@ -89,7 +89,11 @@ struct SendListItemRowView: View {
                     store.send(.sendListItemPressed(store.state.item))
                 } label: {
                     buttonLabel(for: store.state.item)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        // ui-r8: the blank part of the row is tappable too (one tap opens the send).
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
 
                 if case let .send(sendView) = store.state.item.itemType {
                     optionsMenu(for: sendView)

@@ -259,7 +259,7 @@ struct VaultGroupView: View {
                     ForEach(store.state.searchResults) { item in
                         vaultItemRow(
                             for: item,
-                            isLastInSection: store.state.searchResults.last == item,
+                            isLastInSection: store.state.searchResults.last?.id == item.id,
                         )
                         .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
                     }
@@ -327,7 +327,7 @@ struct VaultGroupView: View {
             ForEach(sections) { section in
                 Section {
                     ForEach(section.items) { item in
-                        vaultItemRow(for: item, isLastInSection: section.items.last == item)
+                        vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
                             .listRowInsets(EdgeInsets())
                             .listRowSeparator(.hidden)
                             .tag(item.id)
@@ -374,37 +374,36 @@ struct VaultGroupView: View {
     ///
     @ViewBuilder
     private func vaultItemRow(for item: VaultListItem, isLastInSection: Bool = false) -> some View {
-        VaultListItemRowView(
-            store: store.child(
-                state: { state in
-                    VaultListItemRowState(
-                        iconBaseURL: state.iconBaseURL,
-                        hasPremium: state.hasPremium,
-                        item: item,
-                        hasDivider: !isLastInSection,
-                        showWebIcons: state.showWebIcons,
-                    )
-                },
-                mapAction: { action in
-                    switch action {
-                    case let .copyTOTPCode(code):
-                        .copyTOTPCode(code)
-                    }
-                },
-                mapEffect: { effect in
-                    switch effect {
-                    case let .accessibilityMoreOptionsActionPressed(kind):
-                        .accessibilityMoreOptionsActionPressed(item, kind)
-                    case .morePressed:
-                        .morePressed(item)
-                    case .pressed:
-                        .itemPressed(item)
-                    }
-                },
+        // No child `Store` per row and body pass: the row gets plain state and closures (ui-r8).
+        let state = store.state
+        VaultListRowCell(
+            state: VaultListItemRowState(
+                iconBaseURL: state.iconBaseURL,
+                hasPremium: state.hasPremium,
+                item: item,
+                hasDivider: !isLastInSection,
+                showWebIcons: state.showWebIcons,
             ),
+            perform: { [weak store] effect in
+                switch effect {
+                case let .accessibilityMoreOptionsActionPressed(kind):
+                    await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
+                case .morePressed:
+                    await store?.perform(.morePressed(item))
+                case .pressed:
+                    await store?.perform(.itemPressed(item))
+                }
+            },
+            send: { [weak store] action in
+                switch action {
+                case let .copyTOTPCode(code):
+                    store?.send(.copyTOTPCode(code))
+                }
+            },
             timeProvider: timeProvider,
-            onDelete: item.isCipherItem ? { Task { await store.perform(.deleteItems([item])) } } : nil,
+            onDelete: item.isCipherItem ? { [weak store] in Task { await store?.perform(.deleteItems([item])) } } : nil,
         )
+        .equatable()
     }
 }
 

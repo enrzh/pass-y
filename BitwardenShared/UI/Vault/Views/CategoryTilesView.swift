@@ -35,7 +35,7 @@ struct CategoryTilesView: View {
                 if case let .group(group, count) = item.itemType {
                     Button {
                         PassYPerf.beginTap("tile")
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        CategoryTileHaptics.tapped()
                         onSelect(item)
                     } label: {
                         CategoryTile(group: group, count: count)
@@ -50,6 +50,19 @@ struct CategoryTilesView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - CategoryTileHaptics
+
+/// One prepared feedback generator: creating a generator per tap makes the first impact wait for the Taptic Engine.
+@MainActor
+private enum CategoryTileHaptics {
+    private static let generator = UIImpactFeedbackGenerator(style: .light)
+
+    static func tapped() {
+        generator.impactOccurred()
+        generator.prepare()
     }
 }
 

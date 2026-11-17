@@ -2,6 +2,7 @@
 import BitwardenKit
 import BitwardenKitMocks
 import BitwardenResources
+import ViewInspector
 import XCTest
 
 @testable import BitwardenShared
@@ -80,5 +81,40 @@ class VaultListItemRowViewTests: BitwardenTestCase {
         try button.tap()
         waitFor(!processor.dispatchedActions.isEmpty)
         XCTAssertEqual(processor.dispatchedActions.last, .copyTOTPCode(totp.totpCode.code))
+    }
+
+    /// ui-r8: the row button has a rectangular content shape (the blank part between text and chevron and the side
+    /// margins are tappable with `.plain`) and the chevron is part of the button, not beside it.
+    @MainActor
+    func test_rowButton_wholeRowIsHitArea() throws {
+        let button = try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
+        XCTAssertNoThrow(try button.find(ViewType.HStack.self) { (try? $0.contentShape(Rectangle.self)) != nil })
+        XCTAssertNoThrow(try button.find(viewWithAccessibilityIdentifier: "CipherDisclosureChevron"))
+    }
+
+    /// ui-r8: folder rows (group rows) have the same whole-row hit area.
+    @MainActor
+    func test_groupRow_wholeRowIsHitArea() throws {
+        processor.state = VaultListItemRowState(
+            item: .fixtureGroup(group: .folder(id: "1", name: "Folder"), count: 3),
+            hasDivider: false,
+            showWebIcons: true,
+        )
+        let button = try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
+        XCTAssertNoThrow(try button.find(ViewType.HStack.self) { (try? $0.contentShape(Rectangle.self)) != nil })
+    }
+
+    /// ui-r8: a row built from plain values reports presses through the closure (no `Store`).
+    @MainActor
+    func test_directInit_pressed() async throws {
+        var effects: [VaultListItemRowEffect] = []
+        let direct = VaultListItemRowView(
+            state: VaultListItemRowState(item: .fixture(), hasDivider: false, showWebIcons: true),
+            perform: { effects.append($0) },
+            send: { _ in },
+        )
+        let button = try direct.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
+        try await button.tap()
+        XCTAssertEqual(effects, [.pressed])
     }
 }

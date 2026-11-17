@@ -250,7 +250,7 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
             ) { placeholderIconAsset in
                 Group {
                     if store.state.type == .login {
-                        ItemLetterIcon(name: store.state.name, fontSize: 34)
+                        ItemLetterIcon(name: store.state.name, textStyle: .largeTitle)
                             .frame(width: 64, height: 64)
                             .background(Color(.secondarySystemFill))
                     } else {
