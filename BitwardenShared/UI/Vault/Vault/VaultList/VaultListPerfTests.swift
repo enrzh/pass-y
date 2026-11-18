@@ -171,7 +171,9 @@ final class VaultListPerfTests: BitwardenTestCase {
     @MainActor
     func test_perf_control_noChange_2000() {
         processor.state.loadingState = .data(sections(count: 2000))
-        settle()
+        // Warm-up: environment values (safe area, text size) are still settling right after the first layout and
+        // re-evaluate the list once; the churn below must not.
+        for _ in 0 ..< 6 { settle() }
         let result = measureBlock {
             for _ in 0 ..< 30 { settle() }
         }
@@ -182,7 +184,9 @@ final class VaultListPerfTests: BitwardenTestCase {
     @MainActor
     func test_perf_unrelatedStateChurn_2000() {
         processor.state.loadingState = .data(sections(count: 2000))
-        settle()
+        // Warm-up: environment values (safe area, text size) are still settling right after the first layout and
+        // re-evaluate the list once; the churn below must not.
+        for _ in 0 ..< 6 { settle() }
         let result = measureBlock {
             for index in 0 ..< 30 {
                 processor.state.toast = index.isMultiple(of: 2) ? Toast(title: "T\(index)") : nil
@@ -196,7 +200,9 @@ final class VaultListPerfTests: BitwardenTestCase {
     @MainActor
     func test_perf_searchTextChurn_2000() {
         processor.state.loadingState = .data(sections(count: 2000))
-        settle()
+        // Warm-up: environment values (safe area, text size) are still settling right after the first layout and
+        // re-evaluate the list once; the churn below must not.
+        for _ in 0 ..< 6 { settle() }
         let text = Array("Perf Item 1999")
         let result = measureBlock {
             for index in 1 ... text.count {
@@ -212,7 +218,9 @@ final class VaultListPerfTests: BitwardenTestCase {
     @MainActor
     func test_unrelatedChanges_doNotRebuildRows() {
         processor.state.loadingState = .data(sections(count: 2000))
-        settle()
+        // Warm-up: environment values (safe area, text size) are still settling right after the first layout and
+        // re-evaluate the list once; the churn below must not.
+        for _ in 0 ..< 6 { settle() }
         let result = measureBlock {
             for index in 0 ..< 10 {
                 processor.state.toast = index.isMultiple(of: 2) ? Toast(title: "T\(index)") : nil

@@ -18,7 +18,7 @@ public struct StyleGuideFont: Sendable {
     public let size: CGFloat
 
     /// The text style for the font, used to determine how the font scales with dynamic type.
-    let textStyle: SwiftUI.Font.TextStyle
+    public let textStyle: SwiftUI.Font.TextStyle
 
     // MARK: Initialization
 
