@@ -194,4 +194,74 @@ struct PassYShellControllerTests {
         #expect(controller.parent === subject)
         #expect(subject.children.filter { $0 === controller }.count == 1)
     }
+
+    // MARK: Vault button (ui-r8)
+
+    /// Two navigators with real navigation controllers: vault and settings.
+    private func makeStacks() -> (vault: UINavigationController, settings: UINavigationController) {
+        let vault = MockRootNavigator()
+        let settings = MockRootNavigator()
+        let vaultStack = UINavigationController(rootViewController: UIViewController())
+        let settingsStack = UINavigationController(rootViewController: UIViewController())
+        vault.rootViewController = vaultStack
+        settings.rootViewController = settingsStack
+        subject.setNavigators([TabRoute.vault(.list): vault, TabRoute.settings(.settings(.tab)): settings])
+        return (vaultStack, settingsStack)
+    }
+
+    /// Waits (at most one second) until `condition` holds.
+    private func eventually(_ condition: () -> Bool) async -> Bool {
+        for _ in 0 ..< 100 {
+            if condition() { return true }
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+        return condition()
+    }
+
+    /// On the vault home the Vault button is hidden; a pushed page shows it (follows the stack by KVO).
+    @Test
+    func vaultButton_followsPushAndPop() async {
+        let stacks = makeStacks()
+        #expect(subject.model.isAtVaultHome)
+
+        stacks.vault.pushViewController(UIViewController(), animated: false)
+        #expect(await eventually { !subject.model.isAtVaultHome })
+
+        stacks.vault.popViewController(animated: false)
+        #expect(await eventually { subject.model.isAtVaultHome })
+
+        stacks.vault.pushViewController(UIViewController(), animated: false)
+        stacks.vault.pushViewController(UIViewController(), animated: false)
+        #expect(await eventually { !subject.model.isAtVaultHome })
+        stacks.vault.popToRootViewController(animated: false)
+        #expect(await eventually { subject.model.isAtVaultHome })
+    }
+
+    /// Other destinations show the Vault button; it returns to the vault and pops its stack to the root.
+    @Test
+    func vaultButton_returnsToVaultHome() async {
+        let stacks = makeStacks()
+        stacks.vault.pushViewController(UIViewController(), animated: false)
+        subject.model.select(.settings)
+        #expect(subject.model.destination == .settings)
+        #expect(!subject.model.isAtVaultHome)
+
+        subject.model.goToVault?()
+        #expect(subject.model.destination == .vault)
+        #expect(stacks.vault.viewControllers.count == 1, "vault stack popped to its root")
+        #expect(subject.model.isAtVaultHome)
+        #expect(stacks.vault.parent === subject)
+    }
+
+    /// The Vault button also clears a running search.
+    @Test
+    func vaultButton_cancelsSearch() async {
+        _ = makeStacks()
+        subject.model.select(.settings)
+        subject.model.text = "abc"
+        subject.model.isEditing = true
+        subject.model.goToVault?()
+        #expect(subject.model.text.isEmpty)
+        #expect(!subject.model.isEditing)
+    }
 }

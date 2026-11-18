@@ -14,6 +14,7 @@ final class PassYShellBarHitTests: BitwardenTestCase {
 
     var model: PassYShellModel!
     var host: UIHostingController<PassYShellBar>!
+    var container: PassYBarContainerView!
     var hostWindow: UIWindow!
 
     // MARK: Setup & Teardown
@@ -33,8 +34,9 @@ final class PassYShellBarHitTests: BitwardenTestCase {
         hostWindow.rootViewController = UIViewController()
         hostWindow.makeKeyAndVisible()
         hostWindow.rootViewController?.addChild(host)
-        host.view.frame = CGRect(x: 0, y: 844 - height - 34, width: 390, height: height)
-        hostWindow.rootViewController?.view.addSubview(host.view)
+        container = PassYBarContainerView(hostView: host.view, model: model)
+        container.frame = CGRect(x: 0, y: 844 - height - 34, width: 390, height: height)
+        hostWindow.rootViewController?.view.addSubview(container)
         host.didMove(toParent: hostWindow.rootViewController)
         settle()
     }
@@ -57,14 +59,14 @@ final class PassYShellBarHitTests: BitwardenTestCase {
 
     /// The view that receives a touch at `point` (in the bar host's coordinates), `nil` when the touch passes through.
     func hit(_ point: CGPoint) -> UIView? {
-        let inWindow = host.view.convert(point, to: hostWindow)
+        let inWindow = container.convert(point, to: hostWindow)
         return hostWindow.hitTest(inWindow, with: nil)
     }
 
     /// Whether the touch lands on the bar host (or inside it) rather than the page below.
     func isCaptured(_ point: CGPoint) -> Bool {
         guard let view = hit(point) else { return false }
-        return view === host.view || view.isDescendant(of: host.view)
+        return view === host.view || view.isDescendant(of: container)
     }
 
     // MARK: Tests
@@ -74,7 +76,7 @@ final class PassYShellBarHitTests: BitwardenTestCase {
         let top = PassYShellBar.fadeHeight > 0 ? PassYShellBar.fadeHeight / 2 : 2
         print("PERF hit fadeHeight=\(PassYShellBar.fadeHeight) top=\(isCaptured(CGPoint(x: 195, y: top))) "
             + "leftMargin=\(isCaptured(CGPoint(x: 4, y: PassYShellBar.fadeHeight + 30))) "
-            + "hostHeight=\(host.view.frame.height)")
+            + "hostHeight=\(container.frame.height)")
         XCTAssertFalse(isCaptured(CGPoint(x: 195, y: top)), "strip above the bar controls passes touches through")
         XCTAssertFalse(isCaptured(CGPoint(x: 4, y: PassYShellBar.fadeHeight + 30)), "left margin passes touches through")
     }
@@ -87,5 +89,23 @@ final class PassYShellBarHitTests: BitwardenTestCase {
     /// The bar has no backdrop band: its host is exactly as tall as the controls plus their padding.
     func test_noBackdropStrip() {
         XCTAssertEqual(PassYShellBar.fadeHeight, 0, "no fade strip above the bar (ui-r8: no shadow behind the bar)")
+    }
+
+    /// Off the vault home the Vault button is left of the search field and is hit; the gap between them is not.
+    func test_vaultButton_isHit_andGapPassesThrough() {
+        model.isAtVaultHome = false
+        settle()
+        let y = PassYShellBar.fadeHeight + PassYShellBar.barHeight / 2
+        XCTAssertTrue(isCaptured(CGPoint(x: 38, y: y)), "Vault button is hit")
+        XCTAssertFalse(isCaptured(CGPoint(x: 65, y: y)), "gap between the button and the search field passes through")
+        XCTAssertTrue(isCaptured(CGPoint(x: 200, y: y)), "search field is hit")
+    }
+
+    /// On the vault home there is no button: the space is the search field.
+    func test_vaultHome_hasNoVaultButton() {
+        model.isAtVaultHome = true
+        settle()
+        let y = PassYShellBar.fadeHeight + PassYShellBar.barHeight / 2
+        XCTAssertTrue(isCaptured(CGPoint(x: 40, y: y)), "search field starts at the left margin")
     }
 }

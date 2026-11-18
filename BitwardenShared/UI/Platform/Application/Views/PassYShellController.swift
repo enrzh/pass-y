@@ -3,6 +3,46 @@ import Combine
 import SwiftUI
 import UIKit
 
+// MARK: - PassYBarContainerView
+
+/// Hosts the bar. SwiftUI's hosting view answers every touch inside its frame, also where the bar draws nothing; this
+/// container hands such touches to the page below and only keeps the ones on a bar control. UIKit controls inside the
+/// bar (the search field, the menu button) are deeper views and are always hit.
+final class PassYBarContainerView: UIView {
+    /// The model with the frames of the bar controls.
+    let model: PassYShellModel
+
+    /// The hosting view of the bar.
+    let hostView: UIView
+
+    init(hostView: UIView, model: PassYShellModel) {
+        self.hostView = hostView
+        self.model = model
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        hostView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(hostView)
+        NSLayoutConstraint.activate([
+            hostView.topAnchor.constraint(equalTo: topAnchor),
+            hostView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            hostView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            hostView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard let hit = super.hitTest(point, with: event), hit !== self else { return nil }
+        guard hit === hostView else { return hit }
+        let inset: CGFloat = -4
+        return model.controlFrames.contains { $0.insetBy(dx: inset, dy: inset).contains(point) } ? hit : nil
+    }
+}
+
 // MARK: - PassYShellController
 
 /// The root shell of the signed-in app. It shows one top-level navigator at a time (Vault, Send, Generator or
@@ -19,6 +59,9 @@ class PassYShellController: UIViewController, TabNavigator {
 
     /// The hosting controller of the persistent bottom bar.
     private var barHost: UIHostingController<PassYShellBar>?
+
+    /// The container of the bar host that lets touches outside the controls through.
+    private var barContainer: PassYBarContainerView?
 
     /// A solid strip below the bar content, behind the home indicator.
     private let bottomBacking = UIView()
@@ -40,6 +83,9 @@ class PassYShellController: UIViewController, TabNavigator {
 
     /// Subscriptions to the shared model.
     private var cancellables = Set<AnyCancellable>()
+
+    /// Observations of the navigation stacks (the Vault button depends on the depth of the vault stack).
+    private var stackObservations: [NSKeyValueObservation] = []
 
     // MARK: Initialization
 
@@ -87,6 +133,7 @@ class PassYShellController: UIViewController, TabNavigator {
             .sorted { $0.key.index < $1.key.index }
             .map { (index: $0.key.index, navigator: $0.value) }
         model.availableDestinations = entries.compactMap { PassYDestination(rawValue: $0.index) }
+        observeStacks()
 
         // Keep the selection if it still exists (for example when Send is switched off by policy).
         let target = entries.contains { $0.index == selectedRouteIndex }
@@ -122,21 +169,24 @@ class PassYShellController: UIViewController, TabNavigator {
 
         let host = UIHostingController(rootView: PassYShellBar(model: model))
         host.view.backgroundColor = .clear
-        host.view.translatesAutoresizingMaskIntoConstraints = false
         addChild(host)
-        view.addSubview(host.view)
+        let container = PassYBarContainerView(hostView: host.view, model: model)
+        container.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(container)
         host.didMove(toParent: self)
         NSLayoutConstraint.activate([
-            host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            host.view.heightAnchor.constraint(
+            container.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            container.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            container.heightAnchor.constraint(
                 equalToConstant: PassYShellBar.barHeight + PassYShellBar.fadeHeight,
             ),
             // Rests on the bottom safe area; rides above the keyboard while the search field is edited.
-            host.view.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+            container.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
         ])
+        barContainer = container
         barHost = host
 
+        model.goToVault = { [weak self] in self?.showVaultHome() }
         model.selectDestination = { [weak self] destination in
             guard let self else { return }
             let reselect = destination == model.destination
@@ -158,7 +208,7 @@ class PassYShellController: UIViewController, TabNavigator {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         // Pages end where the bar content begins (also above the keyboard), so lists and forms clear the bar.
-        guard let host = barHost?.view else { return }
+        guard let host = barContainer else { return }
         let barTop = host.frame.minY + PassYShellBar.fadeHeight
         let inset = max(0, view.bounds.height - barTop - view.safeAreaInsets.bottom)
         if currentChild?.additionalSafeAreaInsets.bottom != inset {
@@ -166,9 +216,38 @@ class PassYShellController: UIViewController, TabNavigator {
         }
         view.bringSubviewToFront(bottomBacking)
         view.bringSubviewToFront(host)
+        updateVaultHome()
     }
 
     // MARK: Private Methods
+
+    /// Observes the stacks of all navigators so the Vault button follows pushes, pops and pop-to-root.
+    private func observeStacks() {
+        stackObservations = entries.compactMap { entry in
+            (entry.navigator.rootViewController as? UINavigationController)?.observe(\.viewControllers) { [weak self] _, _ in
+                // KVO fires while the stack changes; read it after the change settled.
+                DispatchQueue.main.async { self?.updateVaultHome() }
+            }
+        }
+        updateVaultHome()
+    }
+
+    /// Whether the vault home (root of the vault stack) is what the user sees.
+    private func updateVaultHome() {
+        let vaultNavigation = entries.first { $0.index == PassYDestination.vault.rawValue }?.navigator
+            .rootViewController as? UINavigationController
+        let atRoot = (vaultNavigation?.viewControllers.count ?? 1) <= 1
+        let atHome = model.destination == .vault && atRoot
+        if model.isAtVaultHome != atHome { model.isAtVaultHome = atHome }
+    }
+
+    /// The Vault button: switch to the vault, pop to its root and clear the search.
+    private func showVaultHome() {
+        show(routeIndex: PassYDestination.vault.rawValue, resetSearch: true)
+        model.cancelSearch()
+        popToRoot()
+        updateVaultHome()
+    }
 
     /// Pops the selected navigator to its root.
     private func popToRoot() {
@@ -192,6 +271,7 @@ class PassYShellController: UIViewController, TabNavigator {
         selectedRouteIndex = routeIndex
         if let destination = PassYDestination(rawValue: routeIndex) { model.destination = destination }
         if changed, resetSearch { model.cancelSearch() }
+        defer { updateVaultHome() }
         guard currentChild !== child else { return }
 
         currentChild?.willMove(toParent: nil)
