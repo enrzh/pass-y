@@ -460,3 +460,67 @@ UNVERIFIED:
 - iPhone Duo portrait/landscape: PassY-SD-Duo does not come up (`simctl bootstatus`: "Data Migration Failed"; screenshot: "Invalid argument").
 - Action and AutoFill extensions, watch widget/complication: not started (need a host app sheet / watch face); only built and embedded.
 - Real login rate limit note: the throwaway Vaultwarden needs `LOGIN_RATELIMIT_SECONDS=1 LOGIN_RATELIMIT_MAX_BURST=1000` for UI tests (the UI helper retries login).
+
+## ui-r8 (real-device feedback on v1.23, iPhone Air)
+
+### (a) Responsiveness: root cause and measurements
+
+Root causes, found by code analysis and confirmed with the counters below (not guessed variants):
+
+1. **Dead hit area in rows (one-tap problem).** The row button (`VaultListItemRowView`) uses `.buttonStyle(.plain)` (needed so a `List` row with several buttons fires only one). With `.plain` only *drawn* content is tappable. The label had no `contentShape`, the folder/group rows have a bare `Spacer` between name and count, the disclosure chevron and the 16 pt side margins were outside the button. A tap in the blank middle or right of a row hit nothing, so the user taps again. The existing UI tests tapped the text, so they never saw it. Fix: the whole row (chevron and margins included) is one `contentShape(Rectangle())` button; same for Send rows and the section header button. ViewInspector tests `test_rowButton_wholeRowIsHitArea`, `test_groupRow_wholeRowIsHitArea`.
+2. **The bottom bar host swallowed touches.** The hosting view of the bar was 88 pt tall (60 pt bar plus a 28 pt fade strip) and answered every touch in its frame. Measured in a unit test before the fix: a touch in the strip above the bar and in the left margin were captured by the bar (`PERF hit ... top=true leftMargin=true`), after: both pass through (`top=false leftMargin=false`). The bar host is now `PassYBarContainerView`: touches outside the frames of the controls go to the page below; the strip and the backdrop are gone (see (e)).
+3. **Every state change rebuilt the visible rows.** `vaultItemRow` created a child `Store` per row on every body pass (each one subscribes to the parent state), the parent body ran for every toast/search-text/profile-menu change, and the editMode environment re-evaluated all rows. Now rows get plain state and closures (no `Store`), are `Equatable` cells, the Select-mode flag is row state, and the vault home list sits behind an `Equatable` boundary keyed by the state that the list really shows (`VaultListState.homeListKey`). The search list only exists while searching (it was a hidden second `List` that diffed every change; two scroll views in a screen also confuse UIKit's choice of the large-title scroll view).
+4. **Icons.** No image cache: every row that scrolled back downloaded, SHA-256 hashed and decoded its icon again, and `UIImage(data:)` decodes lazily on the main thread at the first draw. Now `NSCache` plus in-flight de-duplication, decode off the main thread (`byPreparingForDisplay`) and a synchronous cache hit in the first frame.
+5. Smaller: a new `UIImpactFeedbackGenerator` per tile tap (shared prepared generator now); `last == item` deep comparisons per row in the group list (id comparison now).
+
+Not found as cause: `contextMenu` + `swipeActions` + button (no conflict found by analysis; UNVERIFIED on device), push/present itself (the processor path is synchronous up to `UINavigationController.push`/`present`, measured by the new `TapToPush` signpost, see below).
+
+Signposts (`PassYPerf`, subsystem `de.aiity.passy`, category `perf`): `VaultListLoad` (data assigned until first row appears), `RowAppear` (event), `TapToPush` (tap until the pushed/presented screen is handed to UIKit; also logged as `tap_to_push ms=`). Known limit: `TapToPush` starts inside the `AsyncButton` task, not at touch-down.
+
+Unit-level numbers (2000 item vault hosted in a window on the iPhone 17 Pro simulator, iOS 27.0, Debug, machine under heavy foreign load; `VaultListPerfTests`, main-thread CPU time minus the harness control run). "before" is the instrumented baseline (commit `bddef6d2c` app code), "after" the final code:
+
+| Measurement (30 toast changes, 2000 items) | before | after |
+|---|---|---|
+| child `Store`s created | 306 | 0 to 30 (only the vault filter row; none per row) |
+| row bodies evaluated | 240 | 0 |
+| main-thread CPU per change (net of harness) | about 42 ms | about 5 to 17 ms |
+| rows built in the list builder per change | 8 to 10 | 0 (up to 8 in some runs before the warm-up; asserted 0 afterwards) |
+| first list load (CPU) | 126 ms | 115 to 134 ms (no change expected) |
+
+CPU numbers vary by about 20 percent between runs (control run 967 to 1269 ms for 30 settle passes); the counters are deterministic and are asserted in `test_unrelatedChanges_doNotRebuildRows`. These are NOT frame times on a device. A first attempt wrapped the `ForEach` sections in `Equatable` subviews: that disabled the lazy cell creation (2000 rows built at load, 16 s) and was dropped; `ForEach` content must stay inline in the `List`.
+
+`PassYPerfTests` (UI, to be run later with a 2000 item vault: `seed_ciphers.py 2000`): `test_perf_tapToPush_signposts` (XCTClockMetric plus `XCTOSSignpostMetric` for `TapToPush` and `VaultListLoad`, one tap must open the list page within 1 s), `test_perf_singleTapOpensItem_2000` (30 taps on the blank part of a row, 1 s each). `PassYUiR8Tests.test01/02` do the same for item and folder with a single tap.
+
+### (b) System typography
+
+The style guide already used text styles, but `lineHeight(for:)` added padding, line spacing and a minimum height from the old px sizes (body 15/20, headline 15/28 ...), the weight parameter defaulted to `.regular` (so `.headline` was not semibold), the navigation bar appearance fixed the fonts (15 pt, large title 26 pt bold), segmented controls used 13 pt, there were Menlo and about 20 fixed `.system(size:)` fonts. Now: no extra leading or padding (Apple's own), weight `nil` keeps the style's weight, system appearance for navigation bar and segmented control, text styles for all symbols and letter icons, TOTP codes in SF with monospaced digits (not the monospaced design), monospaced design only for passwords and fingerprint phrases (`sensitiveInfoSmall` is the system monospaced footnote instead of Menlo). `PassYTypographyTests` scans all production sources for fixed sizes and custom fonts (`.system(size:`, `.custom(`, `UIFont(name:`, `UIFont.systemFont(ofSize: <number>`) and fails on any hit. The `PassYItemFormScreenTests`/`PassYScreenTests` reference images were re-recorded because the layout changed on purpose.
+
+### (c) Vault button
+
+A 44 pt glass circle (`lock.shield`, id `BottomBarVaultButton`) left of the search field on every page except the vault home (destination vault and vault stack at its root). Action: switch to the vault, pop its stack to the root, cancel the search. UIKit publishes neither KVO for pushes (measured: silent) nor a notification, so the shell compares the vault stack depth by KVO on `viewControllers` plus a 0.15 s timer (an integer compare; the model only publishes on a change), so the button can appear up to about 0.15 s after a push. Tests: `PassYShellControllerTests.vaultButton_*`, `PassYShellBarHitTests`.
+
+### (d) Native large titles
+
+Vault home, vault group lists, Send, Generator and Settings (tab mode) use `navigationBarTitleDisplayMode(.large)` with `prefersLargeTitles` on their navigators; the toolbar fake title `largeNavigationTitleToolbarItem` is removed. The large title collapses with the scroll view. Pushed detail pages stay inline. Short pages (empty Send, Settings) do not collapse because their content fits (UIKit behavior).
+
+### (e) No shadow behind the bar
+
+The `ultraThinMaterial` backdrop with the gradient mask and the 28 pt fade strip are removed (it also cost an offscreen blur pass while scrolling). The glass capsules remain; on iOS 26 the list uses the system soft scroll edge. The glass itself has the system's own soft shadow.
+
+### (f) Back and close: static audit (not run on a device)
+
+Pushed pages use the system back button and swipe-back: vault group lists, all Settings sub pages (account security, autofill, app extension, appearance, about, other, vault settings, export, folders), Send type lists. `hidesBackButton`/`navigationBarBackButtonHidden` are only used in the pre-login auth flow. Presented sheets cover the bar and have their own control in the toolbar (found by grep, per file): item view (Close), add/edit item (Cancel), attachments, collections, move to organization, scan code and manual key entry, Send add/edit (Cancel) and view, password history, generator (Cancel when presented), login request, pending requests, device management, delete account, export vault, item selection. `MigrateToMyItemsView` (policy flow) and the import-logins onboarding are modal in presentation by design. From every pushed page the Vault button goes straight to the vault home. `PassYUiR8Tests.test06_backAndCloseEverywhere` walks these paths.
+
+### Tests and what was run in this round
+
+Run: Bitwarden-Unit (full, see report), Bitwarden-ViewInspector 609 executed, 17 skipped, 0 failures, new `VaultListPerfTests`, `PassYShellBarHitTests`, `PassYShellControllerTests` (vault button), `PassYTypographyTests`. `build-for-testing` for the `PassYUITests` scheme: succeeded.
+
+### UNVERIFIED (ui-r8)
+
+- No UI test was run (`PassYUiR8Tests`, extended `PassYPerfTests`): single tap on the blank row area, folder/item opening within 1 s, collapse of the large titles, Vault button on every page, pixel sampling above the bar, back/swipe-back/close paths, perf with 2000 items. No device run (iPhone Air): the real-device responsiveness is not confirmed, only the mechanism (hit area, dead strip, rebuild counts).
+- The 5 to 17 ms versus 42 ms numbers are simulator, Debug, CPU time under foreign load; no frame time, no Instruments run, no `XCTOSSignpostMetric` numbers.
+- Equatable cells and the home list boundary were verified with counters, ViewInspector and the hosted-window unit test (visible cells render); the visual result of the home list was not screenshot-checked.
+- iOS 26 glass and the large title on the real device (collapse behavior of `List` with `readableContentWidth`, `refreshable`): UNVERIFIED; short pages stay expanded.
+- Group list pages still evaluate their `ForEach` per state change (only the rows are skipped); a 2000 item group page was not measured.
+- Snapshot tests of other screens (the `Bitwarden-Snapshot` plan) were not run; only the two PassY snapshot classes in the Unit plan were re-recorded. Snapshots in other plans may differ because of the typography change.
+- `contextMenu` + `swipeActions` + tap interplay and the icon cache under real network were not tested.
