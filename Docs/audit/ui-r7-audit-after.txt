@@ -1,0 +1,12 @@
+# R5AUDIT output of PassYUiR5ShotsTests/test_voiceOverLabels (after), iPhone sim PassY-R3, fresh Vaultwarden 1.37.5 DB, seed_ciphers 25
+start load { 7.10 28.46 40.81 }
+R5AUDIT home: 2 issues
+R5AUDIT home: 65536: Dynamic Type font sizes are partially unsupported [PT] type=48 id= frame=(352.6666666666667, 76.16666666666667, 16.66666666666663, 15.666666666666657) detail=User will not be able to change the font size of this SwiftUI.AccessibilityNode
+R5AUDIT home: 1: Contrast failed [Trash] type=48 id= frame=(28.0, 768.0, 48.33333333333333, 24.0) detail=Contrast failed for SwiftUI.AccessibilityNode
+R5AUDIT item: 2 issues
+R5AUDIT item: 65536: Dynamic Type font sizes are partially unsupported [Edit] type=9 id=EditItemButton frame=(295.3333333333333, 87.33333333333333, 29.33333333333337, 25.333333333333343) detail=User will not be able to change the font size of this SwiftUI.AccessibilityNode
+R5AUDIT item: 1: Contrast nearly passed [Edit] type=9 id=EditItemButton frame=(295.3333333333333, 87.33333333333333, 29.33333333333337, 25.333333333333343) detail=Contrast is not high enough for SwiftUI.AccessibilityNode unless font size is larger.
+	 Executed 1 test, with 0 failures (0 unexpected) in 37.489 (37.492) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 37.489 (37.497) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 37.489 (37.498) seconds
+** TEST SUCCEEDED **

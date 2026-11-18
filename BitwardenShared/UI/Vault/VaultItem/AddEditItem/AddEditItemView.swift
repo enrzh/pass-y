@@ -162,6 +162,8 @@ struct AddEditItemView: View {
                 .accessibilityLabel(Localizations.favorite)
                 .accessibilityValue(store.state.isFavoriteOn ? Localizations.on : Localizations.off)
             }
+            // Apple: the name is a free field without a label ("Item name (required)" is its placeholder).
+            .nativeTitleAsPlaceholder()
             .contentBlock()
 
             ContentBlock {

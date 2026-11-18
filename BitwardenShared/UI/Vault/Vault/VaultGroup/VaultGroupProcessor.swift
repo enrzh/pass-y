@@ -181,6 +181,11 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
             state.toast = Toast(title: Localizations.valueHasBeenCopied(Localizations.verificationCode))
         case .restartPremiumSubscription:
             state.url = services.environmentService.upgradeToPremiumURL
+        case let .selectionChanged(selection):
+            state.selection = selection
+        case let .setSelecting(isSelecting):
+            state.isSelecting = isSelecting
+            state.selection = []
         case let .searchStateChanged(isSearching):
             if !isSearching {
                 state.searchText = ""
@@ -204,6 +209,7 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
     // MARK: Private Methods
 
     /// Asks for confirmation and deletes the items: sent to the trash, or permanently inside the trash.
+    /// Cancelling the confirmation changes nothing (Select mode and the selection stay).
     private func deleteItems(_ items: [VaultListItem]) {
         let permanent = state.group == .trash
         coordinator.showAlert(.deleteCipherConfirmation(isSoftDelete: !permanent) { [weak self] in
@@ -211,35 +217,53 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
         })
     }
 
-    /// Deletes the items without asking.
+    /// Deletes the items without asking. Every item is tried on its own; items that failed (also a cipher
+    /// that cannot be fetched) are reported, never toasted as deleted, and stay selected.
     private func performDelete(_ items: [VaultListItem], permanent: Bool) async {
-        do {
-            for item in items {
-                guard case let .cipher(cipherListView, _) = item.itemType, let id = cipherListView.id else { continue }
-                if permanent {
-                    try await services.vaultRepository.deleteCipher(id)
-                } else if let cipher = try await services.vaultRepository.fetchCipher(withId: id) {
-                    try await services.vaultRepository.softDeleteCipher(cipher)
-                }
-            }
+        let ids = items.compactMap(\.cipherId)
+        // Only non-cipher rows (groups, TOTP rows): nothing was deleted, so no success toast.
+        guard !ids.isEmpty else { return }
+        let outcome = await CipherBulkActions.delete(
+            ids: ids,
+            permanent: permanent,
+            repository: services.vaultRepository,
+            errorReporter: services.errorReporter,
+        )
+        applyBulkOutcome(outcome)
+        if outcome.isComplete {
             state.toast = Toast(title: permanent ? Localizations.itemDeleted : Localizations.itemSoftDeleted)
-        } catch {
-            services.errorReporter.log(error: error)
-            coordinator.showAlert(.defaultAlert(title: Localizations.anErrorHasOccurred))
+        } else {
+            coordinator.showAlert(.defaultAlert(
+                title: Localizations.anErrorHasOccurred,
+                message: Localizations.someItemsCouldNotBeDeleted(outcome.failedIds.count, ids.count),
+            ))
         }
     }
 
-    /// Moves the items into a folder.
+    /// Moves the items into a folder; failed items are reported and stay selected.
     private func moveItems(_ items: [VaultListItem], folderId: String?) async {
-        do {
-            for item in items {
-                guard case let .cipher(cipherListView, _) = item.itemType, let id = cipherListView.id,
-                      let cipher = try await services.vaultRepository.fetchCipher(withId: id) else { continue }
-                try await services.vaultRepository.updateCipher(cipher.update(folderId: folderId))
-            }
-        } catch {
-            services.errorReporter.log(error: error)
-            coordinator.showAlert(.defaultAlert(title: Localizations.unableToMoveTheSelectedItemPleaseTryAgain))
+        let ids = items.compactMap(\.cipherId)
+        let outcome = await CipherBulkActions.move(
+            ids: ids,
+            folderId: folderId,
+            repository: services.vaultRepository,
+            errorReporter: services.errorReporter,
+        )
+        applyBulkOutcome(outcome)
+        if !outcome.isComplete {
+            coordinator.showAlert(.defaultAlert(
+                title: Localizations.anErrorHasOccurred,
+                message: Localizations.someItemsCouldNotBeMoved(outcome.failedIds.count, ids.count),
+            ))
+        }
+    }
+
+    /// Updates the Select mode state after a bulk action: processed items leave the selection, failed items
+    /// stay selected (and visible, they were not removed); Select mode ends only if nothing failed.
+    private func applyBulkOutcome(_ outcome: CipherBulkOutcome) {
+        state.selection.subtract(outcome.succeededIds)
+        if outcome.isComplete, state.selection.isEmpty {
+            state.isSelecting = false
         }
     }
 

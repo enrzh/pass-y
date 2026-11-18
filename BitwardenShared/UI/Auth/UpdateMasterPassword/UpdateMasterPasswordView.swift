@@ -13,18 +13,22 @@ struct UpdateMasterPasswordView: View {
     @ObservedObject var store: Store<UpdateMasterPasswordState, UpdateMasterPasswordAction, UpdateMasterPasswordEffect>
 
     var body: some View {
-        VStack(spacing: 24) {
+        Form {
             if store.state.forcePasswordResetReason != nil {
-                InfoContainer(store.state.updateMasterPasswordWarning)
+                Section {
+                    Text(store.state.updateMasterPasswordWarning)
+                        .font(.subheadline)
 
-                if let policy = store.state.masterPasswordPolicy,
-                   policy.isInEffect,
-                   let policySummary = policy.policySummary {
-                    InfoContainer(policySummary)
+                    if let policy = store.state.masterPasswordPolicy,
+                       policy.isInEffect,
+                       let policySummary = policy.policySummary {
+                        Text(policySummary)
+                            .font(.subheadline)
+                    }
                 }
             }
 
-            ContentBlock {
+            Section {
                 if store.state.requireCurrentPassword {
                     BitwardenTextField(
                         title: Localizations.currentMasterPasswordRequired,
@@ -106,8 +110,8 @@ struct UpdateMasterPasswordView: View {
                 )
             }
         }
-        .scrollView()
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
+        .nativeFormRows()
+        .passYNativeFormBackground()
         .navigationTitle(Localizations.updateMasterPassword)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

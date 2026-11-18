@@ -1,4 +1,5 @@
 import BitwardenKit
+import CryptoKit
 import Foundation
 import UIKit
 
@@ -62,14 +63,29 @@ final class CipherIconImageLoader: NSObject, @unchecked Sendable {
             guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
                 return nil
             }
-            guard let image = UIImage(data: data) else { return nil }
-            // Vaultwarden answers with its generic globe (a 19 x 19 px PNG) when a site has no icon. Treat that
-            // like "no icon" so the row shows the letter placeholder (Apple Passwords) instead of a globe.
-            if Int(image.size.width * image.scale) == 19, Int(image.size.height * image.scale) == 19 { return nil }
-            return image
+            return Self.decodeIcon(data)
         } catch {
             return nil
         }
+    }
+
+    /// SHA-256 of the generic globe PNG (19 x 19 px, 483 bytes) that Vaultwarden 1.37.x answers with when a site
+    /// has no icon (fetched from `/icons/<unknown host>/icon.png`).
+    static let vaultwardenPlaceholderSHA256s: Set<String> = [
+        "01d7ddb3c3c46ca24f7d911abd32849aa19627c8be515273bdfb98100460aacb",
+    ]
+
+    /// Decodes icon bytes; returns `nil` for undecodable data and for the server's generic placeholder globe,
+    /// so the row shows the letter icon (Apple Passwords) instead.
+    ///
+    /// The placeholder is recognised by its exact bytes (SHA-256), not by its 19 x 19 size: a real small favicon
+    /// of that size is a different file and is kept. Choice and limit: another server version with a different
+    /// placeholder file would show its globe until its hash is added here.
+    ///
+    static func decodeIcon(_ data: Data) -> UIImage? {
+        let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        if vaultwardenPlaceholderSHA256s.contains(digest) { return nil }
+        return UIImage(data: data)
     }
 
     // MARK: Private

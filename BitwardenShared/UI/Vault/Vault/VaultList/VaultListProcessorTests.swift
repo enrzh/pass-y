@@ -2753,4 +2753,88 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
 
         XCTAssertEqual(coordinator.routes, [.viewProfileSwitcher])
     }
+
+    // MARK: ui-r7: search results Select mode, delete and move
+
+    /// `perform(.deleteItems)` asks for confirmation, then soft deletes and toasts.
+    @MainActor
+    func test_perform_deleteItems_softDeletes() async throws {
+        vaultRepository.fetchCipherResult = .success(CipherView.fixture(id: "1", name: "A"))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1"]))
+        await subject.perform(.deleteItems([item]))
+        let alert = try XCTUnwrap(coordinator.alertShown.last)
+        XCTAssertEqual(alert.title, Localizations.doYouReallyWantToSoftDeleteCipher)
+        try await alert.tapAction(title: Localizations.yes)
+        XCTAssertEqual(vaultRepository.softDeletedCipher.map(\.id), ["1"])
+        XCTAssertEqual(subject.state.toast?.title, Localizations.itemSoftDeleted)
+        XCTAssertFalse(subject.state.isSelecting)
+        XCTAssertTrue(subject.state.selection.isEmpty)
+    }
+
+    /// Cancelling the confirmation keeps Select mode and deletes nothing.
+    @MainActor
+    func test_perform_deleteItems_cancelKeepsSelectMode() async throws {
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1"]))
+        await subject.perform(.deleteItems([item]))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.cancel)
+        XCTAssertTrue(subject.state.isSelecting)
+        XCTAssertEqual(subject.state.selection, ["1"])
+        XCTAssertTrue(vaultRepository.softDeletedCipher.isEmpty)
+        XCTAssertNil(subject.state.toast)
+    }
+
+    /// A cipher that cannot be fetched is an error, never a "deleted" toast; it stays selected.
+    @MainActor
+    func test_perform_deleteItems_failureKeepsSelected() async throws {
+        vaultRepository.fetchCipherResult = .success(CipherView.fixture(id: "x", name: "X"))
+        vaultRepository.fetchCipherResultsById["2"] = .success(nil)
+        let items = try ["1", "2"].map {
+            try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: $0, name: $0)))
+        }
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1", "2"]))
+        await subject.perform(.deleteItems(items))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertEqual(vaultRepository.softDeletedCipher.count, 1)
+        XCTAssertEqual(subject.state.selection, ["2"])
+        XCTAssertTrue(subject.state.isSelecting)
+        XCTAssertNil(subject.state.toast)
+        XCTAssertEqual(coordinator.alertShown.last?.message, Localizations.someItemsCouldNotBeDeleted(1, 2))
+    }
+
+    /// Deleting only non-cipher rows shows no success toast.
+    @MainActor
+    func test_perform_deleteItems_noCipherIds_noToast() async throws {
+        let group = VaultListItem(id: "g", itemType: .group(.login, 3))
+        await subject.perform(.deleteItems([group]))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertNil(subject.state.toast)
+        XCTAssertTrue(vaultRepository.softDeletedCipher.isEmpty)
+    }
+
+    /// `perform(.moveItems)` updates the folder and ends Select mode.
+    @MainActor
+    func test_perform_moveItems_setsFolder() async throws {
+        vaultRepository.fetchCipherResult = .success(CipherView.fixture(id: "1", name: "A"))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1"]))
+        await subject.perform(.moveItems([item], folderId: "f"))
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.map(\.folderId), ["f"])
+        XCTAssertFalse(subject.state.isSelecting)
+    }
+
+    /// Ending the search leaves Select mode.
+    @MainActor
+    func test_receive_searchStateChanged_false_endsSelectMode() {
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1"]))
+        subject.receive(.searchStateChanged(isSearching: false))
+        XCTAssertFalse(subject.state.isSelecting)
+        XCTAssertTrue(subject.state.selection.isEmpty)
+    }
 }

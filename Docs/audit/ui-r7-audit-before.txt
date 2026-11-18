@@ -1,0 +1,12 @@
+# R5AUDIT output of PassYUiR5ShotsTests/test_voiceOverLabels (before), iPhone sim PassY-R3, fresh Vaultwarden 1.37.5 DB, seed_ciphers 25
+start load { 6.56 28.47 42.89 }
+R5AUDIT home: 2 issues
+R5AUDIT home: 65536: Dynamic Type font sizes are partially unsupported [PT]
+R5AUDIT home: 1: Contrast failed [Trash]
+R5AUDIT item: 2 issues
+R5AUDIT item: 65536: Dynamic Type font sizes are partially unsupported [Edit]
+R5AUDIT item: 1: Contrast nearly passed [Edit]
+	 Executed 1 test, with 0 failures (0 unexpected) in 44.077 (44.080) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 44.077 (44.086) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 44.077 (44.087) seconds
+** TEST SUCCEEDED **

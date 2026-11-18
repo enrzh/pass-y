@@ -59,6 +59,12 @@ enum VaultListAction: Equatable {
     /// The user chose Settings in the profile menu.
     case settingsPressed
 
+    /// The selection of search results in Select mode changed (item ids).
+    case selectionChanged(Set<String>)
+
+    /// Select mode of the search results was turned on or off (clears the selection).
+    case setSelecting(Bool)
+
     /// The toast was shown or hidden.
     case toastShown(Toast?)
 

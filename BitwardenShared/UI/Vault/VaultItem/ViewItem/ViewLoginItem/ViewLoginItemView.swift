@@ -96,11 +96,19 @@ struct ViewLoginItemView: View {
             AsyncButton {
                 await store.perform(.checkPasswordPressed)
             } label: {
-                Label(Localizations.checkPasswordForDataBreaches, systemImage: "checkmark.shield")
-                    .foregroundStyle(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
+                // ui-r7: an HStack (not a `Label`) so the text wraps onto as many lines as it needs at large
+                // text sizes instead of being clipped.
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Image(systemName: "checkmark.shield")
+                        .accessibilityHidden(true)
+                    Text(Localizations.checkPasswordForDataBreaches)
+                        .lineLimit(nil)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .padding(.vertical, 6)

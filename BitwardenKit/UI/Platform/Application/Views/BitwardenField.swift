@@ -76,8 +76,8 @@ public struct BitwardenField<Content: View, AccessoryContent: View, FooterConten
     /// The main content for the view, containing the title and value.
     @ViewBuilder
     private func contentView() -> some View {
-        if #available(iOS 16, *), isNativeForm, isReadOnlyFieldStyle, title != nil, !dynamicTypeSize.isAccessibilitySize {
-            // Apple Passwords layout: label on the left, value on the right, stacked only if it does not fit.
+        if #available(iOS 16, *), isNativeForm, title != nil, !dynamicTypeSize.isAccessibilitySize {
+            // Apple Passwords layout (view and edit): label on the left, value on the right, stacked only if it does not fit.
             ViewThatFits(in: .horizontal) {
                 inlineContentView()
                 stackedContentView()

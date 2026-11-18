@@ -1154,8 +1154,149 @@ class VaultGroupProcessorTests: BitwardenTestCase { // swiftlint:disable:this ty
         let alert = try XCTUnwrap(coordinator.alertShown.last)
         XCTAssertEqual(alert.title, Localizations.doYouReallyWantToPermanentlyDeleteCipher)
         try await alert.tapAction(title: Localizations.yes)
+        XCTAssertEqual(vaultRepository.deletedCipher, ["7"])
         XCTAssertTrue(vaultRepository.softDeletedCipher.isEmpty)
         XCTAssertEqual(subject.state.toast?.title, Localizations.itemDeleted)
+    }
+
+    /// Cancelling the delete confirmation changes nothing: Select mode and the selection stay, nothing is deleted.
+    @MainActor
+    func test_perform_deleteItems_cancelKeepsSelectMode() async throws {
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1"]))
+        await subject.perform(.deleteItems([item]))
+        let alert = try XCTUnwrap(coordinator.alertShown.last)
+        try await alert.tapAction(title: Localizations.cancel)
+        XCTAssertTrue(subject.state.isSelecting)
+        XCTAssertEqual(subject.state.selection, ["1"])
+        XCTAssertTrue(vaultRepository.softDeletedCipher.isEmpty)
+        XCTAssertTrue(vaultRepository.deletedCipher.isEmpty)
+        XCTAssertNil(subject.state.toast)
+    }
+
+    /// A complete delete ends Select mode and clears the selection.
+    @MainActor
+    func test_perform_deleteItems_successEndsSelectMode() async throws {
+        vaultRepository.fetchCipherResult = .success(CipherView.fixture(id: "1", name: "A"))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1"]))
+        await subject.perform(.deleteItems([item]))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertFalse(subject.state.isSelecting)
+        XCTAssertTrue(subject.state.selection.isEmpty)
+        XCTAssertEqual(subject.state.toast?.title, Localizations.itemSoftDeleted)
+    }
+
+    /// If the cipher cannot be fetched, nothing is soft deleted, no "deleted" toast is shown and the error alert is.
+    @MainActor
+    func test_perform_deleteItems_fetchReturnsNil_showsErrorNoToast() async throws {
+        vaultRepository.fetchCipherResult = .success(nil)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1"]))
+        await subject.perform(.deleteItems([item]))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertTrue(vaultRepository.softDeletedCipher.isEmpty)
+        XCTAssertNil(subject.state.toast)
+        let error = try XCTUnwrap(coordinator.alertShown.last)
+        XCTAssertEqual(error.title, Localizations.anErrorHasOccurred)
+        XCTAssertEqual(error.message, Localizations.someItemsCouldNotBeDeleted(1, 1))
+        XCTAssertTrue(subject.state.isSelecting)
+        XCTAssertEqual(subject.state.selection, ["1"])
+    }
+
+    /// When the fetch throws, the same: error, no toast, item stays selected.
+    @MainActor
+    func test_perform_deleteItems_fetchThrows_showsErrorNoToast() async throws {
+        vaultRepository.fetchCipherResult = .failure(BitwardenTestError.example)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        subject.receive(.selectionChanged(["1"]))
+        await subject.perform(.deleteItems([item]))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertNil(subject.state.toast)
+        XCTAssertEqual(coordinator.alertShown.last?.title, Localizations.anErrorHasOccurred)
+        XCTAssertEqual(subject.state.selection, ["1"])
+        XCTAssertEqual(errorReporter.errors.count, 1)
+    }
+
+    /// Multi-select with one failure: the others are deleted (and leave the selection), the failed one is reported
+    /// and stays selected, Select mode stays active, no "deleted" toast.
+    @MainActor
+    func test_perform_deleteItems_partialFailure_keepsFailedSelected() async throws {
+        vaultRepository.fetchCipherResult = .success(CipherView.fixture(id: "x", name: "X"))
+        vaultRepository.fetchCipherResultsById["2"] = .failure(BitwardenTestError.example)
+        let items = try ["1", "2", "3"].map {
+            try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: $0, name: $0)))
+        }
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1", "2", "3"]))
+        await subject.perform(.deleteItems(items))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertEqual(vaultRepository.softDeletedCipher.count, 2) // 1 and 3 still deleted
+        XCTAssertEqual(subject.state.selection, ["2"])
+        XCTAssertTrue(subject.state.isSelecting)
+        XCTAssertNil(subject.state.toast)
+        XCTAssertEqual(coordinator.alertShown.last?.message, Localizations.someItemsCouldNotBeDeleted(1, 3))
+    }
+
+    /// In the trash a failing permanent delete is reported and stays selected.
+    @MainActor
+    func test_perform_deleteItems_permanentPartialFailure() async throws {
+        subject.state.group = .trash
+        vaultRepository.deleteCipherFailingIds = ["8"]
+        let items = try ["7", "8"].map {
+            try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: $0, name: $0)))
+        }
+        subject.receive(.selectionChanged(["7", "8"]))
+        await subject.perform(.deleteItems(items))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertEqual(vaultRepository.deletedCipher, ["7", "8"])
+        XCTAssertEqual(subject.state.selection, ["8"])
+        XCTAssertNil(subject.state.toast)
+        XCTAssertEqual(coordinator.alertShown.last?.title, Localizations.anErrorHasOccurred)
+    }
+
+    /// Move reports failures too (fetch returns nil) and keeps the failed item selected.
+    @MainActor
+    func test_perform_moveItems_failureKeepsSelected() async throws {
+        vaultRepository.fetchCipherResult = .success(CipherView.fixture(id: "1", name: "A"))
+        vaultRepository.fetchCipherResultsById["2"] = .success(nil)
+        let items = try ["1", "2"].map {
+            try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: $0, name: $0)))
+        }
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1", "2"]))
+        await subject.perform(.moveItems(items, folderId: "f"))
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.count, 1)
+        XCTAssertEqual(subject.state.selection, ["2"])
+        XCTAssertTrue(subject.state.isSelecting)
+        XCTAssertEqual(coordinator.alertShown.last?.message, Localizations.someItemsCouldNotBeMoved(1, 2))
+    }
+
+    /// Deleting only non-cipher rows (no ids) shows no success toast and touches nothing.
+    @MainActor
+    func test_perform_deleteItems_noCipherIds_noToast() async throws {
+        let group = VaultListItem(id: "g", itemType: .group(.login, 3))
+        subject.receive(.setSelecting(true))
+        await subject.perform(.deleteItems([group]))
+        try await XCTUnwrap(coordinator.alertShown.last).tapAction(title: Localizations.yes)
+        XCTAssertNil(subject.state.toast)
+        XCTAssertTrue(vaultRepository.softDeletedCipher.isEmpty)
+        XCTAssertTrue(vaultRepository.deletedCipher.isEmpty)
+        XCTAssertEqual(coordinator.alertShown.count, 1, "only the confirmation, no error alert")
+    }
+
+    /// `.setSelecting` toggles Select mode and clears the selection.
+    @MainActor
+    func test_receive_setSelecting_clearsSelection() {
+        subject.receive(.setSelecting(true))
+        subject.receive(.selectionChanged(["1"]))
+        XCTAssertTrue(subject.state.isSelecting)
+        subject.receive(.setSelecting(false))
+        XCTAssertFalse(subject.state.isSelecting)
+        XCTAssertTrue(subject.state.selection.isEmpty)
     }
 
     /// `perform(.moveItems)` updates the ciphers with the new folder id.

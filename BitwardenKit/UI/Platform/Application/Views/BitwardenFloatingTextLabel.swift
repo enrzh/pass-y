@@ -29,9 +29,52 @@ public struct BitwardenFloatingTextLabel<Content: View, TrailingContent: View>: 
     /// Optional trailing content to display on the trailing edge of the label and text input field.
     let trailingContent: TrailingContent?
 
+    /// Inside a native `Form` (ui-r7) the field is an Apple-style row: label left, value right.
+    @Environment(\.isNativeForm) private var isNativeForm
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// The title is the placeholder of a free field (Apple's name row), not a label.
+    @Environment(\.isTitlePlaceholder) private var isTitlePlaceholder
+
     // MARK: View
 
     public var body: some View {
+        if isNativeForm, title != nil, !dynamicTypeSize.isAccessibilitySize {
+            nativeRow
+        } else {
+            floatingBody
+        }
+    }
+
+    /// Apple Passwords edit row: grey label on the left, the value right-aligned, one line.
+    private var nativeRow: some View {
+        HStack(spacing: 12) {
+            if let title, !isTitlePlaceholder {
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(
+                        isEnabled && !isTextFieldDisabled
+                            ? SharedAsset.Colors.textSecondary.swiftUIColor
+                            : SharedAsset.Colors.textDisabled.swiftUIColor,
+                    )
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .layoutPriority(1)
+                    .accessibilityHidden(true)
+            }
+
+            content
+                .multilineTextAlignment(isTitlePlaceholder ? .leading : .trailing)
+
+            trailingContent
+        }
+        .padding(.trailing, 16)
+        .padding(.vertical, 12)
+        .frame(minHeight: 44)
+    }
+
+    private var floatingBody: some View {
         HStack(spacing: 8) {
             ZStack(alignment: showPlaceholder ? .leading : .topLeading) {
                 // The placeholder and title text which is vertically centered in the view when the

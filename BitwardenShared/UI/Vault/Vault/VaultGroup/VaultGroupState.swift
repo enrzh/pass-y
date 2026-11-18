@@ -84,6 +84,12 @@ struct VaultGroupState: Equatable, Sendable {
     /// Whether the policy is enforced to disable personal vault ownership.
     var isPersonalOwnershipDisabled: Bool = false
 
+    /// Whether the list is in Select mode (Apple Passwords).
+    var isSelecting = false
+
+    /// The ids of the items selected in Select mode.
+    var selection = Set<String>()
+
     /// Is the view searching.
     var isSearching: Bool = false
 

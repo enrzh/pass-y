@@ -99,10 +99,18 @@ struct AddEditCustomFieldsView: View {
                 }
             }
 
-            Button(Localizations.newCustomField) {
+            // ui-r7: a plain blue row with a plus (like "Add website"), not an outlined capsule.
+            Button {
                 store.send(.newCustomFieldPressed)
+            } label: {
+                Label(Localizations.newCustomField, systemImage: "plus")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 12)
+                    .padding(.leading, 16)
+                    .contentShape(Rectangle())
             }
-            .buttonStyle(.secondary())
+            .buttonStyle(.plain)
+            .foregroundStyle(.tint)
             .accessibilityIdentifier("NewCustomFieldButton")
         }
     }

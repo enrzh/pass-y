@@ -446,12 +446,16 @@ struct PassYAvatarMenu: View {
         let profile = (source?.showsPlaceholder ?? true) ? nil : source?.activeProfile
         return ZStack {
             Circle().fill(profile?.color ?? Color(.tertiarySystemFill))
+            if profile?.userInitials != nil {
+                // ui-r7: darkened just enough that the white initials reach a 4.6:1 contrast on any account color.
+                Circle().fill(Color.black.opacity(Self.darkening(for: profile?.color)))
+            }
             if let initials = profile?.userInitials {
                 Text(initials)
                     .font(Font.system(.footnote, design: .rounded).weight(.semibold))
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
-                    .foregroundStyle(profile?.profileIconTextColor ?? .primary)
+                    .foregroundStyle(Color.white)
             } else {
                 Image(systemName: "person.fill")
                     .font(.system(size: 14))
@@ -459,6 +463,23 @@ struct PassYAvatarMenu: View {
             }
         }
         .frame(width: avatarSize, height: avatarSize)
+    }
+
+    /// The opacity of a black overlay (0 to 0.6) after which white text on `color` has a contrast ratio of at least 4.6.
+    static func darkening(for color: Color?) -> Double {
+        guard let color else { return 0.3 }
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        guard UIColor(color).getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return 0.3 }
+        func linear(_ value: CGFloat) -> Double {
+            let v = Double(value)
+            return v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+        }
+        for step in 0 ... 12 {
+            let factor = 1 - Double(step) * 0.05
+            let luminance = 0.2126 * linear(red * factor) + 0.7152 * linear(green * factor) + 0.0722 * linear(blue * factor)
+            if 1.05 / (luminance + 0.05) >= 4.6 { return Double(step) * 0.05 }
+        }
+        return 0.6
     }
 
     /// The avatar diameter: 30 pt at the default text size, grows with Dynamic Type.

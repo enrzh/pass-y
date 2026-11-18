@@ -21,11 +21,17 @@ struct VaultGroupView: View {
     /// The `TimeProvider` used to calculate TOTP expiration.
     var timeProvider: any TimeProvider
 
-    /// Whether the list is in Select mode (Apple Passwords).
-    @SwiftUI.State private var isSelecting = false
+    /// Whether the system shows "N Items" as a navigation subtitle (iOS 26). Before that the count is a plain
+    /// secondary text row at the top of the list (`ItemCountHeader`).
+    var supportsNavigationSubtitle: Bool = {
+        if #available(iOS 26, *) { true } else { false }
+    }()
 
-    /// The ids of the selected items in Select mode.
-    @SwiftUI.State private var selection = Set<String>()
+    /// Whether the list is in Select mode (Apple Passwords).
+    private var isSelecting: Bool { store.state.isSelecting }
+
+    /// Whether the list itself is in edit mode (follows `isSelecting`, delayed when leaving).
+    @SwiftUI.State private var listIsEditing = false
 
     // MARK: View
 
@@ -41,7 +47,7 @@ struct VaultGroupView: View {
                 setSearching: { store.send(.searchStateChanged(isSearching: $0)) },
             )
             .navigationTitle(store.state.group.navigationTitle)
-            .passYItemCountSubtitle(itemCountSubtitle)
+            .passYItemCountSubtitle(supportsNavigationSubtitle ? itemCountSubtitle : nil)
             .navigationBarTitleDisplayMode(.inline)
             .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
             .task {
@@ -73,7 +79,7 @@ struct VaultGroupView: View {
         return sections.flatMap(\.items)
     }
 
-    /// "N Items" under the title, like Apple Passwords.
+    /// "N Items" under the title (iOS 26) or as the first list row (earlier systems), like Apple Passwords.
     private var itemCountSubtitle: String? {
         guard !store.state.isSearching, case .data = store.state.loadingState, !allItems.isEmpty else { return nil }
         return Localizations.xItems(allItems.count).replacingOccurrences(of: "items", with: "Items")
@@ -81,7 +87,7 @@ struct VaultGroupView: View {
 
     /// The selected items.
     private var selectedItems: [VaultListItem] {
-        allItems.filter { selection.contains($0.id) }
+        allItems.filter { store.state.selection.contains($0.id) }
     }
 
     /// Select / Done and, in Select mode, Move and Delete.
@@ -108,25 +114,24 @@ struct VaultGroupView: View {
                 } label: {
                     Image(systemName: "folder")
                 }
-                .disabled(selection.isEmpty || store.state.group == .trash)
+                .disabled(store.state.selection.isEmpty || store.state.group == .trash)
                 .accessibilityLabel(Localizations.move)
                 .accessibilityIdentifier("SelectMoveButton")
 
                 Button(role: .destructive) {
                     let items = selectedItems
+                    // Select mode stays: the processor ends it after a complete delete, keeps failed items
+                    // selected, and a cancelled confirmation changes nothing.
                     Task { await store.perform(.deleteItems(items)) }
-                    isSelecting = false
-                    selection = []
                 } label: {
                     Image(systemName: "trash")
                 }
-                .disabled(selection.isEmpty)
+                .disabled(store.state.selection.isEmpty)
                 .accessibilityLabel(Localizations.delete)
                 .accessibilityIdentifier("SelectDeleteButton")
             }
             Button(isSelecting ? Localizations.done : "Select") {
-                isSelecting.toggle()
-                selection = []
+                store.send(.setSelecting(!isSelecting))
             }
             .accessibilityIdentifier("SelectButton")
         }
@@ -306,7 +311,16 @@ struct VaultGroupView: View {
     ///
     @ViewBuilder
     private func groupView(with sections: [VaultListSection]) -> some View {
-        List(selection: $selection) {
+        List(selection: store.binding(get: \.selection, send: VaultGroupAction.selectionChanged)) {
+            if !supportsNavigationSubtitle, let count = itemCountSubtitle {
+                Text(count)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .accessibilityIdentifier("ItemCountHeader")
+            }
+
             if store.state.showArchivePremiumSubscriptionEndedCard {
                 archivePremiumSubscriptionEndedCard
                     .listRowInsets(EdgeInsets())
@@ -351,7 +365,16 @@ struct VaultGroupView: View {
             }
         }
         .listStyle(.plain)
-        .environment(\.editMode, .constant(isSelecting ? .active : .inactive))
+        .environment(\.editMode, .constant(listIsEditing ? .active : .inactive))
+        // See the home search results: leaving Select mode together with the removal of rows can crash the list diff.
+        .task(id: isSelecting) {
+            if isSelecting {
+                listIsEditing = true
+            } else {
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                listIsEditing = false
+            }
+        }
         .softBottomScrollEdge()
     }
 

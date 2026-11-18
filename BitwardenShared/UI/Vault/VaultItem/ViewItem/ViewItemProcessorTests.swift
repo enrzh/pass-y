@@ -1045,6 +1045,60 @@ class ViewItemProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
         XCTAssertNil(subject.streamCipherDetailsTask)
     }
 
+    /// `perform(_:)` with `.toggleFavoritePressed` saves the cipher as favorite when it is not one.
+    @MainActor
+    func test_perform_toggleFavoritePressed_setsFavorite() async throws {
+        let cipherState = try XCTUnwrap(CipherItemState(
+            existing: CipherView.loginFixture(favorite: false, id: "123"),
+            hasPremium: false,
+        ))
+        subject.state = ViewItemState(loadingState: .data(cipherState))
+
+        await subject.perform(.toggleFavoritePressed)
+
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.map(\.id), ["123"])
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.map(\.favorite), [true])
+    }
+
+    /// `perform(_:)` with `.toggleFavoritePressed` removes the favorite flag from a favorite cipher.
+    @MainActor
+    func test_perform_toggleFavoritePressed_removesFavorite() async throws {
+        let cipherState = try XCTUnwrap(CipherItemState(
+            existing: CipherView.loginFixture(favorite: true, id: "123"),
+            hasPremium: false,
+        ))
+        subject.state = ViewItemState(loadingState: .data(cipherState))
+
+        await subject.perform(.toggleFavoritePressed)
+
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.map(\.favorite), [false])
+    }
+
+    /// `perform(_:)` with `.toggleFavoritePressed` logs and shows an error alert when saving fails.
+    @MainActor
+    func test_perform_toggleFavoritePressed_error() async throws {
+        let cipherState = try XCTUnwrap(CipherItemState(
+            existing: CipherView.loginFixture(favorite: false, id: "123"),
+            hasPremium: false,
+        ))
+        subject.state = ViewItemState(loadingState: .data(cipherState))
+        struct TestError: Error, Equatable {}
+        vaultRepository.updateCipherResult = .failure(TestError())
+
+        await subject.perform(.toggleFavoritePressed)
+
+        XCTAssertEqual(errorReporter.errors.first as? TestError, TestError())
+        XCTAssertEqual(coordinator.alertShown.last?.title, Localizations.anErrorHasOccurred)
+    }
+
+    /// `perform(_:)` with `.toggleFavoritePressed` does nothing while the item is not loaded.
+    @MainActor
+    func test_perform_toggleFavoritePressed_noData() async {
+        subject.state = ViewItemState(loadingState: .loading(nil))
+        await subject.perform(.toggleFavoritePressed)
+        XCTAssertTrue(vaultRepository.updateCipherCiphers.isEmpty)
+    }
+
     /// `perform(_:)` with `.archivedPressed` calls the vault item action helper to archive the item.
     @MainActor
     func test_perform_archivedPressed() async {
