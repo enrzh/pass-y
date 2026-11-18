@@ -362,6 +362,7 @@ private struct SearchableVaultListView: View {
         VaultListRowCell.make(
             for: item,
             isLastInSection: isLastInSection,
+            isSelecting: listIsEditing,
             store: store,
             timeProvider: timeProvider,
         )
@@ -377,6 +378,7 @@ extension VaultListRowCell {
     static func make(
         for item: VaultListItem,
         isLastInSection: Bool,
+        isSelecting: Bool = false,
         store: Store<VaultListState, VaultListAction, VaultListEffect>,
         timeProvider: any TimeProvider,
     ) -> VaultListRowCell {
@@ -387,7 +389,7 @@ extension VaultListRowCell {
                 iconBaseURL: state.iconBaseURL,
                 hasPremium: state.hasPremium,
                 isFromExtension: false,
-                isSelecting: state.isSelecting,
+                isSelecting: isSelecting,
                 item: item,
                 hasDivider: !isLastInSection,
                 showWebIcons: state.showWebIcons,
