@@ -483,7 +483,7 @@ Unit-level numbers (2000 item vault hosted in a window on the iPhone 17 Pro simu
 |---|---|---|
 | child `Store`s created | 306 | 0 to 30 (only the vault filter row; none per row) |
 | row bodies evaluated | 240 | 0 |
-| main-thread CPU per change (net of harness) | about 42 ms | about 5 to 17 ms |
+| main-thread CPU per change (net of harness) | about 42 ms | about 1 ms (final run: 772 vs 740 ms control), 5 to 17 ms in earlier runs |
 | rows built in the list builder per change | 8 to 10 | 0 (up to 8 in some runs before the warm-up; asserted 0 afterwards) |
 | first list load (CPU) | 126 ms | 115 to 134 ms (no change expected) |
 
@@ -513,12 +513,12 @@ Pushed pages use the system back button and swipe-back: vault group lists, all S
 
 ### Tests and what was run in this round
 
-Run: Bitwarden-Unit (full, see report), Bitwarden-ViewInspector 609 executed, 17 skipped, 0 failures, new `VaultListPerfTests`, `PassYShellBarHitTests`, `PassYShellControllerTests` (vault button), `PassYTypographyTests`. `build-for-testing` for the `PassYUITests` scheme: succeeded.
+Run: Bitwarden-Unit full (5920 XCTest, 45 skipped, 0 failures; 732 Swift Testing passed), Bitwarden-ViewInspector 609 executed, 17 skipped, 0 failures, new `VaultListPerfTests`, `PassYShellBarHitTests`, `PassYShellControllerTests` (vault button), `PassYTypographyTests`. `build-for-testing` for the `PassYUITests` scheme: succeeded.
 
 ### UNVERIFIED (ui-r8)
 
 - No UI test was run (`PassYUiR8Tests`, extended `PassYPerfTests`): single tap on the blank row area, folder/item opening within 1 s, collapse of the large titles, Vault button on every page, pixel sampling above the bar, back/swipe-back/close paths, perf with 2000 items. No device run (iPhone Air): the real-device responsiveness is not confirmed, only the mechanism (hit area, dead strip, rebuild counts).
-- The 5 to 17 ms versus 42 ms numbers are simulator, Debug, CPU time under foreign load; no frame time, no Instruments run, no `XCTOSSignpostMetric` numbers.
+- The 1 to 17 ms versus 42 ms numbers are simulator, Debug, CPU time under foreign load; no frame time, no Instruments run, no `XCTOSSignpostMetric` numbers.
 - Equatable cells and the home list boundary were verified with counters, ViewInspector and the hosted-window unit test (visible cells render); the visual result of the home list was not screenshot-checked.
 - iOS 26 glass and the large title on the real device (collapse behavior of `List` with `readableContentWidth`, `refreshable`): UNVERIFIED; short pages stay expanded.
 - Group list pages still evaluate their `ForEach` per state change (only the rows are skipped); a 2000 item group page was not measured.
