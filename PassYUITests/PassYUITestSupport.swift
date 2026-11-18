@@ -11,9 +11,21 @@ enum TestAccount {
 }
 
 extension XCUIElement {
+    /// Taps a field until it really has keyboard focus (the simulator sometimes ignores the first tap, and typing
+    /// then fails with "Neither element nor any descendant has keyboard focus").
+    func focus() {
+        for _ in 0 ..< 4 {
+            tap()
+            for _ in 0 ..< 6 {
+                if (value(forKey: "hasKeyboardFocus") as? Bool) == true { return }
+                usleep(250_000)
+            }
+        }
+    }
+
     /// Clears a text/secure field (a failed login attempt leaves the typed text in the field) and types `text`.
     func replaceText(_ text: String) {
-        tap()
+        focus()
         if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
             typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
         }
@@ -77,7 +89,7 @@ extension XCTestCase {
             if app.buttons["Log in"].exists { app.buttons["Log in"].tap() }
             let server = app.textFields["ServerUrlEntry"]
             if server.exists {
-                server.tap()
+                server.focus()
                 server.typeText(TestAccount.server)
                 app.buttons["SaveButton"].firstMatch.tap()
                 sleep(2)
@@ -89,7 +101,7 @@ extension XCTestCase {
                     // The server sheet is presented automatically; wait until the selector is tappable.
                     if app.buttons["RegionSelectorDropdown"].isHittable { app.buttons["RegionSelectorDropdown"].tap() }
                 } else if email.isHittable {
-                    email.tap()
+                    email.focus()
                     email.typeText(TestAccount.email)
                     app.buttons["ContinueButton"].tap()
                 }
