@@ -87,6 +87,9 @@ class PassYShellController: UIViewController, TabNavigator {
     /// Observations of the navigation stacks (the Vault button depends on the depth of the vault stack).
     private var stackObservations: [NSKeyValueObservation] = []
 
+    /// Fallback for pushes and pops that KVO on the stack does not report (measured: it stays silent for pushes).
+    private var stackPollTimer: Timer?
+
     // MARK: Initialization
 
     /// Creates the shell.
@@ -140,6 +143,10 @@ class PassYShellController: UIViewController, TabNavigator {
             ? selectedRouteIndex
             : (entries.first?.index ?? 0)
         show(routeIndex: target, resetSearch: false)
+    }
+
+    deinit {
+        stackPollTimer?.invalidate()
     }
 
     // MARK: Lifecycle
@@ -229,6 +236,14 @@ class PassYShellController: UIViewController, TabNavigator {
                 DispatchQueue.main.async { self?.updateVaultHome() }
             }
         }
+        // UIKit does not publish pushes through KVO, and there is no public notification: compare the depth of the
+        // vault stack a few times per second (an integer comparison; the model only publishes on a change).
+        stackPollTimer?.invalidate()
+        let timer = Timer(timeInterval: 0.15, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateVaultHome() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        stackPollTimer = timer
         updateVaultHome()
     }
 

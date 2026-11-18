@@ -19,7 +19,8 @@ struct LoginWithDeviceView: View {
             Section {
                 VStack(alignment: .center, spacing: 8) {
                     Image(systemName: "iphone.and.arrow.forward")
-                        .font(.system(size: 40))
+                        .font(.largeTitle)
+                        .imageScale(.large)
                         .foregroundStyle(.tint)
 
                     titleText

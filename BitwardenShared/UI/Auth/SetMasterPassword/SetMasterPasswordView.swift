@@ -17,7 +17,8 @@ struct SetMasterPasswordView: View {
             Section {
                 VStack(spacing: 8) {
                     Image(systemName: "lock.shield")
-                        .font(.system(size: 44))
+                        .font(.largeTitle)
+                        .imageScale(.large)
                         .foregroundStyle(.tint)
                     Text(Localizations.chooseYourMasterPassword)
                         .font(.title3.weight(.semibold))

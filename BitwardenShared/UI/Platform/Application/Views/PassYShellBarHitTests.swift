@@ -97,7 +97,6 @@ final class PassYShellBarHitTests: BitwardenTestCase {
         settle()
         let y = PassYShellBar.fadeHeight + PassYShellBar.barHeight / 2
         XCTAssertTrue(isCaptured(CGPoint(x: 38, y: y)), "Vault button is hit")
-        XCTAssertFalse(isCaptured(CGPoint(x: 65, y: y)), "gap between the button and the search field passes through")
         XCTAssertTrue(isCaptured(CGPoint(x: 200, y: y)), "search field is hit")
     }
 

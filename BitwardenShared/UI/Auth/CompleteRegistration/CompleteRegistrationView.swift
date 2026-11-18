@@ -23,7 +23,8 @@ struct CompleteRegistrationView: View {
             Section {
                 VStack(spacing: 12) {
                     Image(systemName: "lock.shield")
-                        .font(.system(size: 44))
+                        .font(.largeTitle)
+                        .imageScale(.large)
                         .foregroundStyle(.tint)
                         .accessibilityHidden(true)
                     Text(Localizations.chooseYourMasterPassword)

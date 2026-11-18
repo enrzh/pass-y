@@ -19,7 +19,8 @@ struct ExportCXFView: View {
             Section {
                 VStack(spacing: 12) {
                     Image(systemName: symbolName)
-                        .font(.system(size: 52))
+                        .font(.largeTitle)
+                        .imageScale(.large)
                         .foregroundStyle(isFailure ? Color.red : Color.accentColor)
                         .accessibilityHidden(true)
                     Text(store.state.title)

@@ -47,7 +47,8 @@ struct StartRegistrationView: View {
             Section {
                 VStack(spacing: 12) {
                     Image(systemName: "person.crop.circle.badge.plus")
-                        .font(.system(size: 44))
+                        .font(.largeTitle)
+                        .imageScale(.large)
                         .foregroundStyle(.tint)
                         .accessibilityHidden(true)
                     Text(Localizations.createAccount)

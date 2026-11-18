@@ -395,6 +395,7 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
         stackNavigator?.push(
             viewController,
             navigationTitle: group.navigationTitle,
+            largeTitle: true,
         )
         PassYPerf.endTap()
     }

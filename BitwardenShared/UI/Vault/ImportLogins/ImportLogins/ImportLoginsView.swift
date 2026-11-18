@@ -48,7 +48,8 @@ struct ImportLoginsView: View {
             Section {
                 VStack(spacing: 12) {
                     Image(systemName: "square.and.arrow.down.on.square")
-                        .font(.system(size: 52))
+                        .font(.largeTitle)
+                        .imageScale(.large)
                         .foregroundStyle(.tint)
                         .accessibilityHidden(true)
                     Text(Localizations.giveYourVaultAHeadStart)

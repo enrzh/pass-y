@@ -45,7 +45,7 @@ struct VaultGroupView: View {
             )
             .navigationTitle(store.state.group.navigationTitle)
             .passYItemCountSubtitle(supportsNavigationSubtitle ? itemCountSubtitle : nil)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
             .task {
                 await store.perform(.appeared)

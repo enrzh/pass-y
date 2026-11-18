@@ -344,7 +344,7 @@ struct VaultListItemRowView: View {
         }
         if !model.requiresMasterPassword {
             Text(model.totpCode.displayCode)
-                .styleGuide(.bodyMonospaced, weight: .regular, monoSpacedDigit: true)
+                .styleGuide(.body, monoSpacedDigit: true)
                 .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
         }
     }

@@ -77,7 +77,7 @@ private struct CategoryTile: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 Image(systemName: group.tileSymbol)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(.white)
                     .frame(width: 36, height: 36)
                     .background(group.tileColor, in: Circle())

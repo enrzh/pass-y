@@ -58,31 +58,13 @@ public enum UI {
     ///
     @MainActor
     public static func applyDefaultAppearances() { // swiftlint:disable:this function_body_length
-        let bodyFont = UIFontMetrics(forTextStyle: .body).scaledFont(
-            for: UIFont.systemFont(ofSize: 15),
-        )
-        let bodyBoldFont = UIFontMetrics(forTextStyle: .body).scaledFont(
-            for: UIFont.systemFont(ofSize: 15, weight: .bold),
-        )
-        let largeTitleFont = UIFontMetrics(forTextStyle: .largeTitle).scaledFont(
-            for: UIFont.systemFont(ofSize: 26, weight: .bold),
-        )
         let iconBadgeBackground = SharedAsset.Colors.iconBadgeBackground.color
         let iconBadgeTextAttributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 12, weight: .bold),
+            .font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .caption2).pointSize, weight: .bold),
             .foregroundColor: SharedAsset.Colors.iconBadgeForeground.color,
         ]
 
-        let navigationBarAppearance = UINavigationBarAppearance()
-        if #unavailable(iOS 26) {
-            // With Liquid Glass, we no longer make the navigation bar distinct with its own color
-            navigationBarAppearance.backgroundColor = SharedAsset.Colors.backgroundSecondary.color
-        }
-        navigationBarAppearance.buttonAppearance.normal.titleTextAttributes = [.font: bodyFont]
-        navigationBarAppearance.largeTitleTextAttributes = [.font: largeTitleFont]
-        navigationBarAppearance.titleTextAttributes = [.font: bodyBoldFont]
-        UINavigationBar.appearance().scrollEdgeAppearance = navigationBarAppearance
-        UINavigationBar.appearance().standardAppearance = navigationBarAppearance
+        // ui-r8: the navigation bar keeps the system appearance (system fonts, native large title, glass on iOS 26).
 
         UIPageControl.appearance().currentPageIndicatorTintColor = SharedAsset.Colors.textPrimary.color
         UIPageControl.appearance().pageIndicatorTintColor = SharedAsset.Colors.textPrimary.color.withAlphaComponent(0.3)
@@ -123,10 +105,6 @@ public enum UI {
         UITabBar.appearance().unselectedItemTintColor = SharedAsset.Colors.iconPrimary.color
 
         UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).title = Localizations.cancel
-        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).setTitleTextAttributes(
-            [.font: UIFont.systemFont(ofSize: 15)],
-            for: .normal,
-        )
 
         UISearchBar.appearance().tintColor = SharedAsset.Colors.textInteraction.color
         // Explicitly tint the image so that it does not assume the tint color assigned to the entire search bar.
@@ -135,24 +113,7 @@ public enum UI {
         UISearchBar.appearance().setImage(tintedImage, for: .clear, state: .normal)
         UISearchBar.appearance().setImage(SharedAsset.Icons.search16.image, for: .search, state: .normal)
 
-        UISegmentedControl.appearance().setTitleTextAttributes(
-            [
-                .font: UIFontMetrics(forTextStyle: .callout).scaledFont(
-                    for: UIFont.systemFont(ofSize: 13),
-                ),
-                .foregroundColor: SharedAsset.Colors.textSecondary.color,
-            ],
-            for: .normal,
-        )
-        UISegmentedControl.appearance().setTitleTextAttributes(
-            [
-                .font: UIFontMetrics(forTextStyle: .callout).scaledFont(
-                    for: UIFont.systemFont(ofSize: 13, weight: .semibold),
-                ),
-                .foregroundColor: SharedAsset.Colors.textInteraction.color,
-            ],
-            for: .selected,
-        )
+        // ui-r8: segmented controls keep the system font and colors.
 
         // Adjust the appearance of `UITextView` for `BitwardenUITextField` instances on iOS 15.
         UITextView.appearance().isScrollEnabled = false

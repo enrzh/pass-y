@@ -124,7 +124,8 @@ struct TwoFactorAuthView: View {
         Section {
             VStack(spacing: 12) {
                 Image(systemName: headerSymbol)
-                    .font(.system(size: 44))
+                    .font(.largeTitle)
+                        .imageScale(.large)
                     .foregroundStyle(.tint)
                     .accessibilityHidden(true)
                 Text(store.state.detailsText)

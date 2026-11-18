@@ -69,7 +69,8 @@ private struct MainSendListView: View {
             Spacer()
 
             Image(systemName: "paperplane")
-                .font(.system(size: 56, weight: .light))
+                .font(.largeTitle.weight(.light))
+                .imageScale(.large)
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
@@ -286,13 +287,11 @@ struct SendListView: View {
             .refreshable { [weak store] in
                 await store?.perform(.refresh)
             }
-            .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .inline)
+            .navigationBar(
+                title: store.state.navigationTitle,
+                titleDisplayMode: store.state.type == nil ? .large : .inline,
+            )
             .toolbar {
-                largeNavigationTitleToolbarItem(
-                    store.state.navigationTitle,
-                    hidden: store.state.type != nil,
-                )
-
                 if store.state.type == nil {
                     PassYAvatarToolbarItem()
                 }

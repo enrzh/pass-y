@@ -135,6 +135,7 @@ public extension StackNavigator {
         _ viewController: UIViewController,
         animated: Bool = UI.animated,
         navigationTitle: String? = nil,
+        largeTitle: Bool = false,
         searchController: UISearchController? = nil,
     ) {
         if let navigationTitle {
@@ -147,7 +148,7 @@ public extension StackNavigator {
             //
             // The values set here are temporary, and are overwritten once the hosting controller has
             // resolved its root view's navigation bar modifiers.
-            viewController.navigationItem.largeTitleDisplayMode = .never
+            viewController.navigationItem.largeTitleDisplayMode = largeTitle ? .always : .never
             viewController.navigationItem.title = navigationTitle
             if let searchController {
                 if #available(iOS 16.0, *) {
