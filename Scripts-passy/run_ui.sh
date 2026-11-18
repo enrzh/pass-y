@@ -7,7 +7,15 @@ U=${U:-$PASSY_PHONE}
 n=$1; un=$2; shift 2; args=(); for t in "$@"; do args+=(-only-testing:"$t"); done
 passy_wait_quiet
 log="$PASSY_OUT/$n.log"; echo "start load $(sysctl -n vm.loadavg)" > "$log"
-if [ "$un" = 1 ]; then
+if [ "$un" = 1 ] && [ "${PASSY_ERASE:-0}" = 1 ]; then
+  # Truly fresh: the app state survives uninstall + keychain reset ("Log in" is then not found), so erase the simulator and
+  # restore the English QWERTY keyboard settings the tests need. Use only with a dedicated test simulator.
+  xcrun simctl shutdown "$U" 2>/dev/null; xcrun simctl erase "$U"; xcrun simctl boot "$U"; sleep 5
+  xcrun simctl spawn "$U" defaults write -g AppleKeyboards -array "en_US@sw=QWERTY;hw=Automatic"
+  xcrun simctl spawn "$U" defaults write -g AppleLanguages -array en
+  xcrun simctl spawn "$U" defaults write -g AppleLocale en_US
+  xcrun simctl shutdown "$U"
+elif [ "$un" = 1 ]; then
   xcrun simctl uninstall "$U" de.aiity.passy
   # The keychain survives an uninstall: a leftover account makes the app start on another screen (login/unlock) than
   # the fresh-install tests expect ("Log in" not found). Reset it for a truly fresh install.
