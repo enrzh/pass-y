@@ -6,7 +6,8 @@
 export HOME=${HOME:-/Users/enrico}
 C=$HOME/Library/Caches/passy-vw; O=$C/out-r8; R=$C/wt-r8
 SUMMARY=$O/summary.txt; LOG=$O/chain.log
-SIM_PHONE=$(cat $O/sim); SIM_2FA=6EAF38F9-4AAF-40C1-8E81-1D199866BB59
+SIM_PHONE=$(cat $O/sim); SIM_2FA=$(xcrun simctl list devices | grep "PassY-R8-2FA" | grep -oE "[0-9A-F-]{36}" | head -1)
+[ -n "$SIM_2FA" ] || SIM_2FA=$(xcrun simctl create PassY-R8-2FA com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-0)
 echo $$ > $O/chain.pid
 log() { echo "$(date '+%F %T') [load $(sysctl -n vm.loadavg | awk '{print $2}')] $*" | tee -a $LOG; }
 load1() { sysctl -n vm.loadavg | awk '{print int($2)}'; }
@@ -109,9 +110,9 @@ step rest      1 $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_exportVau
 step regstart  erase $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_registrationStart
 STEP_ENV="PASSY_MODE=light PASSY_SHOT_TAG=r8-auth-light"; step auth-light  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
 STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-auth-dark";  step auth-dark   1 $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
-STEP_ENV="PASSY_MODE=light PASSY_SHOT_TAG=r8-2fa-light"; step 2fa-light  0 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-2fa-dark";   step 2fa-dark   0 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-2fa-dark2";  step 2fa-dark2  0 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=light PASSY_SHOT_TAG=r8-2fa-light"; step 2fa-light  erase $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-2fa-dark";   step 2fa-dark   1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-2fa-dark2";  step 2fa-dark2  1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
 STEP_ENV="PASSY_MODE=light PASSY_SHOT_TAG=r8-dev-light"; step device-light erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
 STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-dev-dark";   step device-dark  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
 STEP_ENV=""

@@ -162,33 +162,34 @@ final class PassYUiR8Tests: XCTestCase {
         XCTAssertTrue(waitFor(app.buttons["CategoryTile_login"]), "deep page: Vault button returns to the vault home")
     }
 
-    /// Nothing is drawn behind the bar: the pixels in the gaps around the controls look like the page, with and
-    /// without content scrolled underneath (no material band, no gradient).
+    /// Nothing is drawn behind the bar. On the (empty) Trash list the page is one flat color: the pixel just above the
+    /// search bar must have the color of the pixel far above it (a material or gradient backdrop would differ).
     func test05_noBackdropBehindBar() {
         let app = launchApp()
         ensureUnlockedVault(app)
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.waitForExistence(timeout: 5))
-        let screen = app.windows.firstMatch.frame
         shot(app, 30, "vault-bar-no-shadow")
-        // The strip 20 pt above the search field is page content, not a band: the screenshot there must equal the
-        // screenshot of the same strip after the list moved (it has no fixed overlay of its own).
-        func stripSample() -> [UInt8] {
-            let image = app.screenshot().image
-            guard let cg = image.cgImage else { return [] }
-            let scale = CGFloat(cg.width) / screen.width
-            let rect = CGRect(x: 4 * scale, y: (search.frame.minY - 22) * scale, width: 10 * scale, height: 12 * scale)
-            guard let crop = cg.cropping(to: rect), let data = crop.dataProvider?.data else { return [] }
-            return Array((data as Data).prefix(400))
+        let trash = app.buttons["CategoryTile_trash"]
+        XCTAssertTrue(trash.waitForExistence(timeout: 5), "trash tile")
+        trash.tap(); sleep(2)
+        let screen = app.windows.firstMatch.frame
+        let image = app.screenshot().image
+        guard let cg = image.cgImage else { return XCTFail("screenshot") }
+        let scale = CGFloat(cg.width) / screen.width
+        func pixel(_ x: CGFloat, _ y: CGFloat) -> [UInt8] {
+            guard let crop = cg.cropping(to: CGRect(x: x * scale, y: y * scale, width: 2, height: 2)),
+                  let data = crop.dataProvider?.data as Data? else { return [] }
+            return Array(data.prefix(3))
         }
-        let before = stripSample()
-        XCTAssertFalse(before.isEmpty)
-        app.swipeUp(velocity: .slow); sleep(1)
-        let after = stripSample()
-        // Real page content scrolls through the strip; a fixed backdrop would keep one gradient there.
-        XCTAssertNotEqual(before, after, "the strip above the bar shows scrolling page content, no fixed backdrop")
-        app.buttons["CategoryTile_login"].tap(); sleep(2)
-        shot(app, 31, "list-bar-no-shadow")
+        let barTop = search.frame.minY
+        // Left margin: no illustration, no bar control. 6 pt, 20 pt and 60 pt above the bar, and a flat reference.
+        let reference = pixel(6, barTop - 260)
+        XCTAssertFalse(reference.isEmpty)
+        for offset: CGFloat in [6, 20, 60] {
+            XCTAssertEqual(pixel(6, barTop - offset), reference, "pixel \(offset) pt above the bar equals the page color (no backdrop)")
+        }
+        shot(app, 31, "trash-bar-no-shadow")
     }
 
     // MARK: (f) back and close everywhere
