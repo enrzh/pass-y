@@ -30,6 +30,9 @@ struct VaultGroupView: View {
     /// Whether the list is in Select mode (Apple Passwords).
     private var isSelecting: Bool { store.state.isSelecting }
 
+    /// Whether the list itself is in edit mode (follows `isSelecting`, delayed when leaving).
+    @SwiftUI.State private var listIsEditing = false
+
     // MARK: View
 
     var body: some View {
@@ -362,7 +365,16 @@ struct VaultGroupView: View {
             }
         }
         .listStyle(.plain)
-        .environment(\.editMode, .constant(isSelecting ? .active : .inactive))
+        .environment(\.editMode, .constant(listIsEditing ? .active : .inactive))
+        // See the home search results: leaving Select mode together with the removal of rows can crash the list diff.
+        .task(id: isSelecting) {
+            if isSelecting {
+                listIsEditing = true
+            } else {
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                listIsEditing = false
+            }
+        }
         .softBottomScrollEdge()
     }
 

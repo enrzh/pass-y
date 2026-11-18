@@ -23,6 +23,9 @@ private struct SearchableVaultListView: View {
     /// The `TimeProvider` used to calculate TOTP expiration.
     var timeProvider: any TimeProvider
 
+    /// Whether the search results list is in edit mode (follows `isSelecting`, delayed when leaving).
+    @SwiftUI.State private var listIsEditing = false
+
     var body: some View {
         // A ZStack with hidden children is used here so that opening and closing the
         // search interface does not reset the scroll position for the main vault
@@ -148,7 +151,20 @@ private struct SearchableVaultListView: View {
                     }
                 }
             }
-            .environment(\.editMode, .constant(store.state.isSelecting ? .active : .inactive))
+            // The list is rebuilt when the set of result rows changes (a delete removes rows while Select mode is on):
+            // SwiftUI's incremental list diff crashed there ("Invalid number of items in section", reproducible).
+            .id(store.state.searchResults.map(\.id))
+            .environment(\.editMode, .constant(listIsEditing ? .active : .inactive))
+            // Leaving Select mode in the same update as the removal of the deleted rows makes SwiftUI's list diff crash
+            // ("Invalid number of items in section", measured), so edit mode is switched off a moment later.
+            .task(id: store.state.isSelecting) {
+                if store.state.isSelecting {
+                    listIsEditing = true
+                } else {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    listIsEditing = false
+                }
+            }
             .listStyle(.insetGrouped)
             .softBottomScrollEdge()
         } else {
