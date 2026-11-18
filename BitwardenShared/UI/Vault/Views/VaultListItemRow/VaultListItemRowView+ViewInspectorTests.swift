@@ -118,4 +118,20 @@ class VaultListItemRowViewTests: BitwardenTestCase {
         try await button.tap()
         XCTAssertEqual(effects, [.pressed])
     }
+
+    /// ui-r8: the equatable cell used by the vault lists exposes the same identifier on the tappable button.
+    @MainActor
+    func test_cell_keepsIdentifier_andTapReachesEffect() async throws {
+        var effects: [VaultListItemRowEffect] = []
+        let cell = VaultListRowCell(
+            state: VaultListItemRowState(item: .fixture(), hasDivider: false, showWebIcons: true),
+            perform: { effects.append($0) },
+            send: { _ in },
+            timeProvider: MockTimeProvider(.mockTime(Date(year: 2023, month: 12, day: 31))),
+            onDelete: nil,
+        )
+        let button = try cell.equatable().inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
+        try await button.tap()
+        XCTAssertEqual(effects, [.pressed])
+    }
 }
