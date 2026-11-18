@@ -156,7 +156,7 @@ final class VaultListPerfTests: BitwardenTestCase {
 
     /// First layout after the 2000 item list arrived.
     @MainActor
-    func test_perf_listLoad_2000() {
+    func test_perf_listLoad_2000() throws {
         let data = sections(count: 2000)
         let result = measureBlock { processor.state.loadingState = .data(data) }
         report("listLoad2000", result)
@@ -164,6 +164,7 @@ final class VaultListPerfTests: BitwardenTestCase {
         var lines: [String] = []
         dumpTree(hostWindow, 0, &lines)
         print("PERF tree " + lines.prefix(60).joined(separator: " | "))
+        try XCTSkipIf(visibleCellCount < 0, "the host has no window scene: the list is not rendered, nothing to measure")
         XCTAssertGreaterThan(visibleCellCount, 3, "the list renders rows")
     }
 
