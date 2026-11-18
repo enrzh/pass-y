@@ -29,6 +29,16 @@ final class PassYUiR8Tests: XCTestCase {
 
     // MARK: (a) single taps
 
+    /// Diagnosis helper: prints the accessibility tree of the group list after one tile tap.
+    func test00_dumpGroupListTree() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        app.buttons["CategoryTile_login"].tap()
+        sleep(4)
+        print("TREE-BEGIN\n\(app.debugDescription)\nTREE-END")
+        attach(app, "r8-00-group-list")
+    }
+
     /// One tap on the blank part of a category tile list row opens the item sheet within one second.
     func test01_singleTapOpensItemFromBlankArea() {
         let app = launchApp()
