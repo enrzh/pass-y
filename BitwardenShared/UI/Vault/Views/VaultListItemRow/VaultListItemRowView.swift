@@ -100,7 +100,7 @@ struct VaultListItemRowView: View {
     var body: some View {
         let _ = { PassYPerf.rowBodyCount += 1 }()
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 0) {
+            HStack(spacing: 8) {
                 AsyncButton {
                     PassYPerf.beginTap()
                     await store.perform(.pressed)
@@ -149,10 +149,11 @@ struct VaultListItemRowView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    // ui-r8: with `.plain` only drawn content is tappable. The whole row, the blank space between
-                    // text and chevron and the side margins included, is the hit area (one tap opens the item).
-                    .padding(.leading, 16)
-                    .padding(.trailing, showsCopyButton ? 4 : 16)
+                    // ui-r8: with `.plain` only drawn content is tappable. The blank space between text and chevron
+                    // and the chevron itself are part of the hit area (one tap opens the item). The 16 pt side
+                    // margin stays outside the button on purpose: a button as wide as the row is merged by the
+                    // accessibility system with the row container, the row identifier (`CipherCell`, `FolderCell`)
+                    // then replaced `VaultListItemRowButton` (found in the UI test tree dump).
                     .contentShape(Rectangle())
                 }
                 // In a `List`, several default-style buttons in one row would all fire on a single tap.
@@ -173,10 +174,10 @@ struct VaultListItemRowView: View {
                     .foregroundStyle(.secondary)
                     .hoverEffect(.highlight)
                     .accessibilityLabel(Localizations.copyTotp)
-                    .padding(.trailing, 16)
                 }
             }
             .multilineTextAlignment(.leading)
+            .padding(.horizontal, 16)
 
             if store.state.hasDivider {
                 Divider()
@@ -210,12 +211,6 @@ struct VaultListItemRowView: View {
     private var showsChevron: Bool {
         guard case let .cipher(cipherItem, _) = store.state.item.itemType else { return false }
         return !store.state.isFromExtension && !cipherItem.isDecryptionFailure
-    }
-
-    /// Whether the TOTP copy button follows the row button.
-    private var showsCopyButton: Bool {
-        guard case let .totp(_, model) = store.state.item.itemType else { return false }
-        return !model.requiresMasterPassword && store.state.showTotpCopyButton
     }
 
     /// The more-options accessibility action kinds applicable to this row, empty for non-cipher
