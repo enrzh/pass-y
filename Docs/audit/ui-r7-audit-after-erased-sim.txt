@@ -1,0 +1,15 @@
+# R5AUDIT of PassYUiR5ShotsTests/test_voiceOverLabels at HEAD, freshly erased dedicated simulator (PassY-2FA), fresh Vaultwarden DB with leftover test items; not comparable with the 2/2 runs (state differs)
+start load { 22.34 58.87 52.45 }
+R5AUDIT home: 6 issues
+R5AUDIT home: 1: Contrast failed [?] type=0 id= frame=(0.0, 0.0, 0.0, 0.0) detail=Contrast failed for SwiftUI.AccessibilityNode
+R5AUDIT home: 65536: Dynamic Type font sizes are partially unsupported [Favorites] type=48 id= frame=(32.0, 731.6666666666666, 65.33333333333333, 18.0) detail=User will not be able to change the font size of this SwiftUI.AccessibilityNode
+R5AUDIT home: 65536: Dynamic Type font sizes are partially unsupported [PT] type=48 id= frame=(352.6666666666667, 76.16666666666667, 16.66666666666663, 15.666666666666657) detail=User will not be able to change the font size of this SwiftUI.AccessibilityNode
+R5AUDIT home: 65536: Dynamic Type font sizes are partially unsupported [1] type=48 id= frame=(339.6666666666667, 731.6666666666666, 7.333333333333314, 18.0) detail=User will not be able to change the font size of this SwiftUI.AccessibilityNode
+R5AUDIT item: 6 issues
+R5AUDIT item: 4: Hit area is too small [?] type=0 id= frame=(0.0, 0.0, 0.0, 0.0) detail=The size of this SwiftUI.AccessibilityNode is too small for user to interact.
+R5AUDIT item: 1: Contrast nearly passed [Edit] type=9 id=EditItemButton frame=(295.3333333333333, 87.33333333333333, 29.33333333333337, 25.333333333333343) detail=Contrast is not high enough for SwiftUI.AccessibilityNode unless font size is larger.
+R5AUDIT item: 1: Contrast nearly passed [?] type=0 id= frame=(0.0, 0.0, 0.0, 0.0) detail=Contrast is not high enough for SwiftUI.AccessibilityNode unless font size is larger.
+R5AUDIT item: 65536: Dynamic Type font sizes are partially unsupported [Edit] type=9 id=EditItemButton frame=(295.3333333333333, 87.33333333333333, 29.33333333333337, 25.333333333333343) detail=User will not be able to change the font size of this SwiftUI.AccessibilityNode
+R5AUDIT item: 65536: Dynamic Type font sizes are partially unsupported [Check password for data breaches] type=48 id= frame=(32.0, 538.3333333333333, 338.0, 20.333333333333485) detail=User will not be able to change the font size of this SwiftUI.AccessibilityNode
+R5AUDIT item: 8: Label not human-readable [pw@example.test] type=48 id=LoginUsernameEntry frame=(207.33333333333334, 410.6666666666667, 166.66667175292966, 52.33333206176758) detail=The accessibilityLabel of this SwiftUI.AccessibilityNode is not human-readable.
+** TEST SUCCEEDED **

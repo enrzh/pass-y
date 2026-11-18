@@ -173,7 +173,12 @@ final class PassYUiR6ShotsTests: XCTestCase {
             app.buttons["ContinueButton"].tap()
         }
         XCTAssertTrue(pw.waitForExistence(timeout: 15), "login screen")
-        pw.replaceText(TestAccount.password)
+        // The simulator can drop characters of a masked field (Vaultwarden log: "Username or password is incorrect" for the
+        // 2FA account), so the password is typed into the revealed (plain) field.
+        let eye = app.buttons["PasswordVisibilityToggle"]
+        if eye.waitForExistence(timeout: 5) { eye.tap(); sleep(1) }
+        let plainPw = app.textFields["LoginMasterPasswordEntry"]
+        if plainPw.waitForExistence(timeout: 5) { plainPw.tap(); plainPw.typeText(TestAccount.password) } else { pw.replaceText(TestAccount.password) }
         app.buttons["LogInWithMasterPasswordButton"].tap()
         let code = app.textFields["VerificationCodeEntry"]
         XCTAssertTrue(code.waitForExistence(timeout: 20), "two-step login (authenticator) screen")
