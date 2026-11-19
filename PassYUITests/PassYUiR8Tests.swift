@@ -65,7 +65,7 @@ final class PassYUiR8Tests: XCTestCase {
         let row = app.buttons.matching(NSPredicate(format: "identifier == 'VaultListItemRowButton' AND label CONTAINS %@", folderName)).firstMatch
         XCTAssertTrue(row.exists)
         tapBlank(row)
-        XCTAssertTrue(appears(app.navigationBars[folderName]), "one tap on the folder row opens the folder within 1 s")
+        XCTAssertTrue(appears(app.navigationBars.staticTexts[folderName]), "one tap on the folder row opens the folder within 1 s")
         shot(app, 2, "folder-after-one-tap")
         // Back works with the system back button and the Vault button returns to the home.
         XCTAssertTrue(vaultButton(app).exists, "pushed page shows the Vault button")
