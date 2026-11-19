@@ -75,7 +75,11 @@ step() {
     local failed; failed=$(grep -E "^Test Case .* failed" $O/$n.log | sed -E "s/^Test Case '-\[([^ ]+) ([^]]+)\]'.*/\1\/\2/" | sort -u)
     local passed; passed=$(grep -cE "^Test Case .* passed" $O/$n.log)
     local foreign; foreign=$(foreign_apps "$u")
-    if [ -z "$failed" ] && [ "$passed" -gt 0 ]; then
+    local marker; marker=$(grep -c '^\*\* TEST FAILED' $O/$n.log)
+    local failing; failing=$(sed -n '/^Failing tests:/,/^\*\* TEST/p' $O/$n.log | grep '()' | sed -E 's/^[[:space:]]*//; s/\(\)$//; s#\.#/#' | sort -u)
+    # a crashed test is only listed under "Failing tests:", not as "Test Case ... failed"
+    [ -n "$failing" ] && failed=$(echo "$failed $(for t in $failing; do echo PassYUITests.$t; done)" | tr ' ' '\n' | sort -u)
+    if [ -z "$failed" ] && [ "$marker" = 0 ] && [ "$passed" -gt 0 ]; then
       note "$n: PASS ($passed tests; load start $start_load end $end_load)"; break
     fi
     note "$n: FAIL/NO RESULT (passed $passed; failed: $(echo $failed | tr '\n' ' '); load start $start_load end $end_load; foreign: ${foreign:-none})"
