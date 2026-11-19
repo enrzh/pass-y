@@ -158,7 +158,14 @@ struct VaultListItemRowView: View {
                 }
                 // In a `List`, several default-style buttons in one row would all fire on a single tap.
                 .buttonStyle(.plain)
+                // ui-r8: the button is the one accessibility element of the row (its label combines name and
+                // subtitle). A second, row-wide element (`.accessibilityElement(children: .combine)` with the
+                // `CipherCell` identifier) was merged with the button in the UI test tree and replaced its
+                // identifier, so the identifier and the custom actions now live on the button itself.
                 .accessibilityIdentifier("VaultListItemRowButton")
+                .accessibilityMoreOptionsActions(accessibilityMoreOptionsActionKinds) { kind in
+                    await store.perform(.accessibilityMoreOptionsActionPressed(kind))
+                }
                 .allowsHitTesting(!store.state.isSelecting)
                 .hoverEffect(.highlight)
 
@@ -185,11 +192,6 @@ struct VaultListItemRowView: View {
             }
         }
         .onAppear { PassYPerf.rowAppeared(store.state.item.id) }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(store.state.item.vaultItemAccessibilityId)
-        .accessibilityMoreOptionsActions(accessibilityMoreOptionsActionKinds) { kind in
-            await store.perform(.accessibilityMoreOptionsActionPressed(kind))
-        }
         .contextMenu {
             ForEach(accessibilityMoreOptionsActionKinds, id: \.localizedName) { kind in
                 Button {
