@@ -70,6 +70,8 @@ final class PassYUiR8Tests: XCTestCase {
         // Back works with the system back button and the Vault button returns to the home.
         XCTAssertTrue(vaultButton(app).exists, "pushed page shows the Vault button")
         vaultButton(app).tap()
+        // The home keeps its scroll position (it was scrolled to the folder): scroll up to see the tiles again.
+        for _ in 0 ..< 8 where !app.buttons["CategoryTile_login"].exists { app.swipeDown() }
         XCTAssertTrue(waitFor(app.buttons["CategoryTile_login"]), "Vault button returns to the vault home")
     }
 
