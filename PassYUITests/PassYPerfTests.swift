@@ -51,8 +51,7 @@ final class PassYPerfTests: XCTestCase {
         _ = waitFor(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Perf Item'")).firstMatch, timeout: 60)
         var values: [Double] = []
         for _ in 0 ..< 3 {
-            let search = app.searchFields.firstMatch
-            search.tap(); sleep(3)
+            focusSearch(app)
             let start = Date()  // includes the 120 ms/char typing delay; compare before/after only
             for ch in "Perf Item 1999" { app.typeText(String(ch)); usleep(120_000) }
             let hit = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Perf Item 1999")).firstMatch
