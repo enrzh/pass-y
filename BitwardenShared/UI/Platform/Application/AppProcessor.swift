@@ -157,8 +157,15 @@ public class AppProcessor {
         Task {
             for await appTheme in await services.stateService.appThemePublisher().values {
                 navigator.appTheme = appTheme
-                splashWindow?.overrideUserInterfaceStyle = appTheme.userInterfaceStyle
-                window?.overrideUserInterfaceStyle = appTheme.userInterfaceStyle
+                // UI tests force the interface style with the launch argument `-passyForceInterfaceStyle dark|light`
+                // (`XCUIDevice.appearance` and `-AppleInterfaceStyle` do not change the rendering on the iOS 27 simulator).
+                let style: UIUserInterfaceStyle = switch UserDefaults.standard.string(forKey: "passyForceInterfaceStyle") {
+                case "dark": .dark
+                case "light": .light
+                default: appTheme.userInterfaceStyle
+                }
+                splashWindow?.overrideUserInterfaceStyle = style
+                window?.overrideUserInterfaceStyle = style
             }
         }
 

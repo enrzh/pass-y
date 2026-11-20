@@ -57,12 +57,11 @@ extension XCTestCase {
 
     func launchApp(extraArguments: [String] = [], appearance: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
-        // `XCUIDevice.shared.appearance = .dark` does not change anything on the iOS 27 simulator (every "dark" run of
-        // ui-r5 to ui-r8 rendered light). The interface style is forced for the app through its launch arguments; the
-        // chain also sets `simctl ui <sim> appearance dark`.
-        let dark = passYWantsDark
-        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
-            + (dark ? ["-AppleInterfaceStyle", "Dark"] : []) + extraArguments
+        // `XCUIDevice.shared.appearance = .dark` and `-AppleInterfaceStyle` do not change the rendering on the iOS 27
+        // simulator (every "dark" run of ui-r5 to ui-r8 rendered light, proven by the pixel check below). The app has a
+        // launch argument that sets its windows' interface style (`AppProcessor`).
+        let style: [String] = passYWantedStyle.map { ["-passyForceInterfaceStyle", $0] } ?? []
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + style + extraArguments
         app.launch()
         return app
     }
@@ -216,8 +215,8 @@ func goTo(_ app: XCUIApplication, _ label: String) {
 /// `TEST_RUNNER_PASSY_EXPECT_APPEARANCE=dark`).
 nonisolated(unsafe) private var passYForcedAppearance: String?
 
-var passYWantsDark: Bool {
-    (passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"]) == "dark"
+var passYWantedStyle: String? {
+    passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"]
 }
 
 /// Replacement for `XCUIDevice.shared.appearance = ...`: remembers the wish (launch arguments) and still sets the
