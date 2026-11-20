@@ -63,6 +63,7 @@ step() {
   gate 1 10800 || { note "$name: SKIPPED (load stayed >= 25)"; return; }
   vw_up || { note "$name: SKIPPED (no Vaultwarden)"; return; }
   prepare_sim "$u" || { xcrun simctl shutdown "$u" 2>/dev/null; return; }
+  xcrun simctl ui "$u" appearance light 2>/dev/null   # baseline; dark steps force dark through launch arguments
   local attempt result
   for attempt in 1 2; do
     local n=$name; [ $attempt = 2 ] && n=$name-retry
@@ -74,19 +75,24 @@ step() {
     local end_load=$(sysctl -n vm.loadavg | awk '{print $2}')
     local failed; failed=$(grep -E "^Test Case .* failed" $O/$n.log | sed -E "s/^Test Case '-\[([^ ]+) ([^]]+)\]'.*/\1\/\2/" | sort -u)
     local passed; passed=$(grep -cE "^Test Case .* passed" $O/$n.log)
-    local foreign; foreign=$(foreign_apps "$u")
+    local succeeded; succeeded=$(grep -c '^\*\* TEST SUCCEEDED' $O/$n.log)
     local marker; marker=$(grep -c '^\*\* TEST FAILED' $O/$n.log)
+    local crashed; crashed=$(grep -c 'Restarting after unexpected exit' $O/$n.log)
     local failing; failing=$(sed -n '/^Failing tests:/,/^\*\* TEST/p' $O/$n.log | grep '()' | sed -E 's/^[[:space:]]*//; s/\(\)$//; s#\.#/#' | sort -u)
     # a crashed test is only listed under "Failing tests:", not as "Test Case ... failed"
     [ -n "$failing" ] && failed=$(echo "$failed $(for t in $failing; do echo PassYUITests.$t; done)" | tr ' ' '\n' | sort -u)
-    if [ -z "$failed" ] && [ "$marker" = 0 ] && [ "$passed" -gt 0 ]; then
-      note "$n: PASS ($passed tests; load start $start_load end $end_load)"; break
+    local foreign; foreign=$(foreign_apps "$u")
+    local min=${STEP_MIN:-1}; [ $attempt = 2 ] && [ -n "$RETRY_N" ] && min=$RETRY_N
+    # strict: TEST SUCCEEDED, no failing tests, no TEST FAILED marker, no runner restart, at least the expected tests
+    if [ "$succeeded" -ge 1 ] && [ -z "$failed" ] && [ "$marker" = 0 ] && [ "$crashed" = 0 ] && [ "$passed" -ge "$min" ]; then
+      note "$n: PASS ($passed of >= $min tests; TEST SUCCEEDED; load start $start_load end $end_load)"; break
     fi
-    note "$n: FAIL/NO RESULT (passed $passed; failed: $(echo $failed | tr '\n' ' '); load start $start_load end $end_load; foreign: ${foreign:-none})"
+    note "$n: FAIL (passed $passed of >= $min; succeeded-marker $succeeded; failed-marker $marker; runner restarts $crashed; failed: $(echo $failed | tr '\n' ' '); load start $start_load end $end_load; foreign: ${foreign:-none})"
     [ $attempt = 2 ] && break
     # retry once, each failed test alone (or the whole step if no test result exists)
     if [ -n "$failed" ]; then
-      set -- $(for t in $failed; do echo "PassYUITests/$t"; done)
+      set -- $(for t in $failed; do echo "PassYUITests/$t" | sed "s#PassYUITests/PassYUITests\.#PassYUITests/#"; done)
+      RETRY_N=$#
     fi
     gate 1 10800 || { note "$name: retry skipped (load)"; break; }
     prepare_sim "$u" || break
@@ -103,24 +109,24 @@ cd $R
 [ -f $O/.seed2fa ] || { PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:8089 >> $LOG 2>&1; \
   PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/enable_2fa.py http://localhost:8089 >> $LOG 2>&1 && touch $O/.seed2fa; }
 
-step diag      0 $SIM_PHONE PassYUITests/PassYUiR8Tests/test00_dumpGroupListTree
-step landing   erase $SIM_PHONE PassYUITests/PassYLandingShotsTests
-step flow      erase $SIM_PHONE PassYUITests/PassYFlowTests
-step rest      1 $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_exportVault PassYUITests/PassYShotsTests PassYUITests/PassYZAppearanceTests \
+STEP_MIN=1 step diag      0 $SIM_PHONE PassYUITests/PassYUiR8Tests/test00_dumpGroupListTree
+STEP_MIN=1 step landing   erase $SIM_PHONE PassYUITests/PassYLandingShotsTests
+STEP_MIN=28 step flow      erase $SIM_PHONE PassYUITests/PassYFlowTests
+STEP_MIN=15 step rest      1 $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_exportVault PassYUITests/PassYShotsTests PassYUITests/PassYZAppearanceTests \
   PassYUITests/PassYUiR5ShotsTests/test_newTypeForms PassYUITests/PassYUiR5ShotsTests/test_dynamicTypeForms PassYUITests/PassYUiR5ShotsTests/test_compare \
   PassYUITests/PassYUiR5ShotsTests/test_voiceOverLabels PassYUITests/PassYUiR5ShotsTests/test_addMenuAccessibilityXXXL \
   PassYUITests/PassYUiR6ShotsTests/test_rowChevronContextMenuSwipe PassYUITests/PassYUiR6ShotsTests/test_selectModeDelete PassYUITests/PassYUiR6ShotsTests/test_swipeDelete \
   PassYUITests/PassYUiR7ShotsTests
-step regstart  erase $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_registrationStart
-STEP_ENV="PASSY_MODE=light PASSY_SHOT_TAG=r8-auth-light"; step auth-light  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
-STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-auth-dark";  step auth-dark   1 $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
-STEP_ENV="PASSY_MODE=light PASSY_SHOT_TAG=r8-2fa-light"; step 2fa-light  erase $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-2fa-dark";   step 2fa-dark   1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-2fa-dark2";  step 2fa-dark2  1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=light PASSY_SHOT_TAG=r8-dev-light"; step device-light erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
-STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-dev-dark";   step device-dark  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
+STEP_MIN=1 step regstart  erase $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_registrationStart
+STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-auth-light"; STEP_MIN=1 step auth-light  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-auth-dark";  step auth-dark   1 $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
+STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-2fa-light"; STEP_MIN=1 step 2fa-light  erase $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-2fa-dark";   step 2fa-dark   1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-2fa-dark2";  step 2fa-dark2  1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-dev-light"; STEP_MIN=1 step device-light erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-dev-dark";   step device-dark  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
 STEP_ENV=""
-step ui-r8     erase $SIM_PHONE PassYUITests/PassYUiR8Tests
+STEP_MIN=7 step ui-r8     erase $SIM_PHONE PassYUITests/PassYUiR8Tests
 # iPad: own simulator
 IPAD=$(xcrun simctl list devices | grep "PassY-R8-iPad" | grep -oE '[0-9A-F-]{36}' | head -1)
 if [ -z "$IPAD" ]; then
@@ -128,19 +134,19 @@ if [ -z "$IPAD" ]; then
   IPAD=$(xcrun simctl create PassY-R8-iPad "$T" com.apple.CoreSimulator.SimRuntime.iOS-27-0 2>/dev/null)
 fi
 if [ -n "$IPAD" ]; then
-  STEP_ENV="PASSY_MODE=light PASSY_SHOT_TAG=r8-ipad-light"; step ipad-light erase $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
-  STEP_ENV="PASSY_MODE=dark PASSY_SHOT_TAG=r8-ipad-dark";   step ipad-dark  1 $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
+  STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-ipad-light"; STEP_MIN=2 step ipad-light erase $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
+  STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-ipad-dark";   step ipad-dark  1 $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
   STEP_ENV=""
   xcrun simctl boot $IPAD 2>/dev/null; xcrun simctl bootstatus $IPAD -b >/dev/null 2>&1
   ( U=$IPAD bash $R/Scripts-passy/ipad_landscape_shots.sh $IPAD $O/ipad-landscape r8 ) >> $LOG 2>&1 &
-  step ipad-landscape 0 $IPAD PassYUITests/PassYUiR6ShotsTests/test_ipadLandscapeHold
+  STEP_MIN=1 step ipad-landscape 0 $IPAD PassYUITests/PassYUiR6ShotsTests/test_ipadLandscapeHold
   kill %1 2>/dev/null
 else
   note "ipad steps: SKIPPED (no iPad simulator type found)"
 fi
 # 2000 item perf
 [ -f $O/.seed2000 ] || { python3 Scripts-passy/vaultwarden/seed_ciphers.py 2000 http://localhost:8089 >> $LOG 2>&1 && touch $O/.seed2000; }
-step perf      0 $SIM_PHONE PassYUITests/PassYPerfTests
-step audit     1 $SIM_PHONE PassYUITests/PassYAuditShotsTests
+STEP_MIN=6 step perf      0 $SIM_PHONE PassYUITests/PassYPerfTests
+STEP_MIN=5 step audit     1 $SIM_PHONE PassYUITests/PassYAuditShotsTests
 note "chain done"
 rm -f $O/chain.pid
