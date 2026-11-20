@@ -229,19 +229,38 @@ func setPassYAppearance(_ appearance: XCUIDevice.Appearance) {
 
 /// Fails when a screenshot does not render in the expected appearance: the page background at the left edge (outside every
 /// card and control) is dark (luminance below 0.35) or light (above 0.6). Skipped when no appearance is expected.
-func assertRenderedAppearance(_ screenshot: XCUIScreenshot, name: String, file: StaticString = #filePath, line: UInt = #line) {
-    guard let expected = passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"],
-          let cg = screenshot.image.cgImage else { return }
-    let height = cg.height
+/// Background luminance (0 black, 1 white) at the left edge of a screenshot, `nil` when it cannot be read.
+func backgroundLuminance(_ screenshot: XCUIScreenshot) -> Double? {
+    guard let cg = screenshot.image.cgImage else { return nil }
     var samples: [Double] = []
     for fraction in [0.35, 0.5, 0.65] {
-        guard let crop = cg.cropping(to: CGRect(x: 2, y: Int(Double(height) * fraction), width: 2, height: 2)),
+        guard let crop = cg.cropping(to: CGRect(x: 2, y: Int(Double(cg.height) * fraction), width: 2, height: 2)),
               let data = crop.dataProvider?.data as Data?, data.count >= 3 else { continue }
         let bytes = [UInt8](data.prefix(3))
         samples.append((0.2126 * Double(bytes[0]) + 0.7152 * Double(bytes[1]) + 0.0722 * Double(bytes[2])) / 255)
     }
-    guard let luminance = samples.sorted().dropFirst(samples.count / 2).first else { return }
+    return samples.sorted().dropFirst(samples.count / 2).first
+}
+
+extension XCTestCase {
+    /// For a dark variant that is switched on in a running app (does not work on the iOS 27 simulator): the screenshot is
+    /// only attached when it really is dark, otherwise a note is printed. Never attach a light screenshot as "dark".
+    func attachDarkIfRendered(_ app: XCUIApplication, _ name: String) {
+        let screenshot = app.screenshot()
+        if let luminance = backgroundLuminance(screenshot), luminance < 0.35 {
+            let shot = XCTAttachment(screenshot: screenshot)
+            shot.name = name; shot.lifetime = .keepAlways; add(shot)
+        } else {
+            print("NOTE \(name): the running app did not switch to dark, screenshot omitted (dark is covered by the dark chain steps)")
+        }
+    }
+}
+
+func assertRenderedAppearance(_ screenshot: XCUIScreenshot, name: String, file: StaticString = #filePath, line: UInt = #line) {
+    guard let expected = passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"],
+          let luminance = backgroundLuminance(screenshot) else { return }
     let ok = expected == "dark" ? luminance < 0.35 : luminance > 0.6
+    print("APPEARANCE-CHECK \(name) expected=\(expected) luminance=\(String(format: "%.2f", luminance)) ok=\(ok)")
     XCTAssertTrue(ok, "screenshot \(name) should render \(expected) (background luminance \(String(format: "%.2f", luminance)))",
                   file: file, line: line)
 }

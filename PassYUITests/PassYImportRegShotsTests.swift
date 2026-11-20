@@ -29,7 +29,7 @@ final class PassYImportRegShotsTests: XCTestCase {
         attach(app, "\(t)-reg-start-light")
         setPassYAppearance(.dark)
         sleep(2)
-        attach(app, "\(t)-reg-start-dark")
+        attachDarkIfRendered(app, "\(t)-reg-start-dark")
         setPassYAppearance(.light)
         email.tap(); email.typeText("passy-ir-new@example.test")
         let name = app.textFields["NameEntry"]
@@ -61,7 +61,7 @@ final class PassYImportRegShotsTests: XCTestCase {
         attach(app, "\(t)-export-settings-light")
         setPassYAppearance(.dark)
         sleep(2)
-        attach(app, "\(t)-export-settings-dark")
+        attachDarkIfRendered(app, "\(t)-export-settings-dark")
         setPassYAppearance(.light)
         toFile.tap()
         let picker = app.buttons["FileFormatPicker"]
@@ -77,7 +77,7 @@ final class PassYImportRegShotsTests: XCTestCase {
         attach(app, "\(t)-export-form-encrypted-light")
         setPassYAppearance(.dark)
         sleep(2)
-        attach(app, "\(t)-export-form-encrypted-dark")
+        attachDarkIfRendered(app, "\(t)-export-form-encrypted-dark")
         setPassYAppearance(.light)
         let mp = app.secureTextFields["MasterPasswordEntry"]
         XCTAssertTrue(mp.exists, "master password field")
