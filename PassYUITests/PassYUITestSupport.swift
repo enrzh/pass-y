@@ -93,19 +93,50 @@ extension XCTestCase {
         element.waitForExistence(timeout: timeout)
     }
 
+    /// Polls `condition` until it holds or `timeout` seconds passed.
+    @discardableResult
+    func waitUntil(_ timeout: TimeInterval, _ condition: () -> Bool) -> Bool {
+        let end = Date().addingTimeInterval(timeout)
+        while Date() < end {
+            if condition() { return true }
+            usleep(400_000)
+        }
+        return condition()
+    }
+
     /// Brings the app to the unlocked vault list from any of: intro, login, unlock, vault.
+    ///
+    /// State driven: it waits for the app to reach the next state (vault, error alert) instead of sleeping for fixed
+    /// times, the overall budget grows with the load of the host (a login under load 100 takes minutes), and an error
+    /// alert (network or credentials) is dismissed and the step is tried again, at most three times.
     func ensureUnlockedVault(_ app: XCUIApplication) {
         let fab = app.buttons["AddItemFloatingActionButton"]
-        let deadline = Date().addingTimeInterval(180)
+        var load = [Double](repeating: 0, count: 3)
+        getloadavg(&load, 3)
+        let budget = min(600, 150 + max(0, load[0] - 8) * 6)
+        let deadline = Date().addingTimeInterval(budget)
+        var dismissedAlerts = 0
+        /// Waits for the vault or an alert after an asynchronous step (login, unlock).
+        func settle() {
+            waitUntil(max(5, min(120, deadline.timeIntervalSinceNow))) { fab.exists || app.alerts.firstMatch.exists }
+        }
         while Date() < deadline {
             if fab.exists { return }
+            let alert = app.alerts.firstMatch
+            if alert.exists {
+                dismissedAlerts += 1
+                if dismissedAlerts > 3 { XCTFail("Login keeps failing with an alert: \(alert.debugDescription)"); return }
+                alert.buttons.firstMatch.tap()
+                sleep(1)
+                continue
+            }
             if app.buttons["Log in"].exists { app.buttons["Log in"].tap() }
             let server = app.textFields["ServerUrlEntry"]
             if server.exists {
                 server.focus()
                 server.typeText(TestAccount.server)
                 app.buttons["SaveButton"].firstMatch.tap()
-                sleep(2)
+                waitUntil(10) { !server.exists }
                 continue
             }
             let email = app.textFields["LoginEmailAddressEntry"]
@@ -117,25 +148,26 @@ extension XCTestCase {
                     email.focus()
                     email.typeText(TestAccount.email)
                     app.buttons["ContinueButton"].tap()
+                    waitUntil(20) { !email.exists || app.alerts.firstMatch.exists }
                 }
             }
             let loginPw = app.secureTextFields["LoginMasterPasswordEntry"]
             if loginPw.exists {
                 loginPw.replaceText(TestAccount.password)
                 app.buttons["LogInWithMasterPasswordButton"].tap()
-                // The login is asynchronous and the field disappears when it succeeded: wait for that instead of
-                // typing into the vanishing field again in the next round (snapshot race seen in Flow test02).
-                _ = fab.waitForExistence(timeout: 25)
+                // The login is asynchronous and the field disappears when it succeeded: wait for the result instead of
+                // typing into the vanishing field again (snapshot race seen in Flow test02).
+                settle()
             }
             let unlockPw = app.secureTextFields["MasterPasswordEntry"]
             if !fab.exists, unlockPw.exists {
                 unlockPw.replaceText(TestAccount.password)
                 app.buttons["UnlockVaultButton"].tap()
-                _ = fab.waitForExistence(timeout: 25)
+                settle()
             }
-            sleep(2)
+            usleep(500_000)
         }
-        XCTFail("Could not reach the vault list")
+        XCTFail("Could not reach the vault list (budget \(Int(budget)) s at load \(String(format: "%.0f", load[0])))")
     }
 }
 

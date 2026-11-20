@@ -4,10 +4,21 @@
 # step, shut down afterwards), PassY-2FA for the 2FA step, an own iPad simulator for the iPad steps.
 # Gate: 1-minute load < 25 for 3 minutes (sampled every 30 s) before the first step, < 25 before every further step.
 export HOME=${HOME:-/Users/enrico}
-C=$HOME/Library/Caches/passy-vw; O=$C/out-r8; R=$C/wt-r8
+R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"                       # the ui-r8 worktree
+S="${PASSY_SCRATCH:-$HOME/Library/Caches/passy-vw-scratch}"; O="$S/out"      # scratch: logs, result bundles, Vaultwarden data
+export PASSY_SCRATCH="$S" PASSY_OUT="$O" PASSY_REPO="$R" PASSY_DD="${PASSY_DD:-$HOME/Library/Caches/passy-vw-dd}"
+VW_BIN="${VW_BIN:-/Users/enrico/Documents/GitHub/vaultwarden-build/vaultwarden}"; PORT=8089
+export VW_PORT=$PORT TEST_RUNNER_PASSY_SERVER="http://localhost:$PORT"
+mkdir -p "$O"
 SUMMARY=$O/summary.txt; LOG=$O/chain.log
-SIM_PHONE=$(cat $O/sim); SIM_2FA=$(xcrun simctl list devices | grep "PassY-R8-2FA" | grep -oE "[0-9A-F-]{36}" | head -1)
-[ -n "$SIM_2FA" ] || SIM_2FA=$(xcrun simctl create PassY-R8-2FA com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-0)
+sim_id() { # sim_id <name> <device type> <runtime>: UDID of the own simulator with that name (created when missing)
+  local id; id=$(xcrun simctl list devices | grep -F "$1 (" | grep -oE "[0-9A-F-]{36}" | head -1)
+  [ -n "$id" ] || id=$(xcrun simctl create "$1" "$2" "$3")
+  echo "$id"
+}
+IOS=com.apple.CoreSimulator.SimRuntime.iOS-27-0
+SIM_PHONE=$(sim_id PassY-R8b com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro $IOS)
+SIM_2FA=$(sim_id PassY-R8-2FA com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro $IOS)
 echo $$ > $O/chain.pid
 log() { echo "$(date '+%F %T') [load $(sysctl -n vm.loadavg | awk '{print $2}')] $*" | tee -a $LOG; }
 load1() { sysctl -n vm.loadavg | awk '{print int($2)}'; }
@@ -50,11 +61,11 @@ prepare_sim() { # prepare_sim <udid>: boot, verify no foreign app (erase an own 
 }
 
 vw_up() {
-  curl -s -o /dev/null http://localhost:8089/alive && return 0
-  DATA_FOLDER=$O/vw-data ROCKET_PORT=8089 LOGIN_RATELIMIT_SECONDS=1 LOGIN_RATELIMIT_MAX_BURST=1000 DOMAIN=http://localhost:8089 \
+  curl -s -o /dev/null http://localhost:$PORT/alive && return 0
+  DATA_FOLDER=$S/vw-data ROCKET_PORT=$PORT LOGIN_RATELIMIT_SECONDS=1 LOGIN_RATELIMIT_MAX_BURST=1000 DOMAIN=http://localhost:$PORT \
     SIGNUPS_ALLOWED=true WEB_VAULT_ENABLED=false EXPERIMENTAL_CLIENT_FEATURE_FLAGS=pm-32009-new-item-types \
-    nohup $C/src/target/release/vaultwarden >> $O/vaultwarden.log 2>&1 &
-  echo $! > $O/vw.pid; sleep 5; curl -s -o /dev/null http://localhost:8089/alive
+    nohup "$VW_BIN" >> $O/vaultwarden.log 2>&1 &
+  echo $! > $O/vw.pid; sleep 5; curl -s -o /dev/null http://localhost:$PORT/alive
 }
 
 # step <name> <fresh 0|1|erase> <udid> <tests...> ; env: STEP_ENV (space separated TEST_RUNNER_* assignments)
@@ -69,9 +80,9 @@ step() {
     local n=$name; [ $attempt = 2 ] && n=$name-retry
     local un=0; [ "$fresh" != 0 ] && [ $attempt = 1 ] && un=1
     local start_load=$(sysctl -n vm.loadavg | awk '{print $2}')
-    ( export PASSY_MAX_LOAD=100000 U=$u; [ "$fresh" = erase ] && export PASSY_ERASE=1
+    ( export PASSY_MAX_LOAD=100000 U=$u PASSY_PHONE=$u; [ "$fresh" = erase ] && export PASSY_ERASE=1
       for kv in $STEP_ENV; do export "TEST_RUNNER_$kv"; done
-      "$O/run_ui_r8.sh" "$n" $un "$@" ) >> $LOG 2>&1
+      "$R/Scripts-passy/run_ui.sh" "$n" $un "$@" ) >> $LOG 2>&1
     local end_load=$(sysctl -n vm.loadavg | awk '{print $2}')
     local failed; failed=$(grep -E "^Test Case .* failed" $O/$n.log | sed -E "s/^Test Case '-\[([^ ]+) ([^]]+)\]'.*/\1\/\2/" | sort -u)
     local passed; passed=$(grep -cE "^Test Case .* passed" $O/$n.log)
@@ -98,6 +109,7 @@ step() {
     prepare_sim "$u" || break
   done
   xcrun simctl shutdown "$u" 2>/dev/null
+  rm -rf "$O/$name".xcresult "$O/$name"-retry.xcresult   # result bundles are large; the logs and the summary stay
 }
 
 : > $SUMMARY
@@ -105,9 +117,11 @@ note "chain start (pid $$)"
 gate 6 43200 || { note "chain: load never below 25 for 3 minutes; aborted"; exit 1; }
 vw_up || { note "no Vaultwarden binary/start"; exit 1; }
 cd $R
-# accounts and data (idempotent markers)
-[ -f $O/.seed2fa ] || { PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:8089 >> $LOG 2>&1; \
-  PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/enable_2fa.py http://localhost:8089 >> $LOG 2>&1 && touch $O/.seed2fa; }
+# accounts and data (idempotent markers; the data directory is in the scratch directory and starts empty)
+[ -f $O/.seedmain ] || { python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:$PORT >> $LOG 2>&1 && \
+  python3 Scripts-passy/vaultwarden/seed_ciphers.py 25 http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seedmain; }
+[ -f $O/.seed2fa ] || { PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:$PORT >> $LOG 2>&1; \
+  PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/enable_2fa.py http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seed2fa; }
 
 STEP_MIN=1 step diag      0 $SIM_PHONE PassYUITests/PassYUiR8Tests/test00_dumpGroupListTree
 STEP_MIN=1 step landing   erase $SIM_PHONE PassYUITests/PassYLandingShotsTests
@@ -125,14 +139,13 @@ STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-2fa-dar
 STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-2fa-dark2";  step 2fa-dark2  1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
 STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-dev-light"; STEP_MIN=1 step device-light erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
 STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-dev-dark";   step device-dark  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
+STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-dev-light-b"; STEP_MIN=1 step device-light-b erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-dev-dark-b";   STEP_MIN=1 step device-dark-b  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
 STEP_ENV=""
 STEP_MIN=7 step ui-r8     erase $SIM_PHONE PassYUITests/PassYUiR8Tests
 # iPad: own simulator
-IPAD=$(xcrun simctl list devices | grep "PassY-R8-iPad" | grep -oE '[0-9A-F-]{36}' | head -1)
-if [ -z "$IPAD" ]; then
-  T=$(xcrun simctl list devicetypes | grep -E "iPad Air 11" | head -1 | grep -oE 'com\.apple[^)]*')
-  IPAD=$(xcrun simctl create PassY-R8-iPad "$T" com.apple.CoreSimulator.SimRuntime.iOS-27-0 2>/dev/null)
-fi
+T=$(xcrun simctl list devicetypes | grep -E "iPad Air 11" | head -1 | grep -oE 'com\.apple[^)]*')
+IPAD=$(sim_id PassY-R8-iPad "$T" $IOS)
 if [ -n "$IPAD" ]; then
   STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-ipad-light"; STEP_MIN=2 step ipad-light erase $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
   STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-ipad-dark";   step ipad-dark  1 $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
@@ -145,7 +158,7 @@ else
   note "ipad steps: SKIPPED (no iPad simulator type found)"
 fi
 # 2000 item perf
-[ -f $O/.seed2000 ] || { python3 Scripts-passy/vaultwarden/seed_ciphers.py 2000 http://localhost:8089 >> $LOG 2>&1 && touch $O/.seed2000; }
+[ -f $O/.seed2000 ] || { python3 Scripts-passy/vaultwarden/seed_ciphers.py 2000 http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seed2000; }
 STEP_MIN=6 step perf      0 $SIM_PHONE PassYUITests/PassYPerfTests
 STEP_MIN=5 step audit     1 $SIM_PHONE PassYUITests/PassYAuditShotsTests
 note "chain done"
