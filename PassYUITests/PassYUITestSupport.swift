@@ -57,13 +57,20 @@ extension XCTestCase {
 
     func launchApp(extraArguments: [String] = [], appearance: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extraArguments
+        // `XCUIDevice.shared.appearance = .dark` does not change anything on the iOS 27 simulator (every "dark" run of
+        // ui-r5 to ui-r8 rendered light). The interface style is forced for the app through its launch arguments; the
+        // chain also sets `simctl ui <sim> appearance dark`.
+        let dark = passYWantsDark
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+            + (dark ? ["-AppleInterfaceStyle", "Dark"] : []) + extraArguments
         app.launch()
         return app
     }
 
     func attach(_ app: XCUIApplication, _ name: String) {
-        let shot = XCTAttachment(screenshot: app.screenshot())
+        let screenshot = app.screenshot()
+        assertRenderedAppearance(screenshot, name: name)
+        let shot = XCTAttachment(screenshot: screenshot)
         shot.name = name
         shot.lifetime = .keepAlways
         add(shot)
@@ -110,11 +117,15 @@ extension XCTestCase {
             if loginPw.exists {
                 loginPw.replaceText(TestAccount.password)
                 app.buttons["LogInWithMasterPasswordButton"].tap()
+                // The login is asynchronous and the field disappears when it succeeded: wait for that instead of
+                // typing into the vanishing field again in the next round (snapshot race seen in Flow test02).
+                _ = fab.waitForExistence(timeout: 25)
             }
             let unlockPw = app.secureTextFields["MasterPasswordEntry"]
-            if unlockPw.exists {
+            if !fab.exists, unlockPw.exists {
                 unlockPw.replaceText(TestAccount.password)
                 app.buttons["UnlockVaultButton"].tap()
+                _ = fab.waitForExistence(timeout: 25)
             }
             sleep(2)
         }
@@ -196,4 +207,41 @@ func avatarMenuEntry(_ app: XCUIApplication, _ label: String) -> XCUIElement {
 /// Switches to a top-level screen through the avatar menu.
 func goTo(_ app: XCUIApplication, _ label: String) {
     avatarMenuEntry(app, label).tap()
+}
+
+
+// MARK: - Appearance
+
+/// Whether the current test step wants the dark interface style (set by `setPassYAppearance`, or by the chain through
+/// `TEST_RUNNER_PASSY_EXPECT_APPEARANCE=dark`).
+nonisolated(unsafe) private var passYForcedAppearance: String?
+
+var passYWantsDark: Bool {
+    (passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"]) == "dark"
+}
+
+/// Replacement for `XCUIDevice.shared.appearance = ...`: remembers the wish (launch arguments) and still sets the
+/// device appearance, which is harmless where it works.
+func setPassYAppearance(_ appearance: XCUIDevice.Appearance) {
+    passYForcedAppearance = appearance == .dark ? "dark" : "light"
+    XCUIDevice.shared.appearance = appearance
+}
+
+/// Fails when a screenshot does not render in the expected appearance: the page background at the left edge (outside every
+/// card and control) is dark (luminance below 0.35) or light (above 0.6). Skipped when no appearance is expected.
+func assertRenderedAppearance(_ screenshot: XCUIScreenshot, name: String, file: StaticString = #filePath, line: UInt = #line) {
+    guard let expected = passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"],
+          let cg = screenshot.image.cgImage else { return }
+    let height = cg.height
+    var samples: [Double] = []
+    for fraction in [0.35, 0.5, 0.65] {
+        guard let crop = cg.cropping(to: CGRect(x: 2, y: Int(Double(height) * fraction), width: 2, height: 2)),
+              let data = crop.dataProvider?.data as Data?, data.count >= 3 else { continue }
+        let bytes = [UInt8](data.prefix(3))
+        samples.append((0.2126 * Double(bytes[0]) + 0.7152 * Double(bytes[1]) + 0.0722 * Double(bytes[2])) / 255)
+    }
+    guard let luminance = samples.sorted().dropFirst(samples.count / 2).first else { return }
+    let ok = expected == "dark" ? luminance < 0.35 : luminance > 0.6
+    XCTAssertTrue(ok, "screenshot \(name) should render \(expected) (background luminance \(String(format: "%.2f", luminance)))",
+                  file: file, line: line)
 }

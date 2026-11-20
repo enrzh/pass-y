@@ -27,10 +27,10 @@ final class PassYImportRegShotsTests: XCTestCase {
         XCTAssertTrue(waitFor(email), "start registration shows the email field")
         sleep(1)
         attach(app, "\(t)-reg-start-light")
-        XCUIDevice.shared.appearance = .dark
+        setPassYAppearance(.dark)
         sleep(2)
         attach(app, "\(t)-reg-start-dark")
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
         email.tap(); email.typeText("passy-ir-new@example.test")
         let name = app.textFields["NameEntry"]
         name.tap(); name.typeText("IR Test")
@@ -59,10 +59,10 @@ final class PassYImportRegShotsTests: XCTestCase {
         let toFile = app.buttons["ExportVaultToAFileLabel"]
         XCTAssertTrue(waitFor(toFile, timeout: 10), "export settings list")
         attach(app, "\(t)-export-settings-light")
-        XCUIDevice.shared.appearance = .dark
+        setPassYAppearance(.dark)
         sleep(2)
         attach(app, "\(t)-export-settings-dark")
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
         toFile.tap()
         let picker = app.buttons["FileFormatPicker"]
         XCTAssertTrue(waitFor(picker, timeout: 10), "export form shows the file format picker")
@@ -75,10 +75,10 @@ final class PassYImportRegShotsTests: XCTestCase {
         XCTAssertTrue(app.secureTextFields["FilePasswordEntry"].firstMatch.waitForExistence(timeout: 5),
                       "file password fields appear for encrypted json")
         attach(app, "\(t)-export-form-encrypted-light")
-        XCUIDevice.shared.appearance = .dark
+        setPassYAppearance(.dark)
         sleep(2)
         attach(app, "\(t)-export-form-encrypted-dark")
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
         let mp = app.secureTextFields["MasterPasswordEntry"]
         XCTAssertTrue(mp.exists, "master password field")
         app.buttons["ExportVaultButton"].tap()

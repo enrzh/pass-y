@@ -75,14 +75,24 @@ final class PassYUiR8Tests: XCTestCase {
         XCTAssertTrue(waitFor(app.buttons["CategoryTile_login"]), "Vault button returns to the vault home")
     }
 
+    /// Scrolls until the folder row is hittable and lies fully above the bottom bar (a row that merely exists in the
+    /// tree may sit under the bar or outside the screen). Returns whether it is in a tappable position.
     private func scrollToFolder(_ app: XCUIApplication, _ name: String) -> Bool {
         let predicate = NSPredicate(format: "identifier == 'VaultListItemRowButton' AND label CONTAINS %@", name)
-        for _ in 0 ..< 6 {
-            if app.buttons.matching(predicate).firstMatch.exists { return true }
+        let search = app.searchFields.firstMatch
+        func tappable() -> Bool {
+            let row = app.buttons.matching(predicate).firstMatch
+            return row.exists && row.isHittable && row.frame.maxY <= search.frame.minY - 4
+        }
+        for _ in 0 ..< 8 {
+            if tappable() { return true }
             app.swipeUp()
         }
-        for _ in 0 ..< 6 { app.swipeDown() }
-        return app.buttons.matching(predicate).firstMatch.exists
+        for _ in 0 ..< 8 {
+            if tappable() { return true }
+            app.swipeDown()
+        }
+        return tappable()
     }
 
     private func createFolder(_ app: XCUIApplication, _ name: String) {

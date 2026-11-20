@@ -47,7 +47,7 @@ final class PassYUiR5ShotsTests: XCTestCase {
     /// `EXPERIMENTAL_CLIENT_FEATURE_FLAGS`): bank account, passport, driver's license.
     func test_newTypeForms() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             var n = 1
@@ -58,7 +58,7 @@ final class PassYUiR5ShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// New forms and the item view with large and accessibility Dynamic Type.
@@ -78,7 +78,7 @@ final class PassYUiR5ShotsTests: XCTestCase {
     /// Home, item list and item view in the current light/dark appearance for the Apple Passwords comparison.
     func test_compare() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             XCTAssertTrue(app.buttons["CategoryTile_login"].waitForExistence(timeout: 10))
@@ -94,7 +94,7 @@ final class PassYUiR5ShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Home is a left-aligned large title; the bottom bar and avatar menu have accessibility labels in reading order.
