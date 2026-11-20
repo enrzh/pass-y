@@ -68,7 +68,8 @@ extension XCTestCase {
 
     func attach(_ app: XCUIApplication, _ name: String) {
         let screenshot = app.screenshot()
-        assertRenderedAppearance(screenshot, name: name)
+        // Only the app is checked: "Recovery code" opens Safari (web vault link), the screenshot then shows another app.
+        if app.state == .runningForeground { assertRenderedAppearance(screenshot, name: name) }
         let shot = XCTAttachment(screenshot: screenshot)
         shot.name = name
         shot.lifetime = .keepAlways
