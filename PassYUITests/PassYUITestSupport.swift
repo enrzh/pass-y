@@ -66,6 +66,12 @@ extension XCTestCase {
         return app
     }
 
+    /// Attaches a screenshot without the appearance check (for screens that are not the app: "Recovery code" opens Safari).
+    func attachUnchecked(_ app: XCUIApplication, _ name: String) {
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = name; shot.lifetime = .keepAlways; add(shot)
+    }
+
     func attach(_ app: XCUIApplication, _ name: String) {
         let screenshot = app.screenshot()
         // Only the app is checked: "Recovery code" opens Safari (web vault link), the screenshot then shows another app.

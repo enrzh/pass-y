@@ -198,7 +198,8 @@ final class PassYUiR6ShotsTests: XCTestCase {
         let recovery = app.buttons["Recovery code"].exists ? app.buttons["Recovery code"] : app.menuItems["Recovery code"]
         if recovery.exists {
             recovery.tap(); sleep(2)
-            shot(app, 46, "\(mode)-2fa-recovery")
+            // The link opens the web vault in Safari (another app, the system appearance applies): no appearance check.
+            attachUnchecked(app, "\(tag)-46-\(mode)-2fa-recovery-safari")
         }
         setPassYAppearance(.light)
     }
