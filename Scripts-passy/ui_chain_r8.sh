@@ -157,9 +157,9 @@ if [ -n "$IPAD" ]; then
 else
   note "ipad steps: SKIPPED (no iPad simulator type found)"
 fi
-# 2000 item perf
+# 2000 item perf: seeded right before, so the app needs a fresh login (the first sync with the 2000 items)
 [ -f $O/.seed2000 ] || { python3 Scripts-passy/vaultwarden/seed_ciphers.py 2000 http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seed2000; }
-STEP_MIN=6 step perf      0 $SIM_PHONE PassYUITests/PassYPerfTests
+STEP_MIN=6 step perf      erase $SIM_PHONE PassYUITests/PassYPerfTests
 STEP_MIN=5 step audit     1 $SIM_PHONE PassYUITests/PassYAuditShotsTests
 note "chain done"
 rm -f $O/chain.pid

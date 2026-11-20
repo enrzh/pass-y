@@ -148,15 +148,21 @@ class LoginProcessor: StateProcessor<LoginState, LoginAction, LoginEffect> {
             coordinator.hideLoadingOverlay()
         }
 
-        do {
-            let deviceIdentifier = await services.appIDService.getOrCreateAppID()
-            let isKnownDevice = try await services.deviceAPIService.knownDevice(
-                email: state.username,
-                deviceIdentifier: deviceIdentifier,
-            )
-            state.isLoginWithDeviceVisible = isKnownDevice
-        } catch {
-            services.errorReporter.log(error: error)
+        let deviceIdentifier = await services.appIDService.getOrCreateAppID()
+        // One retry: a failed request used to hide the "Log in with device" button for the whole lifetime of the page
+        // (the error is only logged and the check runs on first appearance only).
+        for attempt in 1 ... 2 {
+            do {
+                let isKnownDevice = try await services.deviceAPIService.knownDevice(
+                    email: state.username,
+                    deviceIdentifier: deviceIdentifier,
+                )
+                state.isLoginWithDeviceVisible = isKnownDevice
+                return
+            } catch {
+                services.errorReporter.log(error: error)
+                if attempt == 1 { try? await Task.sleep(nanoseconds: 500_000_000) }
+            }
         }
     }
 

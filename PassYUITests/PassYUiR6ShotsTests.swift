@@ -255,7 +255,9 @@ final class PassYUiR6ShotsTests: XCTestCase {
         email.replaceText(TestAccount.email)
         app.buttons["ContinueButton"].tap()
         let device = app.buttons["LogInWithAnotherDeviceButton"]
-        XCTAssertTrue(device.waitForExistence(timeout: 20), "known device: Log in with device is offered")
+        let offered = device.waitForExistence(timeout: 30)
+        if !offered { print("DEVICE-BUTTON-MISSING \(Date()) tree:\n\(app.debugDescription)") }
+        XCTAssertTrue(offered, "known device: Log in with device is offered")
         shot(app, 50, "\(mode)-login-known-device")
         device.tap(); sleep(4)
         shot(app, 51, "\(mode)-login-with-device")

@@ -174,17 +174,24 @@ final class PassYUiR8Tests: XCTestCase {
         XCTAssertTrue(waitFor(app.buttons["CategoryTile_login"]), "deep page: Vault button returns to the vault home")
     }
 
-    /// Nothing is drawn behind the bar. On the (empty) Trash list the page is one flat color: the pixel just above the
-    /// search bar must have the color of the pixel far above it (a material or gradient backdrop would differ).
+    /// Nothing is drawn behind the bar. On an empty folder page (created here, so the content does not depend on the state
+    /// left by earlier tests) the pixels 6, 20 and 60 pt above the bar, left of the controls, have the page color: the pixel
+    /// at the very bottom of the screen (below the bar). A material or gradient backdrop would make them differ.
     func test05_noBackdropBehindBar() {
         let app = launchApp()
         ensureUnlockedVault(app)
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.waitForExistence(timeout: 5))
         shot(app, 30, "vault-bar-no-shadow")
-        let trash = app.buttons["CategoryTile_trash"]
-        XCTAssertTrue(trash.waitForExistence(timeout: 5), "trash tile")
-        trash.tap(); sleep(2)
+        let folderName = "PassY Pixel Folder"
+        if !scrollToFolder(app, folderName) {
+            createFolder(app, folderName)
+            XCTAssertTrue(scrollToFolder(app, folderName), "empty folder row exists")
+        }
+        app.buttons.matching(NSPredicate(format: "identifier == 'VaultListItemRowButton' AND label CONTAINS %@", folderName)).firstMatch
+            .coordinate(withNormalizedOffset: CGVector(dx: 0.72, dy: 0.5)).tap()
+        XCTAssertTrue(app.navigationBars.staticTexts[folderName].waitForExistence(timeout: 5), "empty folder page")
+        sleep(2)
         let screen = app.windows.firstMatch.frame
         let image = app.screenshot().image
         guard let cg = image.cgImage else { return XCTFail("screenshot") }
@@ -195,13 +202,12 @@ final class PassYUiR8Tests: XCTestCase {
             return Array(data.prefix(3))
         }
         let barTop = search.frame.minY
-        // Left margin: no illustration, no bar control. 6 pt, 20 pt and 60 pt above the bar, and a flat reference.
-        let reference = pixel(6, barTop - 260)
+        let reference = pixel(6, screen.height - 3)
         XCTAssertFalse(reference.isEmpty)
         for offset: CGFloat in [6, 20, 60] {
             XCTAssertEqual(pixel(6, barTop - offset), reference, "pixel \(offset) pt above the bar equals the page color (no backdrop)")
         }
-        shot(app, 31, "trash-bar-no-shadow")
+        shot(app, 31, "empty-folder-bar-no-shadow")
     }
 
     // MARK: (f) back and close everywhere
