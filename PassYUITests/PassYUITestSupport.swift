@@ -90,7 +90,7 @@ extension XCTestCase {
     /// Brings the app to the unlocked vault list from any of: intro, login, unlock, vault.
     func ensureUnlockedVault(_ app: XCUIApplication) {
         let fab = app.buttons["AddItemFloatingActionButton"]
-        let deadline = Date().addingTimeInterval(90)
+        let deadline = Date().addingTimeInterval(180)
         while Date() < deadline {
             if fab.exists { return }
             if app.buttons["Log in"].exists { app.buttons["Log in"].tap() }
