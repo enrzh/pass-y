@@ -43,6 +43,25 @@ final class PassYBarContainerView: UIView {
     }
 }
 
+// MARK: - PassYStackObserver
+
+/// Reports pushes and pops of a plain navigation controller that has no delegate of its own.
+final class PassYStackObserver: NSObject, UINavigationControllerDelegate {
+    private let changed: () -> Void
+
+    init(changed: @escaping () -> Void) {
+        self.changed = changed
+    }
+
+    func navigationController(_: UINavigationController, willShow _: UIViewController, animated _: Bool) {
+        changed()
+    }
+
+    func navigationController(_: UINavigationController, didShow _: UIViewController, animated _: Bool) {
+        changed()
+    }
+}
+
 // MARK: - PassYShellController
 
 /// The root shell of the signed-in app. It shows one top-level navigator at a time (Vault, Send, Generator or
@@ -87,8 +106,8 @@ class PassYShellController: UIViewController, TabNavigator {
     /// Observations of the navigation stacks (the Vault button depends on the depth of the vault stack).
     private var stackObservations: [NSKeyValueObservation] = []
 
-    /// Fallback for pushes and pops that KVO on the stack does not report (measured: it stays silent for pushes).
-    private var stackPollTimer: Timer?
+    /// Delegates of plain navigation controllers (tests); the app's `ViewLoggingNavigationController` reports itself.
+    private var stackDelegates: [PassYStackObserver] = []
 
     // MARK: Initialization
 
@@ -143,10 +162,6 @@ class PassYShellController: UIViewController, TabNavigator {
             ? selectedRouteIndex
             : (entries.first?.index ?? 0)
         show(routeIndex: target, resetSearch: false)
-    }
-
-    deinit {
-        stackPollTimer?.invalidate()
     }
 
     // MARK: Lifecycle
@@ -228,22 +243,27 @@ class PassYShellController: UIViewController, TabNavigator {
 
     // MARK: Private Methods
 
-    /// Observes the stacks of all navigators so the Vault button follows pushes, pops and pop-to-root.
+    /// Observes the stacks of all navigators so the Vault button follows pushes, pops and pop-to-root. UIKit publishes
+    /// no KVO for pushes, so this is event driven through the navigation controller delegate (`willShow`/`didShow`);
+    /// there is no timer. KVO on `viewControllers` still covers `setViewControllers` and replaced roots.
     private func observeStacks() {
-        stackObservations = entries.compactMap { entry in
-            (entry.navigator.rootViewController as? UINavigationController)?.observe(\.viewControllers) { [weak self] _, _ in
+        stackDelegates = []
+        let navigations = entries.compactMap { $0.navigator.rootViewController as? UINavigationController }
+        stackObservations = navigations.map { navigation in
+            navigation.observe(\.viewControllers) { [weak self] _, _ in
                 // KVO fires while the stack changes; read it after the change settled.
                 DispatchQueue.main.async { self?.updateVaultHome() }
             }
         }
-        // UIKit does not publish pushes through KVO, and there is no public notification: compare the depth of the
-        // vault stack a few times per second (an integer comparison; the model only publishes on a change).
-        stackPollTimer?.invalidate()
-        let timer = Timer(timeInterval: 0.15, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.updateVaultHome() }
+        for navigation in navigations {
+            if let logging = navigation as? ViewLoggingNavigationController {
+                logging.stackChanged = { [weak self] in self?.updateVaultHome() }
+            } else if navigation.delegate == nil {
+                let observer = PassYStackObserver { [weak self] in self?.updateVaultHome() }
+                navigation.delegate = observer
+                stackDelegates.append(observer)
+            }
         }
-        RunLoop.main.add(timer, forMode: .common)
-        stackPollTimer = timer
         updateVaultHome()
     }
 

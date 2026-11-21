@@ -17,6 +17,10 @@ public class ViewLoggingNavigationController: UINavigationController,
     /// The logger instance used to log when views appear and are dismissed.
     let logger: BitwardenLogger
 
+    /// Called when the stack is about to show, or has shown, another view controller (push, pop, pop to root).
+    /// UIKit publishes no KVO for pushes, so the shell uses this instead of polling the stack.
+    public var stackChanged: (() -> Void)?
+
     // MARK: Initialization
 
     /// Initialize a `ViewLoggingNavigationController`.
@@ -52,10 +56,19 @@ public class ViewLoggingNavigationController: UINavigationController,
 
     public func navigationController(
         _ navigationController: UINavigationController,
+        willShow viewController: UIViewController,
+        animated: Bool,
+    ) {
+        stackChanged?()
+    }
+
+    public func navigationController(
+        _ navigationController: UINavigationController,
         didShow viewController: UIViewController,
         animated: Bool,
     ) {
         logger.log("[Navigation] View appeared: \(resolveLoggingViewName(for: viewController))")
+        stackChanged?()
     }
 
     // MARK: UIAdaptivePresentationControllerDelegate

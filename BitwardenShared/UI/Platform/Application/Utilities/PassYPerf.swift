@@ -10,7 +10,9 @@ import os
 /// - `RowAppear`: a row appeared (event, id as metadata).
 /// - `TapToPush`: a row (or tile) was tapped until the pushed or presented screen was handed to UIKit.
 ///
-/// All state is main-thread only (the call sites are views, processors and coordinators).
+/// All state is main-thread only (the call sites are views, processors and coordinators). DEBUG only (ui-r9): the
+/// release build contains no signposts, counters or log strings.
+#if DEBUG
 enum PassYPerf {
     // MARK: Constants
 
@@ -94,3 +96,16 @@ enum PassYPerf {
         logger.notice("tap_to_push ms=\(milliseconds, format: .fixed(precision: 1))")
     }
 }
+#else
+/// Release: no signposts, no counters, no strings. The call sites stay in the code and compile to nothing.
+enum PassYPerf {
+    static var rowBodyCount: Int { get { 0 } set {} }
+    static var rowBuildCount: Int { get { 0 } set {} }
+    static var cellBodyCount: Int { get { 0 } set {} }
+    @inline(__always) static func beginListLoad() {}
+    @inline(__always) static func endListLoad() {}
+    @inline(__always) static func rowAppeared(_ id: String) {}
+    @inline(__always) static func beginTap(_ kind: StaticString = "row") {}
+    @inline(__always) static func endTap() {}
+}
+#endif
