@@ -14,7 +14,7 @@ It is a fork of the [Bitwarden iOS client](https://github.com/bitwarden/ios) (GP
 - The cryptography is **not** reimplemented: it stays in the Bitwarden SDK (`sdk-swift`, a public Swift package).
   The UI is plain Swift/SwiftUI.
 
-Removed from the upstream repository: the Authenticator app, the Apple Watch app/widget, TestHarness, Bitwarden CI workflows and
+Removed from the upstream repository: the Authenticator app, the Apple Watch app/widget (the watch code, targets and the "Connect to Watch" setting are gone since ui-r9), TestHarness, Bitwarden CI workflows and
 fastlane release automation.
 
 ## Status of v1.19 (read this first)

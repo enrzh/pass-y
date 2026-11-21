@@ -584,9 +584,10 @@ final class PassYFlowTests: XCTestCase {
         for label in ["Send", "Generator", "Settings"] {
             XCTAssertTrue(avatarMenuEntry(app, label).exists, "avatar menu has \(label)")
         }
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == %@", "My vault")).firstMatch.exists, "ui-r9: no Vault entry in the avatar menu (on the vault home the bar has no Vault button either)")
         XCTAssertFalse(app.buttons["ProfileMenuVaultButton"].exists, "ui-r9: no Vault entry in the avatar menu")
         XCTAssertFalse(app.staticTexts["Pass-Y"].exists, "ui-r9: the menu shows the server URL, not the app name")
-        XCTAssertTrue(app.buttons["ProfileMenuPendingRequestsButton"].exists, "ui-r9: pending login requests in the menu")
+        XCTAssertTrue(menuButton(app, id: "ProfileMenuPendingRequestsButton", label: "Pending login requests").exists, "ui-r9: pending login requests in the menu")
         XCTAssertFalse(app.buttons["Add account"].exists, "ui-r9: no Add account in the avatar menu (Settings only)")
         attach(app, "19-avatar-menu")
         // Close the menu by choosing Send.

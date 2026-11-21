@@ -242,6 +242,16 @@ func avatarMenuEntry(_ app: XCUIApplication, _ label: String) -> XCUIElement {
     return app.buttons[ids[label] ?? label]
 }
 
+/// A button of the open avatar menu by identifier or, failing that, by its label.
+func menuButton(_ app: XCUIApplication, id: String, label: String) -> XCUIElement {
+    let byId = app.buttons[id]
+    if byId.exists { return byId }
+    let byLabel = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+    if byLabel.exists { return byLabel }
+    let item = app.menuItems[label]
+    return item.exists ? item : byId
+}
+
 /// Switches to a top-level screen through the avatar menu. The vault is not in the menu any more (ui-r9): it is the
 /// Vault button of the bottom bar (absent on the vault home itself).
 func goTo(_ app: XCUIApplication, _ label: String) {

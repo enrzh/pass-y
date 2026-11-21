@@ -120,8 +120,9 @@ final class PassYUiR5ShotsTests: XCTestCase {
         for label in ["Send", "Generator", "Settings"] {
             XCTAssertTrue(avatarMenuEntry(app, label).exists, "avatar menu entry \(label)")
         }
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == %@", "My vault")).firstMatch.exists, "ui-r9: no Vault entry in the avatar menu (on the vault home the bar has no Vault button either)")
         XCTAssertFalse(app.buttons["ProfileMenuVaultButton"].exists, "ui-r9: no Vault entry in the avatar menu")
-        XCTAssertTrue(app.buttons["ProfileMenuPendingRequestsButton"].exists, "ui-r9: pending login requests in the menu")
+        XCTAssertTrue(menuButton(app, id: "ProfileMenuPendingRequestsButton", label: "Pending login requests").exists, "ui-r9: pending login requests in the menu")
         attach(app, "\(tag)-voiceover-avatar-menu")
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.45)).tap() // outside the menu: dismisses it
         sleep(1)

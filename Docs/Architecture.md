@@ -40,7 +40,6 @@ The iOS repository contains two main apps: Bitwarden Password Manager and Bitwar
 - `BitwardenAutoFillExtension`: An AutoFill Credential Provider extension which allows Bitwarden to offer up credentials for [Password AutoFill](https://developer.apple.com/documentation/security/password_autofill/).
 - `BitwardenNotificationExtension`: A [UNNotificationServiceExtension](https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension) that is used to update the content of push notifications.
 - `BitwardenShareExtension`: A [Share extension](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/Share.html) that allows creating text or file sends via the system share sheet.
-- `BitwardenWatchApp`: The companion watchOS app.
 - `BitwardenShared`: The main Password Manager framework containing the Core and UI layers shared between the app and extensions.
 
 ### Authenticator App Targets
@@ -53,7 +52,6 @@ The iOS repository contains two main apps: Bitwarden Password Manager and Bitwar
 - `BitwardenKit`: A shared framework providing common functionality across apps.
 - `BitwardenResources`: A framework containing shared resources (assets, localizations, etc.).
 - `AuthenticatorBridgeKit`: A framework for communication between the Password Manager and Authenticator apps.
-- `BitwardenWatchShared`: Models and encoding/decoding logic for communicating between the iOS and watchOS apps.
 - `Networking`: A local Swift package that implements the app's networking layer on top of `URLSession`.
 
 ### Test Helpers
