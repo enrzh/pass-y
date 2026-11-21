@@ -2,6 +2,7 @@
 import BitwardenKit
 import BitwardenKitMocks
 import BitwardenResources
+import ViewInspector
 import XCTest
 
 @testable import BitwardenShared
@@ -28,6 +29,15 @@ class OtherSettingsViewTests: BitwardenTestCase {
     }
 
     // MARK: Tests
+
+    /// ui-r9: the Other page has no watch toggle (the watch app and its connectivity were removed).
+    @MainActor
+    func test_noWatchOption() throws {
+        XCTAssertThrowsError(try subject.inspect().find(ViewType.Toggle.self, where: { toggle in
+            ((try? toggle.labelView().find(ViewType.Text.self).string()) ?? "").lowercased().contains("watch")
+        }))
+        XCTAssertThrowsError(try subject.inspect().find(text: "Connect to Watch"))
+    }
 
     /// Tapping the sync now button performs the `.syncNow` effect.
     @MainActor

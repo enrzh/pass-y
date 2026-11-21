@@ -237,6 +237,57 @@ struct PassYShellControllerTests {
         #expect(await eventually { subject.model.isAtVaultHome })
     }
 
+    /// ui-r9: no polling timer. The model follows a push in the same call (delegate `willShow`), without the run loop
+    /// turning once.
+    @Test
+    func vaultButton_isEventDriven_noPolling() {
+        let stacks = makeStacks()
+        stacks.vault.pushViewController(UIViewController(), animated: false)
+        #expect(!subject.model.isAtVaultHome, "updated synchronously by willShow, not by a timer")
+        stacks.vault.popViewController(animated: false)
+        #expect(subject.model.isAtVaultHome)
+    }
+
+    /// ui-r9: a `ViewLoggingNavigationController` reports pushes through `stackChanged` (the app's real navigators).
+    @Test
+    func vaultButton_followsViewLoggingNavigationController() {
+        let vault = MockRootNavigator()
+        let vaultStack = ViewLoggingNavigationController(logger: MockBitwardenLogger())
+        vaultStack.setViewControllers([UIViewController()], animated: false)
+        vault.rootViewController = vaultStack
+        subject.setNavigators([TabRoute.vault(.list): vault])
+        _ = vaultStack.view // viewDidLoad sets the delegate
+        vaultStack.pushViewController(UIViewController(), animated: false)
+        #expect(!subject.model.isAtVaultHome)
+        vaultStack.popToRootViewController(animated: false)
+        #expect(subject.model.isAtVaultHome)
+    }
+
+    /// ui-r9: the shell source has no repeating timer and no solid strip behind the bar.
+    @Test
+    func shell_hasNoTimerAndNoSolidBacking() throws {
+        let source = try String(contentsOfFile: #filePath.replacingOccurrences(of: "Tests.swift", with: ".swift"), encoding: .utf8)
+        #expect(!source.contains("Timer("), "no timer in the shell")
+        #expect(!source.contains("scheduledTimer"))
+        #expect(!source.contains("bottomBacking"), "no solid strip behind the bar")
+    }
+
+    /// ui-r9: a fade (touch transparent) sits under the bar, and every stack of the shell gets a top fade below its bar.
+    @Test
+    func fades_existAndLetTouchesThrough() {
+        let stacks = makeStacks()
+        _ = subject.view
+        let bottom = subject.view.subviews.compactMap { $0 as? PassYEdgeFadeView }.first { $0.edge == .bottom }
+        #expect(bottom != nil)
+        #expect(bottom?.isUserInteractionEnabled == false)
+        let top = stacks.vault.view.subviews.compactMap { $0 as? PassYEdgeFadeView }.first
+        #expect(top?.edge == .top)
+        #expect(top?.isUserInteractionEnabled == false)
+        let barIndex = stacks.vault.view.subviews.firstIndex(of: stacks.vault.navigationBar) ?? 0
+        let fadeIndex = stacks.vault.view.subviews.firstIndex { $0 is PassYEdgeFadeView } ?? 99
+        #expect(fadeIndex < barIndex, "the fade is below the bar so bar buttons stay sharp")
+    }
+
     /// Other destinations show the Vault button; it returns to the vault and pops its stack to the root.
     @Test
     func vaultButton_returnsToVaultHome() async {

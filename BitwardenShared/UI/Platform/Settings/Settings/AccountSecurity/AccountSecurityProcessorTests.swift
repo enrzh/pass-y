@@ -820,13 +820,6 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         XCTAssertEqual(coordinator.routes.last, .deviceManagement)
     }
 
-    /// `.receive(_:)` with `.pendingLoginRequestsTapped` navigates to the pending requests view.
-    @MainActor
-    func test_receive_pendingLoginRequestsTapped() {
-        subject.receive(.pendingLoginRequestsTapped)
-        XCTAssertEqual(coordinator.routes.last, .pendingLoginRequests)
-    }
-
     /// `perform(.loadData)` sets `isManageDevicesEnabled` from the `manageDevices` feature flag.
     @MainActor
     func test_perform_loadData_setsIsManageDevicesEnabled() async {

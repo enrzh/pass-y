@@ -2570,6 +2570,13 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
         XCTAssertEqual(coordinator.routes.last, .group(.archive, filter: .allVaults))
     }
 
+    /// `receive(_:)` with `.pendingLoginRequestsTapped` (profile menu) navigates to the pending requests.
+    @MainActor
+    func test_receive_pendingLoginRequestsTapped() {
+        subject.receive(.pendingLoginRequestsTapped)
+        XCTAssertEqual(coordinator.routes.last, .pendingLoginRequests)
+    }
+
     /// `receive(_:)` with `.navigateToFlightRecorderSettings` navigates to the flight recorder settings.
     @MainActor
     func test_receive_navigateToFlightRecorderSettings() {
