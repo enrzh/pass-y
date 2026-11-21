@@ -125,7 +125,8 @@ extension XCTestCase {
             let alert = app.alerts.firstMatch
             if alert.exists {
                 dismissedAlerts += 1
-                if dismissedAlerts > 3 { XCTFail("Login keeps failing with an alert: \(alert.debugDescription)"); return }
+                print("LOGIN-ALERT \(dismissedAlerts): \(alert.staticTexts.allElementsBoundByIndex.map(\.label))")
+                if dismissedAlerts > 3 { XCTFail("Login keeps failing with an alert: \(alert.debugDescription) texts: \(alert.staticTexts.allElementsBoundByIndex.map(\.label))"); return }
                 alert.buttons.firstMatch.tap()
                 sleep(1)
                 continue
