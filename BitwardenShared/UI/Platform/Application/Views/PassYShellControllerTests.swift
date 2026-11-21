@@ -63,8 +63,14 @@ struct PassYShellControllerTests {
 
     // MARK: Setup
 
+    /// Windows of finished tests stay alive (hidden): a navigation bar lays out in a deferred CA commit, and a window
+    /// that is deallocated by then crashes UIKit ("Cannot form weak reference to ... UIWindow").
+    nonisolated(unsafe) private static var retainedWindows: [UIWindow] = []
+
     init() {
+        Self.retainedWindows.forEach { $0.isHidden = true }
         window = UIWindow(frame: UIScreen.main.bounds)
+        Self.retainedWindows.append(window)
         window.layer.speed = 100
         subject = PassYShellController(model: PassYShellModel())
         window.rootViewController = subject
