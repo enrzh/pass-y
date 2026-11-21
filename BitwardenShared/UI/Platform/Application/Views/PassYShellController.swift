@@ -196,8 +196,8 @@ class PassYShellController: UIViewController, TabNavigator {
         #if DEBUG
         // Diagnosis (UI idle investigation): `-passyDumpAnimations YES` logs every layer with a running animation.
         if UserDefaults.standard.bool(forKey: "passyDumpAnimations") {
-            Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
-                MainActor.assumeIsolated { Self.dumpRunningAnimations() }
+            Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.dumpRunningAnimations() }
             }
         }
         #endif
@@ -238,7 +238,7 @@ class PassYShellController: UIViewController, TabNavigator {
 
     #if DEBUG
     /// Logs the layers that currently have animations (diagnosis only).
-    private static func dumpRunningAnimations() {
+    private func dumpRunningAnimations() {
         var lines: [String] = []
         func walk(_ layer: CALayer, _ depth: Int) {
             if let keys = layer.animationKeys(), !keys.isEmpty {
@@ -246,9 +246,7 @@ class PassYShellController: UIViewController, TabNavigator {
             }
             for sub in layer.sublayers ?? [] { walk(sub, depth + 1) }
         }
-        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
-            for window in scene.windows { walk(window.layer, 0) }
-        }
+        for window in view.window?.windowScene?.windows ?? [] { walk(window.layer, 0) }
         NSLog("ANIMDUMP count=%d\n%@", lines.count, lines.joined(separator: "\n"))
     }
     #endif
