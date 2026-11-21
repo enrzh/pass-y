@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Kasutage oma domeeni konfigureeritud kõik-püüdvat postkasti.";
 "ForwardedEmailDescription" = "Genereeri e-posti alias, kasutades selleks välist teenuspakkujat.";
 "Random" = "Juhuslik";
-"ConnectToWatch" = "Ühenda kellaga";
 "LoginRequestHasAlreadyExpired" = "Sisselogimise päring on juba aegunud.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Sisselogimise päring:\n%1$@\nSoovid selle konto peale lülituda?";
 "NewAroundHere" = "Oled siin uus?";

@@ -555,7 +555,6 @@
 "CatchAllEmailDescription" = "از صندوق ورودی پیکربندی شده دامنه خود استفاده کنید.";
 "ForwardedEmailDescription" = "یک نام مستعار ایمیل با یک سرویس ارسال خارجی ایجاد کنید.";
 "Random" = "تصادفی";
-"ConnectToWatch" = "اتصال به ساعت";
 "LoginRequestHasAlreadyExpired" = "درخواست ورود قبلاً منقضی شده است.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "تلاش برای ورود از:\n%1$@\nآیا می‌خواهید به این حساب کاربری تغییر دهید؟";
 "NewAroundHere" = "اینجا تازه واردی؟";

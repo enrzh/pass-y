@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Utilisez la boîte de réception du collecteur (catch-all) configurée de votre domaine.";
 "ForwardedEmailDescription" = "Générer un alias de courriel avec un service de transfert externe.";
 "Random" = "Aléatoire";
-"ConnectToWatch" = "Se connecter à la montre";
 "LoginRequestHasAlreadyExpired" = "La demande de connexion a déjà expiré.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Tentative de connexion depuis :\n%1$@\nVoulez-vous basculer vers ce compte ?";
 "NewAroundHere" = "Vous êtes nouveau ici ?";

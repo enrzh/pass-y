@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Використовуйте можливості Catch-All власного домену.";
 "ForwardedEmailDescription" = "Згенеруйте псевдонім е-пошти зі стороннім сервісом пересилання.";
 "Random" = "Випадково";
-"ConnectToWatch" = "Під'єднати годинник";
 "LoginRequestHasAlreadyExpired" = "Термін дії запиту на вхід завершився.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Спроба входу в систему з:\n%1$@\nХочете перемкнутися на цей обліковий запис?";
 "NewAroundHere" = "Виконуєте вхід вперше?";

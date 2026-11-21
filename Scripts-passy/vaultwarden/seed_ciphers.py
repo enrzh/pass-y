@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Adds N throwaway login ciphers to the local test account (performance testing) and the named fixtures the UI tests
 search for: GitHub (with an authenticator key, so the "Verification codes" tile exists), Netflix and Bank
-(skipped when an item with that name already exists). Usage: seed_ciphers.py [count] [server_url]"""
+(skipped when an item with that name already exists). Usage: seed_ciphers.py [count] [server_url]
+`seed_ciphers.py --count [server_url]` prints the number of "Perf Item" ciphers on the server and exits."""
 import base64, hashlib, hmac, json, os, sys, urllib.parse, urllib.request
 from cryptography.hazmat.primitives import hashes, padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDFExpand
 
-COUNT = int(sys.argv[1]) if len(sys.argv) > 1 else 2000
+COUNT_ONLY = len(sys.argv) > 1 and sys.argv[1] == "--count"
+COUNT = 0 if COUNT_ONLY else (int(sys.argv[1]) if len(sys.argv) > 1 else 2000)
 SERVER = sys.argv[2] if len(sys.argv) > 2 else "http://localhost:8088"
 EMAIL, PASSWORD, ITER = "passy-test@example.test", "PassY-Test-Only-2026!", 600000
 b64 = lambda b: base64.b64encode(b).decode()
@@ -49,6 +51,16 @@ def post(body):
     except urllib.error.HTTPError as e:
         print(e.code, e.read()[:400]); raise SystemExit(1)
 
+if COUNT_ONLY:
+    sync = json.load(urllib.request.urlopen(urllib.request.Request(SERVER + "/api/sync?excludeDomains=true", headers=H)))
+    n = 0
+    for c in sync.get("ciphers") or sync.get("Ciphers") or []:
+        try:
+            n += dec_string(sym, c.get("name") or c.get("Name")).decode().startswith("Perf Item")
+        except Exception:
+            pass
+    print(n)
+    raise SystemExit(0)
 existing = set()
 try:
     sync = json.load(urllib.request.urlopen(urllib.request.Request(SERVER + "/api/sync?excludeDomains=true", headers=H)))

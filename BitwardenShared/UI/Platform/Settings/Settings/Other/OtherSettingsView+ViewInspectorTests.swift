@@ -37,17 +37,4 @@ class OtherSettingsViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.effects.last, .syncNow)
     }
 
-    /// The connect to watch toggle is hidden if the device is not an iPhone.
-    @MainActor
-    func test_connectToWatchToggle_hidden() async throws {
-        processor.state.shouldShowConnectToWatchToggle = false
-        XCTAssertThrowsError(try subject.inspect().find(toggleWithAccessibilityLabel: Localizations.connectToWatch))
-    }
-
-    /// The connect to watch toggle is visible if the device is an iPhone.
-    @MainActor
-    func test_connectToWatchToggle_visible() async throws {
-        processor.state.shouldShowConnectToWatchToggle = true
-        XCTAssertNoThrow(try subject.inspect().find(toggleWithAccessibilityLabel: Localizations.connectToWatch))
-    }
 }

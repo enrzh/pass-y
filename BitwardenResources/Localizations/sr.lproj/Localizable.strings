@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Користите подешено catch-all пријемно сандуче вашег домена.";
 "ForwardedEmailDescription" = "Генеришите псеудоним е-поште помоћу екстерне услуге прослеђивања.";
 "Random" = "Случајно";
-"ConnectToWatch" = "Повежите се на Watch";
 "LoginRequestHasAlreadyExpired" = "Захтев за пријаву је већ истекао.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Покушај пријаве са:\n%1$@\nДа ли желите да пређете на овај налог?";
 "NewAroundHere" = "Нов овде?";

@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Домениңиздин конфигурацияланган бардык каттарды кабыл алуучу кирүү кутусун колдонуу.";
 "ForwardedEmailDescription" = "Сырткы кайра жөнөтүү кызматы менен электрондук почтанын псевдонимирин түзүү.";
 "Random" = "Кокустук";
-"ConnectToWatch" = "Watchке туташуу";
 "LoginRequestHasAlreadyExpired" = "Кирүү сурамынын мөөнөтү өтүп калган.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Кирүү аракети:\n%1$@\nБул аккаунтка өткүңүз келеби?";
 "NewAroundHere" = "Бул жерде жаңыбы?";

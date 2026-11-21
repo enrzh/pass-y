@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Použiť doručenú poštu typu catch-all nastavenú na doméne.";
 "ForwardedEmailDescription" = "Vytvoriť e-mailový alias pomocou externej služby presmerovania.";
 "Random" = "Náhodné";
-"ConnectToWatch" = "Prepojiť s hodinkami";
 "LoginRequestHasAlreadyExpired" = "Platnosť žiadosti o prihlásenie už vypršala.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Pokus o prihlásenie z:\n%1$@\nChcete prepnúť na tento účet?";
 "NewAroundHere" = "Ste tu nový?";

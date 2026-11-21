@@ -555,7 +555,6 @@
 "CatchAllEmailDescription" = "השתמש בתיבת דואר תפוס־כל המוגדרת בדומיין שלך.";
 "ForwardedEmailDescription" = "צור כינוי דוא\"ל עם שירות העברה חיצוני.";
 "Random" = "אקראי";
-"ConnectToWatch" = "התחבר לשעון";
 "LoginRequestHasAlreadyExpired" = "כבר פג תוקפה של בקשת הכניסה.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "ניסיון כניסה מ:\n%1$@\nהאם ברצונך לעבור לחשבון זה?";
 "NewAroundHere" = "חדש כאן?";

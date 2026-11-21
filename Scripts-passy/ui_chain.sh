@@ -1,10 +1,11 @@
 #!/bin/bash
-# UI chain for ui-r8, started detached (see start_chain below). PID file: $O/chain.pid, log: $O/chain.log,
-# result per step: $O/summary.txt. Never ends foreign processes. Sim: own PassY-R8b (booted only for the duration of a
+# UI chain (generic; round tag in ROUND, default r9), started detached (see start_chain below). PID file: $O/chain.pid, log: $O/chain.log,
+# result per step: $O/summary.txt. Never ends foreign processes. Sim: own PassY-${ROUND^^}b (booted only for the duration of a
 # step, shut down afterwards), PassY-2FA for the 2FA step, an own iPad simulator for the iPad steps.
 # Gate: 1-minute load < 25 for 3 minutes (sampled every 30 s) before the first step, < 25 before every further step.
 export HOME=${HOME:-/Users/enrico}
-R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"                       # the ui-r8 worktree
+ROUND="${ROUND:-r9}"   # tag for sims, screenshot names and the UiR<N> test class
+R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"                       # the worktree of the round
 S="${PASSY_SCRATCH:-$HOME/Library/Caches/passy-vw-scratch}"; O="$S/out"      # scratch: logs, result bundles, Vaultwarden data
 export PASSY_SCRATCH="$S" PASSY_OUT="$O" PASSY_REPO="$R" PASSY_DD="${PASSY_DD:-$HOME/Library/Caches/passy-vw-dd}"
 VW_BIN="${VW_BIN:-/Users/enrico/Documents/GitHub/vaultwarden-build/vaultwarden}"; PORT=8089
@@ -17,8 +18,8 @@ sim_id() { # sim_id <name> <device type> <runtime>: UDID of the own simulator wi
   echo "$id"
 }
 IOS=com.apple.CoreSimulator.SimRuntime.iOS-27-0
-SIM_PHONE=$(sim_id PassY-R8b com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro $IOS)
-SIM_2FA=$(sim_id PassY-R8-2FA com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro $IOS)
+SIM_PHONE=$(sim_id PassY-${ROUND^^}b com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro $IOS)
+SIM_2FA=$(sim_id PassY-${ROUND^^}-2FA com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro $IOS)
 echo $$ > $O/chain.pid
 log() { echo "$(date '+%F %T') [load $(sysctl -n vm.loadavg | awk '{print $2}')] $*" | tee -a $LOG; }
 load1() { sysctl -n vm.loadavg | awk '{print int($2)}'; }
@@ -132,34 +133,47 @@ STEP_MIN=15 step rest      1 $SIM_PHONE PassYUITests/PassYImportRegShotsTests/te
   PassYUITests/PassYUiR6ShotsTests/test_rowChevronContextMenuSwipe PassYUITests/PassYUiR6ShotsTests/test_selectModeDelete PassYUITests/PassYUiR6ShotsTests/test_swipeDelete \
   PassYUITests/PassYUiR7ShotsTests
 STEP_MIN=1 step regstart  erase $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_registrationStart
-STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-auth-light"; STEP_MIN=1 step auth-light  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-auth-dark";  step auth-dark   1 $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
-STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-2fa-light"; STEP_MIN=1 step 2fa-light  erase $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-2fa-dark";   step 2fa-dark   1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-2fa-dark2";  step 2fa-dark2  1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-dev-light"; STEP_MIN=1 step device-light erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-dev-dark";   step device-dark  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
-STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-dev-light-b"; STEP_MIN=1 step device-light-b erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-dev-dark-b";   STEP_MIN=1 step device-dark-b  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
+STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-auth-light"; STEP_MIN=1 step auth-light  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-auth-dark";  step auth-dark   1 $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
+STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-2fa-light"; STEP_MIN=1 step 2fa-light  erase $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-2fa-dark";   step 2fa-dark   1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-2fa-dark2";  step 2fa-dark2  1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
+STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-dev-light"; STEP_MIN=1 step device-light erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-dev-dark";   step device-dark  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
+STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-dev-light-b"; STEP_MIN=1 step device-light-b erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
+STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-dev-dark-b";   STEP_MIN=1 step device-dark-b  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
 STEP_ENV=""
 STEP_MIN=7 step ui-r8     erase $SIM_PHONE PassYUITests/PassYUiR8Tests
+STEP_MIN=${R9_MIN:-1} step ui-r9     erase $SIM_PHONE PassYUITests/PassYUiR9Tests
 # iPad: own simulator
 T=$(xcrun simctl list devicetypes | grep -E "iPad Air 11" | head -1 | grep -oE 'com\.apple[^)]*')
-IPAD=$(sim_id PassY-R8-iPad "$T" $IOS)
+IPAD=$(sim_id PassY-${ROUND^^}-iPad "$T" $IOS)
 if [ -n "$IPAD" ]; then
-  STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=r8-ipad-light"; STEP_MIN=2 step ipad-light erase $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
-  STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=r8-ipad-dark";   step ipad-dark  1 $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
+  STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-ipad-light"; STEP_MIN=2 step ipad-light erase $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
+  STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-ipad-dark";   step ipad-dark  1 $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
   STEP_ENV=""
   xcrun simctl boot $IPAD 2>/dev/null; xcrun simctl bootstatus $IPAD -b >/dev/null 2>&1
-  ( U=$IPAD bash $R/Scripts-passy/ipad_landscape_shots.sh $IPAD $O/ipad-landscape r8 ) >> $LOG 2>&1 &
+  ( U=$IPAD bash $R/Scripts-passy/ipad_landscape_shots.sh $IPAD $O/ipad-landscape $ROUND ) >> $LOG 2>&1 &
+  SHOT_PID=$!   # explicit PID: job numbers (%1) are not reliable here (a "kill %1" once ended Vaultwarden)
   STEP_MIN=1 step ipad-landscape 0 $IPAD PassYUITests/PassYUiR6ShotsTests/test_ipadLandscapeHold
-  kill %1 2>/dev/null
+  kill "$SHOT_PID" 2>/dev/null; wait "$SHOT_PID" 2>/dev/null
 else
   note "ipad steps: SKIPPED (no iPad simulator type found)"
 fi
-# 2000 item perf: seeded right before, so the app needs a fresh login (the first sync with the 2000 items)
-[ -f $O/.seed2000 ] || { python3 Scripts-passy/vaultwarden/seed_ciphers.py 2000 http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seed2000; }
-STEP_MIN=6 step perf      erase $SIM_PHONE PassYUITests/PassYPerfTests
+# 2000 item perf: the server may have been restarted: bring it up, seed (verified by the item count through the API), and
+# only then run perf. The app needs a fresh login (the first sync with the 2000 items).
+vw_up || note "perf: Vaultwarden not reachable before seeding"
+if [ ! -f $O/.seed2000 ]; then
+  python3 Scripts-passy/vaultwarden/seed_ciphers.py 2000 http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seed2000
+fi
+COUNT=$(python3 Scripts-passy/vaultwarden/seed_ciphers.py --count http://localhost:$PORT 2>>$LOG | tail -1)
+case "$COUNT" in ''|*[!0-9]*) COUNT=0;; esac
+if [ "$COUNT" -lt 2000 ]; then
+  note "perf: SKIPPED (server has $COUNT items, 2000 needed; .seed2000 removed so the next run seeds again)"; rm -f $O/.seed2000
+else
+  note "perf: seeding verified ($COUNT items on the server)"
+fi
+[ "${COUNT:-0}" -ge 2000 ] && STEP_MIN=6 step perf      erase $SIM_PHONE PassYUITests/PassYPerfTests
 STEP_MIN=5 step audit     1 $SIM_PHONE PassYUITests/PassYAuditShotsTests
 note "chain done"
 rm -f $O/chain.pid

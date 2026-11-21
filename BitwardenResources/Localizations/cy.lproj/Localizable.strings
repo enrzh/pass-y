@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Defnyddio mewnflwch dal-pob wedi'i ffurfweddu ar gyfer eich parth.";
 "ForwardedEmailDescription" = "Cynhyrchu alias e-bost gyda gwasanaeth ailgyfeirio allanol.";
 "Random" = "Hap";
-"ConnectToWatch" = "Cysylltu â Watch";
 "LoginRequestHasAlreadyExpired" = "Mae'r cais mewngofnodi eisoes wedi dod i ben.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Ymgais mewngofnodi o:\n%1$@\nYdych chi am newid i'r cyfrif hwn?";
 "NewAroundHere" = "Ydych chi'n newydd?";

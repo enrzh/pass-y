@@ -183,14 +183,6 @@ protocol StateService: AnyObject, DebugStateService {
     ///
     func getCollapsedVaultListSectionIds(userId: String?) async throws -> [String]
 
-    /// Gets the connect to watch value for an account.
-    ///
-    /// - Parameter userId: The user ID associated with the connect to watch value. Defaults to the active
-    ///   account if `nil`
-    /// - Returns: Whether to connect to the watch app.
-    ///
-    func getConnectToWatch(userId: String?) async throws -> Bool
-
     /// Gets the default URI match type value for an account.
     ///
     /// - Parameter userId: The user ID of the account. Defaults to the active account if `nil`.
@@ -267,13 +259,6 @@ protocol StateService: AnyObject, DebugStateService {
     /// - Returns: The user's last sync monotonic time as a `TimeInterval` since system boot.
     ///
     func getLastSyncMonotonicTime(userId: String?) async throws -> TimeInterval?
-
-    /// The last value of the connect to watch setting, ignoring the user id. Used for
-    /// sending the status to the watch if the user is logged out.
-    ///
-    /// - Returns: The last known value of the `connectToWatch` setting.
-    ///
-    func getLastUserShouldConnectToWatch() async -> Bool
 
     /// Gets the status of Learn Generator Action Card.
     ///
@@ -596,14 +581,6 @@ protocol StateService: AnyObject, DebugStateService {
     ///
     func setCollapsedVaultListSectionIds(_ ids: [String], userId: String?) async throws
 
-    /// Sets the connect to watch value for an account.
-    ///
-    /// - Parameters:
-    ///   - connectToWatch: Whether to connect to the watch app.
-    ///   - userId: The user ID of the account. Defaults to the active account if `nil`.
-    ///
-    func setConnectToWatch(_ connectToWatch: Bool, userId: String?) async throws
-
     /// Sets the default URI match type value for an account.
     ///
     /// - Parameters:
@@ -879,12 +856,6 @@ protocol StateService: AnyObject, DebugStateService {
     ///
     func appThemePublisher() async -> AnyPublisher<AppTheme, Never>
 
-    /// A publisher for the connect to watch value.
-    ///
-    /// - Returns: A publisher for the connect to watch value.
-    ///
-    func connectToWatchPublisher() async -> AnyPublisher<(String?, Bool), Never>
-
     /// A publisher for the last sync time for the active account.
     ///
     /// - Returns: A publisher for the last sync time.
@@ -1063,14 +1034,6 @@ extension StateService {
     ///
     func getCollapsedVaultListSectionIds() async throws -> [String] {
         try await getCollapsedVaultListSectionIds(userId: nil)
-    }
-
-    /// Gets the connect to watch value for the active account.
-    ///
-    /// - Returns: Whether to connect to the watch app.
-    ///
-    func getConnectToWatch() async throws -> Bool {
-        try await getConnectToWatch(userId: nil)
     }
 
     /// Gets the default URI match type value for the active account.
@@ -1345,14 +1308,6 @@ extension StateService {
         try await setCollapsedVaultListSectionIds(ids, userId: nil)
     }
 
-    /// Sets the connect to watch value for the active account.
-    ///
-    /// - Parameter connectToWatch: Whether to connect to the watch app.
-    ///
-    func setConnectToWatch(_ connectToWatch: Bool) async throws {
-        try await setConnectToWatch(connectToWatch, userId: nil)
-    }
-
     /// Sets the default URI match type value the active account.
     ///
     /// - Parameter defaultUriMatchType: The default URI match type.
@@ -1553,9 +1508,6 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
 
     /// A subject containing the app theme.
     private var appThemeSubject: CurrentValueSubject<AppTheme, Never>
-
-    /// A subject containing the connect to watch value.
-    private var connectToWatchByUserIdSubject = CurrentValueSubject<[String: Bool], Never>([:])
 
     /// The data store that handles performing data requests.
     private let dataStore: DataStore
@@ -1780,11 +1732,6 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
         return appSettingsStore.collapsedVaultListSectionIds(userId: userId)
     }
 
-    func getConnectToWatch(userId: String?) async throws -> Bool {
-        let userId = try userId ?? getActiveAccountUserId()
-        return appSettingsStore.connectToWatch(userId: userId)
-    }
-
     func getDefaultUriMatchType(userId: String?) async -> UriMatchType {
         do {
             let userId = try userId ?? getActiveAccountUserId()
@@ -1841,10 +1788,6 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
     func getLastSyncMonotonicTime(userId: String?) async throws -> TimeInterval? {
         let userId = try userId ?? getActiveAccountUserId()
         return appSettingsStore.lastSyncMonotonicTime(userId: userId)
-    }
-
-    func getLastUserShouldConnectToWatch() async -> Bool {
-        appSettingsStore.lastUserShouldConnectToWatch
     }
 
     func getLoginRequest() async -> LoginRequestNotification? {
@@ -2162,16 +2105,6 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
         appSettingsStore.setCollapsedVaultListSectionIds(ids, userId: userId)
     }
 
-    func setConnectToWatch(_ connectToWatch: Bool, userId: String?) async throws {
-        let userId = try userId ?? getActiveAccountUserId()
-        appSettingsStore.setConnectToWatch(connectToWatch, userId: userId)
-        connectToWatchByUserIdSubject.value[userId] = connectToWatch
-
-        // Save the value of the connect to watch setting independent of the user id,
-        // in order to be able to send a status to the watch if the user logs out.
-        appSettingsStore.lastUserShouldConnectToWatch = connectToWatch
-    }
-
     func setDefaultUriMatchType(_ defaultUriMatchType: UriMatchType?, userId: String?) async throws {
         let userId = try userId ?? getActiveAccountUserId()
         appSettingsStore.setDefaultUriMatchType(defaultUriMatchType, userId: userId)
@@ -2411,22 +2344,6 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
 
     func appThemePublisher() async -> AnyPublisher<AppTheme, Never> {
         appThemeSubject.eraseToAnyPublisher()
-    }
-
-    func connectToWatchPublisher() async -> AnyPublisher<(String?, Bool), Never> {
-        activeAccountIdPublisher()
-            .combineLatest(connectToWatchByUserIdSubject)
-            .map { userId, values in
-                let userValue = if let userId {
-                    // Get the user's setting, if they're logged in.
-                    values[userId] ?? self.appSettingsStore.connectToWatch(userId: userId)
-                } else {
-                    // Otherwise, use the last known value for the previous user.
-                    self.appSettingsStore.lastUserShouldConnectToWatch
-                }
-                return (userId, userValue)
-            }
-            .eraseToAnyPublisher()
     }
 
     func lastSyncTimePublisher() async throws -> AnyPublisher<Date?, Never> {

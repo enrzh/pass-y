@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Gebruik de catch-all inbox van je domein.";
 "ForwardedEmailDescription" = "E-mailadres genereren met een externe doorstuurdienst.";
 "Random" = "Willekeurig";
-"ConnectToWatch" = "Verbinding maken met horloge";
 "LoginRequestHasAlreadyExpired" = "Inlogverzoek is al verlopen.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Inlogpoging vanaf:\n%1$@\nWilt u naar dit account wisselen?";
 "NewAroundHere" = "Nieuw hier?";

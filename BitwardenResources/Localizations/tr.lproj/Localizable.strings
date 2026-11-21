@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Alan adınızın tüm iletileri yakalamaya ayarlanmış adresini kullanın.";
 "ForwardedEmailDescription" = "Harici bir yönlendirme servisiyle e-posta maskesi oluştur.";
 "Random" = "Rastgele";
-"ConnectToWatch" = "Watch'a bağlan";
 "LoginRequestHasAlreadyExpired" = "Giriş isteğinin süresi doldu.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Giriş denemesi yapan hesap:\n%1$@\nBu hesaba geçmek ister misiniz?";
 "NewAroundHere" = "Buralarda yeni misiniz?";

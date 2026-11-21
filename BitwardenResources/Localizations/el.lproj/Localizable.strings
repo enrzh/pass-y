@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Χρησιμοποιήστε το ρυθμισμένο catch-all inbox του τομέα σας.";
 "ForwardedEmailDescription" = "Δημιουργήστε ένα ψευδώνυμο διεύθυνσης ηλ. ταχυδρομείου με μια εξωτερική υπηρεσία προώθησης.";
 "Random" = "Τυχαίο";
-"ConnectToWatch" = "Σύνδεση με το ρολόι";
 "LoginRequestHasAlreadyExpired" = "Το αίτημα σύνδεσης έχει ήδη λήξει.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Προσπάθεια σύνδεσης από:\n%1$@\nΘέλετε να μεταβείτε σε αυτόν τον λογαριασμό;";
 "NewAroundHere" = "Είστε νέος/α εδώ;";

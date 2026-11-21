@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "使用您的域名配置的 Catch-all 收件箱。";
 "ForwardedEmailDescription" = "使用外部转发服务生成电子邮箱别名。";
 "Random" = "随机";
-"ConnectToWatch" = "连接到 Watch";
 "LoginRequestHasAlreadyExpired" = "登录请求已过期。";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "登录尝试来自：\n%1$@\n要切换到此账户吗？";
 "NewAroundHere" = "初来乍到吗？";

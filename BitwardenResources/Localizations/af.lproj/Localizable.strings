@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Gebruik u domein se opgestelde vang-alles-posbus.";
 "ForwardedEmailDescription" = "Genereer ’n e-posalias met ’n eksterne aanstuurdiens.";
 "Random" = "Lukraak";
-"ConnectToWatch" = "Koppel aan horlosie";
 "LoginRequestHasAlreadyExpired" = "Aantekenversoek het reeds verstryk.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Teken Aan probeerslag van:\n%1$@\nWil u na die rekening omskakel?";
 "NewAroundHere" = "Nuut hier?";

@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "ඔබගේ වසමේ වින්‍යාස කළ සියල්ල අල්ලා ගන්නා ඇතුළු පෙට්ටිය භාවිතා කරන්න.";
 "ForwardedEmailDescription" = "බාහිර යළි හරවන සේවාවක් සමඟ විද්‍යුත් තැපැල් ව්‍යාජ නාමයක් ජනනය කරන්න.";
 "Random" = "අහඹු";
-"ConnectToWatch" = "Watch වෙත සම්බන්ධ වන්න";
 "LoginRequestHasAlreadyExpired" = "පිවිසුම් ඉල්ලීම දැනටමත් කල් ඉකුත් වී ඇත.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "පිවිසුම් උත්සාහය:\n%1$@\nඔබට මෙම ගිණුමට මාරු වීමට අවශ්‍යද?";
 "NewAroundHere" = "මෙතන අලුත්ද?";

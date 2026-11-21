@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Använd din domäns konfigurerade catch-all-inkorg.";
 "ForwardedEmailDescription" = "Skapa ett e-postalias med en extern vidarebefordranstjänst.";
 "Random" = "Slumpmässig";
-"ConnectToWatch" = "Anslut till Watch";
 "LoginRequestHasAlreadyExpired" = "Inloggningsbegäran har redan löpt ut.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Inloggningsförsök från:\n%1$@\nVill du byta till detta konto?";
 "NewAroundHere" = "Är du ny här?";

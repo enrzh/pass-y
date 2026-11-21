@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Bruk domenets konfigurerte catch-all-innboks.";
 "ForwardedEmailDescription" = "Generer et e-postalias hos en ekstern videresendingstjeneste.";
 "Random" = "Tilfeldig";
-"ConnectToWatch" = "Koble til klokke";
 "LoginRequestHasAlreadyExpired" = "Innloggingsforespørselen har allerede utløpt.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Innloggingsforsøk:\n%1$@\nVil du bytte til denne kontoen?";
 "NewAroundHere" = "Nytt rundt her?";

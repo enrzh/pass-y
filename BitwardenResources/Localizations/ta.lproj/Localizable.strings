@@ -555,7 +555,6 @@
 "CatchAllEmailDescription" = "உங்கள் டொமைனின் கட்டமைக்கப்பட்ட அனைத்தையும் பெறும் (catch-all) இன்பாக்ஸைப் பயன்படுத்தவும்.";
 "ForwardedEmailDescription" = "வெளிப்புற பார்வர்டிங் சேவையுடன் ஒரு மின்னஞ்சல் மாற்றுப்பெயரை உருவாக்கவும்.";
 "Random" = "ஏதோவொரு";
-"ConnectToWatch" = "வாட்ச்சுடன் இணைக்கவும்";
 "LoginRequestHasAlreadyExpired" = "உள்நுழைவு கோரிக்கை ஏற்கனவே காலாவதியானது.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "இதிலிருந்து உள்நுழைவு முயற்சி:\n%1$@\nஇக்கணக்கிற்கு மாற வேண்டுமா?";
 "NewAroundHere" = "இங்குப் புதிதா?";

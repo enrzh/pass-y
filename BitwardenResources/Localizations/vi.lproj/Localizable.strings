@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Sử dụng hộp thư đến catch-all đã được cấu hình của tên miền của bạn.";
 "ForwardedEmailDescription" = "Tạo một địa chỉ email ảo bằng dịch vụ chuyển tiếp email bên ngoài.";
 "Random" = "Ngẫu nhiên";
-"ConnectToWatch" = "Kết nối với đồng hồ";
 "LoginRequestHasAlreadyExpired" = "Yêu cầu đăng nhập đã hết hạn.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Nỗ lực đăng nhập từ:\n%1$@\nBạn có muốn chuyển sang tài khoản này không?";
 "NewAroundHere" = "Bạn mới tới đây sao?";

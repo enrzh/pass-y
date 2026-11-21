@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Bruk domenet sitt konfigurerte fang-opp-innboks.";
 "ForwardedEmailDescription" = "Generer e-postalias med ein ekstern vidaresendingsteneste.";
 "Random" = "Tilfeldig";
-"ConnectToWatch" = "Kopla til Watch";
 "LoginRequestHasAlreadyExpired" = "Påloggingsførespurnaden har allereie utløpt.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Påloggingsforsøk frå:\n%1$@\nVil du bytte til denne kontoen?";
 "NewAroundHere" = "Ny her?";

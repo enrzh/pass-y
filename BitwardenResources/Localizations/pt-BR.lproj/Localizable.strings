@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Use a caixa de entrada pega-tudo configurada no seu domínio.";
 "ForwardedEmailDescription" = "Gere um alias de e-mail com um serviço de encaminhamento externo.";
 "Random" = "Aleatório";
-"ConnectToWatch" = "Conectar ao Watch";
 "LoginRequestHasAlreadyExpired" = "A solicitação de acesso já expirou.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Tentativa de autenticação de:\n%1$@\nVocê deseja trocar para esta conta?";
 "NewAroundHere" = "Novo por aqui?";

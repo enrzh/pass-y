@@ -554,7 +554,6 @@
 "CatchAllEmailDescription" = "Използвайте конфигурираната входяща кутия за събиране на всичко от домейна си.";
 "ForwardedEmailDescription" = "Създайте псевдоним на е-поща с външна услуга за препращане.";
 "Random" = "Произволно";
-"ConnectToWatch" = "Свързване към часовник";
 "LoginRequestHasAlreadyExpired" = "Заявката за вписване вече е изтекла.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Опит за вписване от:\n%1$@\nИскате ли да превключите към тази регистрация?";
 "NewAroundHere" = "За пръв път ли сте тук?";
