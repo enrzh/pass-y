@@ -193,6 +193,14 @@ class PassYShellController: UIViewController, TabNavigator {
         barContainer = container
         barHost = host
 
+        #if DEBUG
+        // Diagnosis (UI idle investigation): `-passyDumpAnimations YES` logs every layer with a running animation.
+        if UserDefaults.standard.bool(forKey: "passyDumpAnimations") {
+            Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
+                MainActor.assumeIsolated { Self.dumpRunningAnimations() }
+            }
+        }
+        #endif
         model.goToVault = { [weak self] in self?.showVaultHome() }
         model.selectDestination = { [weak self] destination in
             guard let self else { return }
@@ -227,6 +235,23 @@ class PassYShellController: UIViewController, TabNavigator {
     }
 
     // MARK: Private Methods
+
+    #if DEBUG
+    /// Logs the layers that currently have animations (diagnosis only).
+    private static func dumpRunningAnimations() {
+        var lines: [String] = []
+        func walk(_ layer: CALayer, _ depth: Int) {
+            if let keys = layer.animationKeys(), !keys.isEmpty {
+                lines.append("\(type(of: layer)) keys=\(keys) delegate=\(String(describing: layer.delegate).prefix(80)) frame=\(layer.frame)")
+            }
+            for sub in layer.sublayers ?? [] { walk(sub, depth + 1) }
+        }
+        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+            for window in scene.windows { walk(window.layer, 0) }
+        }
+        NSLog("ANIMDUMP count=%d\n%@", lines.count, lines.joined(separator: "\n"))
+    }
+    #endif
 
     /// Observes the stacks of all navigators so the Vault button follows pushes, pops and pop-to-root.
     private func observeStacks() {
