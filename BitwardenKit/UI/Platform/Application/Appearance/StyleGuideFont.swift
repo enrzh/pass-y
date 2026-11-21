@@ -18,7 +18,7 @@ public struct StyleGuideFont: Sendable {
     public let size: CGFloat
 
     /// The text style for the font, used to determine how the font scales with dynamic type.
-    let textStyle: SwiftUI.Font.TextStyle
+    public let textStyle: SwiftUI.Font.TextStyle
 
     // MARK: Initialization
 
@@ -123,9 +123,9 @@ public extension StyleGuideFont {
 
     /// The font for the small sensitive info style (e.g. fingerprint phrases).
     static let sensitiveInfoSmall = StyleGuideFont(
-        font: .custom("Menlo", size: 14, relativeTo: .footnote),
+        font: .system(.footnote, design: .monospaced),
         lineHeight: 18,
-        size: 14,
+        size: 13,
         textStyle: .footnote,
     )
 
@@ -210,16 +210,10 @@ public extension View {
         includeLinePadding: Bool,
         includeLineSpacing: Bool,
     ) -> some View {
-        if includeLineSpacing {
-            padding(.vertical, (style.lineHeight - style.size) / 2)
-                .lineSpacing((style.lineHeight - style.size) / 2)
-                .frame(minHeight: style.lineHeight)
-        } else if includeLinePadding {
-            padding(.vertical, (style.lineHeight - style.size) / 2)
-                .frame(minHeight: style.lineHeight)
-        } else {
-            self
-        }
+        // ui-r8: Apple text styles carry their own leading. The old px based padding, line spacing and minimum
+        // height (derived from sizes that did not match the system sizes) are gone, so rows and forms space
+        // text like Apple Passwords. The parameters are kept so call sites stay unchanged.
+        self
     }
 }
 
@@ -229,7 +223,7 @@ public extension Text {
     ///
     /// - Parameters:
     ///   - style: The style of the text.
-    ///   - weight: The font weight. Defaults to `.regular`.
+    ///   - weight: The font weight. Defaults to the weight of the text style.
     ///   - isItalic: If the text is Italic. Defaults to `false`.
     ///   - includeLinePadding: A flag to indicate if the style should apply padding around the
     ///     view to account for the font's line height. Defaults to `true`.
@@ -241,12 +235,13 @@ public extension Text {
     @MainActor
     func styleGuide(
         _ style: StyleGuideFont,
-        weight: SwiftUI.Font.Weight = .regular,
+        weight: SwiftUI.Font.Weight? = nil,
         isItalic: Bool = false,
         includeLinePadding: Bool = true,
         includeLineSpacing: Bool = true,
         monoSpacedDigit: Bool = false,
     ) -> some View {
+        // A `nil` weight keeps the weight of the text style (for example semibold for `.headline`).
         var textWithFont = font(.styleGuide(style))
             .fontWeight(weight)
         if isItalic {

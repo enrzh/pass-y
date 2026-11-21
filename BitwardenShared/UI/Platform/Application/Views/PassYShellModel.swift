@@ -135,6 +135,9 @@ final class PassYShellModel: ObservableObject {
     /// Whether the search field is being edited.
     @Published var isEditing = false
 
+    /// Whether the vault home (the root of the vault stack) is shown. The Vault button of the bar is hidden then.
+    @Published var isAtVaultHome = true
+
     /// The data of the avatar menu.
     @Published var profileMenu: PassYProfileMenuSource?
 
@@ -146,6 +149,14 @@ final class PassYShellModel: ObservableObject {
 
     /// Selects a destination (set by the shell controller).
     var selectDestination: ((PassYDestination) -> Void)?
+
+    /// Shows the vault home: switches to the vault, pops to its root and clears the search (set by the shell
+    /// controller).
+    var goToVault: (() -> Void)?
+
+    /// The frames of the bar controls in the bar's coordinate space. Everything else in the bar passes touches
+    /// through to the page below.
+    var controlFrames: [CGRect] = []
 
     // MARK: Private
 
@@ -280,11 +291,14 @@ extension View {
 struct PassYShellBar: View {
     // MARK: Constants
 
-    /// The height of the soft fade above the bar content.
-    static let fadeHeight: CGFloat = 28
+    /// Nothing is drawn above the bar content any more (ui-r8: no fade or shadow behind the bar).
+    static let fadeHeight: CGFloat = 0
 
     /// The height of the bar content (44 pt controls plus 8 pt above and below).
     static let barHeight: CGFloat = 60
+
+    /// The coordinate space the control frames are measured in.
+    static let coordinateSpace = "PassYBar"
 
     // MARK: Properties
 
@@ -296,17 +310,26 @@ struct PassYShellBar: View {
         VStack(spacing: 0) {
             Spacer(minLength: 0)
             HStack(spacing: 10) {
+                if !model.isAtVaultHome {
+                    PassYVaultButton { model.goToVault?() }
+                        .reportsBarFrame()
+                        .transition(.scale.combined(with: .opacity))
+                }
+
                 VaultSearchBarRepresentable(isEditing: $model.isEditing, text: $model.text)
                     .frame(height: 44)
                     .modifier(BarBackground(shape: Capsule()))
+                    .reportsBarFrame()
 
                 if model.isSearching {
                     SearchCancelButton { model.cancelSearch() }
+                        .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
                 } else if let entries = model.activeTarget?.entries, !entries.isEmpty {
                     PassYAddMenu(entries: entries)
                         .frame(width: 44, height: 44)
                         .modifier(BarBackground(shape: Circle()))
+                        .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
                 }
             }
@@ -314,23 +337,57 @@ struct PassYShellBar: View {
             .frame(height: Self.barHeight)
         }
         .frame(height: Self.barHeight + Self.fadeHeight)
-        // One page-independent backdrop: a blurred material that fades in from the top (like a system scroll edge
-        // effect), so white and grey pages show the same bar and no differently coloured band.
-        .background(alignment: .bottom) {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .mask(
-                    LinearGradient(
-                        colors: [.clear, .black],
-                        startPoint: .top,
-                        endPoint: UnitPoint(x: 0.5, y: 0.45),
-                    ),
-                )
-                .allowsHitTesting(false)
-        }
+        .coordinateSpace(name: Self.coordinateSpace)
+        .onPreferenceChange(PassYBarFramesKey.self) { model.controlFrames = $0 }
         // Like system toolbars, the floating bar stops growing at the largest non-accessibility size.
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: model.isSearching)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: model.isAtVaultHome)
+    }
+}
+
+// MARK: - PassYBarFramesKey
+
+/// Collects the frames of the bar controls.
+struct PassYBarFramesKey: PreferenceKey {
+    static let defaultValue: [CGRect] = []
+
+    static func reduce(value: inout [CGRect], nextValue: () -> [CGRect]) {
+        value += nextValue()
+    }
+}
+
+extension View {
+    /// Reports this control's frame (in the bar's coordinate space) so the rest of the bar can pass touches through.
+    func reportsBarFrame() -> some View {
+        background(
+            GeometryReader { proxy in
+                Color.clear.preference(
+                    key: PassYBarFramesKey.self,
+                    value: [proxy.frame(in: .named(PassYShellBar.coordinateSpace))],
+                )
+            },
+        )
+    }
+}
+
+// MARK: - PassYVaultButton
+
+/// The Vault button left of the search field: returns to the vault home from every other page.
+struct PassYVaultButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "lock.shield")
+                .font(.body.weight(.semibold))
+                .frame(width: 44, height: 44)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .modifier(BarBackground(shape: Circle()))
+        .accessibilityLabel(Localizations.myVault)
+        .accessibilityIdentifier("BottomBarVaultButton")
     }
 }
 
@@ -343,7 +400,7 @@ private struct PassYAddMenu: View {
     private var symbol: some View {
         // The whole 44 pt circle is the tap target (the symbol alone is only ~18 pt).
         Image(systemName: "plus")
-            .font(.system(size: 17, weight: .semibold))
+            .font(.body.weight(.semibold))
             .foregroundStyle(.tint)
             .frame(width: 44, height: 44)
             .contentShape(Circle())
@@ -458,7 +515,7 @@ struct PassYAvatarMenu: View {
                     .foregroundStyle(Color.white)
             } else {
                 Image(systemName: "person.fill")
-                    .font(.system(size: 14))
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
         }

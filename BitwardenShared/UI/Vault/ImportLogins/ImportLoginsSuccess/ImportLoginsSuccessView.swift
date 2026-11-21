@@ -19,7 +19,8 @@ struct ImportLoginsSuccessView: View {
             Section {
                 VStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 52))
+                        .font(.largeTitle)
+                        .imageScale(.large)
                         .foregroundStyle(.green)
                         .accessibilityHidden(true)
                     Text(Localizations.importSuccessful)

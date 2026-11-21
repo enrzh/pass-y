@@ -5,6 +5,12 @@ import SwiftUI
 /// `View`. A `View` can send actions to the `Processor` through the store and can observe changes
 /// that the `Processor` makes to the state.
 ///
+/// Counters used by the performance tests to prove how often child stores are created.
+public enum StorePerfCounters {
+    /// The number of child stores that were created from a parent store.
+    nonisolated(unsafe) public static var childStores = 0
+}
+
 @MainActor
 open class Store<State: Sendable, Action: Sendable, Effect: Sendable>: ObservableObject {
     // MARK: Properties
@@ -52,6 +58,7 @@ open class Store<State: Sendable, Action: Sendable, Effect: Sendable>: Observabl
         mapAction: ((Action) -> ParentAction)?,
         mapEffect: ((Effect) -> ParentEffect)?,
     ) {
+        StorePerfCounters.childStores += 1
         state = parentToChildState(parentStore.state)
         receive = { action in
             guard let mapAction else { return }

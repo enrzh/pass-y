@@ -17,6 +17,9 @@ private struct SearchableVaultListView: View {
     /// An object used to open urls from this view.
     @Environment(\.openURL) private var openURL
 
+    /// The memoized tile/section split of the vault data.
+    @SwiftUI.State private var splitCache = TileSplitCache()
+
     /// The `Store` for this view.
     @ObservedObject var store: Store<VaultListState, VaultListAction, VaultListEffect>
 
@@ -43,8 +46,11 @@ private struct SearchableVaultListView: View {
             vault
                 .hidden(isSearching)
 
-            search
-                .hidden(!isSearching)
+            // ui-r8: the search list only exists while searching. Two scroll views in one screen confuse UIKit's
+            // choice of the content scroll view for the large title, and the hidden one still diffed every change.
+            if isSearching {
+                search
+            }
         }
         .animation(.easeInOut, value: store.state.organizationUserNotificationBannerData)
         .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
@@ -191,17 +197,23 @@ private struct SearchableVaultListView: View {
     }
 
     /// A view that displays either the my vault or empty vault interface.
+    ///
+    /// ui-r8: wrapped in an `Equatable` boundary. Changes that do not touch what the vault list shows (toast, search
+    /// text and results, bottom bar, profile menu, selection) no longer re-evaluate the list and its rows.
     @ViewBuilder private var vault: some View {
-        LoadingView(state: store.state.loadingState) { sections in
-            if sections.isEmpty {
-                emptyVault
-            } else {
-                vaultContents(with: sections)
-                    .readableContentWidth(760)
+        EquatableContent(key: store.state.homeListKey) {
+            LoadingView(state: store.state.loadingState) { sections in
+                if sections.isEmpty {
+                    emptyVault
+                } else {
+                    vaultContents(with: sections)
+                        .readableContentWidth(760)
+                }
+            } errorView: { errorMessage in
+                errorViewWithRetry(errorMessage: errorMessage)
             }
-        } errorView: { errorMessage in
-            errorViewWithRetry(errorMessage: errorMessage)
         }
+        .equatable()
     }
 
     /// Displays the vault filter row if the user is a member of any.
@@ -251,38 +263,16 @@ private struct SearchableVaultListView: View {
         .scrollView(centerContentVertically: true)
     }
 
-    /// Splits the sections into category tile items and the remaining list sections in a single pass using a cheap
-    /// case check (no deep `Equatable` comparisons, which were O(items x tiles) on every body evaluation).
-    private static func splitTiles(_ sections: [VaultListSection]) -> ([VaultListItem], [VaultListSection]) {
-        var tileItems: [VaultListItem] = []
-        var listSections: [VaultListSection] = []
-        for section in sections {
-            var rest: [VaultListItem] = []
-            rest.reserveCapacity(section.items.count)
-            for item in section.items {
-                if case let .group(group, _) = item.itemType, group.isCategoryTile {
-                    tileItems.append(item)
-                } else {
-                    rest.append(item)
-                }
-            }
-            if rest.count == section.items.count {
-                listSections.append(section)
-            } else if !rest.isEmpty {
-                listSections.append(VaultListSection(id: section.id, items: rest, name: section.name))
-            }
-        }
-        return (tileItems, listSections)
-    }
-
     /// The vault as a native inset-grouped `List`: action card, vault filter, category tiles and one collapsible section per
-    /// group of items. Rows get a "More" swipe action and pointer hover.
+    /// group of items. Rows get a "More" swipe action and pointer hover. The tiles and the item sections are
+    /// `Equatable` subviews: a change that does not touch the vault data (toast, search text, bar) does not diff
+    /// the (up to thousands of) rows again.
     ///
     /// - Parameter sections: The sections of the vault list to display.
     ///
     @ViewBuilder
     private func vaultContents(with sections: [VaultListSection]) -> some View {
-        let (tileItems, listSections) = Self.splitTiles(sections)
+        let (tileItems, listSections) = splitCache.split(sections)
         List {
             if store.state.activeActionCard != nil, store.state.activeActionCard != .introducingArchive {
                 Section {
@@ -341,6 +331,7 @@ private struct SearchableVaultListView: View {
                         .textCase(nil)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("SectionExpandButton_\(section.id)")
@@ -368,38 +359,131 @@ private struct SearchableVaultListView: View {
     ///
     @ViewBuilder
     private func vaultItemRow(for item: VaultListItem, isLastInSection: Bool = false) -> some View {
-        VaultListItemRowView(
-            store: store.child(
-                state: { state in
-                    VaultListItemRowState(
-                        iconBaseURL: state.iconBaseURL,
-                        hasPremium: state.hasPremium,
-                        isFromExtension: false,
-                        item: item,
-                        hasDivider: !isLastInSection,
-                        showWebIcons: state.showWebIcons,
-                    )
-                },
-                mapAction: { action in
-                    switch action {
-                    case let .copyTOTPCode(code):
-                        .copyTOTPCode(code)
-                    }
-                },
-                mapEffect: { effect in
-                    switch effect {
-                    case let .accessibilityMoreOptionsActionPressed(kind):
-                        .accessibilityMoreOptionsActionPressed(item, kind)
-                    case .morePressed:
-                        .morePressed(item)
-                    case .pressed:
-                        .itemPressed(item)
-                    }
-                },
-            ),
+        VaultListRowCell.make(
+            for: item,
+            isLastInSection: isLastInSection,
+            isSelecting: listIsEditing,
+            store: store,
             timeProvider: timeProvider,
-            onDelete: item.isCipherItem ? { Task { await store.perform(.deleteItems([item])) } } : nil,
         )
+        .equatable()
+    }
+}
+
+// MARK: - VaultListRowCell + VaultListState
+
+extension VaultListRowCell {
+    /// Creates a row of the vault or search list. No child `Store` is created: the row gets its state and closures.
+    @MainActor
+    static func make(
+        for item: VaultListItem,
+        isLastInSection: Bool,
+        isSelecting: Bool = false,
+        store: Store<VaultListState, VaultListAction, VaultListEffect>,
+        timeProvider: any TimeProvider,
+    ) -> VaultListRowCell {
+        PassYPerf.rowBuildCount += 1
+        let state = store.state
+        return VaultListRowCell(
+            state: VaultListItemRowState(
+                iconBaseURL: state.iconBaseURL,
+                hasPremium: state.hasPremium,
+                isFromExtension: false,
+                isSelecting: isSelecting,
+                item: item,
+                hasDivider: !isLastInSection,
+                showWebIcons: state.showWebIcons,
+            ),
+            perform: { [weak store] effect in
+                switch effect {
+                case let .accessibilityMoreOptionsActionPressed(kind):
+                    await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
+                case .morePressed:
+                    await store?.perform(.morePressed(item))
+                case .pressed:
+                    await store?.perform(.itemPressed(item))
+                }
+            },
+            send: { [weak store] action in
+                switch action {
+                case let .copyTOTPCode(code):
+                    store?.send(.copyTOTPCode(code))
+                }
+            },
+            timeProvider: timeProvider,
+            onDelete: item.isCipherItem ? { [weak store] in Task { await store?.perform(.deleteItems([item])) } } : nil,
+        )
+    }
+}
+
+// MARK: - EquatableContent
+
+/// A view whose body is only evaluated again when `key` changes (the closure is ignored by `==`).
+struct EquatableContent<Key: Equatable, Content: View>: View, Equatable {
+    /// What the content depends on.
+    let key: Key
+
+    /// The content.
+    @ViewBuilder let content: () -> Content
+
+    static func == (lhs: EquatableContent, rhs: EquatableContent) -> Bool { lhs.key == rhs.key }
+
+    var body: some View { content() }
+}
+
+// MARK: - VaultListState + home list key
+
+extension VaultListState {
+    /// The state without everything the vault home list does not show. Two equal keys mean the same list.
+    var homeListKey: VaultListState {
+        var key = self
+        key.flightRecorderToastBanner = FlightRecorderToastBannerState()
+        key.folders = []
+        key.isEligibleForAppReview = false
+        key.isSelecting = false
+        key.itemTypesUserCanCreate = []
+        key.profileSwitcherState = .empty()
+        key.searchResults = []
+        key.searchText = ""
+        key.searchVaultFilterType = .allVaults
+        key.selection = []
+        key.toast = nil
+        key.url = nil
+        return key
+    }
+}
+
+// MARK: - TileSplitCache
+
+/// Splits the vault sections into category tile items and list sections once per data change. `Array` equality
+/// short-circuits when both arrays share their storage, so an unchanged vault costs O(1) per body pass.
+final class TileSplitCache {
+    private var sections: [VaultListSection]?
+    private var result: ([VaultListItem], [VaultListSection]) = ([], [])
+
+    func split(_ new: [VaultListSection]) -> ([VaultListItem], [VaultListSection]) {
+        if let sections, sections == new { return result }
+        var tileItems: [VaultListItem] = []
+        var listSections: [VaultListSection] = []
+        for section in new {
+            var rest: [VaultListItem] = []
+            rest.reserveCapacity(section.items.count)
+            for item in section.items {
+                if case let .group(group, _) = item.itemType, group.isCategoryTile {
+                    tileItems.append(item)
+                } else {
+                    rest.append(item)
+                }
+            }
+            if rest.count == section.items.count {
+                listSections.append(section)
+            } else if !rest.isEmpty {
+                listSections.append(VaultListSection(id: section.id, items: rest, name: section.name))
+            }
+        }
+        sections = new
+        result = (tileItems, listSections)
+        return result
     }
 }
 

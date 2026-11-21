@@ -34,7 +34,8 @@ struct CategoryTilesView: View {
             ForEach(items) { item in
                 if case let .group(group, count) = item.itemType {
                     Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        PassYPerf.beginTap("tile")
+                        CategoryTileHaptics.tapped()
                         onSelect(item)
                     } label: {
                         CategoryTile(group: group, count: count)
@@ -52,6 +53,19 @@ struct CategoryTilesView: View {
     }
 }
 
+// MARK: - CategoryTileHaptics
+
+/// One prepared feedback generator: creating a generator per tap makes the first impact wait for the Taptic Engine.
+@MainActor
+private enum CategoryTileHaptics {
+    private static let generator = UIImpactFeedbackGenerator(style: .light)
+
+    static func tapped() {
+        generator.impactOccurred()
+        generator.prepare()
+    }
+}
+
 // MARK: - CategoryTile
 
 /// One tile: colored symbol badge, count and title.
@@ -63,7 +77,7 @@ private struct CategoryTile: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 Image(systemName: group.tileSymbol)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(.white)
                     .frame(width: 36, height: 36)
                     .background(group.tileColor, in: Circle())

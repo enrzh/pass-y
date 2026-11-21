@@ -34,8 +34,9 @@ private extension ModifiedContent where Modifier == AccessibilityAttachmentModif
 struct VaultListItemRowView: View {
     // MARK: Properties
 
-    /// The `Store` for this view.
-    var store: Store<VaultListItemRowState, VaultListItemRowAction, VaultListItemRowEffect>
+    /// Where the row reads its state from and sends actions and effects to. Either a `Store` (extension lists,
+    /// previews, tests) or plain values and closures (the vault lists: no child `Store` per row and per body pass).
+    let store: Source
 
     /// The `TimeProvider` used to calculate TOTP expiration.
     var timeProvider: (any TimeProvider)?
@@ -43,13 +44,65 @@ struct VaultListItemRowView: View {
     /// Optional delete handler; when set the context menu offers "Delete".
     var onDelete: (() -> Void)?
 
-    /// In Select mode the list handles the tap (selection), not the row button.
-    @Environment(\.editMode) private var editMode
+    // MARK: Types
+
+    /// The state and the way back to the processor of a row.
+    struct Source {
+        /// Reads the current state.
+        let stateProvider: () -> VaultListItemRowState
+
+        /// Performs an effect.
+        let performEffect: (VaultListItemRowEffect) async -> Void
+
+        /// Sends an action.
+        let sendAction: (VaultListItemRowAction) -> Void
+
+        /// The current state.
+        var state: VaultListItemRowState { stateProvider() }
+
+        /// Performs an effect.
+        func perform(_ effect: VaultListItemRowEffect) async { await performEffect(effect) }
+
+        /// Sends an action.
+        func send(_ action: VaultListItemRowAction) { sendAction(action) }
+    }
+
+    // MARK: Initialization
+
+    /// Creates a row that follows a `Store`.
+    init(
+        store: Store<VaultListItemRowState, VaultListItemRowAction, VaultListItemRowEffect>,
+        timeProvider: (any TimeProvider)? = nil,
+        onDelete: (() -> Void)? = nil,
+    ) {
+        self.store = Source(
+            stateProvider: { store.state },
+            performEffect: { await store.perform($0) },
+            sendAction: { store.send($0) },
+        )
+        self.timeProvider = timeProvider
+        self.onDelete = onDelete
+    }
+
+    /// Creates a row from plain values and closures (no `Store` object per row).
+    init(
+        state: VaultListItemRowState,
+        perform: @escaping (VaultListItemRowEffect) async -> Void,
+        send: @escaping (VaultListItemRowAction) -> Void,
+        timeProvider: (any TimeProvider)? = nil,
+        onDelete: (() -> Void)? = nil,
+    ) {
+        store = Source(stateProvider: { state }, performEffect: perform, sendAction: send)
+        self.timeProvider = timeProvider
+        self.onDelete = onDelete
+    }
 
     var body: some View {
+        let _ = { PassYPerf.rowBodyCount += 1 }()
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 AsyncButton {
+                    PassYPerf.beginTap()
                     await store.perform(.pressed)
                 } label: {
                     HStack(spacing: 16) {
@@ -82,25 +135,39 @@ struct VaultListItemRowView: View {
                             }
                         }
                         .padding(.vertical, 9)
+
+                        Spacer(minLength: 0)
+
+                        if showsChevron {
+                            // Apple Passwords: a disclosure chevron instead of a "..." button. The options (copy,
+                            // edit, delete ...) live in the long-press context menu and the swipe actions.
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(Color(.tertiaryLabel))
+                                .accessibilityHidden(true)
+                                .accessibilityIdentifier("CipherDisclosureChevron")
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    // ui-r8: with `.plain` only drawn content is tappable. The blank space between text and chevron
+                    // and the chevron itself are part of the hit area (one tap opens the item). The 16 pt side
+                    // margin stays outside the button on purpose: a button as wide as the row is merged by the
+                    // accessibility system with the row container, the row identifier (`CipherCell`, `FolderCell`)
+                    // then replaced `VaultListItemRowButton` (found in the UI test tree dump).
+                    .contentShape(Rectangle())
                 }
                 // In a `List`, several default-style buttons in one row would all fire on a single tap.
                 .buttonStyle(.plain)
+                // ui-r8: the button is the one accessibility element of the row (its label combines name and
+                // subtitle). A second, row-wide element (`.accessibilityElement(children: .combine)` with the
+                // `CipherCell` identifier) was merged with the button in the UI test tree and replaced its
+                // identifier, so the identifier and the custom actions now live on the button itself.
                 .accessibilityIdentifier("VaultListItemRowButton")
-                .allowsHitTesting(editMode?.wrappedValue.isEditing != true)
-                .hoverEffect(.highlight)
-
-                if case let .cipher(cipherItem, _) = store.state.item.itemType,
-                   !store.state.isFromExtension, !cipherItem.isDecryptionFailure {
-                    // Apple Passwords: a disclosure chevron instead of a "..." button. The options (copy, edit,
-                    // delete ...) live in the long-press context menu and the swipe actions of the list.
-                    Image(systemName: "chevron.right")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(Color(.tertiaryLabel))
-                        .accessibilityHidden(true)
-                        .accessibilityIdentifier("CipherDisclosureChevron")
+                .accessibilityMoreOptionsActions(accessibilityMoreOptionsActionKinds) { kind in
+                    await store.perform(.accessibilityMoreOptionsActionPressed(kind))
                 }
+                .allowsHitTesting(!store.state.isSelecting)
+                .hoverEffect(.highlight)
 
                 if case let .totp(_, model) = store.state.item.itemType,
                    !model.requiresMasterPassword, store.state.showTotpCopyButton {
@@ -124,11 +191,7 @@ struct VaultListItemRowView: View {
                     .padding(.leading, 40 + 16 + 16)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(store.state.item.vaultItemAccessibilityId)
-        .accessibilityMoreOptionsActions(accessibilityMoreOptionsActionKinds) { kind in
-            await store.perform(.accessibilityMoreOptionsActionPressed(kind))
-        }
+        .onAppear { PassYPerf.rowAppeared(store.state.item.id) }
         .contextMenu {
             ForEach(accessibilityMoreOptionsActionKinds, id: \.localizedName) { kind in
                 Button {
@@ -144,6 +207,12 @@ struct VaultListItemRowView: View {
                 }
             }
         }
+    }
+
+    /// Whether the disclosure chevron is shown (cipher rows that open an item).
+    private var showsChevron: Bool {
+        guard case let .cipher(cipherItem, _) = store.state.item.itemType else { return false }
+        return !store.state.isFromExtension && !cipherItem.isDecryptionFailure
     }
 
     /// The more-options accessibility action kinds applicable to this row, empty for non-cipher
@@ -272,12 +341,49 @@ struct VaultListItemRowView: View {
         }
         if !model.requiresMasterPassword {
             Text(model.totpCode.displayCode)
-                .styleGuide(.bodyMonospaced, weight: .regular, monoSpacedDigit: true)
+                .styleGuide(.body, monoSpacedDigit: true)
                 .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
         }
     }
 }
 
+
+// MARK: - VaultListRowCell
+
+/// A row of the vault, group and search lists. It is `Equatable` on its state only (the closures always do the same
+/// for equal state), so SwiftUI skips its body when the list is re-evaluated for unrelated changes such as a toast,
+/// the search text or the bottom bar. Use it through `.equatable()`.
+struct VaultListRowCell: View, Equatable {
+    /// The state of the row.
+    let state: VaultListItemRowState
+
+    /// Performs row effects.
+    let perform: (VaultListItemRowEffect) async -> Void
+
+    /// Sends row actions.
+    let send: (VaultListItemRowAction) -> Void
+
+    /// The `TimeProvider` used to calculate TOTP expiration.
+    let timeProvider: any TimeProvider
+
+    /// Optional delete handler.
+    let onDelete: (() -> Void)?
+
+    static func == (lhs: VaultListRowCell, rhs: VaultListRowCell) -> Bool {
+        lhs.state == rhs.state
+    }
+
+    var body: some View {
+        let _ = { PassYPerf.cellBodyCount += 1 }()
+        VaultListItemRowView(
+            state: state,
+            perform: perform,
+            send: send,
+            timeProvider: timeProvider,
+            onDelete: onDelete,
+        )
+    }
+}
 
 // MARK: - MoreOptionsActionKind symbols
 

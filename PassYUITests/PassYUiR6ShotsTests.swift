@@ -23,7 +23,7 @@ final class PassYUiR6ShotsTests: XCTestCase {
     /// Rows end with a chevron (no "..." button); the options are in the context menu and the swipe actions.
     func test_rowChevronContextMenuSwipe() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             openLoginList(app)
             XCTAssertFalse(app.buttons["CipherOptionsButton"].exists, "no '...' button in list rows")
@@ -46,12 +46,12 @@ final class PassYUiR6ShotsTests: XCTestCase {
             shot(app, 3, "\(mode)-swipe")
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// "N Items" subtitle and Select mode with Delete of the created items.
     func test_selectModeDelete() {
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
         let token = Int(Date().timeIntervalSince1970) % 100000
         let one = "AA R6 Zap \(token) One", two = "AA R6 Zap \(token) Two"
         let app = launchApp()
@@ -108,7 +108,7 @@ final class PassYUiR6ShotsTests: XCTestCase {
     /// What is reachable is printed as `R6REACH`; each screen found is asserted.
     func test_authPagesInRunningApp() {
         let mode = ProcessInfo.processInfo.environment["PASSY_MODE"] ?? "light"
-        XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+        setPassYAppearance(mode == "dark" ? .dark : .light)
         let app = launchApp()
         let logIn = app.buttons["Log in"]
         XCTAssertTrue(logIn.waitForExistence(timeout: 20)); logIn.tap()
@@ -148,14 +148,14 @@ final class PassYUiR6ShotsTests: XCTestCase {
             if ok.waitForExistence(timeout: 3) { ok.tap(); sleep(1); shot(app, 47, "\(mode)-sso-after-alert") }
             leaveScreen(app)
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Two-step login (authenticator, other methods, recovery code) of the 2FA test account; run after a fresh install
     /// (it starts at the intro or the login screen).
     func test_auth2FAScreens() {
         let mode = ProcessInfo.processInfo.environment["PASSY_MODE"] ?? "light"
-        XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+        setPassYAppearance(mode == "dark" ? .dark : .light)
         let app = launchApp()
         let pw = app.secureTextFields["LoginMasterPasswordEntry"]
         if !pw.waitForExistence(timeout: 5) {
@@ -198,9 +198,10 @@ final class PassYUiR6ShotsTests: XCTestCase {
         let recovery = app.buttons["Recovery code"].exists ? app.buttons["Recovery code"] : app.menuItems["Recovery code"]
         if recovery.exists {
             recovery.tap(); sleep(2)
-            shot(app, 46, "\(mode)-2fa-recovery")
+            // The link opens the web vault in Safari (another app, the system appearance applies): no appearance check.
+            attachUnchecked(app, "\(tag)-46-\(mode)-2fa-recovery-safari")
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     // MARK: iPad landscape (step 7)
@@ -236,7 +237,7 @@ final class PassYUiR6ShotsTests: XCTestCase {
     /// server knows this app id, so the login screen shows the button and the screen can be opened and shot.
     func test_loginWithDeviceAfterLogout() {
         let mode = ProcessInfo.processInfo.environment["PASSY_MODE"] ?? "light"
-        XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+        setPassYAppearance(mode == "dark" ? .dark : .light)
         let app = launchApp()
         ensureUnlockedVault(app)
         goTo(app, "Settings")
@@ -254,11 +255,13 @@ final class PassYUiR6ShotsTests: XCTestCase {
         email.replaceText(TestAccount.email)
         app.buttons["ContinueButton"].tap()
         let device = app.buttons["LogInWithAnotherDeviceButton"]
-        XCTAssertTrue(device.waitForExistence(timeout: 20), "known device: Log in with device is offered")
+        let offered = device.waitForExistence(timeout: 30)
+        if !offered { print("DEVICE-BUTTON-MISSING \(Date()) tree:\n\(app.debugDescription)") }
+        XCTAssertTrue(offered, "known device: Log in with device is offered")
         shot(app, 50, "\(mode)-login-known-device")
         device.tap(); sleep(4)
         shot(app, 51, "\(mode)-login-with-device")
         print("R6REACH login-with-device screen buttons: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 }

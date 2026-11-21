@@ -32,7 +32,7 @@ final class PassYAuditShotsTests: XCTestCase {
     /// Fresh install: landing, server sheet, login e-mail and master password screens.
     func test_a_onboarding() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             XCTAssertTrue(waitFor(app.buttons["Log in"]), "landing")
             shot(app, mode, 1, "landing")
@@ -73,13 +73,13 @@ final class PassYAuditShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Vault, lists, settings, generator, send, item view and add form in both appearances.
     func test_b_mainScreens() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             if !app.staticTexts["GitHub"].exists, !app.buttons["CategoryTile_login"].exists { sleep(2) }
@@ -163,13 +163,13 @@ final class PassYAuditShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Locked vault: master password unlock screen in both appearances.
     func test_c_unlock() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             app.terminate()
@@ -179,13 +179,13 @@ final class PassYAuditShotsTests: XCTestCase {
             }
             app2.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Send: add form (text) and the typed list.
     func test_d_send() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             open(app, "Send"); sleep(2)
@@ -205,13 +205,13 @@ final class PassYAuditShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Password history, item attachments and the item "..." menu.
     func test_e_sheets() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             open(app, "Generator"); sleep(2)
@@ -248,6 +248,6 @@ final class PassYAuditShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 }

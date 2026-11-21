@@ -103,7 +103,7 @@ struct VaultAutofillListView: View {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(Color(.tertiaryLabel))
-                    .font(.system(size: 15)) // swiftlint:disable:this style_guide_font
+                    .font(.subheadline)
                 TextField(
                     Localizations.search,
                     text: store.binding(
@@ -120,7 +120,7 @@ struct VaultAutofillListView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(Color(.tertiaryLabel))
-                            .font(.system(size: 15)) // swiftlint:disable:this style_guide_font
+                            .font(.subheadline)
                     }
                 }
             }

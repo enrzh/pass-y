@@ -163,7 +163,8 @@ final class TabCoordinator: Coordinator, HasTabNavigator {
         rootNavigator.show(child: tabNavigator)
 
         let vaultNav = module.makeNavigationController()
-        // The vault home shows a left-aligned large title (Apple Passwords); pushed pages set their own inline mode.
+        // Vault home, Send, Generator and Settings show a native large title that collapses on scroll (Apple Passwords);
+        // pushed pages set their own inline mode.
         vaultNav.navigationBar.prefersLargeTitles = true
         vaultNav.navigationBar.accessibilityIdentifier = "MainHeaderBar"
         vaultCoordinator = module.makeVaultCoordinator(
@@ -176,11 +177,8 @@ final class TabCoordinator: Coordinator, HasTabNavigator {
         sendNavigator = sendNav
 
         let generatorNav = module.makeNavigationController()
-        generatorNav.navigationBar.prefersLargeTitles = false
+        generatorNav.navigationBar.prefersLargeTitles = true
         generatorNav.navigationBar.accessibilityIdentifier = "MainHeaderBar"
-        // Remove the hairline divider under the navigation bar to make it appear that the segmented
-        // control is part of the navigation bar.
-        generatorNav.removeHairlineDivider()
         generatorCoordinator = module.makeGeneratorCoordinator(
             delegate: nil,
             stackNavigator: generatorNav,
@@ -189,7 +187,7 @@ final class TabCoordinator: Coordinator, HasTabNavigator {
         generatorNavigator = generatorNav
 
         let settingsNav = module.makeNavigationController()
-        settingsNav.navigationBar.prefersLargeTitles = false
+        settingsNav.navigationBar.prefersLargeTitles = true
         settingsNav.navigationBar.accessibilityIdentifier = "MainHeaderBar"
         let settingsCoord = module.makeSettingsCoordinator(
             delegate: settingsDelegate,
@@ -217,7 +215,7 @@ final class TabCoordinator: Coordinator, HasTabNavigator {
     ///
     private func createSendNavigator() -> UINavigationController {
         let sendNav = module.makeNavigationController()
-        sendNav.navigationBar.prefersLargeTitles = false
+        sendNav.navigationBar.prefersLargeTitles = true
         sendNav.navigationBar.accessibilityIdentifier = "MainHeaderBar"
         sendCoordinator = module.makeSendCoordinator(
             stackNavigator: sendNav,

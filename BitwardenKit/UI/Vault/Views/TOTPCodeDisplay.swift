@@ -31,14 +31,14 @@ public struct TOTPCodeDisplay: View {
         HStack(spacing: 8) {
             VStack(alignment: .trailing, spacing: 0) {
                 Text(currentCode.displayCode)
-                    .styleGuide(.bodyMonospaced, weight: .regular, monoSpacedDigit: true)
+                    .styleGuide(.body, monoSpacedDigit: true)
                     .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
                     .accessibilityIdentifier("ItemTOTPCodeLabel")
                 if timer.secondsRemaining <= Constants.nextTOTPCodePreviewThreshold,
                    let nextCode,
                    showNextTOTPCode {
                     Text(nextCode.displayCode)
-                        .styleGuide(.caption2Monospaced, monoSpacedDigit: true)
+                        .styleGuide(.caption2, monoSpacedDigit: true)
                         .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
                         .accessibilityLabel(Localizations.nextCode)
                 }

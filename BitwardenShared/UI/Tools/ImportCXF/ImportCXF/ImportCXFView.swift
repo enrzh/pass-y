@@ -19,7 +19,8 @@ struct ImportCXFView: View {
             Section {
                 VStack(spacing: 12) {
                     Image(systemName: symbolName)
-                        .font(.system(size: 52))
+                        .font(.largeTitle)
+                        .imageScale(.large)
                         .foregroundStyle(symbolStyle)
                         .accessibilityHidden(true)
                     Text(store.state.title)

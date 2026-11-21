@@ -138,8 +138,9 @@ public struct BitwardenUITextView: UIViewRepresentable {
         textView.textContainerInset = UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0)
         textView.textContainer.lineFragmentPadding = 0
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        let customFont = UIFont.systemFont(ofSize: 15)
-        textView.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: customFont)
+        // System body style (Apple Passwords), scaled by Dynamic Type.
+        textView.font = UIFont.preferredFont(forTextStyle: .body)
+        textView.adjustsFontForContentSizeCategory = true
         return textView
     }
 

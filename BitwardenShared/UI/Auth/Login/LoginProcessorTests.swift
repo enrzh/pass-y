@@ -75,6 +75,7 @@ class LoginProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         subject.state.isLoginWithDeviceVisible = false
         client.results = [
             .httpFailure(BitwardenTestError.example),
+            .httpFailure(BitwardenTestError.example),
         ]
         await subject.perform(.appeared)
 
@@ -83,6 +84,21 @@ class LoginProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertFalse(subject.state.isLoginWithDeviceVisible)
         XCTAssertTrue(coordinator.alertShown.isEmpty)
         XCTAssertEqual(errorReporter.errors.last as? BitwardenTestError, .example)
+    }
+
+    /// ui-r8: a failed known-device request is tried once more; when the second answer is true the button shows.
+    @MainActor
+    func test_perform_appeared_failureThenTrue() async throws {
+        client.results = [
+            .httpFailure(BitwardenTestError.example),
+            .httpSuccess(testData: .knownDeviceTrue),
+        ]
+        await subject.perform(.appeared)
+
+        XCTAssertTrue(subject.state.isLoginWithDeviceVisible)
+        XCTAssertEqual(client.requests.count, 2)
+        XCTAssertEqual(errorReporter.errors.count, 1)
+        XCTAssertFalse(coordinator.isLoadingOverlayShowing)
     }
 
     /// `perform(_:)` with `.appeared` and a true result shows the login with device button.

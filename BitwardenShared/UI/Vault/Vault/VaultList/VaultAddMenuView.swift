@@ -37,7 +37,7 @@ struct VaultAddMenuView: View {
         } label: {
             // The whole 44 pt circle is the tap target (the symbol alone is only ~18 pt, taps fell through to the list).
             Image(systemName: "plus")
-                .font(.system(size: 17, weight: .semibold))
+                .font(.body.weight(.semibold))
                 .frame(width: 44, height: 44)
                 .contentShape(Circle())
         }

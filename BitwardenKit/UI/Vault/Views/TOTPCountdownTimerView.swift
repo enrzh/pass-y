@@ -25,10 +25,10 @@ public struct TOTPCountdownTimerView: View {
     public var body: some View {
         ZStack {
             Text("  ")
-                .styleGuide(.caption2Monospaced)
+                .styleGuide(.caption2, monoSpacedDigit: true)
                 .accessibilityHidden(true)
             Text(timer.displayTime ?? "")
-                .styleGuide(.caption2Monospaced, monoSpacedDigit: true)
+                .styleGuide(.caption2, monoSpacedDigit: true)
                 .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
                 .accessibilityIdentifier("ItemTOTPCountdownTimer")
         }

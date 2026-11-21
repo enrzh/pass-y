@@ -28,7 +28,7 @@ struct SearchCancelButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "xmark")
-                .font(.system(size: 17, weight: .semibold))
+                .font(.body.weight(.semibold))
                 .frame(width: 44, height: 44)
                 .contentShape(Circle())
         }

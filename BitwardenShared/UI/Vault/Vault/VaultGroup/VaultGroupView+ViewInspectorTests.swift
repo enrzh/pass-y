@@ -173,4 +173,24 @@ class VaultGroupViewTests: BitwardenTestCase {
         XCTAssertThrowsError(try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.moreOptions))
         XCTAssertNoThrow(try subject.inspect().find(viewWithAccessibilityIdentifier: "CipherDisclosureChevron"))
     }
+
+    /// ui-r8: the identifier `VaultListItemRowButton` (used by the UI tests and VoiceOver users of the identifier) sits
+    /// on the tappable row button of the group list, the item name stays its label, and a tap reaches the processor.
+    @MainActor
+    func test_vaultItem_rowButtonKeepsIdentifierAndLabel() async throws {
+        let item = VaultListItem.fixture(cipherListView: .fixture(name: "Item"))
+        processor.state.loadingState = .data([VaultListSection(id: "Items", items: [item], name: Localizations.items)])
+        let button = try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
+        XCTAssertNoThrow(try button.find(text: "Item"), "the item name is the label of the row button")
+        try await button.tap()
+        XCTAssertEqual(processor.effects.last, .itemPressed(item))
+    }
+
+    /// ui-r8: a folder row of the group list has the same identifier and hit area.
+    @MainActor
+    func test_folderRow_keepsIdentifier() throws {
+        let folder = VaultListItem.fixtureGroup(group: .folder(id: "1", name: "Folder"), count: 2)
+        processor.state.loadingState = .data([VaultListSection(id: "Items", items: [folder], name: Localizations.items)])
+        XCTAssertNoThrow(try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton"))
+    }
 }

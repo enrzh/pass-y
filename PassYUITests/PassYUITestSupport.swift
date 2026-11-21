@@ -11,9 +11,21 @@ enum TestAccount {
 }
 
 extension XCUIElement {
+    /// Taps a field until it really has keyboard focus (the simulator sometimes ignores the first tap, and typing
+    /// then fails with "Neither element nor any descendant has keyboard focus").
+    func focus() {
+        for _ in 0 ..< 4 {
+            tap()
+            for _ in 0 ..< 6 {
+                if (value(forKey: "hasKeyboardFocus") as? Bool) == true { return }
+                usleep(250_000)
+            }
+        }
+    }
+
     /// Clears a text/secure field (a failed login attempt leaves the typed text in the field) and types `text`.
     func replaceText(_ text: String) {
-        tap()
+        focus()
         if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
             typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
         }
@@ -45,13 +57,26 @@ extension XCTestCase {
 
     func launchApp(extraArguments: [String] = [], appearance: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extraArguments
+        // `XCUIDevice.shared.appearance = .dark` and `-AppleInterfaceStyle` do not change the rendering on the iOS 27
+        // simulator (every "dark" run of ui-r5 to ui-r8 rendered light, proven by the pixel check below). The app has a
+        // launch argument that sets its windows' interface style (`AppProcessor`).
+        let style: [String] = passYWantedStyle.map { ["-passyForceInterfaceStyle", $0] } ?? []
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + style + extraArguments
         app.launch()
         return app
     }
 
-    func attach(_ app: XCUIApplication, _ name: String) {
+    /// Attaches a screenshot without the appearance check (for screens that are not the app: "Recovery code" opens Safari).
+    func attachUnchecked(_ app: XCUIApplication, _ name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = name; shot.lifetime = .keepAlways; add(shot)
+    }
+
+    func attach(_ app: XCUIApplication, _ name: String) {
+        let screenshot = app.screenshot()
+        // Only the app is checked: "Recovery code" opens Safari (web vault link), the screenshot then shows another app.
+        if app.state == .runningForeground { assertRenderedAppearance(screenshot, name: name) }
+        let shot = XCTAttachment(screenshot: screenshot)
         shot.name = name
         shot.lifetime = .keepAlways
         add(shot)
@@ -68,19 +93,50 @@ extension XCTestCase {
         element.waitForExistence(timeout: timeout)
     }
 
+    /// Polls `condition` until it holds or `timeout` seconds passed.
+    @discardableResult
+    func waitUntil(_ timeout: TimeInterval, _ condition: () -> Bool) -> Bool {
+        let end = Date().addingTimeInterval(timeout)
+        while Date() < end {
+            if condition() { return true }
+            usleep(400_000)
+        }
+        return condition()
+    }
+
     /// Brings the app to the unlocked vault list from any of: intro, login, unlock, vault.
+    ///
+    /// State driven: it waits for the app to reach the next state (vault, error alert) instead of sleeping for fixed
+    /// times, the overall budget grows with the load of the host (a login under load 100 takes minutes), and an error
+    /// alert (network or credentials) is dismissed and the step is tried again, at most three times.
     func ensureUnlockedVault(_ app: XCUIApplication) {
         let fab = app.buttons["AddItemFloatingActionButton"]
-        let deadline = Date().addingTimeInterval(90)
+        var load = [Double](repeating: 0, count: 3)
+        getloadavg(&load, 3)
+        let budget = min(600, 150 + max(0, load[0] - 8) * 6)
+        let deadline = Date().addingTimeInterval(budget)
+        var dismissedAlerts = 0
+        /// Waits for the vault or an alert after an asynchronous step (login, unlock).
+        func settle() {
+            waitUntil(max(5, min(120, deadline.timeIntervalSinceNow))) { fab.exists || app.alerts.firstMatch.exists }
+        }
         while Date() < deadline {
             if fab.exists { return }
+            let alert = app.alerts.firstMatch
+            if alert.exists {
+                dismissedAlerts += 1
+                if dismissedAlerts > 3 { XCTFail("Login keeps failing with an alert: \(alert.debugDescription)"); return }
+                alert.buttons.firstMatch.tap()
+                sleep(1)
+                continue
+            }
             if app.buttons["Log in"].exists { app.buttons["Log in"].tap() }
             let server = app.textFields["ServerUrlEntry"]
             if server.exists {
-                server.tap()
+                server.focus()
                 server.typeText(TestAccount.server)
                 app.buttons["SaveButton"].firstMatch.tap()
-                sleep(2)
+                waitUntil(10) { !server.exists }
                 continue
             }
             let email = app.textFields["LoginEmailAddressEntry"]
@@ -89,24 +145,29 @@ extension XCTestCase {
                     // The server sheet is presented automatically; wait until the selector is tappable.
                     if app.buttons["RegionSelectorDropdown"].isHittable { app.buttons["RegionSelectorDropdown"].tap() }
                 } else if email.isHittable {
-                    email.tap()
+                    email.focus()
                     email.typeText(TestAccount.email)
                     app.buttons["ContinueButton"].tap()
+                    waitUntil(20) { !email.exists || app.alerts.firstMatch.exists }
                 }
             }
             let loginPw = app.secureTextFields["LoginMasterPasswordEntry"]
             if loginPw.exists {
                 loginPw.replaceText(TestAccount.password)
                 app.buttons["LogInWithMasterPasswordButton"].tap()
+                // The login is asynchronous and the field disappears when it succeeded: wait for the result instead of
+                // typing into the vanishing field again (snapshot race seen in Flow test02).
+                settle()
             }
             let unlockPw = app.secureTextFields["MasterPasswordEntry"]
-            if unlockPw.exists {
+            if !fab.exists, unlockPw.exists {
                 unlockPw.replaceText(TestAccount.password)
                 app.buttons["UnlockVaultButton"].tap()
+                settle()
             }
-            sleep(2)
+            usleep(500_000)
         }
-        XCTFail("Could not reach the vault list")
+        XCTFail("Could not reach the vault list (budget \(Int(budget)) s at load \(String(format: "%.0f", load[0])))")
     }
 }
 
@@ -184,4 +245,60 @@ func avatarMenuEntry(_ app: XCUIApplication, _ label: String) -> XCUIElement {
 /// Switches to a top-level screen through the avatar menu.
 func goTo(_ app: XCUIApplication, _ label: String) {
     avatarMenuEntry(app, label).tap()
+}
+
+
+// MARK: - Appearance
+
+/// Whether the current test step wants the dark interface style (set by `setPassYAppearance`, or by the chain through
+/// `TEST_RUNNER_PASSY_EXPECT_APPEARANCE=dark`).
+nonisolated(unsafe) private var passYForcedAppearance: String?
+
+var passYWantedStyle: String? {
+    passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"]
+}
+
+/// Replacement for `XCUIDevice.shared.appearance = ...`: remembers the wish (launch arguments) and still sets the
+/// device appearance, which is harmless where it works.
+func setPassYAppearance(_ appearance: XCUIDevice.Appearance) {
+    passYForcedAppearance = appearance == .dark ? "dark" : "light"
+    XCUIDevice.shared.appearance = appearance
+}
+
+/// Fails when a screenshot does not render in the expected appearance: the page background at the left edge (outside every
+/// card and control) is dark (luminance below 0.35) or light (above 0.6). Skipped when no appearance is expected.
+/// Background luminance (0 black, 1 white) at the left edge of a screenshot, `nil` when it cannot be read.
+func backgroundLuminance(_ screenshot: XCUIScreenshot) -> Double? {
+    guard let cg = screenshot.image.cgImage else { return nil }
+    var samples: [Double] = []
+    for fraction in [0.35, 0.5, 0.65] {
+        guard let crop = cg.cropping(to: CGRect(x: 2, y: Int(Double(cg.height) * fraction), width: 2, height: 2)),
+              let data = crop.dataProvider?.data as Data?, data.count >= 3 else { continue }
+        let bytes = [UInt8](data.prefix(3))
+        samples.append((0.2126 * Double(bytes[0]) + 0.7152 * Double(bytes[1]) + 0.0722 * Double(bytes[2])) / 255)
+    }
+    return samples.sorted().dropFirst(samples.count / 2).first
+}
+
+extension XCTestCase {
+    /// For a dark variant that is switched on in a running app (does not work on the iOS 27 simulator): the screenshot is
+    /// only attached when it really is dark, otherwise a note is printed. Never attach a light screenshot as "dark".
+    func attachDarkIfRendered(_ app: XCUIApplication, _ name: String) {
+        let screenshot = app.screenshot()
+        if let luminance = backgroundLuminance(screenshot), luminance < 0.35 {
+            let shot = XCTAttachment(screenshot: screenshot)
+            shot.name = name; shot.lifetime = .keepAlways; add(shot)
+        } else {
+            print("NOTE \(name): the running app did not switch to dark, screenshot omitted (dark is covered by the dark chain steps)")
+        }
+    }
+}
+
+func assertRenderedAppearance(_ screenshot: XCUIScreenshot, name: String, file: StaticString = #filePath, line: UInt = #line) {
+    guard let expected = passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"],
+          let luminance = backgroundLuminance(screenshot) else { return }
+    let ok = expected == "dark" ? luminance < 0.35 : luminance > 0.6
+    print("APPEARANCE-CHECK \(name) expected=\(expected) luminance=\(String(format: "%.2f", luminance)) ok=\(ok)")
+    XCTAssertTrue(ok, "screenshot \(name) should render \(expected) (background luminance \(String(format: "%.2f", luminance)))",
+                  file: file, line: line)
 }

@@ -1,11 +1,15 @@
 #!/bin/bash
-# Shared paths for the local test runners. Everything lives outside /tmp (it is cleaned from outside).
-export PASSY_CACHE="${PASSY_CACHE:-$HOME/Library/Caches/passy-vw}"
-export PASSY_OUT="$PASSY_CACHE/out"            # logs, result bundles
-export PASSY_DD="$PASSY_CACHE/dd"              # DerivedData
-export PASSY_REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export PASSY_PHONE="${PASSY_PHONE:-3AF691E6-46D6-4436-A0AB-EBDF122F9952}"   # simulator PassY-R3
-export PASSY_IPAD="${PASSY_IPAD:-AE56DC90-336B-4DB7-85C7-17EB9F4EB88E}"     # simulator PassY-iPad-R5
+# Shared paths for the local test runners. Everything lives outside /tmp (it is cleaned from outside). All paths can be
+# overridden through the environment. Logs, result bundles and throwaway data go to the scratch directory and are
+# deleted after a validated step; one shared DerivedData is used.
+export PASSY_SCRATCH="${PASSY_SCRATCH:-$HOME/Library/Caches/passy-vw-scratch}"
+export PASSY_CACHE="${PASSY_CACHE:-$PASSY_SCRATCH}"
+export PASSY_OUT="${PASSY_OUT:-$PASSY_SCRATCH/out}"                    # logs, result bundles
+export PASSY_DD="${PASSY_DD:-$HOME/Library/Caches/passy-vw-dd}"        # DerivedData (shared, with SourcePackages)
+export PASSY_REPO="${PASSY_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+export VW_BIN="${VW_BIN:-/Users/enrico/Documents/GitHub/vaultwarden-build/vaultwarden}"   # Vaultwarden 1.37.5
+export PASSY_PHONE="${PASSY_PHONE:-}"      # UDID of the own phone simulator (set by the caller)
+export PASSY_IPAD="${PASSY_IPAD:-}"        # UDID of the own iPad simulator
 mkdir -p "$PASSY_OUT" "$PASSY_DD"
 # Waits until the 1-minute load average is below PASSY_MAX_LOAD (default 8; UI results under load do not count).
 passy_wait_quiet() { while [ "$(sysctl -n vm.loadavg | awk '{print int($2)}')" -ge "${PASSY_MAX_LOAD:-8}" ]; do sleep 20; done; }

@@ -58,7 +58,10 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
                 sectionView(section)
             }
         }
-        .navigationBar(title: Localizations.generator, titleDisplayMode: .inline)
+        .navigationBar(
+            title: Localizations.generator,
+            titleDisplayMode: store.state.presentationMode == .tab ? .large : .inline,
+        )
         .task { await store.perform(.appeared) }
         .onChange(of: focusedFieldKeyPath) { newValue in
             store.send(.textFieldFocusChanged(keyPath: newValue))
@@ -80,11 +83,6 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
                     }
                 }
             }
-
-            largeNavigationTitleToolbarItem(
-                Localizations.generator,
-                hidden: store.state.presentationMode != .tab,
-            )
 
             if store.state.presentationMode == .tab {
                 PassYAvatarToolbarItem()

@@ -309,6 +309,7 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
         coordinator.navigate(to: .addEditFolder(folder: nil), context: delegate)
 
         stackNavigator?.present(navigationController)
+        PassYPerf.endTap()
     }
 
     /// Shows the autofill list screen.
@@ -394,7 +395,9 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
         stackNavigator?.push(
             viewController,
             navigationTitle: group.navigationTitle,
+            largeTitle: true,
         )
+        PassYPerf.endTap()
     }
 
     /// Shows the Credential Exchange import route (not in a tab). This is used when another app

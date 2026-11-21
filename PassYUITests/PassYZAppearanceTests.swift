@@ -24,8 +24,8 @@ final class PassYZAppearanceTests: XCTestCase {
     }
 
     func test_darkMode() {
-        XCUIDevice.shared.appearance = .dark
-        defer { XCUIDevice.shared.appearance = .light }
+        setPassYAppearance(.dark)
+        defer { setPassYAppearance(.light) }
         walkScreens(launchApp(), prefix: "dark")
     }
 

@@ -29,6 +29,19 @@ final class CipherIconImageLoader: NSObject, @unchecked Sendable {
     /// called, at which point it is replaced with a session whose delegate is `self`.
     private var urlSession: URLSession = .shared
 
+    /// Decoded icons by URL: scrolling back over a row must not download, hash and decode its icon again.
+    private let cache: NSCache<NSURL, UIImage> = {
+        let cache = NSCache<NSURL, UIImage>()
+        cache.totalCostLimit = 32 * 1024 * 1024
+        return cache
+    }()
+
+    /// Protects `inFlight` and the cache writes.
+    private let lock = NSLock()
+
+    /// Running downloads by URL, shared by rows that show the same icon.
+    private var inFlight: [URL: Task<UIImage?, Never>] = [:]
+
     // MARK: Methods
 
     /// Configures the loader with the services needed to participate in mTLS and report errors.
@@ -51,6 +64,33 @@ final class CipherIconImageLoader: NSObject, @unchecked Sendable {
     ///   or the response was non-2xx. Callers should fall back to a placeholder on `nil`.
     ///
     func loadImage(from url: URL) async -> UIImage? {
+        if let cached = cachedImage(for: url) { return cached }
+        let task: Task<UIImage?, Never> = lock.withLock {
+            if let running = inFlight[url] { return running }
+            // Unstructured on purpose: scrolling a row away cancels its caller, not the download other rows share.
+            let created = Task.detached(priority: .utility) { [self] in
+                let image = await download(url)
+                lock.withLock {
+                    if let image {
+                        cache.setObject(image, forKey: url as NSURL, cost: Int(image.size.width * image.size.height))
+                    }
+                    inFlight[url] = nil
+                }
+                return image
+            }
+            inFlight[url] = created
+            return created
+        }
+        return await task.value
+    }
+
+    /// The decoded icon if it was loaded before (synchronous, so a row that scrolls back shows it immediately).
+    func cachedImage(for url: URL) -> UIImage? {
+        cache.object(forKey: url as NSURL)
+    }
+
+    /// Downloads, decodes and prepares the icon off the main thread.
+    private func download(_ url: URL) async -> UIImage? {
         guard certificateService != nil else {
             errorReporter?.log(error: BitwardenError.generalError(
                 type: "CipherIconImageLoader",
@@ -63,7 +103,9 @@ final class CipherIconImageLoader: NSObject, @unchecked Sendable {
             guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
                 return nil
             }
-            return Self.decodeIcon(data)
+            // `UIImage(data:)` decodes lazily on first draw (on the main thread, while scrolling). Decode now.
+            let image = Self.decodeIcon(data)
+            return await image?.byPreparingForDisplay() ?? image
         } catch {
             return nil
         }

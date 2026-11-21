@@ -37,7 +37,7 @@ final class PassYUiR4ShotsTests: XCTestCase {
     /// Item view, edit (login), "..." menu, attachments, password history, add forms for every item type.
     func test_item() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             let tile = app.buttons["CategoryTile_login"]
@@ -76,13 +76,13 @@ final class PassYUiR4ShotsTests: XCTestCase {
             cancelOrClose(app)
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// The add form for every item type.
     func test_addTypes() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             var n = 10
@@ -104,13 +104,13 @@ final class PassYUiR4ShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Send type list (tap a type row in the Send list).
     func test_sendTypeList() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             goTo(app, "Send"); sleep(2)
@@ -121,13 +121,13 @@ final class PassYUiR4ShotsTests: XCTestCase {
             shot(app, mode, 21, "send-type-list")
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Send: type list, text add, file add, send view and edit; password history.
     func test_send() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             goTo(app, "Send"); sleep(2)
@@ -173,13 +173,13 @@ final class PassYUiR4ShotsTests: XCTestCase {
             }
             app2.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Vault home (category tiles) in both appearances and with larger text.
     func test_tiles() {
         for (mode, size) in [("light", ""), ("dark", ""), ("light", "UICTContentSizeCategoryXL"), ("light", "UICTContentSizeCategoryAccessibilityL")] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let extra = size.isEmpty ? [] : ["-UIPreferredContentSizeCategoryName", size]
             let app = launchApp(extraArguments: extra)
             ensureUnlockedVault(app)
@@ -187,13 +187,13 @@ final class PassYUiR4ShotsTests: XCTestCase {
             shot(app, mode, size.isEmpty ? 70 : (size.contains("Accessibility") ? 72 : 71), size.isEmpty ? "tiles" : (size.contains("Accessibility") ? "tiles-accessibility" : "tiles-xl"))
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// iPad: vault, item view/edit, send, settings (run with an iPad destination).
     func test_ipad() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             sleep(2)
@@ -219,13 +219,13 @@ final class PassYUiR4ShotsTests: XCTestCase {
             shot(app, mode, 85, "ipad-settings")
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Settings pages with the "set up" sections (autofill "Turn on now", account security, vault settings).
     func test_setupSections() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             goTo(app, "Settings"); sleep(2)
@@ -241,13 +241,13 @@ final class PassYUiR4ShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Rare auth screens reachable from the login page (needs a fresh install): password hint, login with device, SSO.
     func test_a_auth() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             XCTAssertTrue(waitFor(app.buttons["Log in"]))
             app.buttons["Log in"].tap()
@@ -287,6 +287,6 @@ final class PassYUiR4ShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 }

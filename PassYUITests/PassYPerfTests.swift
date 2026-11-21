@@ -51,8 +51,7 @@ final class PassYPerfTests: XCTestCase {
         _ = waitFor(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Perf Item'")).firstMatch, timeout: 60)
         var values: [Double] = []
         for _ in 0 ..< 3 {
-            let search = app.searchFields.firstMatch
-            search.tap(); sleep(3)
+            focusSearch(app)
             let start = Date()  // includes the 120 ms/char typing delay; compare before/after only
             for ch in "Perf Item 1999" { app.typeText(String(ch)); usleep(120_000) }
             let hit = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Perf Item 1999")).firstMatch
@@ -75,5 +74,46 @@ final class PassYPerfTests: XCTestCase {
             for _ in 0 ..< 5 { app.swipeUp(velocity: .fast) }
             for _ in 0 ..< 5 { app.swipeDown(velocity: .fast) }
         }
+    }
+
+    /// ui-r8: the app signposts (`PassYPerf`): list load and tap-to-push, measured by `XCTOSSignpostMetric`
+    /// together with the wall clock. A single tap must open the item list page (asserted within 1 s).
+    func test_perf_tapToPush_signposts() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        _ = waitFor(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Perf Item'")).firstMatch, timeout: 60)
+        let options = XCTMeasureOptions(); options.iterationCount = 5
+        let metrics: [XCTMetric] = [
+            XCTClockMetric(),
+            XCTOSSignpostMetric(subsystem: "de.aiity.passy", category: "perf", name: "TapToPush"),
+            XCTOSSignpostMetric(subsystem: "de.aiity.passy", category: "perf", name: "VaultListLoad"),
+        ]
+        measure(metrics: metrics, options: options) {
+            app.buttons["CategoryTile_login"].tap()
+            XCTAssertTrue(app.buttons["VaultListItemRowButton"].firstMatch.waitForExistence(timeout: 1.0), "one tap opens the list within 1 s")
+            app.navigationBars.buttons.firstMatch.tap()
+            XCTAssertTrue(app.buttons["CategoryTile_login"].waitForExistence(timeout: 2.0))
+        }
+    }
+
+    /// ui-r8: 30 single taps on the blank part of a row open the item sheet each time (1 s budget each).
+    func test_perf_singleTapOpensItem_2000() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        _ = waitFor(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Perf Item'")).firstMatch, timeout: 60)
+        app.buttons["CategoryTile_login"].tap()
+        let row = app.buttons["VaultListItemRowButton"].firstMatch
+        XCTAssertTrue(waitFor(row))
+        var durations: [Double] = []
+        for index in 0 ..< 30 {
+            let start = Date()
+            row.coordinate(withNormalizedOffset: CGVector(dx: 0.72, dy: 0.5)).tap()
+            let opened = app.buttons["Close"].firstMatch.waitForExistence(timeout: 1.0)
+            durations.append(Date().timeIntervalSince(start))
+            XCTAssertTrue(opened, "tap \(index): item opened within 1 s")
+            if opened { app.buttons["Close"].firstMatch.tap() }
+            XCTAssertTrue(waitFor(row, timeout: 3))
+        }
+        report("single_tap_opens_item", durations)
     }
 }

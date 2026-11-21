@@ -37,7 +37,7 @@ final class PassYUiR7ShotsTests: XCTestCase {
     /// Add forms for every item type are Apple rows: the label stands left, the value right of it (not stacked).
     func test_addEditFormsAreInlineRows() {
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
             var n = 1
@@ -89,14 +89,14 @@ final class PassYUiR7ShotsTests: XCTestCase {
             }
             app.terminate()
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     // MARK: Step 4: home search results
 
     /// Home search: context menu with Delete, swipe Delete, Select mode; cancelling the confirmation keeps Select mode.
     func test_homeSearchSelectDelete() {
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
         let token = Int(Date().timeIntervalSince1970) % 100000
         let a = "AA Qzx Find \(token) One", b = "AA Qzx Find \(token) Two", c = "AA Qzx Find \(token) Three"
         let app = launchApp()
@@ -161,7 +161,7 @@ final class PassYUiR7ShotsTests: XCTestCase {
     /// A whole password (12+ characters) survives save and reopen: masked bullet count equals its length, the revealed
     /// value equals what was typed; editing an existing item appends correctly and is saved. Needs the throwaway server.
     func test_loginPasswordSaveAndRevealRoundTrip() {
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
         let token = Int(Date().timeIntervalSince1970) % 100000
         let name = "AA Qzx Pw \(token)"
         let password = "Sup3rSecret-2026!"
@@ -254,7 +254,7 @@ final class PassYUiR7ShotsTests: XCTestCase {
             sleep(2)
         }
         for mode in ["light", "dark"] {
-            XCUIDevice.shared.appearance = mode == "dark" ? .dark : .light
+            setPassYAppearance(mode == "dark" ? .dark : .light)
             app.terminate()
             app = launchApp()
             ensureUnlockedVault(app)
@@ -277,7 +277,7 @@ final class PassYUiR7ShotsTests: XCTestCase {
                 if clear.exists, clear.isHittable { clear.tap() }
             }
         }
-        XCUIDevice.shared.appearance = .light
+        setPassYAppearance(.light)
     }
 
     /// Diagnostic for the password finding: types into the secure password field of the add form slowly (one key at a

@@ -434,7 +434,7 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(add.waitForExistence(timeout: 10), "folders screen has the add button in the toolbar")
         XCTAssertFalse(app.buttons["AddItemFloatingActionButton"].exists, "no floating add button on the folders list")
         let existing = app.buttons.matching(identifier: "FolderCell").count
-        for i in existing ..< 12 {
+        for i in min(existing, 12) ..< 12 {
             add.tap()
             let field = app.textFields.firstMatch
             XCTAssertTrue(field.waitForExistence(timeout: 10), "folder name field")

@@ -310,37 +310,6 @@ public extension View {
         }
     }
 
-    /// A `ToolbarContent` that adjusts the navigation bar to display a large title on the leading
-    /// edge of the navigation bar and hides the centered title. This has the appearance of a large
-    /// title navigation bar without the extra padding above the title and overall height similar to
-    /// an inline navigation bar title.
-    ///
-    /// - Parameters:
-    ///   - title: The navigation bar's title.
-    ///   - hidden: Whether the navigation bar updates should be hidden.
-    /// - Returns: A `ToolbarContent` that adjusts the navigation bar to display a large title on
-    ///     the leading edge.
-    ///
-    @ToolbarContentBuilder
-    func largeNavigationTitleToolbarItem(_ title: String, hidden: Bool = false) -> some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            if !hidden, !shouldHideLargeNavigationToolbarItem {
-                Text(title)
-                    .styleGuide(.largeTitle, weight: .semibold)
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityIdentifier("HeaderBarPageTitle")
-            }
-        }
-
-        ToolbarItem(placement: .principal) {
-            if !hidden, !shouldHideLargeNavigationToolbarItem {
-                // Hide the centered navigation title view with an empty view.
-                Text("")
-                    .accessibilityHidden(true)
-            }
-        }
-    }
-
     /// A `ToolbarItemGroup` consisting of two items, alfa and bravo, that change position depending on
     /// the version of iOS being used.
     ///
@@ -366,23 +335,5 @@ public extension View {
                 bravo()
             }
         }
-    }
-}
-
-// MARK: Private
-
-extension View {
-    /// Whether the navigation bar's large title displayed on the leading edge should be hidden.
-    /// iPadOS 18+ moves the tab bar into the navigation bar. Since the selected tab matches the
-    /// navigation bar's title both don't need to be displayed. This fixes an issue where even
-    /// though the navigation bar was displayed inline, there was still extra padding in the
-    /// navigation bar where the centered title would be displayed below the tab bar.
-    ///
-    /// As well, because iOS 26 (with Liquid Glass) changes how toolbar items are displayed, we
-    /// should revert to native behavior, and only have the title centered.
-    private var shouldHideLargeNavigationToolbarItem: Bool {
-        guard #available(iOS 18, *) else { return false }
-        guard #unavailable(iOS 26) else { return true }
-        return UIDevice.current.userInterfaceIdiom == .pad
     }
 }

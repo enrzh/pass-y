@@ -8,8 +8,8 @@ final class PassYShotsTests: XCTestCase {
     func test_shots() {
         let tag = ProcessInfo.processInfo.environment["PASSY_SHOT_TAG"] ?? "shot"
         let env = ProcessInfo.processInfo.environment
-        if env["PASSY_SHOT_MODE"] == "dark" { XCUIDevice.shared.appearance = .dark }
-        defer { XCUIDevice.shared.appearance = .light }
+        if env["PASSY_SHOT_MODE"] == "dark" { setPassYAppearance(.dark) }
+        defer { setPassYAppearance(.light) }
         let app = launchApp(extraArguments: env["PASSY_SHOT_XXXL"] == "1"
             ? ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] : [])
         ensureUnlockedVault(app)

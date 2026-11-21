@@ -22,7 +22,10 @@ struct SettingsView: View {
             settingsItems
         }
         .listStyle(.insetGrouped)
-        .navigationBar(title: Localizations.settings, titleDisplayMode: .inline)
+        .navigationBar(
+            title: Localizations.settings,
+            titleDisplayMode: store.state.presentationMode == .tab ? .large : .inline,
+        )
         .task {
             await store.perform(.appeared)
         }
@@ -38,11 +41,6 @@ struct SettingsView: View {
             closeToolbarItem(hidden: store.state.presentationMode != .preLogin) {
                 store.send(.dismiss)
             }
-
-            largeNavigationTitleToolbarItem(
-                Localizations.settings,
-                hidden: store.state.presentationMode != .tab,
-            )
 
             if store.state.presentationMode == .tab {
                 PassYAvatarToolbarItem()
@@ -124,7 +122,7 @@ struct SettingsView: View {
                 ZStack {
                     Circle().fill(active.color)
                     Text(active.userInitials ?? "")
-                        .font(.system(size: 22, weight: .semibold, design: .rounded))
+                        .font(.system(.title2, design: .rounded).weight(.semibold))
                         .foregroundStyle(active.profileIconTextColor)
                 }
                 .frame(width: 56, height: 56)
