@@ -327,7 +327,11 @@ class PassYShellController: UIViewController, TabNavigator {
             fade.leadingAnchor.constraint(equalTo: navigation.view.leadingAnchor),
             fade.trailingAnchor.constraint(equalTo: navigation.view.trailingAnchor),
             fade.topAnchor.constraint(equalTo: navigation.view.topAnchor),
-            fade.bottomAnchor.constraint(equalTo: bar.bottomAnchor, constant: PassYEdgeFadeView.softHeight),
+            // The inline bar only (status bar plus 44 pt): the fade must not cover an expanded large title.
+            fade.bottomAnchor.constraint(
+                equalTo: navigation.view.safeAreaLayoutGuide.topAnchor,
+                constant: 44 + PassYEdgeFadeView.softHeight,
+            ),
         ])
         topFades.append(fade)
     }
