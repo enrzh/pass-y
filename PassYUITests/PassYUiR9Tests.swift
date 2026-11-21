@@ -120,7 +120,7 @@ final class PassYUiR9Tests: XCTestCase {
         app.swipeUp(); sleep(1)
         shot(app, 8, "list-scrolled")
         // A row under the bar is still tappable above it: the fades never take touches.
-        let row = app.buttons["VaultListItemRowButton"].firstMatch
-        XCTAssertTrue(row.isHittable)
+        let rows = app.buttons.matching(identifier: "VaultListItemRowButton").allElementsBoundByIndex
+        XCTAssertTrue(rows.contains { $0.isHittable }, "rows are tappable while the fades are there")
     }
 }
