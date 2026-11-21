@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Kilidi Optic ID ile aç";
 "UnlockWithPIN" = "Kilidi PIN koduyla aç";
 "VerificationCode" = "Doğrulama kodu";
-"WebVault" = "Pass-Y web kasası";
 "Items" = "Hesaplar";
 "ExtensionActivated" = "Uzantı etkinleştirildi!";
 "ItemsForUri" = "%1$@ kayıtları";

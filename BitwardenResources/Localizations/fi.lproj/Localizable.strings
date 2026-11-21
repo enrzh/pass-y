@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Avaa Optic ID:llä";
 "UnlockWithPIN" = "Avaus PIN-koodilla";
 "VerificationCode" = "Todennuskoodi";
-"WebVault" = "Pass-Y Verkkoholvi";
 "Items" = "Kohteet";
 "ExtensionActivated" = "Laajennus aktivoitu!";
 "ItemsForUri" = "Kohteet osoitteelle \"%1$@\"";

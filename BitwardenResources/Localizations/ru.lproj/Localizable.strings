@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Разблокировать с помощью Optic ID";
 "UnlockWithPIN" = "Разблокировка PIN-кодом";
 "VerificationCode" = "Код подтверждения";
-"WebVault" = "Веб-хранилище Pass-Y";
 "Items" = "Элементы";
 "ExtensionActivated" = "Расширение активировано!";
 "ItemsForUri" = "Элементы для %1$@";

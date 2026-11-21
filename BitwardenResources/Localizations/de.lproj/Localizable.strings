@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Mit Optic ID entsperren";
 "UnlockWithPIN" = "Mit PIN-Code entsperren";
 "VerificationCode" = "Verifizierungscode";
-"WebVault" = "Pass-Y Web-Tresor";
 "Items" = "Einträge";
 "ExtensionActivated" = "Erweiterung aktiviert!";
 "ItemsForUri" = "Zugangsdaten für %1$@";

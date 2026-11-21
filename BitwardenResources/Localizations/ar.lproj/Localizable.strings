@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "فتح القفل بـ Optic ID";
 "UnlockWithPIN" = "فتح القفل باستخدام رمز PIN";
 "VerificationCode" = "رمز التحقق";
-"WebVault" = "خزنة الويب لـ Pass-Y";
 "Items" = "عناصر";
 "ExtensionActivated" = "تم تفعيل الإضافة!";
 "ItemsForUri" = "عناصر لـ %1$@";

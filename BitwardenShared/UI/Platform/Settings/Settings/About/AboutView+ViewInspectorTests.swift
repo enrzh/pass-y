@@ -96,11 +96,4 @@ class AboutViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.effects.last, .copyVersionInfo)
     }
 
-    /// Tapping the web vault button dispatches the `.webVaultTapped` action.
-    @MainActor
-    func test_webVaultButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.webVault)
-        try button.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .webVaultTapped)
-    }
 }

@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Ξεκλείδωμα με Optic ID";
 "UnlockWithPIN" = "Ξεκλείδωμα με κωδικό PIN";
 "VerificationCode" = "Κωδικός επαλήθευσης";
-"WebVault" = "Διαδικτυακή κρύπτη Pass-Y";
 "Items" = "Στοιχεία";
 "ExtensionActivated" = "Η επέκταση ενεργοποιήθηκε!";
 "ItemsForUri" = "Στοιχεία για %1$@";

@@ -119,17 +119,6 @@ class VaultSettingsProcessorTests: BitwardenTestCase {
         XCTAssertEqual(coordinator.routes.last, .folders)
     }
 
-    /// `receive(_:)` with `.importItemsTapped` shows an alert for navigating to the import items website.
-    ///  When `Continue` is tapped on the alert, sets the URL to open in the state
-    @MainActor
-    func test_receive_importItemsTapped() async throws {
-        subject.receive(.importItemsTapped)
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.continue)
-        XCTAssertEqual(subject.state.url, environmentService.importItemsURL)
-    }
-
     /// `receive(_:)` with  `.showImportLogins` navigates to the import logins screen.
     @MainActor
     func test_receive_showImportLogins() {

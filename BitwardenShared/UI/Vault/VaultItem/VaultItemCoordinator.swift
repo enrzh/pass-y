@@ -488,6 +488,15 @@ class VaultItemCoordinator: NSObject, Coordinator, HasStackNavigator { // swiftl
         stackNavigator?.present(documentController)
     }
 
+    /// The state the item view starts with: the preloaded finished state when the tap preloaded it (no spinner),
+    /// otherwise the loading state.
+    private func preloadedState(id: String, toastTitle: String?) -> ViewItemState {
+        let toast = toastTitle.map { Toast(title: $0) }
+        guard var state = ViewItemPreloadCache.take(id: id) else { return ViewItemState(toast: toast) }
+        if let toast { state.toast = toast }
+        return state
+    }
+
     /// Shows the view item screen.
     ///
     /// - Parameters:
@@ -501,7 +510,7 @@ class VaultItemCoordinator: NSObject, Coordinator, HasStackNavigator { // swiftl
             delegate: delegate,
             itemId: id,
             services: services,
-            state: ViewItemState(toast: toastTitle.map { Toast(title: $0) }),
+            state: preloadedState(id: id, toastTitle: toastTitle),
             vaultItemActionHelper: vaultItemActionHelper,
         )
         let store = Store(processor: processor)

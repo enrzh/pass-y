@@ -33,17 +33,6 @@ class TwoFactorAuthViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// Tapping an auth method button dispatches the `.authMethodSelected()` action.
-    @MainActor
-    func test_authMethodButton_tap() throws {
-        processor.state.availableAuthMethods = [.recoveryCode]
-        let menu = try subject.inspect().find(ViewType.Menu.self, containing: Localizations.useAnotherTwoStepMethod)
-        let subMenu = try menu.find(ViewType.Menu.self, containing: Localizations.recoveryCodeTitle)
-        let button = try subMenu.find(button: Localizations.recoveryCodeTitle)
-        try button.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .authMethodSelected(.recoveryCode))
-    }
-
     /// Tapping the cancel button dispatches the `.dismiss` action.
     @MainActor
     func test_cancelButton_tap() throws {

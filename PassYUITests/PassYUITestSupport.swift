@@ -242,8 +242,14 @@ func avatarMenuEntry(_ app: XCUIApplication, _ label: String) -> XCUIElement {
     return app.buttons[ids[label] ?? label]
 }
 
-/// Switches to a top-level screen through the avatar menu.
+/// Switches to a top-level screen through the avatar menu. The vault is not in the menu any more (ui-r9): it is the
+/// Vault button of the bottom bar (absent on the vault home itself).
 func goTo(_ app: XCUIApplication, _ label: String) {
+    if label == "My vault" {
+        let button = app.buttons["BottomBarVaultButton"]
+        if button.waitForExistence(timeout: 5) { button.tap() }
+        return
+    }
     avatarMenuEntry(app, label).tap()
 }
 

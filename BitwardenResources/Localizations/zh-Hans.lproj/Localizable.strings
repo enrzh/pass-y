@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "使用视控 ID 解锁";
 "UnlockWithPIN" = "使用 PIN 码解锁";
 "VerificationCode" = "验证码";
-"WebVault" = "Pass-Y 网页密码库";
 "Items" = "项目";
 "ExtensionActivated" = "扩展已激活！";
 "ItemsForUri" = "适用于 %1$@ 的项目";

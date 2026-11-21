@@ -111,6 +111,10 @@ struct SettingsView: View {
             ForEach(others, id: \.userId) { account in
                 Button(account.email) { store.send(.switchAccountPressed(account)) }
             }
+            Button { store.send(.addAccountPressed) } label: {
+                Label(Localizations.addAccount, systemImage: "person.crop.circle.badge.plus")
+            }
+            .accessibilityIdentifier("SettingsAddAccountButton")
             if active.canBeLocked {
                 Button { store.send(.lockPressed) } label: { Label(Localizations.lockNow, systemImage: "lock") }
             }
@@ -131,7 +135,7 @@ struct SettingsView: View {
                         .font(.headline)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-                    Text(store.state.profileState.accounts.count > 1 ? Localizations.account : "Pass-Y")
+                    Text(store.state.serverURL)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }

@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Avage Optic ID-ga";
 "UnlockWithPIN" = "Lukusta lahti PIN koodiga";
 "VerificationCode" = "Kinnituskood";
-"WebVault" = "Pass-Y veebihoidla";
 "Items" = "Kirjet";
 "ExtensionActivated" = "Lisa on aktiveeritud!";
 "ItemsForUri" = "%1$@ kontoandmed";

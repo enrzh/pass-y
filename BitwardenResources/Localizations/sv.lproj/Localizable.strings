@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Lås upp med optiskt ID";
 "UnlockWithPIN" = "Lås upp med PIN-kod";
 "VerificationCode" = "Verifieringskod";
-"WebVault" = "Pass-Y webbvalv";
 "Items" = "Objekt";
 "ExtensionActivated" = "Tillägg aktiverat!";
 "ItemsForUri" = "Objekt för %1$@";

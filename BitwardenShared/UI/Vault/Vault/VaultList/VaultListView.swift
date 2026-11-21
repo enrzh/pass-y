@@ -620,6 +620,7 @@ struct VaultListView: View {
         }
         .onAppear { publishProfileMenu() }
         .onChange(of: store.state.profileSwitcherState) { _ in publishProfileMenu() }
+        .onChange(of: store.state.serverURL) { _ in publishProfileMenu() }
         .task {
             await store.perform(.appeared)
         }
@@ -734,14 +735,11 @@ struct VaultListView: View {
     private func publishProfileMenu() {
         let state = store.state.profileSwitcherState
         shell.profileMenu = PassYProfileMenuSource(
-            accounts: state.accounts,
-            activeAccountId: state.activeAccountId,
             activeProfile: state.activeAccountProfile,
-            addAccount: { Task { await store.perform(.profileSwitcher(.addAccountPressed)) } },
             canLock: state.allowLockAndLogout && state.activeAccountProfile?.canBeLocked == true,
             lock: { account in Task { await store.perform(.profileSwitcher(.accessibility(.lock(account)))) } },
-            select: { account in Task { await store.perform(.profileSwitcher(.accountPressed(account))) } },
-            showsAddAccount: state.showsAddAccount,
+            pendingRequests: { store.send(.pendingLoginRequestsTapped) },
+            serverURL: store.state.serverURL,
             showsPlaceholder: state.showPlaceholderToolbarIcon,
             sync: { Task { await store.perform(.refreshVault) } },
         )

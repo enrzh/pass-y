@@ -82,21 +82,6 @@ class AlertSettingsTests: BitwardenTestCase {
         XCTAssertEqual(subject.alertActions.last?.style, .default)
     }
 
-    /// `importItemsAlert(vaultUrl:action:)` constructs an `Alert`
-    /// with the correct title, message, and Cancel and Continue buttons.
-    func test_importItemsAlert() {
-        let subject = Alert.importItemsAlert(importUrl: "https://www.example.com") {}
-
-        XCTAssertEqual(subject.preferredStyle, .alert)
-        XCTAssertEqual(subject.title, Localizations.continueToWebApp)
-        XCTAssertEqual(subject.message, Localizations.youCanImportDataToYourVaultOnX("https://www.example.com"))
-        XCTAssertEqual(subject.alertActions.count, 2)
-        XCTAssertEqual(subject.alertActions.first?.title, Localizations.cancel)
-        XCTAssertEqual(subject.alertActions.first?.style, .cancel)
-        XCTAssertEqual(subject.alertActions.last?.title, Localizations.continue)
-        XCTAssertEqual(subject.alertActions.last?.style, .default)
-    }
-
     /// `learnAboutOrganizationsAlert(encrypted:action:)` constructs an `Alert`
     /// with the correct title, message, and Cancel and Continue buttons.
     func test_learnAboutOrganizationsAlert() {
@@ -183,21 +168,6 @@ class AlertSettingsTests: BitwardenTestCase {
         XCTAssertEqual(subject.alertActions.first?.style, .default)
     }
 
-    /// `twoStepLoginAlert(encrypted:action:)` constructs an `Alert`
-    /// with the correct title, message, and Cancel and Yes buttons.
-    func test_twoStepLoginAlert() {
-        let subject = Alert.twoStepLoginAlert {}
-
-        XCTAssertEqual(subject.preferredStyle, .alert)
-        XCTAssertEqual(subject.title, Localizations.continueToWebApp)
-        XCTAssertEqual(subject.message, Localizations.twoStepLoginDescriptionLong)
-        XCTAssertEqual(subject.alertActions.count, 2)
-        XCTAssertEqual(subject.alertActions.first?.title, Localizations.cancel)
-        XCTAssertEqual(subject.alertActions.first?.style, .cancel)
-        XCTAssertEqual(subject.alertActions.last?.title, Localizations.yes)
-        XCTAssertEqual(subject.alertActions.last?.style, .default)
-    }
-
     /// `unlockWithPINCodeAlert(action)` constructs an `Alert` with the correct title, message, Yes and No buttons
     /// when `biometricType` is `nil`.
     func test_unlockWithPINAlert() {
@@ -281,18 +251,4 @@ class AlertSettingsTests: BitwardenTestCase {
         XCTAssertEqual(enteredOtp, "otp")
     }
 
-    /// `webVaultAlert(encrypted:action:)` constructs an `Alert`
-    /// with the correct title, message, and Cancel and Continue buttons.
-    func test_webVaultAlert() {
-        let subject = Alert.webVaultAlert {}
-
-        XCTAssertEqual(subject.preferredStyle, .alert)
-        XCTAssertEqual(subject.title, Localizations.continueToWebApp)
-        XCTAssertEqual(subject.message, Localizations.exploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp)
-        XCTAssertEqual(subject.alertActions.count, 2)
-        XCTAssertEqual(subject.alertActions.first?.title, Localizations.cancel)
-        XCTAssertEqual(subject.alertActions.first?.style, .cancel)
-        XCTAssertEqual(subject.alertActions.last?.title, Localizations.continue)
-        XCTAssertEqual(subject.alertActions.last?.style, .default)
-    }
 }

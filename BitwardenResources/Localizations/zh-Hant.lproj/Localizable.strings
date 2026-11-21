@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "使用 Optic ID 解鎖";
 "UnlockWithPIN" = "使用 PIN 碼解鎖";
 "VerificationCode" = "驗證碼";
-"WebVault" = "Pass-Y 網頁版密碼庫";
 "Items" = "項目";
 "ExtensionActivated" = "已啟用延伸功能！";
 "ItemsForUri" = "%1$@ 的項目";

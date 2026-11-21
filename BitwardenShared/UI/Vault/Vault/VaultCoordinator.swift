@@ -257,6 +257,8 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             delegate?.switchToSettingsTab(route: .about)
         case .settings:
             delegate?.switchToSettingsTab(route: .settings(.tab))
+        case .pendingLoginRequests:
+            delegate?.switchToSettingsTab(route: .pendingLoginRequests)
         case let .group(group, filter):
             showGroup(group, filter: filter)
         case let .importCXF(cxfRoute):
@@ -535,7 +537,11 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
         toastTitle: String? = nil,
     ) {
         let navigate = {
-            self.showVaultItem(route: .viewItem(id: cipherId, toastTitle: toastTitle), delegate: delegate)
+            // ui-r9: the item is loaded completely before its screen is presented, so it opens without a spinner.
+            Task {
+                await ViewItemPreloadCache.preload(id: cipherId, services: self.services)
+                self.showVaultItem(route: .viewItem(id: cipherId, toastTitle: toastTitle), delegate: delegate)
+            }
         }
 
         // If the master password reprompt check has already completed, skip reprompting again which

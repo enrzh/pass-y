@@ -108,6 +108,7 @@ final class VaultListProcessor: StateProcessor<
         self.vaultItemMoreOptionsHelper = vaultItemMoreOptionsHelper
 
         super.init(state: state)
+        self.state.serverURL = services.environmentService.baseURL.passYServerText
 
         // New-login command from the menu bar / hardware keyboard (Cmd+N).
         commandsTask = Task { [weak self] in
@@ -199,6 +200,8 @@ final class VaultListProcessor: StateProcessor<
             reviewPromptTask?.cancel()
         case .goToArchive:
             coordinator.navigate(to: .group(.archive, filter: state.vaultFilterType))
+        case .pendingLoginRequestsTapped:
+            coordinator.navigate(to: .pendingLoginRequests)
         case .learnMoreAboutPremium:
             state.url = ExternalLinksConstants.learnMoreAboutPremium
             state.shouldShowUpgradedToPremiumActionCard = false

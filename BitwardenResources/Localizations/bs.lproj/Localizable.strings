@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Otključaj sa Optic ID";
 "UnlockWithPIN" = "Otključajte pomoću PIN koda";
 "VerificationCode" = "Verifikacioni kod";
-"WebVault" = "Pass-Y veb trezor";
 "Items" = "Stavke";
 "ExtensionActivated" = "Dodatak aktiviran!";
 "ItemsForUri" = "Stavke za %1$@";

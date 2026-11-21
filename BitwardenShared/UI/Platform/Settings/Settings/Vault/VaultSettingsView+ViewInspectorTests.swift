@@ -48,14 +48,6 @@ class VaultSettingsViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .foldersTapped)
     }
 
-    /// Tapping the version button dispatches the `.importItemsTapped` action.
-    @MainActor
-    func test_importItemsButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.importItems)
-        try button.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .importItemsTapped)
-    }
-
     /// The action card is hidden if the import logins setup progress is incomplete or complete.
     @MainActor
     func test_importLoginsActionCard_hidden() {

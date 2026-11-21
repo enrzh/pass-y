@@ -126,11 +126,16 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
         case let .accessibilityMoreOptionsActionPressed(item, kind):
             await performMoreOptionsAction(kind, for: item)
         case .appeared:
-            await loadHasPremiumAccount()
-            await checkPersonalOwnershipPolicy()
-            await loadItemTypesUserCanCreate()
-            state.folders = (try? await services.vaultRepository.fetchFolders()) ?? []
+            // ui-r9: the list stream starts first. The helper loads (premium, policy, item types, folders) used to run
+            // one after the other before the stream began, which held the first rows back behind the spinner.
+            let auxiliary = Task {
+                await loadHasPremiumAccount()
+                await checkPersonalOwnershipPolicy()
+                await loadItemTypesUserCanCreate()
+                state.folders = (try? await services.vaultRepository.fetchFolders()) ?? []
+            }
             await streamVaultList()
+            await auxiliary.value
         case let .deleteItems(items):
             deleteItems(items)
         case let .moveItems(items, folderId):

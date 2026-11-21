@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID でロック解除";
 "UnlockWithPIN" = "PIN コードでロック解除";
 "VerificationCode" = "認証コード";
-"WebVault" = "Pass-Y ウェブ保管庫";
 "Items" = "アイテム";
 "ExtensionActivated" = "拡張機能を有効化しました！";
 "ItemsForUri" = "%1$@ 用のアイテム";

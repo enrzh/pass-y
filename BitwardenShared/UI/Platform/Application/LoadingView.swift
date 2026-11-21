@@ -2,6 +2,51 @@ import BitwardenKit
 import BitwardenResources
 import SwiftUI
 
+// MARK: - DelayedLoadingIndicator
+
+/// The indicator of a `LoadingView`, shown only after `delay` seconds so that quick loads show no spinner at all.
+/// Before that the area is empty (the page background). Nothing animates while it is hidden.
+struct DelayedLoadingIndicator: View {
+    /// The seconds to wait before the indicator is shown.
+    static let delay: Double = 0.4
+
+    /// An optional message displayed below the loading indicator.
+    var loadingMessage: String?
+
+    /// Whether the indicator is shown.
+    @SwiftUI.State private var isVisible: Bool
+
+    /// - Parameters:
+    ///   - loadingMessage: An optional message displayed below the loading indicator.
+    ///   - initiallyVisible: Shows the indicator at once (tests).
+    init(loadingMessage: String? = nil, initiallyVisible: Bool = false) {
+        self.loadingMessage = loadingMessage
+        _isVisible = SwiftUI.State(initialValue: initiallyVisible)
+    }
+
+    var body: some View {
+        ZStack {
+            if isVisible {
+                VStack(spacing: 24) {
+                    CircularActivityIndicator()
+                    if let loadingMessage {
+                        Text(loadingMessage)
+                            .styleGuide(.headline, weight: .semibold)
+                            .foregroundColor(Color(asset: SharedAsset.Colors.textPrimary))
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task {
+            try? await Task.sleep(nanoseconds: UInt64(Self.delay * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeIn(duration: 0.2)) { isVisible = true }
+        }
+    }
+}
+
 // MARK: - LoadingView
 
 /// A view that displays either a loading indicator or the content view for a set of loaded data.
@@ -21,15 +66,9 @@ struct LoadingView<T: Equatable & Sendable, Contents: View, ErrorView: View>: Vi
     var body: some View {
         switch state {
         case .loading:
-            VStack(spacing: 24) {
-                CircularActivityIndicator()
-                if let loadingMessage {
-                    Text(loadingMessage)
-                        .styleGuide(.headline, weight: .semibold)
-                        .foregroundColor(Color(asset: SharedAsset.Colors.textPrimary))
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // ui-r9: no spinner flicker. Most loads finish within a few frames; the indicator only appears when the
+            // load really takes a while (see `DelayedLoadingIndicator`).
+            DelayedLoadingIndicator(loadingMessage: loadingMessage)
         case let .data(data):
             contents(data)
         case let .error(errorMessage):

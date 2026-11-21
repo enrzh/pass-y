@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Mở khóa bằng Optic ID";
 "UnlockWithPIN" = "Mở khóa bằng mã PIN";
 "VerificationCode" = "Mã xác minh";
-"WebVault" = "Pass-Y bản web";
 "Items" = "Mục";
 "ExtensionActivated" = "Đã kích hoạt tiện ích mở rộng!";
 "ItemsForUri" = "Các mục cho %1$@";

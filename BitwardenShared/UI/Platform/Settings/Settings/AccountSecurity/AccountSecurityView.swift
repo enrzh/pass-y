@@ -21,10 +21,6 @@ struct AccountSecurityView: View {
         Form {
             setUpUnlockActionCard
 
-            if !store.state.isManageDevicesEnabled {
-                pendingLoginRequests
-            }
-
             if store.state.showUnlockOptions {
                 unlockOptionsSection
             }
@@ -37,11 +33,6 @@ struct AccountSecurityView: View {
         }
         .animation(.easeInOut, value: store.state.badgeState?.vaultUnlockSetupProgress == .complete)
         .navigationBar(title: Localizations.accountSecurity, titleDisplayMode: .inline)
-        .onChange(of: store.state.twoStepLoginUrl) { newValue in
-            guard let url = newValue else { return }
-            openURL(url)
-            store.send(.clearTwoStepLoginUrl)
-        }
         .onChange(of: store.state.fingerprintPhraseUrl) { newValue in
             guard let url = newValue else { return }
             openURL(url)
@@ -90,14 +81,6 @@ struct AccountSecurityView: View {
                 title: Localizations.accountFingerprintPhrase,
             )
 
-            NativeSettingsRow(
-                accessory: .symbol("arrow.up.right.square"),
-                action: { store.send(.twoStepLoginPressed) },
-                accessibilityIdentifier: "TwoStepLoginLinkItemView",
-                symbol: "lock.shield",
-                title: Localizations.twoStepLogin,
-            )
-
             if store.state.isManageDevicesEnabled {
                 NativeSettingsRow(
                     action: { store.send(.manageDevicesTapped) },
@@ -137,18 +120,6 @@ struct AccountSecurityView: View {
                 symbol: "trash",
                 titleStyle: .red,
                 title: Localizations.deleteAccount,
-            )
-        }
-    }
-
-    /// The pending login requests section.
-    private var pendingLoginRequests: some View {
-        Section(Localizations.approveLoginRequests) {
-            NativeSettingsRow(
-                action: { store.send(.pendingLoginRequestsTapped) },
-                accessibilityIdentifier: "PendingLogInRequestsLabel",
-                symbol: "person.badge.clock",
-                title: Localizations.pendingLogInRequests,
             )
         }
     }

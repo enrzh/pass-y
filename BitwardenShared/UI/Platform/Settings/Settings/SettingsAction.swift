@@ -4,6 +4,9 @@ enum SettingsAction: Equatable {
     /// The about button was pressed.
     case aboutPressed
 
+    /// The add account entry of the account menu was pressed.
+    case addAccountPressed
+
     /// The account security button was pressed.
     case accountSecurityPressed
 

@@ -240,14 +240,4 @@ class AboutProcessorTests: BitwardenTestCase {
         XCTAssertTrue(errorReporter.isEnabled)
     }
 
-    /// `receive(_:)` with `.webVaultTapped` shows an alert for navigating to the web vault
-    /// When `Continue` is tapped on the alert, sets the URL to open in the state.
-    @MainActor
-    func test_receive_webVaultTapped() async throws {
-        subject.receive(.webVaultTapped)
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.continue)
-        XCTAssertEqual(subject.state.url, environmentService.webVaultURL)
-    }
 }

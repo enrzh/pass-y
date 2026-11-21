@@ -143,14 +143,6 @@ class AccountSecurityViewTests: BitwardenTestCase {
         task.cancel()
     }
 
-    /// Tapping the pending login requests button dispatches the `.pendingLoginRequestsTapped` action.
-    @MainActor
-    func test_pendingRequestsButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.pendingLogInRequests)
-        try button.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .pendingLoginRequestsTapped)
-    }
-
     /// The pending login requests button is hidden when manage devices is enabled.
     @MainActor
     func test_pendingRequestsButton_hidden_whenManageDevicesEnabled() {
@@ -180,14 +172,6 @@ class AccountSecurityViewTests: BitwardenTestCase {
         let button = try subject.inspect().find(button: Localizations.logOut)
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .logout)
-    }
-
-    /// Tapping the two step login button dispatches the `.logout` action.
-    @MainActor
-    func test_twoStepLoginButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.twoStepLogin)
-        try button.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .twoStepLoginPressed)
     }
 
     /// Changing the unlock with pin toggle dispatches the `.toggleUnlockWithPINCode(_)` action.

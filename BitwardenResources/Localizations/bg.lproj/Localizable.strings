@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Отключване с проверка на ириса";
 "UnlockWithPIN" = "Отключване с ПИН";
 "VerificationCode" = "Код за потвърждаване";
-"WebVault" = "Трезор по уеб";
 "Items" = "Елементи";
 "ExtensionActivated" = "Разширението е включено!";
 "ItemsForUri" = "Елементи за %1$@";

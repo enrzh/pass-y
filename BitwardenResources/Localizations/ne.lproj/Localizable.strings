@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID द्वारा अनलक गर्नुहोस्";
 "UnlockWithPIN" = "PIN कोडद्वारा अनलक गर्नुहोस्";
 "VerificationCode" = "प्रमाणीकरण कोड";
-"WebVault" = "Pass-Y वेब भल्ट";
 "Items" = "वस्तुहरू";
 "ExtensionActivated" = "विस्तार सक्रिय भयो!";
 "ItemsForUri" = "%1$@ का लागि वस्तुहरू";

@@ -89,6 +89,9 @@ public enum VaultRoute: Equatable, Hashable {
     /// A route to the settings tab (opened from the profile menu).
     case settings
 
+    /// A route that shows the pending login requests (opened from the profile menu).
+    case pendingLoginRequests
+
     /// A route to the vault item selection screen.
     case vaultItemSelection(TOTPKeyModel)
 

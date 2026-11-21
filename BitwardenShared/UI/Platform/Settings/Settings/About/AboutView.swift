@@ -68,8 +68,6 @@ struct AboutView: View {
 
             externalLinkRow(Localizations.privacyPolicy, symbol: "hand.raised", action: .privacyPolicyTapped)
 
-            externalLinkRow(Localizations.webVault, symbol: "globe", action: .webVaultTapped)
-
             externalLinkRow(Localizations.learnOrg, symbol: "building.2", action: .learnAboutOrganizationsTapped)
 
             NativeSettingsRow(

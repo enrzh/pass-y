@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "";
 "UnlockWithPIN" = "Lås opp med PIN-kode";
 "VerificationCode" = "Verifiseringskode";
-"WebVault" = "Pass-Y Netthvelv";
 "Items" = "Gjenstander";
 "ExtensionActivated" = "Utvidelsen er aktivert!";
 "ItemsForUri" = "Gjenstander for %1$@";

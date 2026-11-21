@@ -13,7 +13,8 @@ extension Notification.Name {
 
 // MARK: - PassYDestination
 
-/// The four top-level destinations of the app. They are reachable only from the avatar menu (there is no tab bar).
+/// The four top-level destinations of the app. Send, Generator and Settings are reachable from the avatar menu; the
+/// vault is reached with the Vault button of the bottom bar (there is no tab bar).
 ///
 enum PassYDestination: Int, CaseIterable, Identifiable {
     case vault = 0
@@ -101,16 +102,22 @@ struct PassYSearchTarget {
 /// The data of the avatar menu, published by the vault list (which owns the profile switcher).
 ///
 struct PassYProfileMenuSource {
-    let accounts: [ProfileSwitcherItem]
-    let activeAccountId: String?
     let activeProfile: ProfileSwitcherItem?
-    let addAccount: () -> Void
     let canLock: Bool
     let lock: (ProfileSwitcherItem) -> Void
-    let select: (ProfileSwitcherItem) -> Void
-    let showsAddAccount: Bool
+    let pendingRequests: () -> Void
+    /// The connected server (shown at the top of the menu).
+    let serverURL: String
     let showsPlaceholder: Bool
     let sync: () -> Void
+}
+
+extension URL {
+    /// The URL as shown to the user: the absolute string without a trailing slash.
+    var passYServerText: String {
+        let text = absoluteString
+        return text.hasSuffix("/") ? String(text.dropLast()) : text
+    }
 }
 
 // MARK: - PassYShellModel
@@ -440,43 +447,20 @@ struct PassYAvatarMenu: View {
 
     var body: some View {
         Menu {
-            Section {
-                ForEach(model.availableDestinations) { destination in
-                    Button {
-                        model.select(destination)
-                    } label: {
-                        Label(
-                            destination.title,
-                            systemImage: destination == model.destination ? "checkmark" : destination.symbol,
-                        )
-                    }
-                    .accessibilityIdentifier(destination.menuIdentifier)
+            if let source = model.profileMenu, !source.serverURL.isEmpty {
+                // The connected server, like the account line of Apple's own menus (not an action).
+                Section(source.serverURL) {
+                    destinationButtons
                 }
+            } else {
+                Section { destinationButtons }
             }
-
             if let source = model.profileMenu {
-                if !source.accounts.isEmpty {
-                    Section {
-                        ForEach(source.accounts, id: \.userId) { account in
-                            Button {
-                                source.select(account)
-                            } label: {
-                                if account.userId == source.activeAccountId {
-                                    Label(account.email, systemImage: "checkmark")
-                                } else {
-                                    Text(account.email)
-                                }
-                            }
-                        }
-                        if source.showsAddAccount {
-                            Button(action: source.addAccount) {
-                                Label(Localizations.addAccount, systemImage: "person.crop.circle.badge.plus")
-                            }
-                        }
-                    }
-                }
-
                 Section {
+                    Button(action: source.pendingRequests) {
+                        Label(Localizations.pendingLogInRequests, systemImage: "person.badge.clock")
+                    }
+                    .accessibilityIdentifier("ProfileMenuPendingRequestsButton")
                     Button(action: source.sync) {
                         Label(Localizations.syncNow, systemImage: "arrow.triangle.2.circlepath")
                     }
@@ -495,6 +479,18 @@ struct PassYAvatarMenu: View {
         }
         .accessibilityIdentifier("CurrentActiveAccount")
         .accessibilityLabel(Localizations.account)
+    }
+
+    /// Send, Generator and Settings (the vault is the Vault button of the bar).
+    @ViewBuilder private var destinationButtons: some View {
+        ForEach(model.availableDestinations.filter { $0 != .vault }) { destination in
+            Button {
+                model.select(destination)
+            } label: {
+                Label(destination.title, systemImage: destination == model.destination ? "checkmark" : destination.symbol)
+            }
+            .accessibilityIdentifier(destination.menuIdentifier)
+        }
     }
 
     /// The avatar itself: initials on the account color, nothing around it.

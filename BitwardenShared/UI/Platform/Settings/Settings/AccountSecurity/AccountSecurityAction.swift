@@ -9,9 +9,6 @@ enum AccountSecurityAction: Equatable {
     /// Clears the account fingerprint phrase URL after the web app has been opened.
     case clearFingerprintPhraseUrl
 
-    /// Clears the two step login URL after the web app has been opened.
-    case clearTwoStepLoginUrl
-
     /// Sets the custom session timeout value in seconds.
     case customTimeoutValueSecondsChanged(Int)
 
@@ -24,9 +21,6 @@ enum AccountSecurityAction: Equatable {
     /// The manage devices button was tapped.
     case manageDevicesTapped
 
-    /// The pending login requests button was tapped.
-    case pendingLoginRequestsTapped
-
     /// The session timeout action has changed.
     case sessionTimeoutActionChanged(SessionTimeoutAction)
 
@@ -36,6 +30,4 @@ enum AccountSecurityAction: Equatable {
     /// The user tapped the get started button on the set up unlock action card.
     case showSetUpUnlock
 
-    /// The two step login button was pressed.
-    case twoStepLoginPressed
 }

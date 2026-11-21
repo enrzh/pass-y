@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "ปลดล็อกด้วย Optic ID";
 "UnlockWithPIN" = "ปลดล็อกด้วยรหัส PIN";
 "VerificationCode" = "รหัสยืนยัน";
-"WebVault" = "ตู้นิรภัยเว็บ Pass-Y";
 "Items" = "รายการ";
 "ExtensionActivated" = "เปิดใช้งานส่วนขยายแล้ว";
 "ItemsForUri" = "รายการสำหรับ %1$@";

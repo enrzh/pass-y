@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Sblocca con ID ottico";
 "UnlockWithPIN" = "Sblocca con codice PIN";
 "VerificationCode" = "Codice di verifica";
-"WebVault" = "Cassaforte web di Pass-Y";
 "Items" = "Elementi";
 "ExtensionActivated" = "Estensione attivata!";
 "ItemsForUri" = "Elementi per %1$@";

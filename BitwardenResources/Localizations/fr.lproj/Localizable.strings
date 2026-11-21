@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Déverrouiller avec Optic ID";
 "UnlockWithPIN" = "Déverrouiller avec code PIN";
 "VerificationCode" = "Code de vérification";
-"WebVault" = "Coffre web Pass-Y";
 "Items" = "Éléments";
 "ExtensionActivated" = "Extension activée !";
 "ItemsForUri" = "Éléments pour %1$@";
