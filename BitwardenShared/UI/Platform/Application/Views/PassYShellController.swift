@@ -239,10 +239,6 @@ class PassYShellController: UIViewController, TabNavigator {
         // UIKit does not publish pushes through KVO, and there is no public notification: compare the depth of the
         // vault stack a few times per second (an integer comparison; the model only publishes on a change).
         stackPollTimer?.invalidate()
-        #if DEBUG
-        // Diagnosis switch for the UI idle investigation (`-passyDisableStackPoll YES`).
-        if UserDefaults.standard.bool(forKey: "passyDisableStackPoll") { updateVaultHome(); return }
-        #endif
         let timer = Timer(timeInterval: 0.15, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.updateVaultHome() }
         }
