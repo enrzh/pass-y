@@ -171,7 +171,7 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: Bitwarden/Application/Support/Info.plist
-        # Pass-Y is iPhone and iPad only: no Mac (Designed for iPad), no visionOS, no watchOS.
+        # Pass-Y is iPhone and iPad only: no Mac (Designed for iPad), no visionOS, no wrist app.
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
         TARGETED_DEVICE_FAMILY: "1,2"

@@ -109,25 +109,6 @@ final class PassYEdgeFadeView: UIView {
     }
 }
 
-// MARK: - PassYStackObserver
-
-/// Reports pushes and pops of a plain navigation controller that has no delegate of its own.
-final class PassYStackObserver: NSObject, UINavigationControllerDelegate {
-    private let changed: () -> Void
-
-    init(changed: @escaping () -> Void) {
-        self.changed = changed
-    }
-
-    func navigationController(_: UINavigationController, willShow _: UIViewController, animated _: Bool) {
-        changed()
-    }
-
-    func navigationController(_: UINavigationController, didShow _: UIViewController, animated _: Bool) {
-        changed()
-    }
-}
-
 // MARK: - PassYShellController
 
 /// The root shell of the signed-in app. It shows one top-level navigator at a time (Vault, Send, Generator or
@@ -175,9 +156,6 @@ class PassYShellController: UIViewController, TabNavigator {
 
     /// Observations of the navigation stacks (the Vault button depends on the depth of the vault stack).
     private var stackObservations: [NSKeyValueObservation] = []
-
-    /// Delegates of plain navigation controllers (tests); the app's `ViewLoggingNavigationController` reports itself.
-    private var stackDelegates: [PassYStackObserver] = []
 
     // MARK: Initialization
 
@@ -311,10 +289,9 @@ class PassYShellController: UIViewController, TabNavigator {
     // MARK: Private Methods
 
     /// Observes the stacks of all navigators so the Vault button follows pushes, pops and pop-to-root. UIKit publishes
-    /// no KVO for pushes, so this is event driven through the navigation controller delegate (`willShow`/`didShow`);
+    /// no KVO for pushes, so this is event driven through `ViewLoggingNavigationController.stackChanged` (push, pop, swipe-back);
     /// there is no timer. KVO on `viewControllers` still covers `setViewControllers` and replaced roots.
     private func observeStacks() {
-        stackDelegates = []
         topFades.forEach { $0.removeFromSuperview() }
         topFades = []
         let navigations = entries.compactMap { $0.navigator.rootViewController as? UINavigationController }
@@ -326,13 +303,8 @@ class PassYShellController: UIViewController, TabNavigator {
         }
         for navigation in navigations {
             installTopFade(in: navigation)
-            if let logging = navigation as? ViewLoggingNavigationController {
-                logging.stackChanged = { [weak self] in self?.updateVaultHome() }
-            } else if navigation.delegate == nil {
-                let observer = PassYStackObserver { [weak self] in self?.updateVaultHome() }
-                navigation.delegate = observer
-                stackDelegates.append(observer)
-            }
+            // The app's navigators are `ViewLoggingNavigationController`s: they report every push and pop.
+            (navigation as? ViewLoggingNavigationController)?.stackChanged = { [weak self] in self?.updateVaultHome() }
         }
         updateVaultHome()
     }

@@ -62,7 +62,8 @@ class PassYUiR9Tests: BitwardenTestCase {
             "BitwardenShared/UI/Auth/Login/TwoFactorAuth/TwoFactorAuthProcessor.swift",
         ] {
             let source = try read(file)
-            XCTAssertFalse(source.contains("webVaultURL"), file)
+            // (the Duo callback of the two-factor page still needs the server's web vault base URL; it is no link)
+            if !file.contains("TwoFactorAuth") { XCTAssertFalse(source.contains("webVaultURL"), file) }
             XCTAssertFalse(source.contains("importItemsURL"), file)
             XCTAssertFalse(source.contains("recoveryCodeURL"), file)
             XCTAssertFalse(source.contains("twoStepLoginUrl"), file)

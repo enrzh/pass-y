@@ -337,7 +337,8 @@ class VaultGroupProcessorTests: BitwardenTestCase { // swiftlint:disable:this ty
         let task = Task {
             await subject.perform(.appeared)
         }
-        waitFor(subject.state.loadingState == .data([]))
+        // The list stream and the policy check run side by side now (ui-r9): wait for both.
+        waitFor(subject.state.loadingState == .data([]) && !subject.state.canShowVaultFilter)
         task.cancel()
 
         XCTAssertFalse(subject.state.canShowVaultFilter)

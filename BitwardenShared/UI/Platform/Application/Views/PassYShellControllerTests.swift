@@ -198,11 +198,13 @@ struct PassYShellControllerTests {
     // MARK: Vault button (ui-r8)
 
     /// Two navigators with real navigation controllers: vault and settings.
-    private func makeStacks() -> (vault: UINavigationController, settings: UINavigationController) {
+    private func makeStacks() -> (vault: ViewLoggingNavigationController, settings: ViewLoggingNavigationController) {
         let vault = MockRootNavigator()
         let settings = MockRootNavigator()
-        let vaultStack = UINavigationController(rootViewController: UIViewController())
-        let settingsStack = UINavigationController(rootViewController: UIViewController())
+        let vaultStack = ViewLoggingNavigationController(logger: MockBitwardenLogger())
+        let settingsStack = ViewLoggingNavigationController(logger: MockBitwardenLogger())
+        vaultStack.setViewControllers([UIViewController()], animated: false)
+        settingsStack.setViewControllers([UIViewController()], animated: false)
         vault.rootViewController = vaultStack
         settings.rootViewController = settingsStack
         subject.setNavigators([TabRoute.vault(.list): vault, TabRoute.settings(.settings(.tab)): settings])
@@ -243,7 +245,7 @@ struct PassYShellControllerTests {
     func vaultButton_isEventDriven_noPolling() {
         let stacks = makeStacks()
         stacks.vault.pushViewController(UIViewController(), animated: false)
-        #expect(!subject.model.isAtVaultHome, "updated synchronously by willShow, not by a timer")
+        #expect(!subject.model.isAtVaultHome, "updated synchronously by the push, not by a timer")
         stacks.vault.popViewController(animated: false)
         #expect(subject.model.isAtVaultHome)
     }
