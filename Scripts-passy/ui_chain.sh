@@ -110,6 +110,9 @@ step() {
     prepare_sim "$u" || break
   done
   xcrun simctl shutdown "$u" 2>/dev/null
+  for x in "$name" "$name-retry"; do   # keep the screenshots of the step (small), then drop the large result bundle
+    [ -d "$O/$x.xcresult" ] && "$R/Scripts-passy/export_shots.sh" "$O/$x.xcresult" "$O/shots/$x" >/dev/null 2>&1
+  done
   rm -rf "$O/$name".xcresult "$O/$name"-retry.xcresult   # result bundles are large; the logs and the summary stay
 }
 
@@ -144,7 +147,7 @@ STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}
 STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-dev-dark-b";   STEP_MIN=1 step device-dark-b  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
 STEP_ENV=""
 STEP_MIN=7 step ui-r8     erase $SIM_PHONE PassYUITests/PassYUiR8Tests
-STEP_MIN=${R9_MIN:-1} step ui-r9     erase $SIM_PHONE PassYUITests/PassYUiR9Tests
+STEP_ENV="PASSY_SHOT_TAG=${ROUND}"; STEP_MIN=${R9_MIN:-6} step ui-r9     erase $SIM_PHONE PassYUITests/PassYUiR9Tests; STEP_ENV=""
 # iPad: own simulator
 T=$(xcrun simctl list devicetypes | grep -E "iPad Air 11" | head -1 | grep -oE 'com\.apple[^)]*')
 IPAD=$(sim_id PassY-${ROUND^^}-iPad "$T" $IOS)
