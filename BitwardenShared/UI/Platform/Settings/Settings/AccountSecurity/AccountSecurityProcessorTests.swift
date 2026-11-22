@@ -19,7 +19,6 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
     var policyService: MockPolicyService!
     var settingsRepository: MockSettingsRepository!
     var stateService: MockStateService!
-    var twoStepLoginService: MockTwoStepLoginService!
     var vaultTimeoutService: MockVaultTimeoutService!
     var subject: AccountSecurityProcessor!
     var userSessionStateService: MockUserSessionStateService!
@@ -39,7 +38,6 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         policyService = MockPolicyService()
         settingsRepository = MockSettingsRepository()
         stateService = MockStateService()
-        twoStepLoginService = MockTwoStepLoginService()
         userSessionStateService = MockUserSessionStateService()
         vaultTimeoutService = MockVaultTimeoutService()
         vaultUnlockSetupHelper = MockVaultUnlockSetupHelper()
@@ -57,7 +55,6 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
                 policyService: policyService,
                 settingsRepository: settingsRepository,
                 stateService: stateService,
-                twoStepLoginService: twoStepLoginService,
                 userSessionStateService: userSessionStateService,
                 vaultTimeoutService: vaultTimeoutService,
             ),
@@ -78,7 +75,6 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         policyService = nil
         settingsRepository = nil
         subject = nil
-        twoStepLoginService = nil
         userSessionStateService = nil
         vaultUnlockSetupHelper = nil
     }

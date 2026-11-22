@@ -96,7 +96,6 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
         & HasStorefrontService
         & HasSystemDevice
         & HasTimeProvider
-        & HasTwoStepLoginService
         & HasUserSessionStateService
         & HasVaultRepository
         & HasVaultTimeoutService
