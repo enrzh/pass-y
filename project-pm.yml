@@ -12,7 +12,7 @@ options:
     "icon":
       file: true 
 settings:
-  MARKETING_VERSION: 2026.4.0    # Bump this for a new version update.
+  MARKETING_VERSION: 1.27.0    # Pass-Y scheme MAJOR.MINOR.PATCH, see Docs/Releasing.md.
   CURRENT_PROJECT_VERSION: 1
 projectReferences:
   BitwardenKit:
