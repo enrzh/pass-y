@@ -773,21 +773,6 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         XCTAssertFalse(subject.state.isUnlockWithPINCodeOn)
     }
 
-    /// `receive(_:)` with `.twoStepLoginPressed` clears the two step login URL.
-    @MainActor
-    func test_receive_clearTwoStepLoginUrl() async throws {
-        subject.receive(.twoStepLoginPressed)
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-
-        // Tapping yes navigates the user to the web app.
-        try await alert.tapAction(title: Localizations.yes)
-        XCTAssertNotNil(subject.state.twoStepLoginUrl)
-
-        subject.receive(.clearTwoStepLoginUrl)
-        XCTAssertNil(subject.state.twoStepLoginUrl)
-    }
-
     /// `receive(_:)` with `customTimeoutValueSecondsChanged(_:)` updates the custom session timeout value in the state.
     @MainActor
     func test_receive_customTimeoutValueSecondsChanged() {
@@ -833,13 +818,6 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
     func test_receive_manageDevicesTapped() {
         subject.receive(.manageDevicesTapped)
         XCTAssertEqual(coordinator.routes.last, .deviceManagement)
-    }
-
-    /// `.receive(_:)` with `.pendingLoginRequestsTapped` navigates to the pending requests view.
-    @MainActor
-    func test_receive_pendingLoginRequestsTapped() {
-        subject.receive(.pendingLoginRequestsTapped)
-        XCTAssertEqual(coordinator.routes.last, .pendingLoginRequests)
     }
 
     /// `perform(.loadData)` sets `isManageDevicesEnabled` from the `manageDevices` feature flag.
@@ -903,14 +881,11 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         try await alert.tapAction(title: Localizations.yes)
         XCTAssertEqual(subject.state.sessionTimeoutAction, .logout)
 
-        subject.receive(.twoStepLoginPressed)
-        let twoStepLoginAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await twoStepLoginAlert.tapAction(title: Localizations.cancel)
+        let alertCount = coordinator.alertShown.count
 
         // Should not show alert since the state's sessionTimeoutAction is already .logout
         subject.receive(.sessionTimeoutActionChanged(.logout))
-        let lastShownAlert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(lastShownAlert, twoStepLoginAlert)
+        XCTAssertEqual(coordinator.alertShown.count, alertCount)
     }
 
     /// `receive(_:)` with `sessionTimeoutValueChanged(:)` triggers an alert when selecting never lock,
@@ -1035,25 +1010,6 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         XCTAssertEqual(coordinator.routes, [.vaultUnlockSetup])
     }
 
-    /// `receive(_:)` with `.twoStepLoginPressed` shows the two step login alert.
-    @MainActor
-    func test_receive_twoStepLoginPressed() async throws {
-        subject.receive(.twoStepLoginPressed)
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, Localizations.continueToWebApp)
-        XCTAssertEqual(alert.message, Localizations.twoStepLoginDescriptionLong)
-        XCTAssertEqual(alert.preferredStyle, .alert)
-        XCTAssertEqual(alert.alertActions.count, 2)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.cancel)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.yes)
-
-        // Tapping yes navigates the user to the web app.
-        try await alert.tapAction(title: Localizations.yes)
-
-        XCTAssertNotNil(subject.state.twoStepLoginUrl)
-    }
-
     /// The vault timeout action is refreshed after turning off pin unlock to handle users without
     /// a master password when a lock timeout action may not be available.
     @MainActor
@@ -1089,14 +1045,4 @@ class AccountSecurityProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         XCTAssertEqual(subject.state.sessionTimeoutAction, .logout)
     }
 
-    /// `state.twoStepLoginUrl` is initialized with the correct value.
-    @MainActor
-    func test_twoStepLoginUrl() async throws {
-        subject.receive(.twoStepLoginPressed)
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.yes)
-
-        XCTAssertEqual(subject.state.twoStepLoginUrl, URL.example)
-    }
 } // swiftlint:disable:this file_length

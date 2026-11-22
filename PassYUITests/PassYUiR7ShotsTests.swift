@@ -224,6 +224,8 @@ final class PassYUiR7ShotsTests: XCTestCase {
         closeSheet(app); sleep(1)
         let row = app.staticTexts[name]
         if row.waitForExistence(timeout: 8) {
+            // The row can exist in the tree while it is below the fold or under the bottom bar: scroll it into view.
+            for _ in 0 ..< 8 where !row.isHittable { app.swipeUp(); usleep(400_000) }
             row.swipeLeft(); sleep(1)
             app.buttons["Delete"].firstMatch.tap()
             if app.alerts.buttons["Yes"].waitForExistence(timeout: 5) { app.alerts.buttons["Yes"].tap() }

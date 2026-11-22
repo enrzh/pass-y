@@ -14,7 +14,7 @@ It is a fork of the [Bitwarden iOS client](https://github.com/bitwarden/ios) (GP
 - The cryptography is **not** reimplemented: it stays in the Bitwarden SDK (`sdk-swift`, a public Swift package).
   The UI is plain Swift/SwiftUI.
 
-Removed from the upstream repository: the Authenticator app, the Apple Watch app/widget, TestHarness, Bitwarden CI workflows and
+Removed from the upstream repository: the Authenticator app, the Apple Watch app/widget (the watch code, targets and the "Connect to Watch" setting are gone since ui-r9), TestHarness, Bitwarden CI workflows and
 fastlane release automation.
 
 ## Status of v1.19 (read this first)
@@ -608,3 +608,105 @@ State at the end of this round (honest, the machine was saturated by foreign pro
 - **Comparison with `main` (tag `v1.24-ui-r7`, temporary worktree and DerivedData, same simulator, same vault with about 2000 items, same test code; deleted afterwards):** one tap on the name part of a row opens the item 10/10 on both; one tap on the blank part of a row **0/10 on main, 10/10 on ui-r8**; tile tap to the first list row median 1.80 s on both; unlock to the first row 1.60 s (main) against 1.56 s (ui-r8). The XCUITest idle wait gives a floor of about 2 s per action, so only the counts and the equality of the times are meaningful.
 - **The "wait for idle" stall (`test_perf_search`, 40 minutes in the second chain; first tile tap 62 s in the ui-r8 comparison run):** NOT reproduced in five further runs of the same tests (search alone, search after fresh erase and login, scrollMetrics then search, `perf-b`, the idle diagnosis), where every action took 0.3 to 2 s. A temporary debug dump of all running layer animations (removed again) caught one running animation about 3 s after unlock: the system pull-to-refresh spinner (`_UIRefreshControlModernReplicatorView`, a `CAReplicatorLayer` with opacity animation) which then ended. A spinner that runs for the duration of a vault refresh would keep XCUITest from becoming idle for as long as the refresh takes; whether a long or repeating refresh after unlock (2000 items) is what the two stalls hit, and whether ui-r8 prolongs it compared with main (main had no stall in its runs), is NOT established. The 0.15 s stack-depth timer is not implicated by the evidence (actions take 0.3 s with it, it exists in every passing run) but was also not replaced by an event-driven mechanism. So this stays an open observation, not a proven product bug.
 - **Cleanup done:** own simulators, scratch directory and the temporary main worktree and DerivedData removed; the shared DerivedData `~/Library/Caches/passy-vw-dd` is kept for the validator.
+
+## ui-r9 (complete design rework; branch `passy/ui-r9`, not merged)
+
+Feedback on v1.25 / ui-r8 (iPhone Air): the Vault button, scrolling and tap response are fine. ui-r9 makes the app feel like an
+Apple product: calmer, fewer elements, nothing that loads or flickers after a page opened. All features stay.
+
+| # | Point | Commit | What |
+|---|---|---|---|
+| 1 | No visible loading after opening a page | `72ec977a9` | root causes below |
+| 2 | Large-title collapse without a blur block | `00c63294c` | navigation bars of the shell stacks have no background; a touch-transparent gradient of the page color (`PassYEdgeFadeView`, top) sits between page and bar, fading content out as it scrolls under it |
+| 3 | Content scrolls under the bottom bar | `00c63294c` | the solid strip (`bottomBacking`) behind the bar and the home indicator is gone; the same kind of fade (bottom) sits under the bar. Before/after: `Docs/screenshots/ui-r9/before-list-scrolled-hard-blocks.png`, `after-list-scrolled-soft-fades.png` |
+| 4 | No launch/splash page with logo | `d51e0a5b9` | `LaunchScreen.storyboard` is a plain system background (no logo, no title); the splash/privacy window of `SceneDelegate` uses it, so the app goes from the plain screen straight to Unlock or the vault |
+| 5 | Avatar menu | `72ec977a9` | no "Vault" entry (the Vault button of the bar does that), no signed-in account entry, no "Add account"; the connected server URL is shown on top instead of "Pass-Y". The Settings account row shows the server URL too and its menu now has "Add account" (`SettingsRoute.addAccount`) |
+| 6 | No "Pass-Y web vault" anywhere | `72ec977a9` | About row, Account security "Two-step login" row (opened the web vault), Vault settings "Import items" row (opened the web vault), the 2FA "Recovery code" method (opened Safari), the localized string `WebVault` |
+| 7 | Pending login requests in the avatar menu | `72ec977a9` | menu entry (`VaultRoute.pendingLoginRequests`, opens the existing sheet via the Settings coordinator); the row in Account security is removed |
+| a | No poll timer | `d51e0a5b9`, `8e42f7abf` | `PassYShellController.stackPollTimer` (0.15 s) is gone. `ViewLoggingNavigationController` (all navigators of the app) reports every push/pop/pop-to-root/`setViewControllers` through `stackChanged` and the swipe-back transitions through `willShow`/`didShow`; KVO on `viewControllers` stays. No other repeating timer remains while idle (the remaining ones: 5 min event upload, TOTP countdown only while a code is shown, spinner only while visible) |
+| b | `PassYPerf` only in DEBUG | `d51e0a5b9` | release stubs are empty; the release build contains none of `passyForceInterfaceStyle`, `VaultListLoad`, `TapToPush`, `RowAppear` (checked with `strings` on the Release `Bitwarden` and `BitwardenShared.framework`) |
+| c | Chain script | `ba67500a8`, `56f6d2c37` | `Scripts-passy/ui_chain.sh` (generic, `ROUND=r9`): explicit PID for the screenshot job (no `kill %1`), after a server restart the item count is read from the server (`seed_ciphers.py --count`); perf is skipped, with a note, below 2000 items; works with macOS bash 3.2 |
+| d | iOS and iPadOS only | `ba67500a8` | watch app, widget extension, shared models, WatchConnectivity service/session/mocks/tests, `connectToWatch` in repository, state service, settings store and the "Connect to Watch" setting, specs, configs, scripts, strings removed; `SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD=NO`, `SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD=NO`, `TARGETED_DEVICE_FAMILY=1,2` |
+
+### Root causes for "something loads after the page opened"
+
+Found by code reading and checked in the tests below (no Instruments run, no device):
+
+1. **Item view started in the `.loading` state.** `VaultItemCoordinator.showViewItem` created the processor with `ViewItemState()` (loading); the item was only fetched in the `.appeared` stream (premium, collections, folder, organization, ownership, web-icon setting, TOTP: seven awaits, then `state = newState`). The sheet therefore opened with a spinner and without the favorite button, then redrawn. Now `ViewItemPreloadCache` loads the same state (`ViewItemProcessor.makeState`, shared with the stream) before the sheet is presented, the coordinator starts the view with it, and the stream only refreshes it. An entry is taken once and expires after 5 s (no decrypted data stays around). If the preload fails the view loads on its own, as before.
+2. **Group list pages waited for four sequential awaits before the list stream began** (`VaultGroupProcessor`: premium, policy, item types, folders, then `streamVaultList`). Now the stream starts first and the helpers run beside it.
+3. **Every loading state showed a spinner at once** (`LoadingView`). The indicator now appears after 0.4 s (`DelayedLoadingIndicator`), so quick loads show nothing; nothing animates while it is hidden.
+4. Not changed (and not proven to matter): icons of items that were never loaded are still fetched after the row appeared (cache hits are in the first frame since ui-r8); the home still runs `refreshVault(syncWithPeriodicCheck: true)` on each appearance (a periodic check, no spinner is shown for it).
+
+**Idle stall of ui-r8 (O1).** The 0.15 s timer was the only new permanent activity; it is removed. Whether it caused the XCUITest "App animations complete notification not received" stall was not reproduced before or after: UNVERIFIED. In the full chain below no action waited for idle.
+
+### Tests
+
+- Unit (`Bitwarden-Unit`): 5910 XCTest (45 skipped, 0 failures) and 720 Swift Testing in 77 suites passed. New: `PassYUiR9Tests` (plain launch screen, project spec without watch targets and with Mac/visionOS off, perf hooks only in DEBUG, no web vault links in the sources, preload cache take-once and expiry, server text), shell tests (`vaultButton_isEventDriven_noPolling`, `vaultButton_followsViewLoggingNavigationController`, `shell_hasNoTimerAndNoSolidBacking`, `fades_existAndLetTouchesThrough`), `VaultItemCoordinatorTests.test_navigateTo_viewItem_preloadedState`, routes (`pendingLoginRequests`, `addAccount`) and processor actions. Removed with the features: the watch service tests, connect-to-watch tests, web vault/two-step/import alerts, the recovery-code test (replaced by "opens nothing"). One existing test changed on purpose: `VaultGroupProcessorTests.test_perform_appeared_policyCanShowVaultFilterDisabled` waits for both the list and the policy result now (they run side by side). Shell tests keep their windows alive: a window deallocated while a navigation bar still lays out in a deferred commit crashed the test host ("Cannot form weak reference to ... UIWindow").
+- ViewInspector: 612 executed, 17 skipped, 0 failures (new: avatar menu entries, server URL, pending requests; Settings account row with server and Add account; no watch toggle on Other; the delayed loading indicator).
+- UI chain (`Scripts-passy/ui_chain.sh`, one simulator PassY-R9b, own Vaultwarden 1.37.5, strict rules, gate load < 25 at step start; the load of other projects reached 100 to 350 during most steps): diag, landing, regstart, auth light and dark, 2FA light/dark/dark2, device light/dark/light-b/dark-b, iPad light, dark (retry), landscape, audit 5/5, perf 6/6 (second run of `test_perf_search`), `UiR8` 7/7 (test05 compares within 3 per channel now: the fade is the page color itself), `Flow` 28/28 fresh and `UiR9` 6/6 in separate single runs on a vault with the 25 seed items (the first runs of the chain: `Flow` 26/28 with a mistyped unlock password in `test03`, `UiR9` was not yet in the generated project and `test06` had a wrong assertion; the `Flow` repeat inside the chain crashed the runner during a load peak); after the last code change (top fade covers only the inline bar height, because the first version faded an expanded large title) `UiR9` 6/6 and `UiR8` 7/7 were run again, plus the shell unit tests. Not repeated after that last change: the rest of the chain and the full Unit/ViewInspector plans (they ran on the commit before, `812f245c8`..`a70a190b8`).
+- Perf (2000 items, verified on the server: 2025 items): 30 single taps median 2.08 s per open (XCUITest idle floor of about 2 s per action), unlock to vault 2.88 s, 30 fast swipes 52 s, search to the exact hit 10 to 11 s. No comparison with ui-r8 was run in this round; do not read these as an improvement.
+- Build: `xcodegen` project builds; the Debug app has no `Watch/` folder; the Release app (generic simulator) contains only the four app extensions in `PlugIns`, no watch extension, no `Watch/` folder, `UIDeviceFamily` 1 and 2, no perf/hook strings.
+
+### Screenshots (`Docs/screenshots/ui-r9/`)
+
+`before-list-scrolled-hard-blocks.png` (ui-r8: hard block behind the collapsed bar and a solid strip under the bottom bar) against `after-list-scrolled-soft-fades.png`; iPad light home and settings, iPad dark list, iPhone dark login, iPhone avatar menu, Settings account row with the server, scrolled list, item view (taken from `PassYUiR9Tests`, attachments `r9-01 ... r9-08`). The iPad and dark images were taken before the last top-fade change. Dark mode of the avatar menu and of the fades was not screenshotted separately: the dark steps of the chain assert the dark appearance by pixel but do not look at these two details.
+
+### UNVERIFIED / not done (ui-r9)
+
+- **Point 8 (page-by-page Apple polish of every page) is only partly done:** the avatar menu, the Settings account row, the removal of web vault, watch and plan-less rows, the plain launch screen and the bar/fade rework are in. Item view, edit, add menus, generator, send, folders and onboarding were not redesigned again; no new reference screenshots of Apple Passwords were taken.
+- No real device, no Instruments, no VoiceOver pass; the iOS 26 glass buttons and the fades on the real iPhone Air are not confirmed (the simulator runs iOS 27.0).
+- The fades are a gradient of the page color with the system's own scroll edge effect on some lists (`softBottomScrollEdge`); they are not a blur. A page with another background color than `systemGroupedBackground` would show a band.
+- Premium upgrade fallback (`PremiumUpgradeHelper`) still opens the upgrade URL of the server when in-app upgrade is not available; the "Plan" row is hidden for self-hosted servers (unchanged). The import-logins onboarding text still names the web vault host (no link). `TwoStepLoginService` and its mock are unused leftovers; the Duo callback still uses the web vault base URL internally.
+- Remaining one-off failures were typing or load related and not product related: "Invalid master password" at unlock when characters were dropped while the vault was busy (seen when the vault held 2025 items), a test runner that crashed during a load peak.
+
+### ui-r9 fix: the idle stall ("App animations complete notification not received")
+
+Root cause, proved with the DEBUG animation dump (`PassYAnimationDump`, Darwin notification `de.aiity.passy.dumpAnimations`, writes
+`<tmp>/passy-animations.txt`): a `CAReplicatorLayer` with `instanceAlphaOffset` and `opacity` animations that stays alive for minutes
+after unlocking, owned by `_UIRefreshControlModernReplicatorView` inside `PlatformRefreshControlProxy` in the navigation bar of the
+vault stack. It is the system refresh control of `.refreshable` on the vault home: it starts without a user pull after unlocking and
+spins for the whole `refreshVault` sync, so under load (or a slow sync) XCUITest never sees the app idle. Before the fix it appeared in
+2 of 2 runs (9 consecutive dumps, about 2.5 minutes, in the second run, which also showed two 60 s stalls); after removing
+`.refreshable` from `VaultListView` there was no replicator in 73 dumps over 21 tests and no stall. Sync stays available as "Sync now"
+in the avatar menu and on appearing. Not the cause (A/B on the same test, quiet machine, no stall with or without them): the fades,
+the delayed spinner. They are still hardened (no implicit layer animations, system `ProgressView` without `withAnimation`).
+Not proven: why the control starts on its own (suspect: a content-offset change of the large-title list after unlock is read as a pull).
+The `.refreshable` of the Send list and of the device/pending-request pages is unchanged.
+
+### ui-r9 fix round after the validator verdict (`Docs/verdicts/2026-11-22-ui-r9.md`, FAIL on `a853a98da`)
+
+- **Decisions (Enrico):** pull-to-refresh on the vault home stays removed on purpose (Apple Passwords has none; sync stays in the
+  avatar menu "Sync now" and runs when the home appears). This is a function change against "all features stay", recorded here.
+  Send, device and pending-request pages keep `.refreshable`.
+- **`ViewItemPreloadCache`:** the tap waits at most 1 s for the preload (then the item opens without it and loads on its own); a second
+  tap while an item is being prepared is ignored (`VaultCoordinator.isPreparingItem`); the cache is emptied in `AppCoordinator.showAuth`
+  (lock, logout, account switch and every other auth screen), so no decrypted item state stays after the vault closed. Tests:
+  `PassYUiR9PreloadTests` (timeout, fill), `AppCoordinatorTests.test_showAuth_clearsPreloadedItemStates`.
+- **Master password typing (dropped characters, 20 of 21 dots):** the UI helper now checks the dot count after typing and types again
+  (up to three times); the perf unlock test uses the same helper. Cause not decided: identical on `main`, only seen with a busy machine
+  or a 2000 item vault; a product stall while typing on the unlock screen is not shown by any measurement, so it stays documented as a
+  simulator/XCUITest typing artefact.
+- **Chain:** `ui_chain.sh` reads the Vaultwarden port from `VW_PORT` (default 8089) so parallel runs do not collide.
+- **Leftovers of the web vault removal (documented, not removed):** the Premium upgrade fallback opens the server's upgrade URL when
+  in-app upgrade is unavailable; the import-logins onboarding text names the web vault host (no link); `TwoStepLoginService` and its
+  mock are unused code that is still injected; external help links (bitwarden.com) remain. Point 8 (page-by-page Apple polish) is
+  still NOT done.
+
+### ui-r9 fix round 2: the idle stall was the "+" menu (found with the animation dump and `sample`)
+
+- **Evidence:** the stall reproduced in `test_dynamicTypeForms` and in a new loop test (`PassYUiR9Tests.test07_addMenuOpenCloseLoop`, also
+  at normal text size, first round). At the stall the screenshot shows the "+" context menu open; the dump lists the
+  `CAMatchPropertyAnimation`s (`match-bounds`, `match-position`, `match-hidden`, `match-mesh`) of a `CASDFElementLayer` in
+  `GlassGroupLayerView` inside `_UIContextMenuListView`; the `sample` of the app shows the main thread idle (3360 of 3433 samples in
+  `mach_msg`) and `XCTAnimationDidStop` called from `AnimationKit` for other animations, app CPU 0 %. So the menu platter's glass
+  animations never report their end to XCTest's animation counter, and every action waits 60 s ("App animations complete
+  notification not received"). A `CAReplicatorLayer` of the pull-to-refresh control was a second, separate cause (removed before).
+- **Fix:** the "+" `Menu` no longer sits inside an interactive glass view. Glass is now a plain background behind it
+  (`PassYGlassBackground`, not `.interactive()`), so the menu does not morph out of a glass source.
+- **Result (simulator, iOS 27.0, quiet to moderate load):** 108 open/sheet/close rounds (3 runs of 36: normal, accessibility L,
+  accessibility XXXL) without any "not received", slowest round 17 s. Before the change the same loop stalled in the first round once,
+  `test_dynamicTypeForms` once in about 9 iterations. The stall is intermittent, so this is evidence, not proof; whether the
+  validator's `test_homeSearchSelectDelete` hang (>80 min) had the same cause is UNVERIFIED (it began right after tapping "+" too).
+- **swipeDelete crash:** signature (validator, load 300): SIGABRT, `UICollectionView _Bug_Detected_In_Client_Of_UICollectionView_Invalid_Number_Of_Items_In_Section`
+  in SwiftUI `UICollectionViewListCoordinatorBase.performUpdates`, no app frames. 30 of 30 runs (10 each of `test_swipeDelete`,
+  `test_selectModeDelete`, `test_homeSearchSelectDelete`, one run) did not crash; no cause, no code change. UNVERIFIED.

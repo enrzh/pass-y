@@ -335,7 +335,7 @@ final class PassYFlowTests: XCTestCase {
         accountSecurity.tap(); sleep(2)
         XCTAssertTrue(app.buttons["VaultTimeoutChooser"].waitForExistence(timeout: 5), "Account security has the timeout picker")
         XCTAssertTrue(app.buttons["VaultTimeoutActionChooser"].exists, "Account security has the timeout action picker")
-        XCTAssertTrue(app.buttons["TwoStepLoginLinkItemView"].exists || app.staticTexts["Two-step login"].exists, "two-step login row")
+        XCTAssertFalse(app.buttons["TwoStepLoginLinkItemView"].exists || app.staticTexts["Two-step login"].exists, "ui-r9: no two-step login row (web vault link)")
         attach(app, "16-account-security"); noOptional("account-security")
         app.buttons["VaultTimeoutChooser"].tap(); sleep(1)
         attach(app, "16-account-security-timeout-menu")
@@ -364,6 +364,8 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertTrue(privacy.exists, "About has the privacy policy row")
         let version = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Version'")).firstMatch
         XCTAssertTrue(version.exists, "About shows the version row")
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Web vault' OR label CONTAINS[c] 'Webtresor'")).firstMatch.exists,
+                       "ui-r9: no web vault link in About")
         version.tap(); sleep(1)
         attach(app, "16-about-version-copied")
     }
@@ -579,9 +581,14 @@ final class PassYFlowTests: XCTestCase {
         XCTAssertGreaterThan(avatar.frame.midX, window.width * 0.8, "avatar is at the trailing edge")
         XCTAssertLessThan(avatar.frame.midY, 120, "avatar is in the navigation bar")
         attach(app, "19-vault-avatar")
-        for label in ["My vault", "Send", "Generator", "Settings"] {
+        for label in ["Send", "Generator", "Settings"] {
             XCTAssertTrue(avatarMenuEntry(app, label).exists, "avatar menu has \(label)")
         }
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label == %@", "My vault")).firstMatch.exists, "ui-r9: no Vault entry in the avatar menu (on the vault home the bar has no Vault button either)")
+        XCTAssertFalse(app.buttons["ProfileMenuVaultButton"].exists, "ui-r9: no Vault entry in the avatar menu")
+        XCTAssertFalse(app.staticTexts["Pass-Y"].exists, "ui-r9: the menu shows the server URL, not the app name")
+        XCTAssertTrue(menuButton(app, id: "ProfileMenuPendingRequestsButton", label: "Pending login requests").exists, "ui-r9: pending login requests in the menu")
+        XCTAssertFalse(app.buttons["Add account"].exists, "ui-r9: no Add account in the avatar menu (Settings only)")
         attach(app, "19-avatar-menu")
         // Close the menu by choosing Send.
         avatarMenuEntry(app, "Send").tap()
@@ -715,8 +722,8 @@ final class PassYFlowTests: XCTestCase {
         ensureUnlockedVault(app)
         goTo(app, "Settings")
         app.buttons["VaultSettingsButton"].tap(); sleep(1)
-        XCTAssertTrue(app.buttons["FoldersLabel"].exists && app.buttons["ExportVaultLabel"].exists
-            && app.buttons["ImportItemsLinkItemView"].exists, "vault settings rows")
+        XCTAssertTrue(app.buttons["FoldersLabel"].exists && app.buttons["ExportVaultLabel"].exists, "vault settings rows")
+        XCTAssertFalse(app.buttons["ImportItemsLinkItemView"].exists, "ui-r9: no web vault import row")
         app.buttons["FoldersLabel"].tap(); sleep(1)
         let add = app.buttons["AddItemButton"]
         XCTAssertTrue(add.waitForExistence(timeout: 10), "folders: add in the toolbar")

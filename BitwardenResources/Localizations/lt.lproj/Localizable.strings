@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Atrakinti naudojant „Optic ID“";
 "UnlockWithPIN" = "Atrakinti PIN kodu";
 "VerificationCode" = "Patvirtinimo kodas";
-"WebVault" = "„Pass-Y“ žiniatinklio saugykla";
 "Items" = "Elementai";
 "ExtensionActivated" = "Plėtinys aktyvuotas!";
 "ItemsForUri" = "Elementai %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Naudokite savo domeno sukonfigūruotą bendrąjį pašto dėžutę.";
 "ForwardedEmailDescription" = "Sukurkite elektroninio pašto slapyvardį naudodami išorinę persiuntimo paslaugą.";
 "Random" = "Atsitiktinis";
-"ConnectToWatch" = "Prisijunkite prie laikrodžio";
 "LoginRequestHasAlreadyExpired" = "Prisijungimo prašymas jau pasibaigęs.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Bandymas prisijungti iš:\n%1$@\nAr norite pereiti prie šios paskyros?";
 "NewAroundHere" = "Ar jūs naujas čia?";

@@ -205,7 +205,13 @@ final class PassYUiR8Tests: XCTestCase {
         let reference = pixel(6, screen.height - 3)
         XCTAssertFalse(reference.isEmpty)
         for offset: CGFloat in [6, 20, 60] {
-            XCTAssertEqual(pixel(6, barTop - offset), reference, "pixel \(offset) pt above the bar equals the page color (no backdrop)")
+            // ui-r9: the fade is the page color itself (a gradient of the same color), so the pixel may differ by blending
+            // rounding only; a material or a different color would differ by far more than 3 per channel.
+            let sample = pixel(6, barTop - offset)
+            XCTAssertEqual(sample.count, reference.count)
+            for (a, b) in zip(sample, reference) {
+                XCTAssertLessThanOrEqual(abs(Int(a) - Int(b)), 3, "pixel \(offset) pt above the bar is the page color (no backdrop): \(sample) vs \(reference)")
+            }
         }
         shot(app, 31, "empty-folder-bar-no-shadow")
     }

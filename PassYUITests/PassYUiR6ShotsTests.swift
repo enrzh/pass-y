@@ -195,12 +195,9 @@ final class PassYUiR6ShotsTests: XCTestCase {
         if another.exists { another.tap(); sleep(2); shot(app, 48, "\(mode)-2fa-method-sheet") }
         print("R6REACH 2fa sheet: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | ")
               + " / " + app.sheets.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
+        // ui-r9: the recovery code (it opened the web vault in Safari) is not offered any more.
         let recovery = app.buttons["Recovery code"].exists ? app.buttons["Recovery code"] : app.menuItems["Recovery code"]
-        if recovery.exists {
-            recovery.tap(); sleep(2)
-            // The link opens the web vault in Safari (another app, the system appearance applies): no appearance check.
-            attachUnchecked(app, "\(tag)-46-\(mode)-2fa-recovery-safari")
-        }
+        XCTAssertFalse(recovery.exists, "the recovery code (web vault link) must not be offered")
         setPassYAppearance(.light)
     }
 

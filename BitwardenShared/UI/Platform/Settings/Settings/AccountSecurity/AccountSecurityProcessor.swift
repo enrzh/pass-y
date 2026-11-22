@@ -91,8 +91,6 @@ final class AccountSecurityProcessor: StateProcessor<// swiftlint:disable:this t
         switch action {
         case .clearFingerprintPhraseUrl:
             state.fingerprintPhraseUrl = nil
-        case .clearTwoStepLoginUrl:
-            state.twoStepLoginUrl = nil
         case let .customTimeoutValueSecondsChanged(seconds):
             setVaultTimeout(value: .custom(seconds / 60))
         case .deleteAccountPressed:
@@ -101,16 +99,12 @@ final class AccountSecurityProcessor: StateProcessor<// swiftlint:disable:this t
             showLogoutConfirmation()
         case .manageDevicesTapped:
             coordinator.navigate(to: .deviceManagement)
-        case .pendingLoginRequestsTapped:
-            coordinator.navigate(to: .pendingLoginRequests)
         case let .sessionTimeoutActionChanged(newValue):
             setTimeoutAction(newValue)
         case let .sessionTimeoutValueChanged(newValue):
             setVaultTimeout(value: newValue)
         case .showSetUpUnlock:
             coordinator.navigate(to: .vaultUnlockSetup)
-        case .twoStepLoginPressed:
-            showTwoStepLoginAlert()
         }
     }
 
@@ -330,13 +324,6 @@ final class AccountSecurityProcessor: StateProcessor<// swiftlint:disable:this t
                     .logout(userId: nil, userInitiated: true),
                 ),
             )
-        })
-    }
-
-    /// Shows the two step login alert. If `Yes` is selected, the user will be navigated to the web app.
-    private func showTwoStepLoginAlert() {
-        coordinator.showAlert(.twoStepLoginAlert {
-            self.state.twoStepLoginUrl = self.services.twoStepLoginService.twoStepLoginUrl()
         })
     }
 

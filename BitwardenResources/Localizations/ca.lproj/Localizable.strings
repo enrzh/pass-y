@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Desbloqueja amb Optic ID";
 "UnlockWithPIN" = "Desbloqueja amb codi PIN";
 "VerificationCode" = "Codi de verificació";
-"WebVault" = "Caixa forta web de Pass-Y";
 "Items" = "Elements";
 "ExtensionActivated" = "Extensió activada!";
 "ItemsForUri" = "Elements per a %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Utilitza la safata d'entrada comodí configurada del teu domini.";
 "ForwardedEmailDescription" = "Genera un àlies de correu electrònic amb un servei de reenviament extern.";
 "Random" = "Aleatori";
-"ConnectToWatch" = "Connecta't a Watch";
 "LoginRequestHasAlreadyExpired" = "La sol·licitud d'inici de sessió ja ha caducat.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Intent d'inici de sessió des de:\n%1$@\nVoleu canviar a aquest compte?";
 "NewAroundHere" = "Nou per ací?";

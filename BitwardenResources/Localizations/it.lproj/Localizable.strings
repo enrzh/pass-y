@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Sblocca con ID ottico";
 "UnlockWithPIN" = "Sblocca con codice PIN";
 "VerificationCode" = "Codice di verifica";
-"WebVault" = "Cassaforte web di Pass-Y";
 "Items" = "Elementi";
 "ExtensionActivated" = "Estensione attivata!";
 "ItemsForUri" = "Elementi per %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Usa una casella di posta 'catch-all' di dominio.";
 "ForwardedEmailDescription" = "Genera un alias email con un servizio di inoltro esterno.";
 "Random" = "Casuale";
-"ConnectToWatch" = "Connetti all'orologio";
 "LoginRequestHasAlreadyExpired" = "La richiesta di accesso è già scaduta.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Tentativo di accesso da:\n%1$@\nVuoi passare a questo account?";
 "NewAroundHere" = "Nuovo da queste parti?";

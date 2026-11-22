@@ -18,6 +18,9 @@ struct SettingsState: Equatable {
     /// if the UI should show specific elements.
     var presentationMode = SettingsPresentationMode.tab
 
+    /// The connected server (host and port) shown under the e-mail of the account row.
+    var serverURL = ""
+
     /// Whether the "Upgraded to Premium" action card should be shown.
     var shouldShowUpgradedToPremiumActionCard: Bool = false
 

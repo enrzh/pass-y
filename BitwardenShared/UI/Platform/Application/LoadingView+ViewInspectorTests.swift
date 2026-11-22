@@ -1,4 +1,5 @@
 // swiftlint:disable:this file_name
+import BitwardenKit
 import SwiftUI
 import ViewInspector
 import XCTest
@@ -21,16 +22,31 @@ class LoadingViewTests: BitwardenTestCase {
         XCTAssertThrowsError(try subject.inspect().find(ViewType.Text.self))
     }
 
-    /// The loading state with a message shows the message text.
+    /// The loading state shows no spinner and no message in the first frames (no flicker for quick loads).
     @MainActor
-    func test_loading_withMessage() throws {
+    func test_loading_showsNothingAtFirst() throws {
         let subject = LoadingView(
             state: LoadingState<String>.loading(nil),
             loadingMessage: "Loading data…",
         ) { data in
             Text(data)
         }
+        XCTAssertThrowsError(try subject.inspect().find(text: "Loading data…"))
+        XCTAssertThrowsError(try subject.inspect().find(ViewType.ProgressView.self))
+    }
+
+    /// Once visible the indicator shows the message text.
+    @MainActor
+    func test_delayedIndicator_visible_withMessage() throws {
+        let subject = DelayedLoadingIndicator(loadingMessage: "Loading data…", initiallyVisible: true)
         XCTAssertNoThrow(try subject.inspect().find(text: "Loading data…"))
+        XCTAssertNoThrow(try subject.inspect().find(ViewType.ProgressView.self))
+    }
+
+    /// The delay is short enough to feel immediate for slow loads and long enough to hide quick ones.
+    func test_delayedIndicator_delay() {
+        XCTAssertGreaterThanOrEqual(DelayedLoadingIndicator.delay, 0.25)
+        XCTAssertLessThanOrEqual(DelayedLoadingIndicator.delay, 0.6)
     }
 
     /// The data state renders the contents view.

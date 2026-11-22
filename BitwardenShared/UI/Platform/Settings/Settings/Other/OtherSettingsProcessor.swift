@@ -1,7 +1,6 @@
 import BitwardenKit
 import BitwardenResources
 import Foundation
-import WatchConnectivity
 
 // MARK: - OtherSettingsProcessor
 
@@ -14,7 +13,6 @@ final class OtherSettingsProcessor: StateProcessor<OtherSettingsState, OtherSett
         & HasErrorReporter
         & HasSettingsRepository
         & HasSystemDevice
-        & HasWatchService
 
     // MARK: Properties
 
@@ -68,8 +66,6 @@ final class OtherSettingsProcessor: StateProcessor<OtherSettingsState, OtherSett
         case let .toggleAllowUniversalClipboard(isOn):
             services.settingsRepository.allowUniversalClipboard = isOn
             state.isAllowUniversalClipboardToggleOn = isOn
-        case let .toggleConnectToWatch(isOn):
-            updateConnectToWatch(isOn)
         case let .toggleSiriAndShortcutsAccessToggleOn(isOn):
             updateSiriAndShortcutsAccess(isOn)
         }
@@ -83,9 +79,7 @@ final class OtherSettingsProcessor: StateProcessor<OtherSettingsState, OtherSett
             state.clearClipboardValue = services.settingsRepository.clearClipboardValue
             state.isAllowUniversalClipboardToggleOn = services.settingsRepository.allowUniversalClipboard
             state.isAllowSyncOnRefreshToggleOn = try await services.settingsRepository.getAllowSyncOnRefresh()
-            state.isConnectToWatchToggleOn = try await services.settingsRepository.getConnectToWatch()
             state.isSiriAndShortcutsAccessToggleOn = try await services.settingsRepository.getSiriAndShortcutsAccess()
-            state.shouldShowConnectToWatchToggle = services.watchService.isSupported()
         } catch {
             services.errorReporter.log(error: error)
         }
@@ -126,18 +120,6 @@ final class OtherSettingsProcessor: StateProcessor<OtherSettingsState, OtherSett
             do {
                 try await services.settingsRepository.updateAllowSyncOnRefresh(newValue)
                 state.isAllowSyncOnRefreshToggleOn = newValue
-            } catch {
-                services.errorReporter.log(error: error)
-            }
-        }
-    }
-
-    /// Update the value of the connect to watch setting.
-    private func updateConnectToWatch(_ newValue: Bool) {
-        Task {
-            do {
-                try await services.settingsRepository.updateConnectToWatch(newValue)
-                state.isConnectToWatchToggleOn = newValue
             } catch {
                 services.errorReporter.log(error: error)
             }

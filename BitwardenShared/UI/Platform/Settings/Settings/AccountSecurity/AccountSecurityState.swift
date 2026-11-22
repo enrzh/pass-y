@@ -119,9 +119,6 @@ struct AccountSecurityState: Equatable {
     /// The length of time before a session timeout occurs.
     var sessionTimeoutValue: SessionTimeoutValue = .immediately
 
-    /// The URL for two step login external link.
-    var twoStepLoginUrl: URL?
-
     // MARK: Computed Properties
 
     /// Returns the available timeout options based on policy type and policy timeout value.

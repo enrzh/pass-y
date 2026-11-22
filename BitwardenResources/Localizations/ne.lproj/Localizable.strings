@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID द्वारा अनलक गर्नुहोस्";
 "UnlockWithPIN" = "PIN कोडद्वारा अनलक गर्नुहोस्";
 "VerificationCode" = "प्रमाणीकरण कोड";
-"WebVault" = "Pass-Y वेब भल्ट";
 "Items" = "वस्तुहरू";
 "ExtensionActivated" = "विस्तार सक्रिय भयो!";
 "ItemsForUri" = "%1$@ का लागि वस्तुहरू";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "आफ्नो डोमेनको कन्फिगर गरिएको सबै समात्ने इनबक्स प्रयोग गर्नुहोस्।";
 "ForwardedEmailDescription" = "बाह्य फर्वार्डिङ सेवासँग इमेल उपनाम उत्पन्न गर्नुहोस्।";
 "Random" = "अनियमित";
-"ConnectToWatch" = "Watch मा जडान गर्नुहोस्";
 "LoginRequestHasAlreadyExpired" = "लगइन अनुरोध पहिले नै म्याद सकिएको छ।";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "बाट लगइन प्रयास:\n%1$@\nके तपाईं यस खातामा स्विच गर्न चाहनुहुन्छ?";
 "NewAroundHere" = "यहाँ नयाँ हुनुहुन्छ?";

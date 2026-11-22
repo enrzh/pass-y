@@ -27,6 +27,9 @@ enum VaultListAction: Equatable {
     /// The user tapped the button to go to archive.
     case goToArchive
 
+    /// "Pending login requests" of the profile menu was pressed.
+    case pendingLoginRequestsTapped
+
     /// The "Learn more" button on the upgraded to Premium action card was tapped.
     case learnMoreAboutPremium
 

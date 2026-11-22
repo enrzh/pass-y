@@ -115,6 +115,14 @@ class SettingsProcessorTests: BitwardenTestCase {
         XCTAssertEqual(coordinator.routes.last, .about)
     }
 
+    /// Receiving `.addAccountPressed` navigates to the add account route.
+    @MainActor
+    func test_receive_addAccountPressed() {
+        subject.receive(.addAccountPressed)
+
+        XCTAssertEqual(coordinator.routes.last, .addAccount)
+    }
+
     /// Receiving `.accountSecurityPressed` navigates to the account security screen.
     @MainActor
     func test_receive_accountSecurityPressed() {

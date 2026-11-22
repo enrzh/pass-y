@@ -185,6 +185,8 @@ class AppCoordinator: Coordinator, HasRootNavigator { // swiftlint:disable:this 
     /// - Parameter route: The auth route to show.
     ///
     private func showAuth(_ authRoute: AuthRoute) {
+        // Lock, logout, account switch and every other auth screen: no decrypted item state may stay in memory.
+        ViewItemPreloadCache.clear()
         if let coordinator = childCoordinator as? AnyCoordinator<AuthRoute, AuthEvent> {
             coordinator.navigate(to: authRoute)
         } else {

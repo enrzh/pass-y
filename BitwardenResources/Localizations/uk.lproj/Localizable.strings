@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Розблокування з Optic ID";
 "UnlockWithPIN" = "Розблокування з PIN-кодом";
 "VerificationCode" = "Код підтвердження";
-"WebVault" = "Вебсховище Pass-Y";
 "Items" = "Записи";
 "ExtensionActivated" = "Розширення активовано!";
 "ItemsForUri" = "Записи для %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Використовуйте можливості Catch-All власного домену.";
 "ForwardedEmailDescription" = "Згенеруйте псевдонім е-пошти зі стороннім сервісом пересилання.";
 "Random" = "Випадково";
-"ConnectToWatch" = "Під'єднати годинник";
 "LoginRequestHasAlreadyExpired" = "Термін дії запиту на вхід завершився.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Спроба входу в систему з:\n%1$@\nХочете перемкнутися на цей обліковий запис?";
 "NewAroundHere" = "Виконуєте вхід вперше?";

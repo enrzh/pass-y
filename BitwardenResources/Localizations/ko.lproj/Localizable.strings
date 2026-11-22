@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID를 사용하여 잠금 해제";
 "UnlockWithPIN" = "PIN 코드를 사용하여 잠금 해제";
 "VerificationCode" = "인증 코드";
-"WebVault" = "Pass-Y 웹 보관함";
 "Items" = "항목";
 "ExtensionActivated" = "확장 프로그램이 활성화되었습니다!";
 "ItemsForUri" = "%1$@에 대한 항목";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "도메인에 구성된 캐치올 받은 편지함을 사용합니다.";
 "ForwardedEmailDescription" = "외부 전달 서비스를 사용하여 이메일 별칭을 생성합니다.";
 "Random" = "무작위";
-"ConnectToWatch" = "Watch에 연결";
 "LoginRequestHasAlreadyExpired" = "이미 만료된 로그인 요청입니다.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "로그인 시도 확인:\n%1$@\n이 계정으로 전환하시겠어요?";
 "NewAroundHere" = "새로 찾아오셨나요?";

@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "განბლოკვა Optic ID-ით";
 "UnlockWithPIN" = "განბლოკვა PIN კოდით";
 "VerificationCode" = "დადასტურების კოდი";
-"WebVault" = "Pass-Y ვებ-სეიფი";
 "Items" = "ჩანაწერები";
 "ExtensionActivated" = "გაფართოება გააქტიურებულია!";
 "ItemsForUri" = "ჩანაწერები %1$@-ისთვის";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "გამოიყენეთ თქვენი დომენის გაკონფიგურირებული ყველას მიმღები საფოსტო ყუთი.";
 "ForwardedEmailDescription" = "შექმენით ელ. ფოსტის ალიასი გარე გადაგზავნის სერვისით.";
 "Random" = "შემთხვევითი";
-"ConnectToWatch" = "საათთან დაკავშირება";
 "LoginRequestHasAlreadyExpired" = "შესვლის მოთხოვნის ვადა უკვე ამოიწურა.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "შესვლის მცდელობა:\n%1$@\nგსურთ ამ ანგარიშზე გადართვა?";
 "NewAroundHere" = "ახალი ხართ აქ?";

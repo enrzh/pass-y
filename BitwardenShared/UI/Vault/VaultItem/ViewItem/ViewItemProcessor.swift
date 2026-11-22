@@ -689,42 +689,7 @@ private extension ViewItemProcessor {
             for try await cipher in try await services.vaultRepository.cipherDetailsPublisher(id: itemId) {
                 guard let cipher else { continue }
 
-                let hasPremium = await services.vaultRepository.doesActiveAccountHavePremium()
-                let collections = try await services.vaultRepository.fetchCollections(includeReadOnly: true)
-                var folder: FolderView?
-                if let folderId = cipher.folderId {
-                    folder = try await services.vaultRepository.fetchFolder(withId: folderId)
-                }
-                var organization: Organization?
-                if let orgId = cipher.organizationId {
-                    organization = try await services.vaultRepository.fetchOrganization(withId: orgId)
-                }
-                let ownershipOptions = try await services.vaultRepository
-                    .fetchCipherOwnershipOptions(includePersonal: false)
-                let showWebIcons = await services.stateService.getShowWebIcons()
-
-                var totpState = LoginTOTPState(cipher.login?.totp)
-                if let key = totpState.authKeyModel,
-                   let updatedState = try? await services.vaultRepository.refreshTOTPCode(for: key) {
-                    totpState = updatedState
-                }
-
-                guard var newState = ViewItemState(
-                    cipherView: cipher,
-                    hasPremium: hasPremium,
-                    iconBaseURL: services.environmentService.iconsURL,
-                ) else { continue }
-
-                if case var .data(itemState) = newState.loadingState {
-                    itemState.loginState.totpState = totpState
-                    itemState.allUserCollections = collections
-                    itemState.folderName = folder?.name
-                    itemState.organizationName = organization?.name
-                    itemState.ownershipOptions = ownershipOptions
-                    itemState.showWebIcons = showWebIcons
-
-                    newState.loadingState = .data(itemState)
-                }
+                guard var newState = try await Self.makeState(for: cipher, services: services) else { continue }
 
                 // Carry over any toast, so that a toast shown in response to saving the item isn't
                 // cleared out from under the user by the cipher update that the save triggers.
@@ -838,3 +803,122 @@ extension ViewItemProcessor: MoveToOrganizationProcessorDelegate {
         state.toast = Toast(title: Localizations.movedItemToOrg(cipher.name, organization.localizedName))
     }
 } // swiftlint:disable:this file_length
+
+// MARK: - Preloading
+
+extension ViewItemProcessor {
+    /// Builds the complete state of the item view for a cipher: the cipher itself, premium, collections, folder,
+    /// organization, ownership, web icons and the first TOTP code. The stream of the processor and the preloader
+    /// (`ViewItemPreloadCache`) use the same function, so the first frame of the item view shows the finished page.
+    ///
+    static func makeState(
+        for cipher: CipherView,
+        services: HasEnvironmentService & HasStateService & HasVaultRepository,
+    ) async throws -> ViewItemState? {
+        let hasPremium = await services.vaultRepository.doesActiveAccountHavePremium()
+        let collections = try await services.vaultRepository.fetchCollections(includeReadOnly: true)
+        var folder: FolderView?
+        if let folderId = cipher.folderId {
+            folder = try await services.vaultRepository.fetchFolder(withId: folderId)
+        }
+        var organization: Organization?
+        if let orgId = cipher.organizationId {
+            organization = try await services.vaultRepository.fetchOrganization(withId: orgId)
+        }
+        let ownershipOptions = try await services.vaultRepository
+            .fetchCipherOwnershipOptions(includePersonal: false)
+        let showWebIcons = await services.stateService.getShowWebIcons()
+
+        var totpState = LoginTOTPState(cipher.login?.totp)
+        if let key = totpState.authKeyModel,
+           let updatedState = try? await services.vaultRepository.refreshTOTPCode(for: key) {
+            totpState = updatedState
+        }
+
+        guard var newState = ViewItemState(
+            cipherView: cipher,
+            hasPremium: hasPremium,
+            iconBaseURL: services.environmentService.iconsURL,
+        ) else { return nil }
+
+        if case var .data(itemState) = newState.loadingState {
+            itemState.loginState.totpState = totpState
+            itemState.allUserCollections = collections
+            itemState.folderName = folder?.name
+            itemState.organizationName = organization?.name
+            itemState.ownershipOptions = ownershipOptions
+            itemState.showWebIcons = showWebIcons
+
+            newState.loadingState = .data(itemState)
+        }
+        return newState
+    }
+}
+
+// MARK: - ViewItemPreloadCache
+
+/// Holds the finished state of an item view between the tap on a row and the moment the view is shown, so the item
+/// view never starts with a spinner (ui-r9). An entry is taken (removed) by the first view that uses it.
+@MainActor
+enum ViewItemPreloadCache {
+    /// How long an entry stays valid (seconds): it is only a hand-over between the tap and the presented view, so no
+    /// decrypted item data stays in memory beyond that (for example across a lock).
+    static let lifetime: TimeInterval = 5
+
+    private static var states: [String: (state: ViewItemState, date: Date)] = [:]
+
+    /// Loads the state of an item (a single decrypt, the same data the view's stream would load after appearing) and
+    /// keeps it for `take(id:)`. A failure only means the view loads on its own, as before.
+    ///
+    /// Waits at most `timeout` seconds: if the fetch hangs (a stuck collection or TOTP fetch), the caller opens the
+    /// item without the preloaded state (the view then loads on its own, with the delayed spinner) instead of never
+    /// opening anything. A late result is dropped, it expires like any other entry.
+    static func preload(
+        id: String,
+        services: HasEnvironmentService & HasStateService & HasVaultRepository,
+        timeout: TimeInterval = 1,
+    ) async {
+        clear(olderThan: lifetime)
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            var finished = false
+            func finish() {
+                guard !finished else { return }
+                finished = true
+                continuation.resume()
+            }
+            Task { @MainActor in
+                if let cipher = try? await services.vaultRepository.fetchCipher(withId: id),
+                   let state = try? await ViewItemProcessor.makeState(for: cipher, services: services) {
+                    store(state, id: id)
+                }
+                finish()
+            }
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                finish()
+            }
+        }
+    }
+
+    /// Keeps a state for `take(id:)`.
+    static func store(_ state: ViewItemState, id: String, date: Date = Date()) {
+        states[id] = (state, date)
+    }
+
+    /// The preloaded state of an item, removed from the cache (nil when absent or older than `lifetime`).
+    static func take(id: String, now: Date = Date()) -> ViewItemState? {
+        guard let entry = states.removeValue(forKey: id), now.timeIntervalSince(entry.date) <= lifetime else { return nil }
+        return entry.state
+    }
+
+    /// Drops all entries. Called when the vault is locked, on logout and on account switch (`AppCoordinator.showAuth`),
+    /// so no decrypted item state stays in memory after the vault is closed.
+    static func clear() {
+        states.removeAll()
+    }
+
+    private static func clear(olderThan age: TimeInterval) {
+        let now = Date()
+        states = states.filter { now.timeIntervalSince($0.value.date) <= age }
+    }
+}

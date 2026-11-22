@@ -17,6 +17,25 @@ struct BarBackground<S: Shape>: ViewModifier {
     }
 }
 
+// MARK: - PassYGlassBackground
+
+/// Glass (or material) as a plain background behind a control that owns a system menu. It is NOT interactive glass on the
+/// control itself: a `Menu` whose source view is an interactive glass view morphs into the menu platter with
+/// `AnimationKit` "match" animations that, on iOS 27, sometimes never report their end. XCUITest then waits 60 s per
+/// action ("App animations complete notification not received", caught with the animation dump and a `sample`: the
+/// stuck layers are the `CAMatchPropertyAnimation`s of `_UIContextMenuListView` / `GlassGroupLayerView`).
+struct PassYGlassBackground<S: Shape>: View {
+    let shape: S
+
+    var body: some View {
+        if #available(iOS 26, *) {
+            Color.clear.glassEffect(.regular, in: shape)
+        } else {
+            shape.fill(.regularMaterial)
+        }
+    }
+}
+
 // MARK: - SearchCancelButton
 
 /// The cancel control of the bottom bars: clears the search and closes the keyboard. It is a real SwiftUI button

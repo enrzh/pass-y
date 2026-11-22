@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID ഉപയോഗിച്ച് അൺലോക്ക് ചെയ്യുക";
 "UnlockWithPIN" = "പിൻ ഉപയോഗിച്ച് അൺലോക്കുചെയ്യുക";
 "VerificationCode" = "സ്ഥിരീകരണ കോഡ്";
-"WebVault" = "Pass-Y വെബ് വാൾട്";
 "Items" = "ഇനങ്ങള്‍";
 "ExtensionActivated" = "എക്സ്റ്റൻഷൻ  സജീവമാക്കി!";
 "ItemsForUri" = "%1$@എന്നതിനായുള്ള ഇനങ്ങൾ";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "നിങ്ങളുടെ ഡൊമെയ്നിന്റെ കോൺഫിഗർ ചെയ്ത ക്യാച്ച്-ഓൾ ഇൻബോക്സ് ഉപയോഗിക്കുക.";
 "ForwardedEmailDescription" = "ഒരു ബാഹ്യ ഫോർവേഡിംഗ് സേവനം ഉപയോഗിച്ച് ഒരു ഇമെയിൽ അപരനാമം സൃഷ്ടിക്കുക.";
 "Random" = "ക്രമരഹിതം";
-"ConnectToWatch" = "Watch-ലേക്ക് ബന്ധിപ്പിക്കുക";
 "LoginRequestHasAlreadyExpired" = "ലോഗിൻ അഭ്യർത്ഥന ഇതിനകം കാലഹരണപ്പെട്ടു.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "ലോഗിൻ ശ്രമം:\n%1$@\nഈ അക്കൗണ്ടിലേക്ക് മാറണോ?";
 "NewAroundHere" = "ഇവിടെ പുതിയതാണോ?";

@@ -271,6 +271,13 @@ class VaultCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertFalse(mockNavController.dismissCalled)
     }
 
+    /// `navigate(to:)` with `.pendingLoginRequests` (profile menu) shows the pending login requests.
+    @MainActor
+    func test_navigateTo_pendingLoginRequests() throws {
+        subject.navigate(to: .pendingLoginRequests)
+        XCTAssertEqual(delegate.switchToSettingsTabRoute, .pendingLoginRequests)
+    }
+
     /// `navigate(to:)` with `.premiumPlan` notifies the delegate to switch to the premium plan
     /// screen in the settings tab.
     @MainActor

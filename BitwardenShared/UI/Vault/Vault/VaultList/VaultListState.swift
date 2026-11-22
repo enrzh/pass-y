@@ -26,6 +26,9 @@ struct VaultListState: Equatable {
     /// The base url used to fetch icons.
     var iconBaseURL: URL?
 
+    /// The connected server (shown in the profile menu).
+    var serverURL = ""
+
     /// The user's import logins setup progress.
     var importLoginsSetupProgress: AccountSetupProgress?
 

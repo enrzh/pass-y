@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "I-unlock gamit ang Optic ID";
 "UnlockWithPIN" = "Buksan gamit ang PIN code";
 "VerificationCode" = "Code pamberipika";
-"WebVault" = "Web vault ng Pass-Y";
 "Items" = "Mga Item";
 "ExtensionActivated" = "Pinagana ang extension!";
 "ItemsForUri" = "Mga item para sa %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Gamitin ang naka-configure na catch-all inbox ng iyong domain.";
 "ForwardedEmailDescription" = "Gumawa ng email alias na gagamitin sa isang forwarding service.";
 "Random" = "Random";
-"ConnectToWatch" = "Kumonekta sa Relo";
 "LoginRequestHasAlreadyExpired" = "Nag-expire na ang hiling mag-log in.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Tangkang mag-log in sa:\n%1$@\nGusto mo bang pumunta sa account na ito?";
 "NewAroundHere" = "Bago rito?";

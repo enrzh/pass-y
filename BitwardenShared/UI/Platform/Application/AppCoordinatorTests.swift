@@ -279,6 +279,15 @@ class AppCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(alert, .accountDeletedAlert())
     }
 
+    /// Showing an auth screen (lock, logout, account switch) drops the preloaded item states (no decrypted data stays).
+    @MainActor
+    func test_showAuth_clearsPreloadedItemStates() throws {
+        let state = try XCTUnwrap(ViewItemState(cipherView: .fixture(id: "id"), hasPremium: false, iconBaseURL: nil))
+        ViewItemPreloadCache.store(state, id: "id")
+        subject.navigate(to: .auth(.landing))
+        XCTAssertNil(ViewItemPreloadCache.take(id: "id"))
+    }
+
     /// `lockVault(_:)` passes the lock event to the router.
     @MainActor
     func test_didLockVault() {

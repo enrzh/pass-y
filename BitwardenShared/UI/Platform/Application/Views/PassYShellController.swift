@@ -43,6 +43,84 @@ final class PassYBarContainerView: UIView {
     }
 }
 
+// MARK: - PassYEdgeFadeView
+
+/// A touch-transparent progressive fade of the page color at the top or bottom edge (a gradient mask in the spirit of
+/// the iOS 26 soft scroll edge effect): opaque at the screen edge, fading to nothing over `softHeight` points beyond
+/// the bar. No blur block, no hard edge.
+final class PassYEdgeFadeView: UIView {
+    enum Edge { case top, bottom }
+
+    /// The length of the soft part, beyond the bar.
+    static let softHeight: CGFloat = 22
+
+    /// The opacity at the screen edge.
+    static let edgeOpacity: CGFloat = 0.94
+
+    let edge: Edge
+    private let gradient = CAGradientLayer()
+
+    init(edge: Edge) {
+        self.edge = edge
+        super.init(frame: .zero)
+        // The gradient never animates: no implicit CALayer animation when frame, points, locations or colors change
+        // (a layer that is laid out often would restart a 0.25 s animation each time and keep the app from idling).
+        gradient.actions = [
+            "bounds": NSNull(), "position": NSNull(), "frame": NSNull(), "colors": NSNull(),
+            "locations": NSNull(), "startPoint": NSNull(), "endPoint": NSNull(), "opacity": NSNull(),
+        ]
+        translatesAutoresizingMaskIntoConstraints = false
+        isUserInteractionEnabled = false
+        backgroundColor = .clear
+        accessibilityIdentifier = edge == .top ? "PassYTopFade" : "PassYBottomFade"
+        isAccessibilityElement = false
+        layer.addSublayer(gradient)
+        updateColors()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+        gradient.frame = bounds
+        // Opaque over the bar, soft over the last `softHeight` points.
+        let soft = min(Self.softHeight / max(bounds.height, 1), 1)
+        let solid = NSNumber(value: Double(1 - soft))
+        switch edge {
+        case .top:
+            gradient.startPoint = CGPoint(x: 0.5, y: 0)
+            gradient.endPoint = CGPoint(x: 0.5, y: 1)
+            gradient.locations = [0, solid, 1]
+        case .bottom:
+            gradient.startPoint = CGPoint(x: 0.5, y: 1)
+            gradient.endPoint = CGPoint(x: 0.5, y: 0)
+            gradient.locations = [0, 0.55, 1]
+        }
+    }
+
+    override func traitCollectionDidChange(_ previous: UITraitCollection?) {
+        super.traitCollectionDidChange(previous)
+        updateColors()
+    }
+
+    private func updateColors() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+        let base = UIColor.systemGroupedBackground.resolvedColor(with: traitCollection)
+        let strong = base.withAlphaComponent(Self.edgeOpacity).cgColor
+        let clear = base.withAlphaComponent(0).cgColor
+        // An eased ramp (a smooth step) so the fade has no visible start.
+        gradient.colors = edge == .top ? [strong, strong, clear] : [strong, base.withAlphaComponent(0.7).cgColor, clear]
+    }
+}
+
 // MARK: - PassYShellController
 
 /// The root shell of the signed-in app. It shows one top-level navigator at a time (Vault, Send, Generator or
@@ -63,8 +141,12 @@ class PassYShellController: UIViewController, TabNavigator {
     /// The container of the bar host that lets touches outside the controls through.
     private var barContainer: PassYBarContainerView?
 
-    /// A solid strip below the bar content, behind the home indicator.
-    private let bottomBacking = UIView()
+    /// The progressive fade under the bar (ui-r9). Pages scroll under the bar and the home indicator; there is no solid
+    /// strip any more.
+    private let bottomFade = PassYEdgeFadeView(edge: .bottom)
+
+    /// The fades under the navigation bars of the shell's stacks, kept to remove them again.
+    private var topFades: [PassYEdgeFadeView] = []
 
     /// The container for the selected navigator.
     private let contentView = UIView()
@@ -86,9 +168,6 @@ class PassYShellController: UIViewController, TabNavigator {
 
     /// Observations of the navigation stacks (the Vault button depends on the depth of the vault stack).
     private var stackObservations: [NSKeyValueObservation] = []
-
-    /// Fallback for pushes and pops that KVO on the stack does not report (measured: it stays silent for pushes).
-    private var stackPollTimer: Timer?
 
     // MARK: Initialization
 
@@ -145,10 +224,6 @@ class PassYShellController: UIViewController, TabNavigator {
         show(routeIndex: target, resetSearch: false)
     }
 
-    deinit {
-        stackPollTimer?.invalidate()
-    }
-
     // MARK: Lifecycle
 
     override func viewDidLoad() {
@@ -162,16 +237,6 @@ class PassYShellController: UIViewController, TabNavigator {
             contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-        ])
-
-        bottomBacking.backgroundColor = .systemGroupedBackground
-        bottomBacking.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(bottomBacking)
-        NSLayoutConstraint.activate([
-            bottomBacking.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            bottomBacking.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            bottomBacking.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            bottomBacking.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
         let host = UIHostingController(rootView: PassYShellBar(model: model))
@@ -190,8 +255,19 @@ class PassYShellController: UIViewController, TabNavigator {
             // Rests on the bottom safe area; rides above the keyboard while the search field is edited.
             container.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
         ])
+        view.insertSubview(bottomFade, belowSubview: container)
+        NSLayoutConstraint.activate([
+            bottomFade.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomFade.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomFade.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            bottomFade.topAnchor.constraint(equalTo: container.topAnchor, constant: -PassYEdgeFadeView.softHeight),
+        ])
         barContainer = container
         barHost = host
+
+        #if DEBUG
+        PassYAnimationDump.installOnce { [weak self] in self?.view.window?.windowScene }
+        #endif
 
         model.goToVault = { [weak self] in self?.showVaultHome() }
         model.selectDestination = { [weak self] destination in
@@ -221,30 +297,59 @@ class PassYShellController: UIViewController, TabNavigator {
         if currentChild?.additionalSafeAreaInsets.bottom != inset {
             currentChild?.additionalSafeAreaInsets.bottom = inset
         }
-        view.bringSubviewToFront(bottomBacking)
+        view.bringSubviewToFront(bottomFade)
         view.bringSubviewToFront(host)
         updateVaultHome()
     }
 
     // MARK: Private Methods
 
-    /// Observes the stacks of all navigators so the Vault button follows pushes, pops and pop-to-root.
+    /// Observes the stacks of all navigators so the Vault button follows pushes, pops and pop-to-root. UIKit publishes
+    /// no KVO for pushes, so this is event driven through `ViewLoggingNavigationController.stackChanged` (push, pop, swipe-back);
+    /// there is no timer. KVO on `viewControllers` still covers `setViewControllers` and replaced roots.
     private func observeStacks() {
-        stackObservations = entries.compactMap { entry in
-            (entry.navigator.rootViewController as? UINavigationController)?.observe(\.viewControllers) { [weak self] _, _ in
+        topFades.forEach { $0.removeFromSuperview() }
+        topFades = []
+        let navigations = entries.compactMap { $0.navigator.rootViewController as? UINavigationController }
+        stackObservations = navigations.map { navigation in
+            navigation.observe(\.viewControllers) { [weak self] _, _ in
                 // KVO fires while the stack changes; read it after the change settled.
                 DispatchQueue.main.async { self?.updateVaultHome() }
             }
         }
-        // UIKit does not publish pushes through KVO, and there is no public notification: compare the depth of the
-        // vault stack a few times per second (an integer comparison; the model only publishes on a change).
-        stackPollTimer?.invalidate()
-        let timer = Timer(timeInterval: 0.15, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.updateVaultHome() }
+        for navigation in navigations {
+            installTopFade(in: navigation)
+            // The app's navigators are `ViewLoggingNavigationController`s: they report every push and pop.
+            (navigation as? ViewLoggingNavigationController)?.stackChanged = { [weak self] in self?.updateVaultHome() }
         }
-        RunLoop.main.add(timer, forMode: .common)
-        stackPollTimer = timer
         updateVaultHome()
+    }
+
+    /// ui-r9: the navigation bar has no background of its own (no blur block behind a collapsed bar). A progressive fade
+    /// of the page color sits between the page and the bar instead, so content fades out as it scrolls under the bar.
+    private func installTopFade(in navigation: UINavigationController) {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.shadowColor = .clear
+        let bar = navigation.navigationBar
+        bar.standardAppearance = appearance
+        bar.scrollEdgeAppearance = appearance
+        bar.compactAppearance = appearance
+        bar.compactScrollEdgeAppearance = appearance
+
+        let fade = PassYEdgeFadeView(edge: .top)
+        navigation.view.insertSubview(fade, belowSubview: bar)
+        NSLayoutConstraint.activate([
+            fade.leadingAnchor.constraint(equalTo: navigation.view.leadingAnchor),
+            fade.trailingAnchor.constraint(equalTo: navigation.view.trailingAnchor),
+            fade.topAnchor.constraint(equalTo: navigation.view.topAnchor),
+            // The inline bar only (status bar plus 44 pt): the fade must not cover an expanded large title.
+            fade.bottomAnchor.constraint(
+                equalTo: navigation.view.safeAreaLayoutGuide.topAnchor,
+                constant: 44 + PassYEdgeFadeView.softHeight,
+            ),
+        ])
+        topFades.append(fade)
     }
 
     /// Whether the vault home (root of the vault stack) is what the user sees.

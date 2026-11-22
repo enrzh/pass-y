@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID ဖြင့် သော့ဖွင့်ပါ";
 "UnlockWithPIN" = "PIN ကုဒ်ဖြင့် သော့ဖွင့်ပါ";
 "VerificationCode" = "အတည်ပြုကုဒ်";
-"WebVault" = "Pass-Y ဝဘ်ဗော်လ်တ်";
 "Items" = "ပစ္စည်းများ";
 "ExtensionActivated" = "တိုးချဲ့မှု အသက်သွင်းပြီးပါပြီ!";
 "ItemsForUri" = "%1$@ အတွက် ပစ္စည်းများ";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "သင့်ဒိုမိန်း၏ သတ်မှတ်ထားသော catch-all ဝင်စာပုံးကို သုံးပါ။";
 "ForwardedEmailDescription" = "ပြင်ပပြန်ညွှန်းဝန်ဆောင်မှုဖြင့် အီးမေးလ် နာမည်တု ဖန်တီးပါ။";
 "Random" = "ကျပန်း";
-"ConnectToWatch" = "Watch သို့ ချိတ်ဆက်ပါ";
 "LoginRequestHasAlreadyExpired" = "ဝင်ရောက်ရန် တောင်းဆိုချက် သက်တမ်းကုန်ဆုံးသွားပါပြီ။";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "ဝင်ရောက်ရန် ကြိုးစားမှုမှ- \n%1$@\nဤအကောင့်သို့ ပြောင်းလိုပါသလား?";
 "NewAroundHere" = "ဤနေရာတွင် အသစ်လား?";

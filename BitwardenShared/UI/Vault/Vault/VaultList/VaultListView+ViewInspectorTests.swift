@@ -326,36 +326,42 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         XCTAssertEqual(processor.effects, [.dismissOrganizationBanner(fromActionButton: true)])
     }
 
-    /// The avatar menu offers the four destinations, sync and account switching.
+    /// The avatar menu offers Send, Generator and Settings (not the vault), pending login requests, sync and lock; the
+    /// accounts live in Settings only.
     @MainActor
     func test_avatarMenu_actions() async throws {
         let model = PassYShellModel.shared
         var selected: [PassYDestination] = []
         var syncTapped = false
-        var selectedAccount: ProfileSwitcherItem?
+        var pendingTapped = false
+        var locked: ProfileSwitcherItem?
         let accounts = ProfileSwitcherState.dualAccounts.accounts
         model.selectDestination = { selected.append($0) }
+        model.availableDestinations = PassYDestination.allCases
         model.profileMenu = PassYProfileMenuSource(
-            accounts: accounts,
-            activeAccountId: accounts[0].userId,
             activeProfile: accounts[0],
-            addAccount: {},
-            canLock: false,
-            lock: { _ in },
-            select: { selectedAccount = $0 },
-            showsAddAccount: false,
+            canLock: true,
+            lock: { locked = $0 },
+            pendingRequests: { pendingTapped = true },
+            serverURL: "https://vault.example.com",
             showsPlaceholder: false,
             sync: { syncTapped = true },
         )
         let menu = PassYAvatarMenu()
-        for destination in PassYDestination.allCases {
+        let destinations = PassYDestination.allCases.filter { $0 != .vault }
+        for destination in destinations {
             try menu.inspect().find(button: destination.title).tap()
         }
-        XCTAssertEqual(selected, PassYDestination.allCases)
+        XCTAssertEqual(selected, destinations)
+        XCTAssertThrowsError(try menu.inspect().find(button: PassYDestination.vault.title), "no Vault entry")
+        XCTAssertThrowsError(try menu.inspect().find(button: accounts[1].email), "no account entries")
+        XCTAssertThrowsError(try menu.inspect().find(button: Localizations.addAccount), "no Add account")
         try menu.inspect().find(button: Localizations.syncNow).tap()
         XCTAssertTrue(syncTapped)
-        try menu.inspect().find(button: accounts[1].email).tap()
-        XCTAssertEqual(selectedAccount, accounts[1])
+        try menu.inspect().find(button: Localizations.pendingLogInRequests).tap()
+        XCTAssertTrue(pendingTapped)
+        try menu.inspect().find(button: Localizations.lockNow).tap()
+        XCTAssertEqual(locked, accounts[0])
         model.selectDestination = nil
         model.profileMenu = nil
     }

@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID से अनलॉक करें";
 "UnlockWithPIN" = "पिन कोड से खोलें";
 "VerificationCode" = "वेरिफिकेशन कोड";
-"WebVault" = "बिटवार्डन वेब तिजोरी";
 "Items" = "आइटम";
 "ExtensionActivated" = "एक्सटेंशन चल रहा!";
 "ItemsForUri" = "%1$@ के लिए आइटम";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "अपने डोमेन के कॉन्फ़िगर किए गए कैच-ऑल इनबॉक्स का उपयोग करें।";
 "ForwardedEmailDescription" = "बाहरी फॉरवर्ड सेवा से ईमेल नकलीनाम बनाएं।";
 "Random" = "रैंडम";
-"ConnectToWatch" = "घड़ी से जुड़े";
 "LoginRequestHasAlreadyExpired" = "लॉगिन अनुरोध पहले ही समाप्त हो चुका है।";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "इससे लॉगिन प्रयास:\n%1$@\nक्या आप इस खाते पर स्विच करना चाहते हैं?";
 "NewAroundHere" = "यहां पर नए हैं?";

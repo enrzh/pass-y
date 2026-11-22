@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Odblokuj przez Optic ID";
 "UnlockWithPIN" = "Odblokuj kodem PIN";
 "VerificationCode" = "Kod weryfikacyjny";
-"WebVault" = "Sejf internetowy Pass-Y";
 "Items" = "Elementy";
 "ExtensionActivated" = "Rozszerzenie zostało aktywowane!";
 "ItemsForUri" = "Elementy dla %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Użyj skonfigurowanej skrzynki catch-all w swojej domenie.";
 "ForwardedEmailDescription" = "Wygeneruj alias adresu e-mail z zewnętrznej usługi przekierowania.";
 "Random" = "Losowe";
-"ConnectToWatch" = "Połącz się z Watch";
 "LoginRequestHasAlreadyExpired" = "Prośba logowania wygasła.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Próba logowania z:\n%1$@\nCzy chcesz przełączyć się na to konto?";
 "NewAroundHere" = "Nowy użytkownik?";

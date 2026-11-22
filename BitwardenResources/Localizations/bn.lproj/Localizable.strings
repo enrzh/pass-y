@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID দিয়ে আনলক করুন";
 "UnlockWithPIN" = "PIN কোড দিয়ে আনলক করুন";
 "VerificationCode" = "যাচাইকরণ কোড";
-"WebVault" = "বিটওয়ার্ডেন ওয়েব ভল্ট";
 "Items" = "আইটেম";
 "ExtensionActivated" = "এক্সটেনশন সক্রিয় করা হয়েছে!";
 "ItemsForUri" = "%1$@ এর জন্য আইটেম";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "আপনার ডোমেইনের কনফিগার করা ক্যাচ-অল ইনবক্স ব্যবহার করুন।";
 "ForwardedEmailDescription" = "একটি বাহ্যিক ফরওয়ার্ডিং পরিষেবার সাথে একটি ইমেল উপনাম তৈরি করুন।";
 "Random" = "এলোমেলো";
-"ConnectToWatch" = "ওয়াচের সাথে সংযোগ করুন";
 "LoginRequestHasAlreadyExpired" = "লগইন অনুরোধ ইতিমধ্যেই মেয়াদ শেষ হয়ে গেছে।";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "থেকে লগইন প্রচেষ্টা:\n%1$@\nআপনি কি এই অ্যাকাউন্টে স্যুইচ করতে চান?";
 "NewAroundHere" = "এখানে নতুন?";

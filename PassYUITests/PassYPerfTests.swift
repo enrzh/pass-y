@@ -19,7 +19,7 @@ final class PassYPerfTests: XCTestCase {
             let app = launchApp()
             let pw = app.secureTextFields["MasterPasswordEntry"]
             XCTAssertTrue(waitFor(pw))
-            pw.tap(); pw.typeText(TestAccount.password)
+            pw.replaceText(TestAccount.password) // verified typing: a dropped character would only show "Invalid master password"
             let start = Date()
             app.buttons["UnlockVaultButton"].tap()
             XCTAssertTrue(waitFor(app.buttons["AddItemFloatingActionButton"], timeout: 60))

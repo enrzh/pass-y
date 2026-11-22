@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Deblochează cu Optic ID";
 "UnlockWithPIN" = "Deblocare cu codul PIN";
 "VerificationCode" = "Cod de verificare";
-"WebVault" = "Seif web Pass-Y";
 "Items" = "Articole";
 "ExtensionActivated" = "Extensie activată!";
 "ItemsForUri" = "Autentificări pentru %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Folosește căsuța de primire catch-all configurată pentru domeniul tău.";
 "ForwardedEmailDescription" = "Generați un alias de e-mail cu un serviciu de redirecționare extern.";
 "Random" = "Aleatoriu";
-"ConnectToWatch" = "Conectează Watch(Apple)";
 "LoginRequestHasAlreadyExpired" = "Solicitarea de autentificare a expirat deja.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Încercare de autentificare de la:\n%1$@\nDoriți să comutați la acest cont?";
 "NewAroundHere" = "Sunteți nou pe aici?";

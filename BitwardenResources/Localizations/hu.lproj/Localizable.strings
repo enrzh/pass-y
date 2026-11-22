@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Feloldás Opic ID segítségével";
 "UnlockWithPIN" = "Kinyitás PIN-kóddal";
 "VerificationCode" = "Ellenőrzőkód";
-"WebVault" = "Pass-Y webes széf";
 "Items" = "Elemek";
 "ExtensionActivated" = "A kiegészítő bekapcsolásra került.";
 "ItemsForUri" = "%1$@ elemei";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Use your domain’s configured catch-all inbox.";
 "ForwardedEmailDescription" = "Email álnév generálása külső továbbító szolgáltatással.";
 "Random" = "Véletlen";
-"ConnectToWatch" = "Kapcsolódás a Watch-hoz";
 "LoginRequestHasAlreadyExpired" = "A bejelentkezési kérés már lejárt.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Bejelentkezési kísérlet történt:\n%1$@\nSzeretnénk átváltani erre a fiókra?";
 "NewAroundHere" = "Új felhasználó vagyunk?";

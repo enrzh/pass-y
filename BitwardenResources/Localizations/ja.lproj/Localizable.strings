@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID でロック解除";
 "UnlockWithPIN" = "PIN コードでロック解除";
 "VerificationCode" = "認証コード";
-"WebVault" = "Pass-Y ウェブ保管庫";
 "Items" = "アイテム";
 "ExtensionActivated" = "拡張機能を有効化しました！";
 "ItemsForUri" = "%1$@ 用のアイテム";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "ドメインで設定されたキャッチオール受信ボックスを使用します。";
 "ForwardedEmailDescription" = "外部転送サービスを使用してメールエイリアスを生成します。";
 "Random" = "ランダム";
-"ConnectToWatch" = "Watch に接続";
 "LoginRequestHasAlreadyExpired" = "ログインリクエストの有効期限が切れています。";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "ログイン試行がありました:\n%1$@\nこのアカウントに切り替えますか？";
 "NewAroundHere" = "初めてですか?";

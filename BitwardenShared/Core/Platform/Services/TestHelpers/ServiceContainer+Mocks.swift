@@ -85,7 +85,6 @@ extension ServiceContainer {
         userVerificationHelperFactory: UserVerificationHelperFactory = MockUserVerificationHelperFactory(),
         vaultRepository: VaultRepository = MockVaultRepository(),
         vaultTimeoutService: VaultTimeoutService = MockVaultTimeoutService(),
-        watchService: WatchService = MockWatchService(),
     ) -> ServiceContainer {
         var actualSearchProcessorMediatorFactory: SearchProcessorMediatorFactory
         if let searchProcessorMediatorFactory {
@@ -173,7 +172,6 @@ extension ServiceContainer {
             userVerificationHelperFactory: userVerificationHelperFactory,
             vaultRepository: vaultRepository,
             vaultTimeoutService: vaultTimeoutService,
-            watchService: watchService,
         )
     }
 }

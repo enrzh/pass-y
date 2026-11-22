@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Optic ID менен ачуу";
 "UnlockWithPIN" = "PIN код менен ачуу";
 "VerificationCode" = "Текшерүү коду";
-"WebVault" = "Pass-Y веб купчу";
 "Items" = "Элементтер";
 "ExtensionActivated" = "Кошумча мүмкүнчүлүктөр иштетилди!";
 "ItemsForUri" = "%1$@ үчүн элементтер";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Домениңиздин конфигурацияланган бардык каттарды кабыл алуучу кирүү кутусун колдонуу.";
 "ForwardedEmailDescription" = "Сырткы кайра жөнөтүү кызматы менен электрондук почтанын псевдонимирин түзүү.";
 "Random" = "Кокустук";
-"ConnectToWatch" = "Watchке туташуу";
 "LoginRequestHasAlreadyExpired" = "Кирүү сурамынын мөөнөтү өтүп калган.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Кирүү аракети:\n%1$@\nБул аккаунтка өткүңүз келеби?";
 "NewAroundHere" = "Бул жерде жаңыбы?";

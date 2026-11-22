@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Ξεκλείδωμα με Optic ID";
 "UnlockWithPIN" = "Ξεκλείδωμα με κωδικό PIN";
 "VerificationCode" = "Κωδικός επαλήθευσης";
-"WebVault" = "Διαδικτυακή κρύπτη Pass-Y";
 "Items" = "Στοιχεία";
 "ExtensionActivated" = "Η επέκταση ενεργοποιήθηκε!";
 "ItemsForUri" = "Στοιχεία για %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Χρησιμοποιήστε το ρυθμισμένο catch-all inbox του τομέα σας.";
 "ForwardedEmailDescription" = "Δημιουργήστε ένα ψευδώνυμο διεύθυνσης ηλ. ταχυδρομείου με μια εξωτερική υπηρεσία προώθησης.";
 "Random" = "Τυχαίο";
-"ConnectToWatch" = "Σύνδεση με το ρολόι";
 "LoginRequestHasAlreadyExpired" = "Το αίτημα σύνδεσης έχει ήδη λήξει.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Προσπάθεια σύνδεσης από:\n%1$@\nΘέλετε να μεταβείτε σε αυτόν τον λογαριασμό;";
 "NewAroundHere" = "Είστε νέος/α εδώ;";

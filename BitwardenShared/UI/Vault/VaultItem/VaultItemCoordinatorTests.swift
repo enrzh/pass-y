@@ -548,6 +548,24 @@ class VaultItemCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this t
         XCTAssertTrue(action.view is ViewItemView)
     }
 
+    /// `navigate(to:)` with `.viewItem` uses the preloaded state (no spinner) and consumes it; without a preloaded
+    /// state the view starts in the loading state.
+    @MainActor
+    func test_navigateTo_viewItem_preloadedState() throws {
+        ViewItemPreloadCache.clear()
+        subject.navigate(to: .viewItem(id: "id"))
+        var view = try XCTUnwrap(stackNavigator.actions.last?.view as? ViewItemView)
+        XCTAssertNil(view.store.state.loadingState.data, "no preload: loading")
+
+        let state = try XCTUnwrap(ViewItemState(cipherView: .fixture(id: "id"), hasPremium: false, iconBaseURL: nil))
+        ViewItemPreloadCache.store(state, id: "id")
+        subject.navigate(to: .viewItem(id: "id", toastTitle: "Saved"))
+        view = try XCTUnwrap(stackNavigator.actions.last?.view as? ViewItemView)
+        XCTAssertNotNil(view.store.state.loadingState.data, "preloaded: the first frame shows the item")
+        XCTAssertEqual(view.store.state.toast?.title, "Saved")
+        XCTAssertNil(ViewItemPreloadCache.take(id: "id"), "consumed")
+    }
+
     /// `navigate(to:)` with `.migrateToMyItems` replaces the view with the migrate to my items screen.
     @MainActor
     func test_navigateTo_migrateToMyItems() throws {

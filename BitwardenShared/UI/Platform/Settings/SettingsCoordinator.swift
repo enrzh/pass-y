@@ -12,6 +12,10 @@ import SwiftUI
 ///
 @MainActor
 public protocol SettingsCoordinatorDelegate: AnyObject {
+    /// Called when the user wants to add another account.
+    ///
+    func didTapAddAccount()
+
     /// Called when the user completes the import navigation flow and should be navigated to the vault tab.
     ///
     func didCompleteLoginsImport()
@@ -96,7 +100,6 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
         & HasUserSessionStateService
         & HasVaultRepository
         & HasVaultTimeoutService
-        & HasWatchService
 
     // MARK: Private Properties
 
@@ -160,6 +163,8 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
         switch route {
         case .about:
             showAbout()
+        case .addAccount:
+            delegate?.didTapAddAccount()
         case .accountSecurity:
             showAccountSecurity()
         case let .addEditFolder(folder):

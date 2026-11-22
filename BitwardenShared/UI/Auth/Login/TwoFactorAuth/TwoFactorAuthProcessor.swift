@@ -107,7 +107,8 @@ final class TwoFactorAuthProcessor: StateProcessor<TwoFactorAuthState, TwoFactor
     private func handleAuthMethodSelected(_ authMethod: TwoFactorAuthMethod) {
         switch authMethod {
         case .recoveryCode:
-            state.url = services.environmentService.recoveryCodeURL
+            // Pass-Y has no web vault link: the recovery code is not offered (see `setUpState`).
+            break
         case .email:
             Task { await sendVerificationCodeEmail() }
             state.authMethod = authMethod
@@ -204,12 +205,11 @@ final class TwoFactorAuthProcessor: StateProcessor<TwoFactorAuthState, TwoFactor
     /// Set up the initial parameters of the state.
     private func setUpState() {
         guard let providersAvailable = state.authMethodsData.providersAvailable else { return }
-        // Determine all the available auth methods for the user, adding on the recovery code
-        // which is always available.
-        var availableMethods = providersAvailable
+        // Determine all the available auth methods for the user. The recovery code is not offered: it only
+        // opened the web vault in the browser, and Pass-Y has no web vault link.
+        let availableMethods = providersAvailable
             .sorted()
             .compactMap(TwoFactorAuthMethod.init)
-        availableMethods.append(.recoveryCode)
         state.availableAuthMethods = availableMethods
 
         // The default two-factor auth provider is the one with the highest priority.

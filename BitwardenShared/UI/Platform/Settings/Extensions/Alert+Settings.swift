@@ -96,24 +96,6 @@ extension Alert {
         )
     }
 
-    /// An alert that asks if the user wants to navigate to the "import items" page in a browser.
-    ///
-    /// - Parameter action: The action taken if they select continue.
-    /// - Returns: An alert that asks if the user wants to navigate to the import items page.
-    ///
-    static func importItemsAlert(importUrl: String, action: @escaping () -> Void) -> Alert {
-        Alert(
-            title: Localizations.continueToWebApp,
-            message: Localizations.youCanImportDataToYourVaultOnX(importUrl),
-            alertActions: [
-                AlertAction(title: Localizations.cancel, style: .cancel),
-                AlertAction(title: Localizations.continue, style: .default) { _ in
-                    action()
-                },
-            ],
-        )
-    }
-
     /// An alert that asks if the user wants to navigate to the "learn about organizations" help page in a browser.
     ///
     /// - Parameter action: The action taken if they select continue.
@@ -216,26 +198,6 @@ extension Alert {
         )
     }
 
-    /// An alert notifying the user that they will be navigated to the web app to set up two step login.
-    ///
-    /// - Parameter action: The action to perform when the user confirms that they want to be navigated to the
-    ///   web app.
-    ///
-    /// - Returns: An alert notifying the user that they will be navigated to the web app to set up two step login.
-    ///
-    static func twoStepLoginAlert(action: @escaping () -> Void) -> Alert {
-        Alert(
-            title: Localizations.continueToWebApp,
-            message: Localizations.twoStepLoginDescriptionLong,
-            alertActions: [
-                AlertAction(title: Localizations.cancel, style: .cancel),
-                AlertAction(title: Localizations.yes, style: .default) { _ in
-                    action()
-                },
-            ],
-        )
-    }
-
     /// An alert asking if the user wants to login with their PIN upon app restart.
     ///
     /// - Parameters:
@@ -304,21 +266,4 @@ extension Alert {
         )
     }
 
-    /// An alert that asks if the user wants to navigate to the web vault in a browser.
-    ///
-    /// - Parameter action: The action taken if they select continue.
-    /// - Returns: An alert that asks if the user wants to navigate to the web vault to leave a review.
-    ///
-    static func webVaultAlert(action: @escaping () -> Void) -> Alert {
-        Alert(
-            title: Localizations.continueToWebApp,
-            message: Localizations.exploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp,
-            alertActions: [
-                AlertAction(title: Localizations.cancel, style: .cancel),
-                AlertAction(title: Localizations.continue, style: .default) { _ in
-                    action()
-                },
-            ],
-        )
-    }
 }

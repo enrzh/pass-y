@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Odkleni z Optic ID";
 "UnlockWithPIN" = "Odkleni s PIN kodo";
 "VerificationCode" = "Verifikacijska koda";
-"WebVault" = "Spletni trezor Pass-Y";
 "Items" = "Elementi";
 "ExtensionActivated" = "Razširitev aktivirana! ";
 "ItemsForUri" = "Elementi za %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Uporabite konfiguriran catch-all nabiralnik svoje domene.";
 "ForwardedEmailDescription" = "Ustvari psevdonim (alias) za elektronski naslov z uporabo zunanjega ponudnika posredovanja pošte.";
 "Random" = "Naključno";
-"ConnectToWatch" = "Poveži z uro";
 "LoginRequestHasAlreadyExpired" = "Zahtevek za prijavo je že potekel.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Poskus prijave iz:\n%1$@\nAli želite preklopiti na ta račun?";
 "NewAroundHere" = "Ste novi tukaj?";

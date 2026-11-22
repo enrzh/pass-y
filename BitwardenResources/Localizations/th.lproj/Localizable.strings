@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "ปลดล็อกด้วย Optic ID";
 "UnlockWithPIN" = "ปลดล็อกด้วยรหัส PIN";
 "VerificationCode" = "รหัสยืนยัน";
-"WebVault" = "ตู้นิรภัยเว็บ Pass-Y";
 "Items" = "รายการ";
 "ExtensionActivated" = "เปิดใช้งานส่วนขยายแล้ว";
 "ItemsForUri" = "รายการสำหรับ %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "ใช้กล่องจดหมาย Catch-all ที่กำหนดค่าไว้ในโดเมนของคุณ";
 "ForwardedEmailDescription" = "สร้างนามแฝงอีเมลด้วยบริการส่งต่อภายนอก";
 "Random" = "สุ่ม";
-"ConnectToWatch" = "เชื่อมต่อกับ Watch";
 "LoginRequestHasAlreadyExpired" = "คำขอเข้าสู่ระบบหมดอายุแล้ว";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "ความพยายามเข้าสู่ระบบจาก:\n%1$@\nต้องการสลับไปใช้บัญชีนี้หรือไม่";
 "NewAroundHere" = "เพิ่งเคยใช้งานใช่ไหม";

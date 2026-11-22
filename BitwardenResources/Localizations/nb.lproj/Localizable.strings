@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "";
 "UnlockWithPIN" = "Lås opp med PIN-kode";
 "VerificationCode" = "Verifiseringskode";
-"WebVault" = "Pass-Y Netthvelv";
 "Items" = "Gjenstander";
 "ExtensionActivated" = "Utvidelsen er aktivert!";
 "ItemsForUri" = "Gjenstander for %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Bruk domenets konfigurerte catch-all-innboks.";
 "ForwardedEmailDescription" = "Generer et e-postalias hos en ekstern videresendingstjeneste.";
 "Random" = "Tilfeldig";
-"ConnectToWatch" = "Koble til klokke";
 "LoginRequestHasAlreadyExpired" = "Innloggingsforespørselen har allerede utløpt.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Innloggingsforsøk:\n%1$@\nVil du bytte til denne kontoen?";
 "NewAroundHere" = "Nytt rundt her?";

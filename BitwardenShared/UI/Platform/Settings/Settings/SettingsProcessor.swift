@@ -127,6 +127,7 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
             await services.billingService.setUpgradedToPremiumActionCardDismissed()
         case .loadProfile:
             guard state.presentationMode == .tab else { return }
+            state.serverURL = services.environmentService.baseURL.passYServerText
             state.profileState = await services.authRepository.getProfilesState(
                 allowLockAndLogout: true,
                 isVisible: false,
@@ -144,6 +145,8 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
             coordinator.navigate(to: .about)
         case .accountSecurityPressed:
             coordinator.navigate(to: .accountSecurity)
+        case .addAccountPressed:
+            coordinator.navigate(to: .addAccount)
         case .appearancePressed:
             coordinator.navigate(to: .appearance)
         case .autoFillPressed:

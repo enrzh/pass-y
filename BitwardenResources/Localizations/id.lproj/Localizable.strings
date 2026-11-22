@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Buka kunci dengan Optic ID";
 "UnlockWithPIN" = "Buka kunci dengan kode PIN";
 "VerificationCode" = "Kode verifikasi";
-"WebVault" = "Brankas Web Pass-Y";
 "Items" = "Item";
 "ExtensionActivated" = "Ekstensi diaktifkan!";
 "ItemsForUri" = "Item untuk %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Gunakan kotak masuk catch-all yang dikonfigurasi pada domain Anda.";
 "ForwardedEmailDescription" = "Buat alias email dengan layanan penerusan eksternal.";
 "Random" = "Acak";
-"ConnectToWatch" = "Sambungkan ke Jam";
 "LoginRequestHasAlreadyExpired" = "Permintaan masuk sudah kedaluwarsa.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Upaya login dari:\n%1$@\nApakah Anda ingin beralih ke akun ini?";
 "NewAroundHere" = "Baru di sini?";

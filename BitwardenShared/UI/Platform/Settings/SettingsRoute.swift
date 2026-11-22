@@ -8,6 +8,9 @@ public enum SettingsRoute: Equatable, Hashable {
     /// A route to the about view.
     case about
 
+    /// A route that starts adding another account (Settings is the only place for it).
+    case addAccount
+
     /// A route to the account security screen.
     case accountSecurity
 

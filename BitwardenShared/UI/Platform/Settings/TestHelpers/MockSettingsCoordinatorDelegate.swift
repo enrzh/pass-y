@@ -1,6 +1,7 @@
 @testable import BitwardenShared
 
 class MockSettingsCoordinatorDelegate: SettingsCoordinatorDelegate {
+    var didTapAddAccountCalled = false
     var didCompleteLoginsImportCalled = false
     var didDeleteAccountCalled = false
     var didLockVaultCalled = false
@@ -12,6 +13,10 @@ class MockSettingsCoordinatorDelegate: SettingsCoordinatorDelegate {
     var switchUserId: String?
     var wasLogoutUserInitiated: Bool?
     var wasSwitchAutomatic: Bool?
+
+    func didTapAddAccount() {
+        didTapAddAccountCalled = true
+    }
 
     func didCompleteLoginsImport() {
         didCompleteLoginsImportCalled = true

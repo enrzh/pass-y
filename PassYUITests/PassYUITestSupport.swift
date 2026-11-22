@@ -25,11 +25,22 @@ extension XCUIElement {
 
     /// Clears a text/secure field (a failed login attempt leaves the typed text in the field) and types `text`.
     func replaceText(_ text: String) {
-        focus()
-        if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
-            typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+        // The simulator sometimes drops a character while the app is busy ("Invalid master password", 20 instead of 21
+        // dots). The count is checked after typing and the text is typed again (at most three times).
+        for _ in 0 ..< 3 {
+            focus()
+            if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
+                typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+            }
+            typeText(text)
+            if typedTextIsComplete(text) { return }
         }
-        typeText(text)
+    }
+
+    /// Whether the field holds all of `text` (secure fields show one dot per character).
+    func typedTextIsComplete(_ text: String) -> Bool {
+        guard let shown = value as? String else { return false }
+        return shown == text || (shown.count == text.count && shown.allSatisfy { $0 == "\u{2022}" || $0 == "\u{25CF}" })
     }
 }
 
@@ -125,7 +136,8 @@ extension XCTestCase {
             let alert = app.alerts.firstMatch
             if alert.exists {
                 dismissedAlerts += 1
-                if dismissedAlerts > 3 { XCTFail("Login keeps failing with an alert: \(alert.debugDescription)"); return }
+                print("LOGIN-ALERT \(dismissedAlerts): \(alert.staticTexts.allElementsBoundByIndex.map(\.label))")
+                if dismissedAlerts > 3 { XCTFail("Login keeps failing with an alert: \(alert.debugDescription) texts: \(alert.staticTexts.allElementsBoundByIndex.map(\.label))"); return }
                 alert.buttons.firstMatch.tap()
                 sleep(1)
                 continue
@@ -242,8 +254,24 @@ func avatarMenuEntry(_ app: XCUIApplication, _ label: String) -> XCUIElement {
     return app.buttons[ids[label] ?? label]
 }
 
-/// Switches to a top-level screen through the avatar menu.
+/// A button of the open avatar menu by identifier or, failing that, by its label.
+func menuButton(_ app: XCUIApplication, id: String, label: String) -> XCUIElement {
+    let byId = app.buttons[id]
+    if byId.exists { return byId }
+    let byLabel = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+    if byLabel.exists { return byLabel }
+    let item = app.menuItems[label]
+    return item.exists ? item : byId
+}
+
+/// Switches to a top-level screen through the avatar menu. The vault is not in the menu any more (ui-r9): it is the
+/// Vault button of the bottom bar (absent on the vault home itself).
 func goTo(_ app: XCUIApplication, _ label: String) {
+    if label == "My vault" {
+        let button = app.buttons["BottomBarVaultButton"]
+        if button.waitForExistence(timeout: 5) { button.tap() }
+        return
+    }
     avatarMenuEntry(app, label).tap()
 }
 

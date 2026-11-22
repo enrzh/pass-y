@@ -25,7 +25,6 @@ class MockAppSettingsStore: AppSettingsStore { // swiftlint:disable:this type_bo
     var disableWebIcons = false
     var flightRecorderData: FlightRecorderData?
     var introCarouselShown = false
-    var lastUserShouldConnectToWatch = false
     var learnGeneratorActionCardStatus: AccountSetupProgress = .incomplete
     var learnNewLoginActionCardStatus: AccountSetupProgress = .incomplete
     var loginRequest: LoginRequestNotification?
@@ -41,7 +40,6 @@ class MockAppSettingsStore: AppSettingsStore { // swiftlint:disable:this type_bo
     var biometricAuthenticationEnabled = [String: Bool?]()
     var clearClipboardValues = [String: ClearClipboardValue]()
     var collapsedVaultListSectionIdsByUserId = [String: [String]]()
-    var connectToWatchByUserId = [String: Bool]()
     var defaultUriMatchTypeByUserId = [String: BitwardenShared.UriMatchType]()
     var disableAutoTotpCopyByUserId = [String: Bool]()
     var encryptedPinByUserId = [String: String]()
@@ -130,10 +128,6 @@ class MockAppSettingsStore: AppSettingsStore { // swiftlint:disable:this type_bo
 
     func collapsedVaultListSectionIds(userId: String) -> [String] {
         collapsedVaultListSectionIdsByUserId[userId] ?? []
-    }
-
-    func connectToWatch(userId: String) -> Bool {
-        connectToWatchByUserId[userId] ?? false
     }
 
     func debugFeatureFlag(name: String) -> Bool? {
@@ -305,10 +299,6 @@ class MockAppSettingsStore: AppSettingsStore { // swiftlint:disable:this type_bo
 
     func setCollapsedVaultListSectionIds(_ ids: [String], userId: String) {
         collapsedVaultListSectionIdsByUserId[userId] = ids
-    }
-
-    func setConnectToWatch(_ connectToWatch: Bool, userId: String) {
-        connectToWatchByUserId[userId] = connectToWatch
     }
 
     func setDefaultUriMatchType(_ uriMatchType: BitwardenShared.UriMatchType?, userId: String) {

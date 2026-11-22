@@ -603,9 +603,11 @@ struct VaultListView: View {
             .onChange(of: store.state.searchVaultFilterType) { _ in
                 Task { await store.perform(.search(store.state.searchText)) }
             }
-            .refreshable { [weak store] in
-                await store?.perform(.refreshVault)
-            }
+            // ui-r9-fix: no pull-to-refresh on the vault home. The system refresh control (a replicator layer in the
+            // navigation bar) started on its own after unlocking and kept spinning for as long as the sync took (proved
+            // with the animation dump: `_UIRefreshControlModernReplicatorView`, minutes under load); XCUITest then never
+            // saw the app idle ("App animations complete notification not received"). Syncing stays available as
+            // "Sync now" in the avatar menu (and happens on appearing, as before). Apple Passwords has no pull either.
             if #unavailable(iOS 26) {
                 profileSwitcher
             }
@@ -620,6 +622,7 @@ struct VaultListView: View {
         }
         .onAppear { publishProfileMenu() }
         .onChange(of: store.state.profileSwitcherState) { _ in publishProfileMenu() }
+        .onChange(of: store.state.serverURL) { _ in publishProfileMenu() }
         .task {
             await store.perform(.appeared)
         }
@@ -734,14 +737,11 @@ struct VaultListView: View {
     private func publishProfileMenu() {
         let state = store.state.profileSwitcherState
         shell.profileMenu = PassYProfileMenuSource(
-            accounts: state.accounts,
-            activeAccountId: state.activeAccountId,
             activeProfile: state.activeAccountProfile,
-            addAccount: { Task { await store.perform(.profileSwitcher(.addAccountPressed)) } },
             canLock: state.allowLockAndLogout && state.activeAccountProfile?.canBeLocked == true,
             lock: { account in Task { await store.perform(.profileSwitcher(.accessibility(.lock(account)))) } },
-            select: { account in Task { await store.perform(.profileSwitcher(.accountPressed(account))) } },
-            showsAddAccount: state.showsAddAccount,
+            pendingRequests: { store.send(.pendingLoginRequestsTapped) },
+            serverURL: store.state.serverURL,
             showsPlaceholder: state.showPlaceholderToolbarIcon,
             sync: { Task { await store.perform(.refreshVault) } },
         )

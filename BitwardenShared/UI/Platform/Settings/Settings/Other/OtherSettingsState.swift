@@ -17,9 +17,6 @@ struct OtherSettingsState {
     /// Indicates whether the Universal Clipboard toggle is on.
     var isAllowUniversalClipboardToggleOn: Bool = false
 
-    /// Whether the connect to watch toggle is on.
-    var isConnectToWatchToggleOn: Bool = false
-
     /// Whether Siri & Shortcuts access toggle is on.
     var isSiriAndShortcutsAccessToggleOn: Bool = false
 
@@ -29,6 +26,4 @@ struct OtherSettingsState {
     /// A toast message to show in the view.
     var toast: Toast?
 
-    /// Whether the connect to watch toggle should be shown.
-    var shouldShowConnectToWatchToggle: Bool = false
 }

@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Ontsluit met Optic ID";
 "UnlockWithPIN" = "Ontgrendel met PIN-kode";
 "VerificationCode" = "Bevestigingskode";
-"WebVault" = "Pass-Y-webkluis";
 "Items" = "Items";
 "ExtensionActivated" = "Uitbreiding geaktiveer!";
 "ItemsForUri" = "Items vir %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Gebruik u domein se opgestelde vang-alles-posbus.";
 "ForwardedEmailDescription" = "Genereer ’n e-posalias met ’n eksterne aanstuurdiens.";
 "Random" = "Lukraak";
-"ConnectToWatch" = "Koppel aan horlosie";
 "LoginRequestHasAlreadyExpired" = "Aantekenversoek het reeds verstryk.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Teken Aan probeerslag van:\n%1$@\nWil u na die rekening omskakel?";
 "NewAroundHere" = "Nuut hier?";

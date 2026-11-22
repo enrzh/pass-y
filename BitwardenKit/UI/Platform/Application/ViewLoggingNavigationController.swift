@@ -17,6 +17,11 @@ public class ViewLoggingNavigationController: UINavigationController,
     /// The logger instance used to log when views appear and are dismissed.
     let logger: BitwardenLogger
 
+    /// Called when the stack changes: right after a push, pop, pop to root or `setViewControllers` (no window needed),
+    /// and around interactive swipe-back transitions (`willShow`/`didShow`).
+    /// UIKit publishes no KVO for pushes, so the shell uses this instead of polling the stack.
+    public var stackChanged: (() -> Void)?
+
     // MARK: Initialization
 
     /// Initialize a `ViewLoggingNavigationController`.
@@ -43,6 +48,37 @@ public class ViewLoggingNavigationController: UINavigationController,
 
     // MARK: UINavigationController
 
+    override public func pushViewController(_ viewController: UIViewController, animated: Bool) {
+        super.pushViewController(viewController, animated: animated)
+        stackChanged?()
+    }
+
+    @discardableResult
+    override public func popViewController(animated: Bool) -> UIViewController? {
+        let popped = super.popViewController(animated: animated)
+        stackChanged?()
+        return popped
+    }
+
+    @discardableResult
+    override public func popToRootViewController(animated: Bool) -> [UIViewController]? {
+        let popped = super.popToRootViewController(animated: animated)
+        stackChanged?()
+        return popped
+    }
+
+    @discardableResult
+    override public func popToViewController(_ viewController: UIViewController, animated: Bool) -> [UIViewController]? {
+        let popped = super.popToViewController(viewController, animated: animated)
+        stackChanged?()
+        return popped
+    }
+
+    override public func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
+        super.setViewControllers(viewControllers, animated: animated)
+        stackChanged?()
+    }
+
     override public func dismiss(animated: Bool, completion: (() -> Void)? = nil) {
         super.dismiss(animated: animated, completion: completion)
         logger.log("[Navigation] View dismissed: \(resolveLoggingViewName(for: self))")
@@ -52,10 +88,19 @@ public class ViewLoggingNavigationController: UINavigationController,
 
     public func navigationController(
         _ navigationController: UINavigationController,
+        willShow viewController: UIViewController,
+        animated: Bool,
+    ) {
+        stackChanged?()
+    }
+
+    public func navigationController(
+        _ navigationController: UINavigationController,
         didShow viewController: UIViewController,
         animated: Bool,
     ) {
         logger.log("[Navigation] View appeared: \(resolveLoggingViewName(for: viewController))")
+        stackChanged?()
     }
 
     // MARK: UIAdaptivePresentationControllerDelegate

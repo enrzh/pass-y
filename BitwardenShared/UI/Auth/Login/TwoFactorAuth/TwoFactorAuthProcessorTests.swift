@@ -76,7 +76,7 @@ class TwoFactorAuthProcessorTests: BitwardenTestCase { // swiftlint:disable:this
             state: state,
         )
 
-        XCTAssertEqual(subject.state.availableAuthMethods, [.authenticatorApp, .email, .yubiKey, .recoveryCode])
+        XCTAssertEqual(subject.state.availableAuthMethods, [.authenticatorApp, .email, .yubiKey])
         XCTAssertEqual(subject.state.displayEmail, "sh***@example.com")
     }
 
@@ -667,13 +667,14 @@ class TwoFactorAuthProcessorTests: BitwardenTestCase { // swiftlint:disable:this
         XCTAssertEqual(subject.state.authMethod, .email)
     }
 
-    /// `receive(_:)` with `.authMethodSelected` opens the url for the recover code.
+    /// `receive(_:)` with `.authMethodSelected(.recoveryCode)` does not open a URL or change the method (the recovery
+    /// code is not offered any more, it only opened the web vault).
     @MainActor
-    func test_receive_authMethodSelected_recoveryCode() {
+    func test_receive_authMethodSelected_recoveryCode_opensNothing() {
         subject.state.authMethod = .email
         subject.receive(.authMethodSelected(.recoveryCode))
         XCTAssertEqual(subject.state.authMethod, .email)
-        XCTAssertEqual(subject.state.url, URL(string: "\(environmentService.recoveryCodeURL)"))
+        XCTAssertNil(subject.state.url)
     }
 
     /// `receive(_:)` with `.clearURL` clears the URL in the state.

@@ -68,6 +68,13 @@ class SettingsCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this ty
         XCTAssertTrue(action.view is UIHostingController<AboutView>)
     }
 
+    /// `navigate(to:)` with `.addAccount` asks the delegate to add an account.
+    @MainActor
+    func test_navigateTo_addAccount() {
+        subject.navigate(to: .addAccount)
+        XCTAssertTrue(delegate.didTapAddAccountCalled)
+    }
+
     /// `navigate(to:)` with `.accountSecurity` pushes the account security view onto the stack navigator.
     @MainActor
     func test_navigateTo_accountSecurity() throws {

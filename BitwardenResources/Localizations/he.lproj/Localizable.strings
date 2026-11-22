@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "בטל נעילה עם Optic ID";
 "UnlockWithPIN" = "בטל נעילה עם קוד PIN";
 "VerificationCode" = "קוד אימות";
-"WebVault" = "כספת באתר Pass-Y";
 "Items" = " פריטים ";
 "ExtensionActivated" = "ההרחבה הופעלה!";
 "ItemsForUri" = "פריטים עבור %1$@";
@@ -555,7 +554,6 @@
 "CatchAllEmailDescription" = "השתמש בתיבת דואר תפוס־כל המוגדרת בדומיין שלך.";
 "ForwardedEmailDescription" = "צור כינוי דוא\"ל עם שירות העברה חיצוני.";
 "Random" = "אקראי";
-"ConnectToWatch" = "התחבר לשעון";
 "LoginRequestHasAlreadyExpired" = "כבר פג תוקפה של בקשת הכניסה.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "ניסיון כניסה מ:\n%1$@\nהאם ברצונך לעבור לחשבון זה?";
 "NewAroundHere" = "חדש כאן?";

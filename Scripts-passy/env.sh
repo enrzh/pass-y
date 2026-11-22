@@ -11,8 +11,8 @@ export VW_BIN="${VW_BIN:-/Users/enrico/Documents/GitHub/vaultwarden-build/vaultw
 export PASSY_PHONE="${PASSY_PHONE:-}"      # UDID of the own phone simulator (set by the caller)
 export PASSY_IPAD="${PASSY_IPAD:-}"        # UDID of the own iPad simulator
 mkdir -p "$PASSY_OUT" "$PASSY_DD"
-# Waits until the 1-minute load average is below PASSY_MAX_LOAD (default 8; UI results under load do not count).
-passy_wait_quiet() { while [ "$(sysctl -n vm.loadavg | awk '{print int($2)}')" -ge "${PASSY_MAX_LOAD:-8}" ]; do sleep 20; done; }
+# Waits until the 1-minute load average is below PASSY_MAX_LOAD; no wait unless PASSY_MAX_LOAD is set.
+passy_wait_quiet() { [ -n "${PASSY_MAX_LOAD:-}" ] || return 0; while [ "$(sysctl -n vm.loadavg | awk '{print int($2)}')" -ge "${PASSY_MAX_LOAD}" ]; do sleep 20; done; }
 # Ends a hung xcodebuild after the result line appeared in the log: passy_run_xcodebuild <log> <args...>
 passy_run_xcodebuild() {
   local log=$1; shift

@@ -63,6 +63,9 @@ public protocol VaultCoordinatorDelegate: AnyObject {
 /// A coordinator that manages navigation in the vault tab.
 ///
 final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disable:this type_body_length
+    /// Whether an item is being prepared for opening (debounces a second tap).
+    private var isPreparingItem = false
+
     // MARK: Types
 
     typealias Module = AddEditFolderModule
@@ -257,6 +260,8 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             delegate?.switchToSettingsTab(route: .about)
         case .settings:
             delegate?.switchToSettingsTab(route: .settings(.tab))
+        case .pendingLoginRequests:
+            delegate?.switchToSettingsTab(route: .pendingLoginRequests)
         case let .group(group, filter):
             showGroup(group, filter: filter)
         case let .importCXF(cxfRoute):
@@ -535,7 +540,16 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
         toastTitle: String? = nil,
     ) {
         let navigate = {
-            self.showVaultItem(route: .viewItem(id: cipherId, toastTitle: toastTitle), delegate: delegate)
+            // A second tap while the first item is being prepared must not open a second sheet.
+            guard !self.isPreparingItem else { return }
+            self.isPreparingItem = true
+            // ui-r9: the item is loaded completely (at most one second) before its screen is presented, so it opens
+            // without a spinner.
+            Task {
+                await ViewItemPreloadCache.preload(id: cipherId, services: self.services)
+                self.isPreparingItem = false
+                self.showVaultItem(route: .viewItem(id: cipherId, toastTitle: toastTitle), delegate: delegate)
+            }
         }
 
         // If the master password reprompt check has already completed, skip reprompting again which

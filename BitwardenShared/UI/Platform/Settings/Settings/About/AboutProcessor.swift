@@ -99,10 +99,6 @@ final class AboutProcessor: StateProcessor<AboutState, AboutAction, AboutEffect>
         case let .toggleSubmitCrashLogs(isOn):
             state.isSubmitCrashLogsToggleOn = isOn
             services.errorReporter.isEnabled = isOn
-        case .webVaultTapped:
-            coordinator.showAlert(.webVaultAlert {
-                self.state.url = self.services.environmentService.webVaultURL
-            })
         }
     }
 

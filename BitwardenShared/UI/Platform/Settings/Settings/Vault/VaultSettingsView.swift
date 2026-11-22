@@ -88,11 +88,6 @@ struct VaultSettingsView: View {
                 store.send(.exportVaultTapped)
             }
             .accessibilityIdentifier("ExportVaultLabel")
-
-            row(Localizations.importItems, systemImage: "square.and.arrow.down", trailing: "arrow.up.right") {
-                store.send(.importItemsTapped)
-            }
-            .accessibilityIdentifier("ImportItemsLinkItemView")
         }
     }
 }

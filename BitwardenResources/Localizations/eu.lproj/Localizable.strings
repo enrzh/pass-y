@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Desblokeatu Optic ID-rekin";
 "UnlockWithPIN" = "PIN kodearekin desblokeatu";
 "VerificationCode" = "Egiaztatze-kodea";
-"WebVault" = "Pass-Y kutxa gotorra";
 "Items" = "Elementuak";
 "ExtensionActivated" = "Gehigarria gaitu da!";
 "ItemsForUri" = "%1$@-entzako elementuak";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Erabili zure domeinuak konfiguratutako \"catch-all\" sarrera-ontzia.";
 "ForwardedEmailDescription" = "Emaileko ezizen bat sortu kanpoko bidalketa zerbitzu batekin.";
 "Random" = "Ausazkoa";
-"ConnectToWatch" = "Erloju bati konektatu";
 "LoginRequestHasAlreadyExpired" = "Sarbide eskaera iraungi da.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Saio hasiera saiakera hemendik:\n%1$@\nKontu honetara aldatu nahi duzu?";
 "NewAroundHere" = "Berria hemendik?";

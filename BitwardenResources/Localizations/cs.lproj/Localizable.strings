@@ -146,7 +146,6 @@
 "UnlockWithOpticID" = "Odemknout pomocí Optic ID";
 "UnlockWithPIN" = "Odemknout pomocí PIN kódu";
 "VerificationCode" = "Ověřovací kód";
-"WebVault" = "Webový trezor Pass-Yu";
 "Items" = "Položky";
 "ExtensionActivated" = "Rozšíření aktivováno!";
 "ItemsForUri" = "Položky pro %1$@";
@@ -554,7 +553,6 @@
 "CatchAllEmailDescription" = "Použije nastavenou univerzální schránku Vaší domény.";
 "ForwardedEmailDescription" = "Vygeneruje alias e-mailu pomocí externí přeposílací služby.";
 "Random" = "Náhodně";
-"ConnectToWatch" = "Propojit s hodinkami";
 "LoginRequestHasAlreadyExpired" = "Požadavek na přihlášení již vypršel.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Pokus o přihlášení z:\n%1$@\nChcete se přepnout na tento účet?";
 "NewAroundHere" = "Jste tu noví?";
