@@ -63,6 +63,12 @@ final class PassYEdgeFadeView: UIView {
     init(edge: Edge) {
         self.edge = edge
         super.init(frame: .zero)
+        // The gradient never animates: no implicit CALayer animation when frame, points, locations or colors change
+        // (a layer that is laid out often would restart a 0.25 s animation each time and keep the app from idling).
+        gradient.actions = [
+            "bounds": NSNull(), "position": NSNull(), "frame": NSNull(), "colors": NSNull(),
+            "locations": NSNull(), "startPoint": NSNull(), "endPoint": NSNull(), "opacity": NSNull(),
+        ]
         translatesAutoresizingMaskIntoConstraints = false
         isUserInteractionEnabled = false
         backgroundColor = .clear
@@ -79,6 +85,9 @@ final class PassYEdgeFadeView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
         gradient.frame = bounds
         // Opaque over the bar, soft over the last `softHeight` points.
         let soft = min(Self.softHeight / max(bounds.height, 1), 1)
@@ -101,6 +110,9 @@ final class PassYEdgeFadeView: UIView {
     }
 
     private func updateColors() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
         let base = UIColor.systemGroupedBackground.resolvedColor(with: traitCollection)
         let strong = base.withAlphaComponent(Self.edgeOpacity).cgColor
         let clear = base.withAlphaComponent(0).cgColor
@@ -252,6 +264,10 @@ class PassYShellController: UIViewController, TabNavigator {
         ])
         barContainer = container
         barHost = host
+
+        #if DEBUG
+        PassYAnimationDump.installOnce()
+        #endif
 
         model.goToVault = { [weak self] in self?.showVaultHome() }
         model.selectDestination = { [weak self] destination in
