@@ -87,6 +87,19 @@ struct OtherSettingsView: View {
                 Text(Localizations.useUniversalClipboardToCopyDescriptionLong)
             }
 
+            if store.state.shouldShowConnectToWatchToggle {
+                Section {
+                    Toggle(
+                        Localizations.connectToWatch,
+                        isOn: store.binding(
+                            get: \.isConnectToWatchToggleOn,
+                            send: OtherSettingsAction.toggleConnectToWatch,
+                        ),
+                    )
+                    .accessibilityLabel(Localizations.connectToWatch)
+                }
+            }
+
             Section {
                 Toggle(
                     Localizations.siriAndShortcutsAccess,

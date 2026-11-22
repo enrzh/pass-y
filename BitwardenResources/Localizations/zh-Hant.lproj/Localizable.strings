@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "使用您的網域設定的 Catch-all 收件匣。";
 "ForwardedEmailDescription" = "使用外部轉寄服務產生一個電子郵件別名。";
 "Random" = "隨機";
+"ConnectToWatch" = "連線至 Apple Watch";
 "LoginRequestHasAlreadyExpired" = "登入要求已逾期。";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "登入嘗試來自：\n%1$@\n您想要切換至這個帳戶嗎？";
 "NewAroundHere" = "第一次使用？";

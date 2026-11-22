@@ -74,6 +74,7 @@ typealias Services = HasAPIService
     & HasUserVerificationHelperFactory
     & HasVaultRepository
     & HasVaultTimeoutService
+    & HasWatchService
 
 /// Protocol for an object that provides an `AccountAPIService`.
 ///
@@ -491,4 +492,11 @@ protocol HasVaultRepository {
 protocol HasVaultTimeoutService {
     /// The repository used by the application to manage timeouts for vault access for all accounts.
     var vaultTimeoutService: VaultTimeoutService { get }
+}
+
+/// Protocol for an object that provides a `WatchService`.
+///
+protocol HasWatchService {
+    /// The service used by the application to connect to and communicate with the watch app.
+    var watchService: WatchService { get }
 } // swiftlint:disable:this file_length

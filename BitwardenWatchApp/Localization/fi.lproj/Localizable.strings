@@ -1,0 +1,10 @@
+"ThereAreNoItemsToList" = "Näytettäviä kohteita ei ole.";
+"ToViewVerificationCodesUpgradeToPremium" = "Näytä vahvistuskoodit päivittämällä Premiumiin.";
+"Add2FactorAutenticationToAnItemToViewVerificationCodes" = "Näytä vahvistuskoodit lisäämällä kohteeseen kaksivaiheinen todennus.";
+"LogInToBitwardenOnYourIPhoneToViewVerificationCodes" = "Näytä vahvistuskoodit kirjautumalla Pass-Yiin iPhonessa.";
+"SyncingItemsContainingVerificationCodes" = "Vahvistuskoodeja sisältäviä kohteita synkronoidaan.";
+"UnlockBitwardenOnYourIPhoneToViewVerificationCodes" = "Näytä vahvistuskoodit avaamalla Pass-Y iPhonessa.";
+"SetUpBitwardenToViewItemsContainingVerificationCodes" = "Määritä Pass-Y nähdäksesi vahvistuskoodeja sisältävät kohteet.";
+"Search" = "Etsi";
+"NoItemsFound" = "Kohteita ei löytynyt.";
+"SetUpAppleWatchPasscodeInOrderToUseBitwarden" = "Määritä Apple Watch -lukituskoodi Pass-Yin käyttämiseksi.";

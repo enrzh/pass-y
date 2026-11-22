@@ -554,6 +554,7 @@
 "CatchAllEmailDescription" = "ನಿಮ್ಮ ಡೊಮೇನ್ನ ಕಾನ್ಫಿಗರ್ ಮಾಡಿದ ಕ್ಯಾಚ್-ಆಲ್ ಇನ್ಬಾಕ್ಸ್ ಅನ್ನು ಬಳಸಿ.";
 "ForwardedEmailDescription" = "ಬಾಹ್ಯ ಫಾರ್ವರ್ಡಿಂಗ್ ಸೇವೆಯೊಂದಿಗೆ ಇಮೇಲ್ ಉಪನಾಮವನ್ನು ರಚಿಸಿ.";
 "Random" = "ಯಾದೃಚ್ಛಿಕ";
+"ConnectToWatch" = "Watch ಗೆ ಸಂಪರ್ಕಿಸಿ";
 "LoginRequestHasAlreadyExpired" = "ಲಾಗಿನ್ ವಿನಂತಿಯು ಈಗಾಗಲೇ ಅವಧಿ ಮೀರಿದೆ.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "ಇವರಿಂದ ಲಾಗಿನ್ ಪ್ರಯತ್ನ:\n%1$@\nನೀವು ಈ ಖಾತೆಗೆ ಬದಲಾಯಿಸಲು ಬಯಸುವಿರಾ?";
 "NewAroundHere" = "ಇಲ್ಲಿ ಹೊಸಬರೇ?";

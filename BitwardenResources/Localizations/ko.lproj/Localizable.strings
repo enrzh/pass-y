@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "도메인에 구성된 캐치올 받은 편지함을 사용합니다.";
 "ForwardedEmailDescription" = "외부 전달 서비스를 사용하여 이메일 별칭을 생성합니다.";
 "Random" = "무작위";
+"ConnectToWatch" = "Watch에 연결";
 "LoginRequestHasAlreadyExpired" = "이미 만료된 로그인 요청입니다.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "로그인 시도 확인:\n%1$@\n이 계정으로 전환하시겠어요?";
 "NewAroundHere" = "새로 찾아오셨나요?";

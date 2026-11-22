@@ -37,6 +37,10 @@ protocol AppSettingsStore: AnyObject {
     /// Whether the intro carousel screen has been shown.
     var introCarouselShown: Bool { get set }
 
+    /// The last value of the connect to watch setting, ignoring the user id. Used for
+    /// sending the status to the watch if the user is logged out.
+    var lastUserShouldConnectToWatch: Bool { get set }
+
     /// The status of the learn generator action card.
     var learnGeneratorActionCardStatus: AccountSetupProgress { get set }
 
@@ -139,6 +143,14 @@ protocol AppSettingsStore: AnyObject {
     /// - Returns: The IDs of the vault list sections that are currently collapsed.
     ///
     func collapsedVaultListSectionIds(userId: String) -> [String]
+
+    /// Gets the connect to watch setting for the user.
+    ///
+    /// - Parameter userId: The user ID associated with the connect to watch value.
+    ///
+    /// - Returns: Whether to connect to the watch app.
+    ///
+    func connectToWatch(userId: String) -> Bool
 
     /// Gets the default URI match type.
     ///
@@ -426,6 +438,14 @@ protocol AppSettingsStore: AnyObject {
     ///   - userId: The user ID associated with the collapsed vault list section IDs.
     ///
     func setCollapsedVaultListSectionIds(_ ids: [String], userId: String)
+
+    /// Sets the connect to watch setting for the user.
+    ///
+    /// - Parameters:
+    ///   - connectToWatch: Whether to connect to the watch app.
+    ///   - userId: The user ID associated with the connect to watch value.
+    ///
+    func setConnectToWatch(_ connectToWatch: Bool, userId: String)
 
     /// Sets the default URI match type.
     ///
@@ -928,6 +948,7 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
         case biometricAuthEnabled(userId: String)
         case clearClipboardValue(userId: String)
         case collapsedVaultListSectionIds(userId: String)
+        case connectToWatch(userId: String)
         case debugFeatureFlag(name: String)
         case defaultUriMatch(userId: String)
         case disableAutoTotpCopy(userId: String)
@@ -945,6 +966,7 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
         case lastRequestToTurnOnCredentialProvider
         case lastSync(userId: String)
         case lastSyncMonotonic(userId: String)
+        case lastUserShouldConnectToWatch
         case learnGeneratorActionCardStatus
         case loginRequest
         case manuallyLockedAccount(userId: String)
@@ -1016,6 +1038,8 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
                 "clearClipboard_\(userId)"
             case let .collapsedVaultListSectionIds(userId):
                 "collapsedVaultListSectionIds_\(userId)"
+            case let .connectToWatch(userId):
+                "shouldConnectToWatch_\(userId)"
             case let .debugFeatureFlag(name):
                 "debugFeatureFlag_\(name)"
             case let .defaultUriMatch(userId):
@@ -1052,6 +1076,8 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
                 "lastSyncMonotonic_\(userId)"
             case .learnGeneratorActionCardStatus:
                 "learnGeneratorActionCardStatus"
+            case .lastUserShouldConnectToWatch:
+                "lastUserShouldConnectToWatch"
             case .loginRequest:
                 "passwordlessLoginNotificationKey"
             case let .manuallyLockedAccount(userId):
@@ -1167,6 +1193,11 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
         set { store(newValue, for: .learnNewLoginActionCardStatus) }
     }
 
+    var lastUserShouldConnectToWatch: Bool {
+        get { fetch(for: .lastUserShouldConnectToWatch) }
+        set { store(newValue, for: .lastUserShouldConnectToWatch) }
+    }
+
     var learnGeneratorActionCardStatus: AccountSetupProgress {
         get { fetch(for: .learnGeneratorActionCardStatus) ?? .incomplete }
         set { store(newValue, for: .learnGeneratorActionCardStatus) }
@@ -1262,6 +1293,10 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
 
     func collapsedVaultListSectionIds(userId: String) -> [String] {
         fetch(for: .collapsedVaultListSectionIds(userId: userId)) ?? []
+    }
+
+    func connectToWatch(userId: String) -> Bool {
+        fetch(for: .connectToWatch(userId: userId))
     }
 
     func debugFeatureFlag(name: String) -> Bool? {
@@ -1426,6 +1461,10 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
 
     func setCollapsedVaultListSectionIds(_ ids: [String], userId: String) {
         store(ids, for: .collapsedVaultListSectionIds(userId: userId))
+    }
+
+    func setConnectToWatch(_ connectToWatch: Bool, userId: String) {
+        store(connectToWatch, for: .connectToWatch(userId: userId))
     }
 
     func setDefaultUriMatchType(_ uriMatchType: UriMatchType?, userId: String) {

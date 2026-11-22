@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Verwende den konfigurierten Catch-All-Posteingang deiner Domain.";
 "ForwardedEmailDescription" = "Generiere ein E-Mail-Alias mit einem externen Weiterleitungsdienst.";
 "Random" = "Zufällig";
+"ConnectToWatch" = "Mit Uhr verbinden";
 "LoginRequestHasAlreadyExpired" = "Anmeldeanfrage ist bereits abgelaufen.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Anmeldeversuch von:\n%1$@\nMöchtest du zu diesem Konto wechseln?";
 "NewAroundHere" = "Neu hier?";
