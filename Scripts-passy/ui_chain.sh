@@ -2,7 +2,7 @@
 # UI chain (generic; round tag in ROUND, default r9), started detached (see start_chain below). PID file: $O/chain.pid, log: $O/chain.log,
 # result per step: $O/summary.txt. Never ends foreign processes. Sim: own PassY-${ROUND_UP}b (booted only for the duration of a
 # step, shut down afterwards), PassY-2FA for the 2FA step, an own iPad simulator for the iPad steps.
-# Gate: 1-minute load < 25 for 3 minutes (sampled every 30 s) before the first step, < 25 before every further step.
+# Gate (only with PASSY_LOAD_GATE=1): 1-minute load < 25 for 3 minutes (sampled every 30 s) before the first step, < 25 before every further step.
 export HOME=${HOME:-/Users/enrico}
 ROUND="${ROUND:-r9}"; ROUND_UP=$(echo "$ROUND" | tr a-z A-Z)   # (bash 3.2 on macOS: no ${var^^})   # tag for sims, screenshot names and the UiR<N> test class
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"                       # the worktree of the round
@@ -25,7 +25,8 @@ log() { echo "$(date '+%F %T') [load $(sysctl -n vm.loadavg | awk '{print $2}')]
 load1() { sysctl -n vm.loadavg | awk '{print int($2)}'; }
 note() { echo "$(date '+%F %T') $*" >> $SUMMARY; log "$*"; }
 
-gate() { # gate <quiet samples needed> <max seconds>
+gate() { # gate <quiet samples needed> <max seconds>; off unless PASSY_LOAD_GATE=1
+  [ "${PASSY_LOAD_GATE:-0}" = 1 ] || return 0
   local need=$1 max=$2 ok=0 waited=0
   while [ $ok -lt $need ]; do
     if [ "$(load1)" -lt 25 ]; then ok=$((ok+1)); else ok=0; fi
