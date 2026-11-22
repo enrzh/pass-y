@@ -658,3 +658,17 @@ Found by code reading and checked in the tests below (no Instruments run, no dev
 - The fades are a gradient of the page color with the system's own scroll edge effect on some lists (`softBottomScrollEdge`); they are not a blur. A page with another background color than `systemGroupedBackground` would show a band.
 - Premium upgrade fallback (`PremiumUpgradeHelper`) still opens the upgrade URL of the server when in-app upgrade is not available; the "Plan" row is hidden for self-hosted servers (unchanged). The import-logins onboarding text still names the web vault host (no link). `TwoStepLoginService` and its mock are unused leftovers; the Duo callback still uses the web vault base URL internally.
 - Remaining one-off failures were typing or load related and not product related: "Invalid master password" at unlock when characters were dropped while the vault was busy (seen when the vault held 2025 items), a test runner that crashed during a load peak.
+
+### ui-r9 fix: the idle stall ("App animations complete notification not received")
+
+Root cause, proved with the DEBUG animation dump (`PassYAnimationDump`, Darwin notification `de.aiity.passy.dumpAnimations`, writes
+`<tmp>/passy-animations.txt`): a `CAReplicatorLayer` with `instanceAlphaOffset` and `opacity` animations that stays alive for minutes
+after unlocking, owned by `_UIRefreshControlModernReplicatorView` inside `PlatformRefreshControlProxy` in the navigation bar of the
+vault stack. It is the system refresh control of `.refreshable` on the vault home: it starts without a user pull after unlocking and
+spins for the whole `refreshVault` sync, so under load (or a slow sync) XCUITest never sees the app idle. Before the fix it appeared in
+2 of 2 runs (9 consecutive dumps, about 2.5 minutes, in the second run, which also showed two 60 s stalls); after removing
+`.refreshable` from `VaultListView` there was no replicator in 73 dumps over 21 tests and no stall. Sync stays available as "Sync now"
+in the avatar menu and on appearing. Not the cause (A/B on the same test, quiet machine, no stall with or without them): the fades,
+the delayed spinner. They are still hardened (no implicit layer animations, system `ProgressView` without `withAnimation`).
+Not proven: why the control starts on its own (suspect: a content-offset change of the large-title list after unlock is read as a pull).
+The `.refreshable` of the Send list and of the device/pending-request pages is unchanged.
