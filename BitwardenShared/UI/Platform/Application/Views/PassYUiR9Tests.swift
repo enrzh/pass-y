@@ -133,3 +133,30 @@ class PassYUiR9NoRefreshControlTests: BitwardenTestCase {
         XCTAssertTrue(source.contains("sync: { Task { await store.perform(.refreshVault) } }"), "Sync now stays")
     }
 }
+
+/// ui-r9 fix round: the preload hand-over has a timeout and a successful preload fills the cache.
+@MainActor
+class PassYUiR9PreloadTests: BitwardenTestCase {
+    /// A fetch that hangs must not hold the tap back: after the timeout the item opens without a preloaded state.
+    func test_preload_timesOut() async {
+        ViewItemPreloadCache.clear()
+        let repository = MockVaultRepository()
+        repository.fetchCipherResult = .success(.fixture(id: "slow"))
+        repository.fetchCipherDelay = 3
+        let services = ServiceContainer.withMocks(vaultRepository: repository)
+        let start = Date()
+        await ViewItemPreloadCache.preload(id: "slow", services: services, timeout: 0.2)
+        XCTAssertLessThan(Date().timeIntervalSince(start), 1.5, "returned after the timeout, not after the fetch")
+        XCTAssertNil(ViewItemPreloadCache.take(id: "slow"))
+    }
+
+    /// A quick fetch fills the cache for the view.
+    func test_preload_fillsCache() async {
+        ViewItemPreloadCache.clear()
+        let repository = MockVaultRepository()
+        repository.fetchCipherResult = .success(.fixture(id: "fast"))
+        let services = ServiceContainer.withMocks(vaultRepository: repository)
+        await ViewItemPreloadCache.preload(id: "fast", services: services)
+        XCTAssertNotNil(ViewItemPreloadCache.take(id: "fast"))
+    }
+}

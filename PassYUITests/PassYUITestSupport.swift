@@ -25,11 +25,22 @@ extension XCUIElement {
 
     /// Clears a text/secure field (a failed login attempt leaves the typed text in the field) and types `text`.
     func replaceText(_ text: String) {
-        focus()
-        if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
-            typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+        // The simulator sometimes drops a character while the app is busy ("Invalid master password", 20 instead of 21
+        // dots). The count is checked after typing and the text is typed again (at most three times).
+        for _ in 0 ..< 3 {
+            focus()
+            if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
+                typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+            }
+            typeText(text)
+            if typedTextIsComplete(text) { return }
         }
-        typeText(text)
+    }
+
+    /// Whether the field holds all of `text` (secure fields show one dot per character).
+    func typedTextIsComplete(_ text: String) -> Bool {
+        guard let shown = value as? String else { return false }
+        return shown == text || (shown.count == text.count && shown.allSatisfy { $0 == "\u{2022}" || $0 == "\u{25CF}" })
     }
 }
 

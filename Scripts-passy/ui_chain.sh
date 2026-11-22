@@ -8,7 +8,7 @@ ROUND="${ROUND:-r9}"; ROUND_UP=$(echo "$ROUND" | tr a-z A-Z)   # (bash 3.2 on ma
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"                       # the worktree of the round
 S="${PASSY_SCRATCH:-$HOME/Library/Caches/passy-vw-scratch}"; O="$S/out"      # scratch: logs, result bundles, Vaultwarden data
 export PASSY_SCRATCH="$S" PASSY_OUT="$O" PASSY_REPO="$R" PASSY_DD="${PASSY_DD:-$HOME/Library/Caches/passy-vw-dd}"
-VW_BIN="${VW_BIN:-/Users/enrico/Documents/GitHub/vaultwarden-build/vaultwarden}"; PORT=8089
+VW_BIN="${VW_BIN:-/Users/enrico/Documents/GitHub/vaultwarden-build/vaultwarden}"; PORT="${VW_PORT:-8089}"   # override for parallel runs (own server per run)
 export VW_PORT=$PORT TEST_RUNNER_PASSY_SERVER="http://localhost:$PORT"
 mkdir -p "$O"
 SUMMARY=$O/summary.txt; LOG=$O/chain.log

@@ -869,14 +869,35 @@ enum ViewItemPreloadCache {
 
     /// Loads the state of an item (a single decrypt, the same data the view's stream would load after appearing) and
     /// keeps it for `take(id:)`. A failure only means the view loads on its own, as before.
+    ///
+    /// Waits at most `timeout` seconds: if the fetch hangs (a stuck collection or TOTP fetch), the caller opens the
+    /// item without the preloaded state (the view then loads on its own, with the delayed spinner) instead of never
+    /// opening anything. A late result is dropped, it expires like any other entry.
     static func preload(
         id: String,
         services: HasEnvironmentService & HasStateService & HasVaultRepository,
+        timeout: TimeInterval = 1,
     ) async {
         clear(olderThan: lifetime)
-        guard let cipher = try? await services.vaultRepository.fetchCipher(withId: id),
-              let state = try? await ViewItemProcessor.makeState(for: cipher, services: services) else { return }
-        store(state, id: id)
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            var finished = false
+            func finish() {
+                guard !finished else { return }
+                finished = true
+                continuation.resume()
+            }
+            Task { @MainActor in
+                if let cipher = try? await services.vaultRepository.fetchCipher(withId: id),
+                   let state = try? await ViewItemProcessor.makeState(for: cipher, services: services) {
+                    store(state, id: id)
+                }
+                finish()
+            }
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                finish()
+            }
+        }
     }
 
     /// Keeps a state for `take(id:)`.
@@ -890,7 +911,8 @@ enum ViewItemPreloadCache {
         return entry.state
     }
 
-    /// Drops all entries (tests).
+    /// Drops all entries. Called when the vault is locked, on logout and on account switch (`AppCoordinator.showAuth`),
+    /// so no decrypted item state stays in memory after the vault is closed.
     static func clear() {
         states.removeAll()
     }

@@ -226,7 +226,11 @@ class MockVaultRepository: VaultRepository { // swiftlint:disable:this type_body
         return try downloadAttachmentResult.get()
     }
 
+    /// Makes `fetchCipher(withId:)` slow (tests of the preload timeout).
+    var fetchCipherDelay: TimeInterval = 0
+
     func fetchCipher(withId id: String) async throws -> CipherView? {
+        if fetchCipherDelay > 0 { try? await Task.sleep(nanoseconds: UInt64(fetchCipherDelay * 1_000_000_000)) }
         fetchCipherId = id
         if let result = fetchCipherResultsById[id] { return try result.get() }
         return try fetchCipherResult.get()
