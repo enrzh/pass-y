@@ -32,7 +32,7 @@ class LoadingViewTests: BitwardenTestCase {
             Text(data)
         }
         XCTAssertThrowsError(try subject.inspect().find(text: "Loading data…"))
-        XCTAssertThrowsError(try subject.inspect().find(CircularActivityIndicator.self))
+        XCTAssertThrowsError(try subject.inspect().find(ViewType.ProgressView.self))
     }
 
     /// Once visible the indicator shows the message text.
@@ -40,7 +40,7 @@ class LoadingViewTests: BitwardenTestCase {
     func test_delayedIndicator_visible_withMessage() throws {
         let subject = DelayedLoadingIndicator(loadingMessage: "Loading data…", initiallyVisible: true)
         XCTAssertNoThrow(try subject.inspect().find(text: "Loading data…"))
-        XCTAssertNoThrow(try subject.inspect().find(CircularActivityIndicator.self))
+        XCTAssertNoThrow(try subject.inspect().find(ViewType.ProgressView.self))
     }
 
     /// The delay is short enough to feel immediate for slow loads and long enough to hide quick ones.

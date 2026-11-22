@@ -603,9 +603,11 @@ struct VaultListView: View {
             .onChange(of: store.state.searchVaultFilterType) { _ in
                 Task { await store.perform(.search(store.state.searchText)) }
             }
-            .refreshable { [weak store] in
-                await store?.perform(.refreshVault)
-            }
+            // ui-r9-fix: no pull-to-refresh on the vault home. The system refresh control (a replicator layer in the
+            // navigation bar) started on its own after unlocking and kept spinning for as long as the sync took (proved
+            // with the animation dump: `_UIRefreshControlModernReplicatorView`, minutes under load); XCUITest then never
+            // saw the app idle ("App animations complete notification not received"). Syncing stays available as
+            // "Sync now" in the avatar menu (and happens on appearing, as before). Apple Passwords has no pull either.
             if #unavailable(iOS 26) {
                 profileSwitcher
             }

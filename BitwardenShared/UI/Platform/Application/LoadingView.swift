@@ -25,24 +25,26 @@ struct DelayedLoadingIndicator: View {
     }
 
     var body: some View {
+        // No `withAnimation`, no transition and no custom repeat-forever rotation: the indicator is the system spinner,
+        // which XCUITest does not count as a running animation, and nothing here can outlive its view.
         ZStack {
             if isVisible {
                 VStack(spacing: 24) {
-                    CircularActivityIndicator()
+                    ProgressView()
+                        .controlSize(.large)
                     if let loadingMessage {
                         Text(loadingMessage)
                             .styleGuide(.headline, weight: .semibold)
                             .foregroundColor(Color(asset: SharedAsset.Colors.textPrimary))
                     }
                 }
-                .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task {
             try? await Task.sleep(nanoseconds: UInt64(Self.delay * 1_000_000_000))
             guard !Task.isCancelled else { return }
-            withAnimation(.easeIn(duration: 0.2)) { isVisible = true }
+            isVisible = true
         }
     }
 }
