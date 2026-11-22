@@ -40,7 +40,7 @@ enum PassYAnimationDump {
                     let repeating = animation.repeatCount == .infinity || animation.repeatDuration == .infinity
                     return "\(key)\(repeating ? " (repeats forever)" : "") \(type(of: animation))"
                 }
-                lines.append("\(path) <\(type(of: layer))> hidden=\(layer.isHidden) opacity=\(layer.opacity) \(described)")
+                lines.append("\(path) <\(type(of: layer))> hidden=\(layer.isHidden) opacity=\(layer.opacity) \(described)\(owner(of: layer))")
             }
             for (index, sub) in (layer.sublayers ?? []).enumerated() {
                 visit(sub, "\(path)/\(index)")
@@ -52,6 +52,27 @@ enum PassYAnimationDump {
             }
         }
         return lines
+    }
+
+    /// The view that owns the layer and its chain of superviews and the view controller (to name the screen).
+    @MainActor
+    private static func owner(of layer: CALayer) -> String {
+        var current: CALayer? = layer
+        var view: UIView?
+        while let candidate = current, view == nil {
+            view = candidate.delegate as? UIView
+            current = candidate.superlayer
+        }
+        guard var walker = view else { return "" }
+        var chain: [String] = []
+        var controller: String?
+        while true {
+            chain.append("\(type(of: walker))" + (walker.accessibilityIdentifier.map { "#\($0)" } ?? ""))
+            if controller == nil, let vc = walker.next as? UIViewController { controller = "\(type(of: vc))" }
+            guard let next = walker.superview else { break }
+            walker = next
+        }
+        return " views=\(chain.prefix(14).joined(separator: " < ")) vc=\(controller ?? "-")"
     }
 
     @MainActor
