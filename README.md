@@ -691,3 +691,22 @@ The `.refreshable` of the Send list and of the device/pending-request pages is u
   in-app upgrade is unavailable; the import-logins onboarding text names the web vault host (no link); `TwoStepLoginService` and its
   mock are unused code that is still injected; external help links (bitwarden.com) remain. Point 8 (page-by-page Apple polish) is
   still NOT done.
+
+### ui-r9 fix round 2: the idle stall was the "+" menu (found with the animation dump and `sample`)
+
+- **Evidence:** the stall reproduced in `test_dynamicTypeForms` and in a new loop test (`PassYUiR9Tests.test07_addMenuOpenCloseLoop`, also
+  at normal text size, first round). At the stall the screenshot shows the "+" context menu open; the dump lists the
+  `CAMatchPropertyAnimation`s (`match-bounds`, `match-position`, `match-hidden`, `match-mesh`) of a `CASDFElementLayer` in
+  `GlassGroupLayerView` inside `_UIContextMenuListView`; the `sample` of the app shows the main thread idle (3360 of 3433 samples in
+  `mach_msg`) and `XCTAnimationDidStop` called from `AnimationKit` for other animations, app CPU 0 %. So the menu platter's glass
+  animations never report their end to XCTest's animation counter, and every action waits 60 s ("App animations complete
+  notification not received"). A `CAReplicatorLayer` of the pull-to-refresh control was a second, separate cause (removed before).
+- **Fix:** the "+" `Menu` no longer sits inside an interactive glass view. Glass is now a plain background behind it
+  (`PassYGlassBackground`, not `.interactive()`), so the menu does not morph out of a glass source.
+- **Result (simulator, iOS 27.0, quiet to moderate load):** 108 open/sheet/close rounds (3 runs of 36: normal, accessibility L,
+  accessibility XXXL) without any "not received", slowest round 17 s. Before the change the same loop stalled in the first round once,
+  `test_dynamicTypeForms` once in about 9 iterations. The stall is intermittent, so this is evidence, not proof; whether the
+  validator's `test_homeSearchSelectDelete` hang (>80 min) had the same cause is UNVERIFIED (it began right after tapping "+" too).
+- **swipeDelete crash:** signature (validator, load 300): SIGABRT, `UICollectionView _Bug_Detected_In_Client_Of_UICollectionView_Invalid_Number_Of_Items_In_Section`
+  in SwiftUI `UICollectionViewListCoordinatorBase.performUpdates`, no app frames. 30 of 30 runs (10 each of `test_swipeDelete`,
+  `test_selectModeDelete`, `test_homeSearchSelectDelete`, one run) did not crash; no cause, no code change. UNVERIFIED.

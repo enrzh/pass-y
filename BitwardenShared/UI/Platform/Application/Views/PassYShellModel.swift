@@ -335,7 +335,7 @@ struct PassYShellBar: View {
                 } else if let entries = model.activeTarget?.entries, !entries.isEmpty {
                     PassYAddMenu(entries: entries)
                         .frame(width: 44, height: 44)
-                        .modifier(BarBackground(shape: Circle()))
+                        .background { PassYGlassBackground(shape: Circle()) }
                         .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
                 }

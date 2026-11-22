@@ -123,4 +123,42 @@ final class PassYUiR9Tests: XCTestCase {
         let rows = app.buttons.matching(identifier: "VaultListItemRowButton").allElementsBoundByIndex
         XCTAssertTrue(rows.contains { $0.isHittable }, "rows are tappable while the fades are there")
     }
+
+    private func closeSheet(_ app: XCUIApplication) {
+        for id in ["CancelButton", "CloseButton", "Close", "Cancel"] {
+            let b = app.buttons[id].firstMatch
+            if b.exists, b.isHittable { b.tap(); sleep(1); break }
+        }
+        let discard = app.buttons["Cancel"].firstMatch
+        if discard.waitForExistence(timeout: 1) { discard.tap() }
+    }
+
+    /// Idle: the "+" menu opens, leads to the add sheet and closes 12 times per text size (normal, accessibility L, accessibility XXXL) and every round is quick. A menu whose
+    /// glass animation never reports its end makes XCUITest wait 60 s per action ("App animations complete
+    /// notification not received"); one such round fails this test.
+    func test07_addMenuOpenCloseLoop() {
+        var slowest = 0.0
+        for size in ["UICTContentSizeCategoryL", "UICTContentSizeCategoryAccessibilityL", "UICTContentSizeCategoryAccessibilityXXXL"] {
+            let app = launchApp(extraArguments: ["-UIPreferredContentSizeCategoryName", size])
+            ensureUnlockedVault(app)
+            let plus = app.buttons["AddItemFloatingActionButton"]
+            XCTAssertTrue(plus.waitForExistence(timeout: 20))
+            for round in 1 ... 12 {
+                let start = Date()
+                plus.tap()
+                let entry = menuButton(app, id: "none", label: "Login")
+                XCTAssertTrue(entry.waitForExistence(timeout: 10), "\(size) round \(round): the add menu opens")
+                // Open the add sheet through the menu and close it again (the path of the real tests).
+                entry.tap()
+                XCTAssertTrue(app.textFields["ItemNameEntry"].waitForExistence(timeout: 15), "\(size) round \(round): the add sheet opens")
+                closeSheet(app)
+                XCTAssertTrue(plus.waitForExistence(timeout: 15), "\(size) round \(round): back on the vault")
+                let took = Date().timeIntervalSince(start)
+                slowest = max(slowest, took)
+                XCTAssertLessThan(took, 40, "\(size) round \(round) took \(took) s (idle stall)")
+            }
+            app.terminate()
+        }
+        print("ADDMENU-LOOP slowest round \(slowest)")
+    }
 }
