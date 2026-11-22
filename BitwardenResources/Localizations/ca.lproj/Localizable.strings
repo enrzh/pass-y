@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Utilitza la safata d'entrada comodí configurada del teu domini.";
 "ForwardedEmailDescription" = "Genera un àlies de correu electrònic amb un servei de reenviament extern.";
 "Random" = "Aleatori";
+"ConnectToWatch" = "Connecta't a Watch";
 "LoginRequestHasAlreadyExpired" = "La sol·licitud d'inici de sessió ja ha caducat.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Intent d'inici de sessió des de:\n%1$@\nVoleu canviar a aquest compte?";
 "NewAroundHere" = "Nou per ací?";

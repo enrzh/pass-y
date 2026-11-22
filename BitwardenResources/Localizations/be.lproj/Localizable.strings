@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Выкарыстоўвайце наладжаную паштоўку catch-all вашага дамена.";
 "ForwardedEmailDescription" = "Генерыраваць псеўданім электроннай пошты са знешнім сэрвісам перасылкі.";
 "Random" = "Выпадкова";
+"ConnectToWatch" = "Падлучыцца да гадзінніка";
 "LoginRequestHasAlreadyExpired" = "Запыт на ўваход пратэрмінаваны.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Спроба ўваходу з:\n%1$@\nВы сапраўды хочаце перайсці на гэты ўліковы запіс?";
 "NewAroundHere" = "Упершыню тут?";

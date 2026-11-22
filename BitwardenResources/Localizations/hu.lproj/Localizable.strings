@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Use your domain’s configured catch-all inbox.";
 "ForwardedEmailDescription" = "Email álnév generálása külső továbbító szolgáltatással.";
 "Random" = "Véletlen";
+"ConnectToWatch" = "Kapcsolódás a Watch-hoz";
 "LoginRequestHasAlreadyExpired" = "A bejelentkezési kérés már lejárt.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Bejelentkezési kísérlet történt:\n%1$@\nSzeretnénk átváltani erre a fiókra?";
 "NewAroundHere" = "Új felhasználó vagyunk?";

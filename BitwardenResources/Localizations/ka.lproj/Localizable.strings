@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "გამოიყენეთ თქვენი დომენის გაკონფიგურირებული ყველას მიმღები საფოსტო ყუთი.";
 "ForwardedEmailDescription" = "შექმენით ელ. ფოსტის ალიასი გარე გადაგზავნის სერვისით.";
 "Random" = "შემთხვევითი";
+"ConnectToWatch" = "საათთან დაკავშირება";
 "LoginRequestHasAlreadyExpired" = "შესვლის მოთხოვნის ვადა უკვე ამოიწურა.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "შესვლის მცდელობა:\n%1$@\nგსურთ ამ ანგარიშზე გადართვა?";
 "NewAroundHere" = "ახალი ხართ აქ?";

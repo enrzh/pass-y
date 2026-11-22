@@ -16,6 +16,7 @@ PYTHON="${SCRIPT_DIR}/fix-localizable-strings/main.py"
 STRINGS_FILES=(
     "Bitwarden/Application/Support/AppShortcutsLocalizations/en.lproj/AppShortcuts.strings"
     "BitwardenResources/Localizations/en.lproj/Localizable.strings"
+    "BitwardenWatchApp/Localization/en.lproj/Localizable.strings"
     "TestHarnessShared/UI/Platform/Application/Support/Localizations/en.lproj/Localizable.strings"
 )
 
@@ -47,7 +48,7 @@ for strings_file in "${STRINGS_FILES[@]}"; do
     # delete-unused only applies to the main Localizable.strings because it works
     # by scanning for Localizations.X references, which maps exclusively to the
     # SwiftGen-generated Localizations enum produced from that file. The other
-    # strings files (AppShortcuts, TestHarness) use different access
+    # strings files (AppShortcuts, Watch, TestHarness) use different access
     # mechanisms and are not covered by this detection strategy.
     if [[ "${strings_file}" == "${MAIN_STRINGS}" ]]; then
         python3 "${PYTHON}" delete-unused --strings "${REPO_ROOT}/${strings_file}" "${swift_source_args[@]}" "$@"

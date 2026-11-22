@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Folosește căsuța de primire catch-all configurată pentru domeniul tău.";
 "ForwardedEmailDescription" = "Generați un alias de e-mail cu un serviciu de redirecționare extern.";
 "Random" = "Aleatoriu";
+"ConnectToWatch" = "Conectează Watch(Apple)";
 "LoginRequestHasAlreadyExpired" = "Solicitarea de autentificare a expirat deja.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Încercare de autentificare de la:\n%1$@\nDoriți să comutați la acest cont?";
 "NewAroundHere" = "Sunteți nou pe aici?";

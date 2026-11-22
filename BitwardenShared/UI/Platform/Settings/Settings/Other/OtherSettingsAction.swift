@@ -17,6 +17,9 @@ enum OtherSettingsAction: Equatable {
     /// The value of the Universal Clipboard toggle has changed.
     case toggleAllowUniversalClipboard(Bool)
 
+    /// The connect to watch toggle value changed.
+    case toggleConnectToWatch(Bool)
+
     /// The Siri & Shortcuts access toggle value changed.
     case toggleSiriAndShortcutsAccessToggleOn(Bool)
 }

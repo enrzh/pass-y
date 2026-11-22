@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Domeninizin konfiqurasiyalı catch-all gələn qutusunu istifadə edin.";
 "ForwardedEmailDescription" = "Xarici yönləndirmə xidməti ilə e-poçt ləqəbi yaradın.";
 "Random" = "Təsadüfi";
+"ConnectToWatch" = "\"Watch\"a bağlan";
 "LoginRequestHasAlreadyExpired" = "Giriş tələbinin müddəti artıq bitib.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Giriş cəhdi:\n%1$@\nBu hesaba keçmək istəyirsiniz?";
 "NewAroundHere" = "Burada yenisiniz?";

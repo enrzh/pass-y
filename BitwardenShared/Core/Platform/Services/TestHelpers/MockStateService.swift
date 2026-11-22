@@ -46,6 +46,9 @@ class MockStateService: StateService, ActiveAccountStateProvider, AutofillStateS
     // swiftlint:disable:next identifier_name
     var clearMasterPasswordUnlockForActiveAccountResult: Result<Void, Error> = .success(())
     var collapsedVaultListSectionIds = [String: [String]]()
+    var connectToWatchByUserId = [String: Bool]()
+    var connectToWatchResult: Result<Void, Error> = .success(())
+    var connectToWatchSubject = CurrentValueSubject<(String?, Bool), Never>((nil, false))
     var timeProvider = MockTimeProvider(.currentTime)
     var defaultUriMatchTypeByUserId = [String: UriMatchType]()
     var didAccountSwitchInExtensionResult: Result<Bool, Error> = .success(false)
@@ -85,6 +88,7 @@ class MockStateService: StateService, ActiveAccountStateProvider, AutofillStateS
     var lastSyncMonotonicTimeByUserId = [String: TimeInterval?]()
     var lastSyncTimeByUserId = [String: Date]()
     var lastSyncTimeSubject = CurrentValueSubject<Date?, Never>(nil)
+    var lastUserShouldConnectToWatch = false
     var manuallyLockedAccounts = [String: Bool]()
     var masterPasswordHashes = [String: String]()
     var masterPasswordUnlockByUserId = [String: MasterPasswordUnlockResponseModel]()
@@ -307,6 +311,12 @@ class MockStateService: StateService, ActiveAccountStateProvider, AutofillStateS
     func getCollapsedVaultListSectionIds(userId: String?) async throws -> [String] {
         let userId = try unwrapUserId(userId)
         return collapsedVaultListSectionIds[userId] ?? []
+    }
+
+    func getConnectToWatch(userId: String?) async throws -> Bool {
+        try connectToWatchResult.get()
+        let userId = try unwrapUserId(userId)
+        return connectToWatchByUserId[userId] ?? false
     }
 
     func getDefaultUriMatchType(userId: String?) async -> UriMatchType {
@@ -645,6 +655,12 @@ class MockStateService: StateService, ActiveAccountStateProvider, AutofillStateS
         collapsedVaultListSectionIds[userId] = ids
     }
 
+    func setConnectToWatch(_ connectToWatch: Bool, userId: String?) async throws {
+        try connectToWatchResult.get()
+        let userId = try unwrapUserId(userId)
+        connectToWatchByUserId[userId] = connectToWatch
+    }
+
     func setDefaultUriMatchType(_ defaultUriMatchType: UriMatchType?, userId: String?) async throws {
         let userId = try unwrapUserId(userId)
         defaultUriMatchTypeByUserId[userId] = defaultUriMatchType
@@ -725,6 +741,10 @@ class MockStateService: StateService, ActiveAccountStateProvider, AutofillStateS
     func setLastSyncTime(_ date: Date?, userId: String?) async throws {
         let userId = try unwrapUserId(userId)
         lastSyncTimeByUserId[userId] = date
+    }
+
+    func getLastUserShouldConnectToWatch() async -> Bool {
+        lastUserShouldConnectToWatch
     }
 
     func setLearnGeneratorActionCardStatus(_ status: AccountSetupProgress) async {
@@ -912,6 +932,10 @@ class MockStateService: StateService, ActiveAccountStateProvider, AutofillStateS
 
     func appThemePublisher() async -> AnyPublisher<AppTheme, Never> {
         appThemeSubject.eraseToAnyPublisher()
+    }
+
+    func connectToWatchPublisher() async -> AnyPublisher<(String?, Bool), Never> {
+        connectToWatchSubject.eraseToAnyPublisher()
     }
 
     func lastSyncTimePublisher() async throws -> AnyPublisher<Date?, Never> {

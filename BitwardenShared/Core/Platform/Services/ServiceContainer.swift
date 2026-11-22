@@ -238,6 +238,9 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
     /// The service used by the application to manage vault access.
     let vaultTimeoutService: VaultTimeoutService
 
+    /// The service used by the application to connect to and communicate with the watch app.
+    let watchService: WatchService
+
     // MARK: Initialization
 
     /// Initialize a `ServiceContainer`.
@@ -320,6 +323,7 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
     ///   - userVerificationHelperFactory: A factory protocol to create `UserVerificationHelper`s.
     ///   - vaultRepository: The repository used by the application to manage vault data for the UI layer.
     ///   - vaultTimeoutService: The service used by the application to manage vault access.
+    ///   - watchService: The service used by the application to connect to and communicate with the watch app.
     ///
     @MainActor
     init( // swiftlint:disable:this function_body_length
@@ -393,6 +397,7 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
         userVerificationHelperFactory: UserVerificationHelperFactory,
         vaultRepository: VaultRepository,
         vaultTimeoutService: VaultTimeoutService,
+        watchService: WatchService,
     ) {
         self.apiService = apiService
         self.appContextHelper = appContextHelper
@@ -464,6 +469,7 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
         self.userVerificationHelperFactory = userVerificationHelperFactory
         self.vaultRepository = vaultRepository
         self.vaultTimeoutService = vaultTimeoutService
+        self.watchService = watchService
     }
 
     /// A convenience initializer to initialize the `ServiceContainer` with the default services.
@@ -760,6 +766,16 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
             stateService: stateService,
             timeProvider: timeProvider,
             userSessionStateService: stateService,
+        )
+
+        let watchService = DefaultWatchService(
+            cipherService: cipherService,
+            clientService: clientService,
+            environmentService: environmentService,
+            errorReporter: errorReporter,
+            organizationService: organizationService,
+            stateService: stateService,
+            vaultTimeoutService: vaultTimeoutService,
         )
 
         let reviewPromptService = DefaultReviewPromptService(
@@ -1237,6 +1253,7 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
             userVerificationHelperFactory: userVerificationHelperFactory,
             vaultRepository: vaultRepository,
             vaultTimeoutService: vaultTimeoutService,
+            watchService: watchService,
         )
     }
 

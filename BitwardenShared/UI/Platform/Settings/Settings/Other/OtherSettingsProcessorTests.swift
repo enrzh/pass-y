@@ -14,6 +14,7 @@ class OtherSettingsProcessorTests: BitwardenTestCase {
     var errorReporter: MockErrorReporter!
     var settingsRepository: MockSettingsRepository!
     var subject: OtherSettingsProcessor!
+    var watchService: MockWatchService!
 
     // MARK: Setup and Teardown
 
@@ -24,12 +25,14 @@ class OtherSettingsProcessorTests: BitwardenTestCase {
         coordinator = MockCoordinator<SettingsRoute, SettingsEvent>()
         errorReporter = MockErrorReporter()
         settingsRepository = MockSettingsRepository()
+        watchService = MockWatchService()
         subject = OtherSettingsProcessor(
             coordinator: coordinator.asAnyCoordinator(),
             services: ServiceContainer.withMocks(
                 configService: configService,
                 errorReporter: errorReporter,
                 settingsRepository: settingsRepository,
+                watchService: watchService,
             ),
             state: OtherSettingsState(),
         )
@@ -43,6 +46,7 @@ class OtherSettingsProcessorTests: BitwardenTestCase {
         errorReporter = nil
         settingsRepository = nil
         subject = nil
+        watchService = nil
     }
 
     // MARK: Tests
@@ -62,13 +66,17 @@ class OtherSettingsProcessorTests: BitwardenTestCase {
     func test_perform_loadInitialValues_success() async {
         settingsRepository.allowSyncOnRefresh = true
         settingsRepository.clearClipboardValue = .thirtySeconds
+        settingsRepository.connectToWatch = true
         settingsRepository.getSiriAndShortcutsAccessResult = .success(true)
+        watchService.isSupportedValue = true
 
         await subject.perform(.loadInitialValues)
 
         XCTAssertEqual(subject.state.clearClipboardValue, .thirtySeconds)
         XCTAssertTrue(subject.state.isAllowSyncOnRefreshToggleOn)
+        XCTAssertTrue(subject.state.isConnectToWatchToggleOn)
         XCTAssertTrue(subject.state.isSiriAndShortcutsAccessToggleOn)
+        XCTAssertTrue(subject.state.shouldShowConnectToWatchToggle)
     }
 
     /// `perform(_:)` with `.streamLastSyncTime` updates the state's last sync time whenever it changes.
@@ -173,6 +181,34 @@ class OtherSettingsProcessorTests: BitwardenTestCase {
         waitFor { self.subject.state.isAllowSyncOnRefreshToggleOn == true }
         XCTAssertTrue(settingsRepository.allowSyncOnRefresh)
         XCTAssertTrue(subject.state.isAllowSyncOnRefreshToggleOn)
+    }
+
+    /// `receive(_:)` with `toggleConnectToWatch` updates the value in the state and records an error if it
+    /// failed to update the cached data.
+    @MainActor
+    func test_receive_toggleConnectToWatch_error() {
+        settingsRepository.connectToWatchResult = .failure(BitwardenTestError.example)
+
+        subject.receive(.toggleConnectToWatch(true))
+
+        XCTAssertFalse(subject.state.isConnectToWatchToggleOn)
+        waitFor { self.errorReporter.errors.isEmpty == false }
+        XCTAssertEqual(errorReporter.errors as? [BitwardenTestError], [.example])
+    }
+
+    /// `receive(_:)` with `toggleConnectToWatch` updates the value in the state and the repository
+    @MainActor
+    func test_receive_toggleConnectToWatch_success() {
+        XCTAssertFalse(subject.state.isConnectToWatchToggleOn)
+
+        let task = Task {
+            subject.receive(.toggleConnectToWatch(true))
+        }
+
+        waitFor(subject.state.isConnectToWatchToggleOn)
+        task.cancel()
+        XCTAssertTrue(settingsRepository.connectToWatch)
+        XCTAssertTrue(subject.state.isConnectToWatchToggleOn)
     }
 
     /// `receive(_:)` with `toggleSiriAndShortcutsAccessToggleOn` updates the value in the state

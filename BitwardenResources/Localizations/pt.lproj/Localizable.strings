@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Utilize a caixa de entrada de captura geral configurada para o seu domínio.";
 "ForwardedEmailDescription" = "Gerar um alias de e-mail com um serviço de reencaminhamento externo.";
 "Random" = "Aleatório";
+"ConnectToWatch" = "Ligar ao Relógio";
 "LoginRequestHasAlreadyExpired" = "O pedido de início de sessão já expirou.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Tentativa de início de sessão a partir de:\n%1$@\nPretende mudar para esta conta?";
 "NewAroundHere" = "É novo por cá?";

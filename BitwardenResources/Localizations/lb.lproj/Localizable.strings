@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Use your domain’s configured catch-all inbox.";
 "ForwardedEmailDescription" = "Generate an email alias with an external forwarding service.";
 "Random" = "Random";
+"ConnectToWatch" = "Connect to Watch";
 "LoginRequestHasAlreadyExpired" = "Login request has already expired.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Login attempt from:\n%1$@\nDo you want to switch to this account?";
 "NewAroundHere" = "New around here?";

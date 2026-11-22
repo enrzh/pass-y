@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Izmanto sava domēna konfigurēto visu tverošo iesūtni!";
 "ForwardedEmailDescription" = "Izveidot e-pasta aizstājadresi ar ārēju pārvirzīšanas pakalpojumu.";
 "Random" = "Nejauši";
+"ConnectToWatch" = "Savienoties ar pulksteni";
 "LoginRequestHasAlreadyExpired" = "Pieteikšanās pieprasījuma derīgums jau ir beidzies.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Pieteikšanās mēģinājums no:\n%1$@\nVai pārslēgties uz šo kontu?";
 "NewAroundHere" = "Jauns šeit?";

@@ -44,6 +44,8 @@ excluded:
   - .build
   - .claude
   - BitwardenShared/UI/Platform/Application/Support/Generated
+  - BitwardenWatchApp
+  - BitwardenWatchShared
   - build
   - vendor/bundle
   - '**/Generated'
