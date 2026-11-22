@@ -672,3 +672,22 @@ in the avatar menu and on appearing. Not the cause (A/B on the same test, quiet 
 the delayed spinner. They are still hardened (no implicit layer animations, system `ProgressView` without `withAnimation`).
 Not proven: why the control starts on its own (suspect: a content-offset change of the large-title list after unlock is read as a pull).
 The `.refreshable` of the Send list and of the device/pending-request pages is unchanged.
+
+### ui-r9 fix round after the validator verdict (`Docs/verdicts/2026-11-22-ui-r9.md`, FAIL on `a853a98da`)
+
+- **Decisions (Enrico):** pull-to-refresh on the vault home stays removed on purpose (Apple Passwords has none; sync stays in the
+  avatar menu "Sync now" and runs when the home appears). This is a function change against "all features stay", recorded here.
+  Send, device and pending-request pages keep `.refreshable`.
+- **`ViewItemPreloadCache`:** the tap waits at most 1 s for the preload (then the item opens without it and loads on its own); a second
+  tap while an item is being prepared is ignored (`VaultCoordinator.isPreparingItem`); the cache is emptied in `AppCoordinator.showAuth`
+  (lock, logout, account switch and every other auth screen), so no decrypted item state stays after the vault closed. Tests:
+  `PassYUiR9PreloadTests` (timeout, fill), `AppCoordinatorTests.test_showAuth_clearsPreloadedItemStates`.
+- **Master password typing (dropped characters, 20 of 21 dots):** the UI helper now checks the dot count after typing and types again
+  (up to three times); the perf unlock test uses the same helper. Cause not decided: identical on `main`, only seen with a busy machine
+  or a 2000 item vault; a product stall while typing on the unlock screen is not shown by any measurement, so it stays documented as a
+  simulator/XCUITest typing artefact.
+- **Chain:** `ui_chain.sh` reads the Vaultwarden port from `VW_PORT` (default 8089) so parallel runs do not collide.
+- **Leftovers of the web vault removal (documented, not removed):** the Premium upgrade fallback opens the server's upgrade URL when
+  in-app upgrade is unavailable; the import-logins onboarding text names the web vault host (no link); `TwoStepLoginService` and its
+  mock are unused code that is still injected; external help links (bitwarden.com) remain. Point 8 (page-by-page Apple polish) is
+  still NOT done.
