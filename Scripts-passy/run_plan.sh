@@ -7,5 +7,5 @@ passy_wait_quiet
 log="$PASSY_OUT/$n.log"; echo "start load $(sysctl -n vm.loadavg)" > "$log"
 rm -rf "$PASSY_OUT/$n.xcresult"
 passy_run_xcodebuild "$log" test -project Bitwarden.xcodeproj -scheme Bitwarden -testPlan "$plan" \
-  -destination "id=$PASSY_PHONE" -derivedDataPath "$PASSY_DD" -skipPackagePluginValidation -skipMacroValidation \
+  -destination "id=$PASSY_PHONE" -derivedDataPath "$PASSY_DD" -clonedSourcePackagesDirPath "$PASSY_DD/SourcePackages" -disableAutomaticPackageResolution -skipPackagePluginValidation -skipMacroValidation \
   "${args[@]}" -resultBundlePath "$PASSY_OUT/$n.xcresult" CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO
