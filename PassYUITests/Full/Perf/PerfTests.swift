@@ -1,15 +1,8 @@
 import XCTest
 
-/// Wall-clock measurements against a large throwaway vault (see Scripts-passy/vaultwarden/seed_ciphers.py).
-/// Prints `PERF <name> <seconds>` lines (3 iterations each) so before/after runs can be compared.
-final class PassYPerfTests: XCTestCase {
-    override func setUp() { continueAfterFailure = false }
-
-    private func report(_ name: String, _ values: [Double]) {
-        let sorted = values.sorted()
-        print("PERF \(name) median=\(String(format: "%.2f", sorted[sorted.count / 2])) all=\(values.map { String(format: "%.2f", $0) })")
-    }
-
+/// Wall-clock measurements against the 2000 item perf account (`seed_ciphers.py 2000`, PASSY_EMAIL=passy-perf@example.test). Prints `PERF <name> ...`.
+final class PerfTests: PassYUITestCase {
+    /// Formerly `PassYPerfTests.test_perf_unlockToVault`.
     func test_perf_unlockToVault() {
         var values: [Double] = []
         let first = launchApp()
@@ -31,6 +24,7 @@ final class PassYPerfTests: XCTestCase {
         report("unlock_to_vault", values)
     }
 
+    /// Formerly `PassYPerfTests.test_perf_scroll`.
     func test_perf_scroll() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -45,6 +39,7 @@ final class PassYPerfTests: XCTestCase {
         report("scroll_30_fast_swipes", values)
     }
 
+    /// Formerly `PassYPerfTests.test_perf_search`.
     func test_perf_search() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -65,6 +60,7 @@ final class PassYPerfTests: XCTestCase {
     }
 
     /// XCTest metrics (clock, CPU time, peak memory) while scrolling a large vault; XCTest prints the averages in the log.
+    /// Formerly `PassYPerfTests.test_perf_scrollMetrics`.
     func test_perf_scrollMetrics() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -78,6 +74,7 @@ final class PassYPerfTests: XCTestCase {
 
     /// ui-r8: the app signposts (`PassYPerf`): list load and tap-to-push, measured by `XCTOSSignpostMetric`
     /// together with the wall clock. A single tap must open the item list page (asserted within 1 s).
+    /// Formerly `PassYPerfTests.test_perf_tapToPush_signposts`.
     func test_perf_tapToPush_signposts() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -97,6 +94,7 @@ final class PassYPerfTests: XCTestCase {
     }
 
     /// ui-r8: 30 single taps on the blank part of a row open the item sheet each time (1 s budget each).
+    /// Formerly `PassYPerfTests.test_perf_singleTapOpensItem_2000`.
     func test_perf_singleTapOpensItem_2000() {
         let app = launchApp()
         ensureUnlockedVault(app)
