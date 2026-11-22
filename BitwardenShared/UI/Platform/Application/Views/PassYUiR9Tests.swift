@@ -119,3 +119,17 @@ class PassYUiR9IdleTests: BitwardenTestCase {
         fade.layer.sublayers?.forEach { XCTAssertNil($0.animationKeys(), "no animation on \($0)") }
     }
 }
+
+/// ui-r9 fix: the vault home has no system refresh control that can spin for the whole length of a sync.
+class PassYUiR9NoRefreshControlTests: BitwardenTestCase {
+    func test_vaultListView_hasNoRefreshable() throws {
+        var url = URL(fileURLWithPath: #filePath)
+        for _ in 0 ..< 6 { url.deleteLastPathComponent() }
+        let source = try String(
+            contentsOf: url.appendingPathComponent("BitwardenShared/UI/Vault/Vault/VaultList/VaultListView.swift"),
+            encoding: .utf8,
+        )
+        XCTAssertFalse(source.contains(".refreshable"), "no pull-to-refresh on the vault home (sync is in the avatar menu)")
+        XCTAssertTrue(source.contains("sync: { Task { await store.perform(.refreshVault) } }"), "Sync now stays")
+    }
+}
