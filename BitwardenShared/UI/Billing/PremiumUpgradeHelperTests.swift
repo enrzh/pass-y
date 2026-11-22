@@ -75,7 +75,7 @@ struct PremiumUpgradeHelperTests { // swiftlint:disable:this type_body_length
         #expect(capturedURL == nil)
     }
 
-    /// `navigateToPremiumUpgrade(onConfirmed:)` sets the URL to the web fallback when in-app
+    /// `navigateToPremiumUpgrade(onConfirmed:)` does nothing (no web fallback URL) when in-app
     /// upgrade is not available.
     @Test
     func navigateToPremiumUpgrade_inAppNotAvailable() async {
@@ -93,7 +93,7 @@ struct PremiumUpgradeHelperTests { // swiftlint:disable:this type_body_length
 
         await subject.navigateToPremiumUpgrade()
 
-        #expect(capturedURL == environmentService.upgradeToPremiumURL)
+        #expect(capturedURL == nil)
         #expect(coordinator.routes.last != .premiumUpgrade)
     }
 
