@@ -266,7 +266,7 @@ class PassYShellController: UIViewController, TabNavigator {
         barHost = host
 
         #if DEBUG
-        PassYAnimationDump.installOnce()
+        PassYAnimationDump.installOnce { [weak self] in self?.view.window?.windowScene }
         #endif
 
         model.goToVault = { [weak self] in self?.showVaultHome() }

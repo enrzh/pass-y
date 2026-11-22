@@ -13,10 +13,14 @@ enum PassYAnimationDump {
 
     nonisolated(unsafe) private static var installed = false
 
+    /// Gives the window scene to inspect (`UIApplication.shared` is unavailable in app extensions).
+    nonisolated(unsafe) private static var sceneProvider: (() -> UIWindowScene?)?
+
     /// Starts listening for the notification (once).
     @MainActor
-    static func installOnce() {
+    static func installOnce(sceneProvider: @escaping () -> UIWindowScene?) {
         guard !installed else { return }
+        Self.sceneProvider = sceneProvider
         installed = true
         let center = CFNotificationCenterGetDarwinNotifyCenter()
         CFNotificationCenterAddObserver(center, nil, { _, _, _, _, _ in
@@ -42,7 +46,7 @@ enum PassYAnimationDump {
                 visit(sub, "\(path)/\(index)")
             }
         }
-        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+        for scene in [sceneProvider?()].compactMap({ $0 }) {
             for (index, window) in scene.windows.enumerated() {
                 visit(window.layer, "w\(index)(\(type(of: window)))")
             }
