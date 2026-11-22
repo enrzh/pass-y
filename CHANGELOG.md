@@ -4,6 +4,11 @@ Condensed history, newest first. Versions are git tags (`git tag -l 'v1.*'`); ea
 validator whose verdict is linked (all in [Docs/verdicts](Docs/verdicts/README.md)). Screenshots of older rounds are no longer
 in the working tree; they stay in git history (`git log --stat -- Docs/screenshots`).
 
+## Unreleased
+
+- Apple Watch app, widget and the Connect to Watch setting restored (removed in v1.26); Mac and visionOS stay off.
+- README reduced to one page, history moved here, one current screenshot set.
+
 ## v1.26-ui-r9 (2026-11-22) - Apple-style rework, iOS/iPadOS only
 Verdict: [2026-11-22 FAIL](Docs/verdicts/2026-11-22-ui-r9.md), then [2026-11-23 final PASS](Docs/verdicts/2026-11-23-ui-r9-final.md).
 - No splash/launch page, soft top and bottom fades instead of blur blocks, no loading flicker after opening a page

@@ -16,8 +16,8 @@ server URL and your vault stays on your server. Pass-Y is a fork of the [Bitward
 ## Platforms
 
 - **iOS and iPadOS** (iPhone and iPad; layout depends on container size, content width is capped on iPad).
-- **watchOS companion** that shows TOTP codes. The watch app was removed in ui-r9 and is being restored on another branch;
-  it is not part of `main` at the time of writing.
+- **watchOS companion** (watchOS 9+): verification codes on the watch, with a complication. Enable it under
+  Settings > Other > Connect to Watch. It syncs through WatchConnectivity and is untested on real hardware so far.
 - **Not supported:** Mac (including "Designed for iPad") and visionOS are switched off in the project settings.
 
 ## What differs from upstream
