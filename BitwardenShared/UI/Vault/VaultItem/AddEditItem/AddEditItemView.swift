@@ -89,6 +89,8 @@ struct AddEditItemView: View {
             additionalOptions.disabled(store.state.isReadOnly)
         }
         .nativeFormRows()
+        // The masked fields hold vault data, not Pass-Y credentials: no password AutoFill for them.
+        .itemDataEntryFields()
         .animation(.default, value: store.state.collectionsForOwner)
         .backport.dismissKeyboardImmediately()
         .navigationBarTitleDisplayMode(.inline)
