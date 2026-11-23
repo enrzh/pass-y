@@ -16,6 +16,8 @@ enum TestAccount {
 /// step), so lost keystrokes stay visible instead of being silently repaired.
 enum PassYTyping {
     nonisolated(unsafe) static var retypes = 0
+    /// Whether the last `focus()` found the field already focused by the app (no tap needed), for the retype line.
+    nonisolated(unsafe) static var lastFocusWasTheApps = false
 }
 
 /// Load average of the host (the simulator shares the CPU), for log lines.
@@ -24,6 +26,21 @@ func passYLoad() -> String {
     getloadavg(&load, 3)
     return String(format: "%.0f", load[0])
 }
+
+/// Asks the app (DEBUG build) to list its running Core Animation animations (`PassYAnimationDump`, a Darwin
+/// notification; the simulator shares one notify namespace). Called when an XCUITest idle wait stalled or the vault
+/// budget ran out, so the log (`ANIMDUMP`) and `<app tmp>/passy-animations.txt` name the animating layer.
+func passYDumpAnimations(_ reason: String) {
+    print("PASSY-ANIMDUMP requested: \(reason) load=\(passYLoad())")
+    CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+                                         CFNotificationName("de.aiity.passy.dumpAnimations" as CFString), nil, nil, true)
+    usleep(500_000)
+}
+
+/// Seconds after which a single XCUITest action counts as an idle stall (XCUITest waits 60 s for "animations
+/// complete" before it gives up; a normal action takes well under 5 s). `TEST_RUNNER_PASSY_STALL_SECONDS` overrides it
+/// (0 dumps after every verified typing, a check that the dump path works).
+let passYStallSeconds: TimeInterval = ProcessInfo.processInfo.environment["PASSY_STALL_SECONDS"].flatMap(Double.init) ?? 30
 
 /// The app shared by the tests of one run (see `launchApp`).
 enum PassYSession {
@@ -41,6 +58,7 @@ extension XCUIElement {
     /// keyboard is on screen: keys typed while the keyboard is still being presented can be dropped.
     func focus() {
         var focused = (value(forKey: "hasKeyboardFocus") as? Bool) == true
+        PassYTyping.lastFocusWasTheApps = focused
         for _ in 0 ..< 4 where !focused {
             tap()
             for _ in 0 ..< 6 {
@@ -74,17 +92,46 @@ extension XCUIElement {
                 guard let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") else { break }
                 typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
             }
+            let typing = Date()
             typeText(text)
+            let took = Date().timeIntervalSince(typing)
+            if took >= passYStallSeconds {
+                passYDumpAnimations("typeText into \(identifier) took \(Int(took)) s")
+            }
             if typedTextIsComplete(text) { return }
             shown = value as? String ?? "nil"
             PassYTyping.retypes += 1
             let secure = elementType == .secureTextField
+            let focus = (value(forKey: "hasKeyboardFocus") as? Bool) == true
             print("PASSY-RETYPE \(PassYTyping.retypes) field=\(identifier) attempt=\(attempt) want=\(text.count) got=\(shown.count)"
-                + (secure ? "" : " value='\(shown)'") + " focus=\((value(forKey: "hasKeyboardFocus") as? Bool) == true)"
+                + (secure ? " lost=\(lostKeystrokePositions(text))" : " value='\(shown)'") + " focus=\(focus) appFocus=\(PassYTyping.lastFocusWasTheApps)"
                 + " keyboard=\(XCUIApplication().keyboards.firstMatch.exists) load=\(passYLoad())")
         }
         XCTFail("typing into \(identifier) lost keystrokes three times (field shows \(shown.count) of \(text.count) characters)",
                 file: file, line: line)
+    }
+
+    /// Secure fields with the eye toggle (`PasswordVisibilityToggle`: unlock, login): reveals the field, returns which
+    /// positions of `text` are missing (indexes only, never characters) and hides it again. A fixed prefix points at a
+    /// focus race of the screen, scattered positions at dropped synthesized keys. "n/a" when it cannot be read.
+    func lostKeystrokePositions(_ text: String) -> String {
+        let app = XCUIApplication()
+        let toggle = app.buttons["PasswordVisibilityToggle"].firstMatch
+        guard elementType == .secureTextField, toggle.exists, toggle.isHittable else { return "n/a" }
+        // Read before the tap: `self` resolves to the secure field, which is gone while the text is revealed.
+        let id = identifier
+        toggle.tap()
+        let plain = app.textFields[id].firstMatch
+        guard plain.waitForExistence(timeout: 3), let shown = plain.value as? String else { toggle.tap(); return "n/a" }
+        var missing: [Int] = []
+        var next = shown.startIndex
+        for (index, character) in text.enumerated() {
+            if next < shown.endIndex, shown[next] == character { next = shown.index(after: next) } else { missing.append(index) }
+        }
+        let extra = shown.distance(from: next, to: shown.endIndex)
+        toggle.tap()
+        _ = app.secureTextFields[id].waitForExistence(timeout: 3)
+        return "\(missing)" + (extra > 0 ? "+\(extra)extra" : "")
     }
 
     /// After appending with `typeText`: when the field does not hold `expected`, logs a `PASSY-RETYPE` line and types
@@ -373,6 +420,7 @@ extension XCTestCase {
             }
             usleep(500_000)
         }
+        passYDumpAnimations("vault list not reached within \(Int(budget)) s")
         XCTFail("Could not reach the vault list (budget \(Int(budget)) s at load \(String(format: "%.0f", load[0])))\n\(app.debugDescription)", file: file, line: line)
     }
 
