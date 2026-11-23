@@ -206,7 +206,6 @@ public struct BitwardenTextField<FooterContent: View, TrailingContent: View>: Vi
                 SecureField("", text: textFieldBinding)
                     .focused($isSecureFieldFocused)
                     .focused(focus)
-                    .itemDataEntryContentType()
                     .accessibilityIdentifier(accessibilityIdentifier ?? "BitwardenTextField")
                     .styleGuide(.bodyMonospaced, includeLineSpacing: false)
                     .id(title)

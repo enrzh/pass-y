@@ -41,26 +41,6 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
 
     // MARK: Tests
 
-    /// The masked fields of the item editor (password, authenticator key) are taken out of iOS password AutoFill
-    /// (`.oneTimeCode`): with two password-like secure fields, synthesized keyboard input kept only the last character.
-    @MainActor
-    func test_maskedFields_notPasswordAutoFill() throws {
-        let secureFields = try subject.inspect().findAll(ViewType.SecureField.self)
-        XCTAssertGreaterThanOrEqual(secureFields.count, 2, "masked password and authenticator key")
-        for field in secureFields {
-            XCTAssertEqual(try field.textContentType(), .oneTimeCode)
-        }
-    }
-
-    /// Outside the item editor a masked `BitwardenTextField` keeps the caller's content type (login, master password).
-    @MainActor
-    func test_maskedField_outsideItemEditor_keepsPasswordContentType() throws {
-        let view = BitwardenTextField(title: "Password", text: .constant("x"), isPasswordVisible: .constant(false))
-            .textFieldConfiguration(.password)
-        let field = try view.inspect().find(ViewType.SecureField.self)
-        XCTAssertEqual(try field.textContentType(), .password)
-    }
-
     /// Tapping the add website button dispatches the `.newUriPressed` action.
     @MainActor
     func test_addWebsiteButton_tap() throws {
