@@ -1409,6 +1409,11 @@ the `Spacer`; XCUITest taps the middle of the element, which on the wide iPad ro
 `.contentShape(Rectangle())` (landing and registration). `Full/iPad/IPadLandingTests.test_serverSheetReopensAfterCancel`
 (fresh install, sorts before `IPadTests`) cancels the sheet and reopens it twice.
 
+**Open, seen in the `passy/next-fixes` validation (not caused by it):** `SettingsTests.test_accountRowServerAddAccountNoWebVaultNoWatch`
+still asserts "no watch switch" although the Connect-to-Watch setting was restored on `passy/next` (stale assertion);
+`AuthScreensTests.test_registrationStart` fails at the keyboard's return key (keyboard reported off screen, `{300.7,
+1087.0}`), reproduced alone and also with the registration screen of `passy/next`.
+
 ### Old to new test names
 
 All 88 former UI tests are kept; bodies were moved verbatim first (commit "restructure by feature and tier": the
