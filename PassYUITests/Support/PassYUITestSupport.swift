@@ -291,6 +291,7 @@ extension XCTestCase {
         let budget = min(600, 150 + max(0, load[0] - 8) * 6)
         let deadline = Date().addingTimeInterval(budget)
         var dismissedAlerts = 0
+        var selectorTaps = 0
         /// Waits for the vault or an alert after an asynchronous step (login, unlock).
         func settle() {
             waitUntil(max(5, min(120, deadline.timeIntervalSinceNow))) {
@@ -332,7 +333,15 @@ extension XCTestCase {
             if email.exists {
                 if app.buttons["RegionSelectorDropdown"].firstMatch.label.contains("Not set") {
                     // The server sheet is presented automatically; wait until the selector is tappable.
-                    if app.buttons["RegionSelectorDropdown"].firstMatch.isHittable { app.buttons["RegionSelectorDropdown"].firstMatch.tap() }
+                    if app.buttons["RegionSelectorDropdown"].firstMatch.isHittable {
+                        selectorTaps += 1
+                        if selectorTaps > 3 {
+                            XCTFail("the server sheet does not open from the region selector (3 taps)\n\(app.debugDescription)", file: file, line: line)
+                            return
+                        }
+                        app.buttons["RegionSelectorDropdown"].firstMatch.tap()
+                        _ = app.textFields["ServerUrlEntry"].waitForExistence(timeout: 5)
+                    }
                 } else if email.isHittable {
                     // The landing remembers the last e-mail: replace it, never append.
                     email.replaceText(TestAccount.email, file: file, line: line)
@@ -364,7 +373,7 @@ extension XCTestCase {
             }
             usleep(500_000)
         }
-        XCTFail("Could not reach the vault list (budget \(Int(budget)) s at load \(String(format: "%.0f", load[0])))", file: file, line: line)
+        XCTFail("Could not reach the vault list (budget \(Int(budget)) s at load \(String(format: "%.0f", load[0])))\n\(app.debugDescription)", file: file, line: line)
     }
 
     /// Logs the signed-in account out (Settings > account row > Log out) if the vault is open or locked, and returns
@@ -418,7 +427,10 @@ extension XCTestCase {
             if leaveScreenOverLanding(app) { continue }
             if emailField.exists {
                 if app.buttons["RegionSelectorDropdown"].firstMatch.label.contains("Not set") {
-                    if app.buttons["RegionSelectorDropdown"].firstMatch.isHittable { app.buttons["RegionSelectorDropdown"].firstMatch.tap() }
+                    if app.buttons["RegionSelectorDropdown"].firstMatch.isHittable {
+                        app.buttons["RegionSelectorDropdown"].firstMatch.tap()
+                        _ = app.textFields["ServerUrlEntry"].waitForExistence(timeout: 5)
+                    }
                     continue
                 }
                 guard emailField.isHittable else { usleep(500_000); continue }
@@ -488,8 +500,10 @@ extension XCTestCase {
 /// Closes a screen presented over the landing (the registration form of AuthScreensTests, its "check your e-mail"
 /// follow-up): returns whether it tapped something.
 func leaveScreenOverLanding(_ app: XCUIApplication) -> Bool {
-    let email = app.textFields["LoginEmailAddressEntry"]
-    guard app.textFields["EmailAddressEntry"].exists || (email.exists && !email.isHittable) else { return false }
+    // Only the registration flow (its sheet is titled "Create account"); never the server sheet, which also covers the
+    // landing while it is presented (closing that one on the iPad left the server unset, see Docs/Testing.md).
+    guard !app.textFields["ServerUrlEntry"].exists,
+          app.textFields["EmailAddressEntry"].exists || app.navigationBars["Create account"].exists else { return false }
     // Several stacked screens can each have a Cancel (registration sheet, then "Choose your master password"): take the
     // one in front (hittable), else a hittable back button.
     let candidates = app.buttons.matching(identifier: "CancelButton").allElementsBoundByIndex
