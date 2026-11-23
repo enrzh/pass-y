@@ -1409,10 +1409,16 @@ the `Spacer`; XCUITest taps the middle of the element, which on the wide iPad ro
 `.contentShape(Rectangle())` (landing and registration). `Full/iPad/IPadLandingTests.test_serverSheetReopensAfterCancel`
 (fresh install, sorts before `IPadTests`) cancels the sheet and reopens it twice.
 
-**Open, seen in the `passy/next-fixes` validation (not caused by it):** `SettingsTests.test_accountRowServerAddAccountNoWebVaultNoWatch`
-still asserts "no watch switch" although the Connect-to-Watch setting was restored on `passy/next` (stale assertion);
-`AuthScreensTests.test_registrationStart` fails at the keyboard's return key (keyboard reported off screen, `{300.7,
-1087.0}`), reproduced alone and also with the registration screen of `passy/next`.
+**Fixed in the `passy/next-fixes` validation:** `SettingsTests.test_accountRowServerAddAccountNoWebVaultNoWatch` asserted
+"no watch switch" although Connect to Watch is restored on purpose; it is now
+`test_accountRowServerAddAccountNoWebVaultWatchSwitchInOther` (the switch is in Other and only there).
+`AuthScreensTests.test_registrationStart` tapped the keyboard's Return key; in some runs the software keyboard of the
+simulator was hidden for whole stretches (every `Find the Keyboard at` reported y 891/918 on an 874 pt screen instead
+of 590, starting and ending between unrelated tests on the same simulator and app build, also with the unchanged
+registration screen of `passy/next`), so the key existed but was not tappable while typing into the focused fields
+still worked. The test now ends editing with `typeText("\n")` into the focused field. Why the keyboard was hidden
+is not proven: it was bound to that simulator (on a newly created one the keyboard showed at y 590 in every check,
+and AuthScreensTests 3/3, SettingsTests 7/7 passed), while another session drove a foreign simulator at the same time.
 
 ### Old to new test names
 
@@ -1503,7 +1509,7 @@ listed below the table.
 | `PassYUiR8Tests.test06_backAndCloseEverywhere` | `NavigationTests.test_backAndCloseEverywhere` | full |
 | `PassYUiR9Tests.test01_avatarMenu` | `AvatarMenuTests.test_menuEntriesServerUrlNoAccountEntries` | core |
 | `PassYUiR9Tests.test02_pendingRequestsFromMenu` | `PendingRequestsTests.test_opensFromAvatarMenu` | full |
-| `PassYUiR9Tests.test03_settingsAccountRowAndNoWebVaultNoWatch` | `SettingsTests.test_accountRowServerAddAccountNoWebVaultNoWatch` | full |
+| `PassYUiR9Tests.test03_settingsAccountRowAndNoWebVaultNoWatch` | `SettingsTests.test_accountRowServerAddAccountNoWebVaultWatchSwitchInOther` | full |
 | `PassYUiR9Tests.test04_itemOpensWithoutSpinner` | `ItemCrudTests.test_itemOpensWithoutSpinner` | core |
 | `PassYUiR9Tests.test05_listNoSpinner_vaultButtonFollowsStack` | `VaultHomeTests.test_listNoSpinnerVaultButtonFollowsStack` | core |
 | `PassYUiR9Tests.test06_contentScrollsUnderBars` | `NavigationTests.test_contentScrollsUnderBars` | full |
