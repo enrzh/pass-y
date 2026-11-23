@@ -80,6 +80,44 @@ final class ItemListActionsTests: PassYUITestCase {
         XCTAssertTrue(waitForDisappearance(of: name, timeout: 15), "swipe delete removes the item")
     }
 
+    /// Swipe-Delete asks first: while the confirmation is up the row stays in the list, "Cancel" keeps it, and only
+    /// "Yes" removes it. (A `role: .destructive` swipe button made the list drop the row on the tap, before the
+    /// confirmation; the later real removal then hit a list that no longer matched its data.)
+    func test_swipeDeleteKeepsRowUntilConfirmed() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        let target = "AA Swipe Keep \(Int(Date().timeIntervalSince1970) % 100000)"
+        addLogin(app, name: target, user: "k@example.test", password: "x")
+        app.buttons["CategoryTile_login"].tap()
+        let name = app.staticTexts[target]
+        XCTAssertTrue(name.waitForExistence(timeout: 8))
+        let rowsBefore = app.buttons.matching(identifier: "VaultListItemRowButton").count
+        for attempt in 1 ... 2 {
+            name.swipeLeft()
+            let delete = app.buttons["Delete"].firstMatch
+            XCTAssertTrue(delete.waitForExistence(timeout: 5), "swipe offers Delete (attempt \(attempt))")
+            delete.tap()
+            XCTAssertTrue(app.alerts.buttons["Cancel"].waitForExistence(timeout: 5), "delete asks first")
+            sleep(1)   // the removal animation of a destructive swipe button takes about 0.3 s
+            XCTAssertTrue(name.exists, "the row stays while the confirmation is up (attempt \(attempt))")
+            XCTAssertEqual(app.buttons.matching(identifier: "VaultListItemRowButton").count, rowsBefore,
+                           "no row was removed before the confirmation (attempt \(attempt))")
+            app.alerts.buttons["Cancel"].tap()
+            XCTAssertTrue(waitForDisappearance(of: app.alerts.firstMatch, timeout: 5))
+            sleep(1)
+            XCTAssertTrue(name.exists, "Cancel keeps the row (attempt \(attempt))")
+            XCTAssertEqual(app.buttons.matching(identifier: "VaultListItemRowButton").count, rowsBefore,
+                           "Cancel keeps the row count (attempt \(attempt))")
+        }
+        name.swipeLeft()
+        XCTAssertTrue(app.buttons["Delete"].firstMatch.waitForExistence(timeout: 5))
+        app.buttons["Delete"].firstMatch.tap()
+        let yes = app.alerts.buttons["Yes"]
+        XCTAssertTrue(yes.waitForExistence(timeout: 5)); yes.tap()
+        XCTAssertTrue(waitForDisappearance(of: name, timeout: 15), "Yes removes the row")
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 2), "the app is still running (no list diff crash)")
+    }
+
     // MARK: Step 4: home search results
     /// Home search: context menu with Delete, swipe Delete, Select mode; cancelling the confirmation keeps Select mode.
     /// Formerly `PassYUiR7ShotsTests.test_homeSearchSelectDelete`.

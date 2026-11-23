@@ -336,11 +336,15 @@ struct VaultGroupView: View {
                             .tag(item.id)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 if case .cipher = item.itemType {
-                                    Button(role: .destructive) {
+                                    // No `role: .destructive`: it makes the list drop the row on the tap,
+                                    // before the confirmation; the later real removal then hit a list that
+                                    // no longer matched its data ("Invalid number of items in section").
+                                    Button {
                                         Task { await store.perform(.deleteItems([item])) }
                                     } label: {
                                         Label(Localizations.delete, systemImage: "trash")
                                     }
+                                    .tint(.red)
                                     Button {
                                         Task { await store.perform(.morePressed(item)) }
                                     } label: {
