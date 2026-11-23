@@ -331,6 +331,27 @@ class AppCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         await assertPreloadDropped(task, id: "logout")
     }
 
+    /// Auth events (here the vault timeout) clear the preload cache before the router locks the vault: the generation
+    /// has already changed and the running fetch is cancelled when the router handles the event.
+    @MainActor
+    func test_handleAuthEvent_clearsPreloadBeforeRouting() async throws {
+        let task = try await startHangingPreload(id: "timeout")
+        let generationBefore = ViewItemPreloadCache.generation
+        var atRouting: (generation: Int, inFlight: Int)?
+        router.routeForEvent = { _ in
+            let read = { MainActor.assumeIsolated {
+                (ViewItemPreloadCache.generation, ViewItemPreloadCache.inFlightCount)
+            } }
+            atRouting = Thread.isMainThread ? read() : DispatchQueue.main.sync(execute: read)
+            return .landing
+        }
+        await subject.handleEvent(.didTimeout(userId: "1"))
+        let observed = try XCTUnwrap(atRouting)
+        XCTAssertGreaterThan(observed.generation, generationBefore, "cleared before routing")
+        XCTAssertEqual(observed.inFlight, 0, "running fetch cancelled before routing")
+        await assertPreloadDropped(task, id: "timeout")
+    }
+
     /// Switching the account cancels a running preload.
     @MainActor
     func test_switchAccount_cancelsInFlightPreload() async throws {

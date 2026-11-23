@@ -227,6 +227,17 @@ class PassYPreloadSecurityTests: BitwardenTestCase {
         XCTAssertNil(ViewItemPreloadCache.take(id: "stubborn"), "the late result was dropped")
     }
 
+    /// An entry that is never taken is wiped by its timer after `lifetime`, without another preload or clear.
+    func test_store_untakenEntry_isWipedByTimer() async throws {
+        ViewItemPreloadCache.clear()
+        let state = try XCTUnwrap(ViewItemState(cipherView: .fixture(id: "ttl"), hasPremium: false, iconBaseURL: nil))
+        // Stored as if 0.3 s before its end of life: the timer fires after the remaining 0.3 s.
+        ViewItemPreloadCache.store(state, id: "ttl", date: Date().addingTimeInterval(-ViewItemPreloadCache.lifetime + 0.3))
+        XCTAssertEqual(ViewItemPreloadCache.entryCount, 1)
+        try await waitForAsync({ ViewItemPreloadCache.entryCount == 0 }, timeout: 2)
+        XCTAssertEqual(ViewItemPreloadCache.entryCount, 0, "wiped by the timer, nothing else ran")
+    }
+
     /// `clear()` starts a new generation, so a preload started before it never stores its result.
     func test_generation_changesOnClear() {
         let before = ViewItemPreloadCache.generation

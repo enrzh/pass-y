@@ -881,6 +881,12 @@ enum ViewItemPreloadCache {
     /// The number of running preload fetches (for tests).
     static var inFlightCount: Int { inFlight.count }
 
+    /// One timer per entry: wipes it after `lifetime` even when it is never taken.
+    private static var expiryTasks: [String: Task<Void, Never>] = [:]
+
+    /// The number of stored entries, expired or not (for tests).
+    static var entryCount: Int { states.count }
+
     /// Loads the state of an item (a single decrypt, the same data the view's stream would load after appearing) and
     /// keeps it for `take(id:)`. A failure only means the view loads on its own, as before.
     ///
@@ -934,13 +940,23 @@ enum ViewItemPreloadCache {
         return generation == startGeneration
     }
 
-    /// Keeps a state for `take(id:)`.
+    /// Keeps a state for `take(id:)`, wiped by a timer `lifetime` seconds after `date` at the latest.
     static func store(_ state: ViewItemState, id: String, date: Date = Date()) {
         states[id] = (state, date)
+        expiryTasks[id]?.cancel()
+        let remaining = max(0, lifetime - Date().timeIntervalSince(date))
+        expiryTasks[id] = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
+            // Cancelled: the entry was taken, replaced or cleared, and its new owner handles it.
+            guard !Task.isCancelled else { return }
+            if states[id]?.date == date { states[id] = nil }
+            expiryTasks[id] = nil
+        }
     }
 
     /// The preloaded state of an item, removed from the cache (nil when absent or older than `lifetime`).
     static func take(id: String, now: Date = Date()) -> ViewItemState? {
+        expiryTasks.removeValue(forKey: id)?.cancel()
         guard let entry = states.removeValue(forKey: id), now.timeIntervalSince(entry.date) <= lifetime else { return nil }
         return entry.state
     }
@@ -953,6 +969,8 @@ enum ViewItemPreloadCache {
         let running = inFlight.values
         inFlight.removeAll()
         running.forEach { $0.cancel() }
+        expiryTasks.values.forEach { $0.cancel() }
+        expiryTasks.removeAll()
         states.removeAll()
     }
 
