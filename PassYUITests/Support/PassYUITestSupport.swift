@@ -69,7 +69,9 @@ extension XCUIElement {
         var shown = ""
         for attempt in 1 ... 3 {
             focus()
-            if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
+            // Clear until the field is really empty (delete keys can be lost too: a retype once ended with 26 dots).
+            for _ in 0 ..< 3 {
+                guard let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") else { break }
                 typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
             }
             typeText(text)
@@ -193,7 +195,7 @@ extension XCTestCase {
                 continue
             }
             // Outside the unlocked vault: landing, server sheet, login, two-step login, unlock are fine as they are.
-            if app.buttons["Log in"].exists || app.buttons["RegionSelectorDropdown"].exists || app.textFields["ServerUrlEntry"].exists
+            if app.buttons["Log in"].exists || app.buttons["RegionSelectorDropdown"].firstMatch.exists || app.textFields["ServerUrlEntry"].exists
                 || app.buttons["LogInWithMasterPasswordButton"].exists || app.textFields["VerificationCodeEntry"].exists
                 || app.buttons["UnlockVaultButton"].exists {
                 return true
@@ -325,11 +327,12 @@ extension XCTestCase {
                 waitUntil(10) { !server.exists }
                 continue
             }
+            if leaveScreenOverLanding(app) { continue }
             let email = app.textFields["LoginEmailAddressEntry"]
             if email.exists {
-                if app.buttons["RegionSelectorDropdown"].label.contains("Not set") {
+                if app.buttons["RegionSelectorDropdown"].firstMatch.label.contains("Not set") {
                     // The server sheet is presented automatically; wait until the selector is tappable.
-                    if app.buttons["RegionSelectorDropdown"].isHittable { app.buttons["RegionSelectorDropdown"].tap() }
+                    if app.buttons["RegionSelectorDropdown"].firstMatch.isHittable { app.buttons["RegionSelectorDropdown"].firstMatch.tap() }
                 } else if email.isHittable {
                     // The landing remembers the last e-mail: replace it, never append.
                     email.replaceText(TestAccount.email, file: file, line: line)
@@ -412,9 +415,10 @@ extension XCTestCase {
                 waitUntil(10) { !server.exists }
                 continue
             }
+            if leaveScreenOverLanding(app) { continue }
             if emailField.exists {
-                if app.buttons["RegionSelectorDropdown"].label.contains("Not set") {
-                    if app.buttons["RegionSelectorDropdown"].isHittable { app.buttons["RegionSelectorDropdown"].tap() }
+                if app.buttons["RegionSelectorDropdown"].firstMatch.label.contains("Not set") {
+                    if app.buttons["RegionSelectorDropdown"].firstMatch.isHittable { app.buttons["RegionSelectorDropdown"].firstMatch.tap() }
                     continue
                 }
                 guard emailField.isHittable else { usleep(500_000); continue }
@@ -466,7 +470,7 @@ extension XCTestCase {
                 for _ in 0 ..< 4 where !field.exists { app.swipeUp() }
             }
             if !field.exists, setup.exists { setup.tap() }
-            if field.waitForExistence(timeout: 10) { field.replaceText(totp) }
+            if field.waitForExistence(timeout: 10) { field.tap(); field.typeText(totp) } // masked add-form field: not verified, see Docs/Testing.md
         }
         if totp != nil { app.swipeDown() }
         let userField = app.textFields["LoginUsernameEntry"]
@@ -479,6 +483,22 @@ extension XCTestCase {
         if close.exists { close.firstMatch.tap() }
         sleep(2)
     }
+}
+
+/// Closes a screen presented over the landing (the registration form of AuthScreensTests, its "check your e-mail"
+/// follow-up): returns whether it tapped something.
+func leaveScreenOverLanding(_ app: XCUIApplication) -> Bool {
+    let email = app.textFields["LoginEmailAddressEntry"]
+    guard app.textFields["EmailAddressEntry"].exists || (email.exists && !email.isHittable) else { return false }
+    // Several stacked screens can each have a Cancel (registration sheet, then "Choose your master password"): take the
+    // one in front (hittable), else a hittable back button.
+    let candidates = app.buttons.matching(identifier: "CancelButton").allElementsBoundByIndex
+        + app.navigationBars.buttons.allElementsBoundByIndex
+    guard let close = candidates.first(where: { $0.exists && $0.isHittable && $0.identifier != "CurrentActiveAccount" }) else { return false }
+    close.tap()
+    _ = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                         object: app.textFields["EmailAddressEntry"])], timeout: 5)
+    return true
 }
 
 /// Whether the avatar menu is open (its Sync entry is always there).
@@ -548,13 +568,30 @@ func menuButton(_ app: XCUIApplication, id: String, label: String) -> XCUIElemen
 
 /// Switches to a top-level screen through the avatar menu. The vault is not in the menu any more (ui-r9): it is the
 /// Vault button of the bottom bar (absent on the vault home itself).
+/// Waits (at most 15 s, state driven) until the destination is on screen, so the caller can tap into it right away.
 func goTo(_ app: XCUIApplication, _ label: String) {
     if label == "My vault" {
         let button = app.buttons["BottomBarVaultButton"]
         if button.waitForExistence(timeout: 5) { button.tap() }
+        _ = app.buttons["CategoryTile_login"].waitForExistence(timeout: 15)
         return
     }
     avatarMenuEntry(app, label).tap()
+    let marker: XCUIElement? = switch label {
+    case "Settings": app.buttons["AccountSecuritySettingsButton"]
+    case "Generator": app.staticTexts["GeneratedPasswordLabel"]
+    case "Send": app.navigationBars.staticTexts["Send"]
+    default: nil
+    }
+    guard let marker else { return }
+    // Settings keeps its own navigation stack: a sub-page left open by an earlier test of the shared session would
+    // still be shown. Pop back to its root.
+    for _ in 0 ..< 4 where !marker.waitForExistence(timeout: 5) {
+        let back = app.navigationBars.buttons.firstMatch
+        guard back.exists, back.isHittable, back.identifier != "CurrentActiveAccount" else { break }
+        back.tap()
+    }
+    _ = marker.waitForExistence(timeout: 10)
 }
 
 

@@ -9,6 +9,7 @@ U=${U:-$PASSY_PHONE}
 n=$1; fresh=$2; shift 2; args=(); for t in "$@"; do args+=(-only-testing:"$t"); done
 [ -n "$(passy_xctestrun)" ] || { echo "no xctestrun in $PASSY_DD: run build_ui.sh first"; exit 1; }
 passy_wait_quiet
+echo "waited $(passy_wait_no_foreign_xcodebuild) s for foreign xcodebuild"
 export TEST_RUNNER_PASSY_SERVER="${TEST_RUNNER_PASSY_SERVER:-http://localhost:$VW_PORT}"
 log="$PASSY_OUT/$n.log"; echo "start load $(sysctl -n vm.loadavg)" > "$log"
 [ "$fresh" = 1 ] && passy_fresh_app "$U"

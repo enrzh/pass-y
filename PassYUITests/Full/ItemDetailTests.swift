@@ -21,7 +21,7 @@ final class ItemDetailTests: PassYUITestCase {
         }
         if !totp.exists, setup.exists { setup.tap() }
         guard totp.waitForExistence(timeout: 10) else { dump(app, "totp"); return XCTFail("no TOTP field") }
-        totp.replaceText("JBSWY3DPEHPK3PXP")
+        totp.tap(); totp.typeText("JBSWY3DPEHPK3PXP") // not verified: see Docs/Testing.md (masked add-form field)
         attach(app, "04-add-totp")
         app.buttons["SaveButton"].firstMatch.tap()
         XCTAssertTrue(waitFor(app.staticTexts["PassY TOTP Item"]))
