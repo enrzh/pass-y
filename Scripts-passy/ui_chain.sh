@@ -129,7 +129,7 @@ step() {
       for kv in $STEP_ENV; do export "TEST_RUNNER_$kv"; done
       cd "$R"
       passy_run_xcodebuild "$log" test-without-building -xctestrun "$(passy_xctestrun)" -destination "id=$u" \
-        -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
+        -parallel-testing-enabled NO -collect-test-diagnostics never -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
         -maximum-test-execution-time-allowance 1800 "${tests[@]}" -resultBundlePath "$O/$n.xcresult" )
     t1=$(date +%s); end_load=$(sysctl -n vm.loadavg | awk '{print $2}')
     local failed passed succeeded marker crashed failing retypes alerts

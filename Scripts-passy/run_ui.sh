@@ -13,5 +13,5 @@ export TEST_RUNNER_PASSY_SERVER="${TEST_RUNNER_PASSY_SERVER:-http://localhost:$V
 log="$PASSY_OUT/$n.log"; echo "start load $(sysctl -n vm.loadavg)" > "$log"
 [ "$fresh" = 1 ] && passy_fresh_app "$U"
 rm -rf "$PASSY_OUT/$n.xcresult"
-passy_run_xcodebuild "$log" test-without-building -xctestrun "$(passy_xctestrun)" -destination "id=$U" -parallel-testing-enabled NO \
+passy_run_xcodebuild "$log" test-without-building -xctestrun "$(passy_xctestrun)" -destination "id=$U" -parallel-testing-enabled NO -collect-test-diagnostics never \
   "${args[@]}" -resultBundlePath "$PASSY_OUT/$n.xcresult"
