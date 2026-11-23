@@ -6,35 +6,93 @@ enum TestAccount {
     static let server = ProcessInfo.processInfo.environment["PASSY_SERVER"]
         ?? ProcessInfo.processInfo.environment["PASSY_VW_URL"]
         ?? "http://localhost:8088"
-    static let email = "passy-test@example.test"
+    /// `TEST_RUNNER_PASSY_EMAIL` selects another seeded account (the perf step uses `passy-perf@example.test`).
+    static let email = ProcessInfo.processInfo.environment["PASSY_EMAIL"] ?? "passy-test@example.test"
+    static let twoFactorEmail = "passy-2fa@example.test"
     static let password = "PassY-Test-Only-2026!"
+}
+
+/// Counters of the typing helpers. Every retype is printed as `PASSY-RETYPE <n> ...` (the chain counts these lines per
+/// step), so lost keystrokes stay visible instead of being silently repaired.
+enum PassYTyping {
+    nonisolated(unsafe) static var retypes = 0
+}
+
+/// Load average of the host (the simulator shares the CPU), for log lines.
+func passYLoad() -> String {
+    var load = [Double](repeating: 0, count: 3)
+    getloadavg(&load, 3)
+    return String(format: "%.0f", load[0])
+}
+
+/// The app shared by the tests of one run (see `launchApp`).
+enum PassYSession {
+    nonisolated(unsafe) static var app: XCUIApplication?
+    nonisolated(unsafe) static var arguments: [String] = []
+    nonisolated(unsafe) static var launches = 0
+    nonisolated(unsafe) static var reused = 0
+    /// The e-mail address last typed into the login e-mail field (the login password screen belongs to it).
+    nonisolated(unsafe) static var loginEmail: String?
 }
 
 extension XCUIElement {
     /// Taps a field until it really has keyboard focus (the simulator sometimes ignores the first tap, and typing
-    /// then fails with "Neither element nor any descendant has keyboard focus").
+    /// then fails with "Neither element nor any descendant has keyboard focus"), then waits until the software
+    /// keyboard is on screen: keys typed while the keyboard is still being presented can be dropped.
     func focus() {
-        for _ in 0 ..< 4 {
+        var focused = (value(forKey: "hasKeyboardFocus") as? Bool) == true
+        for _ in 0 ..< 4 where !focused {
             tap()
             for _ in 0 ..< 6 {
-                if (value(forKey: "hasKeyboardFocus") as? Bool) == true { return }
+                if (value(forKey: "hasKeyboardFocus") as? Bool) == true { focused = true; break }
                 usleep(250_000)
+            }
+            if focused { break }
+        }
+        let keyboard = XCUIApplication().keyboards.firstMatch
+        if focused, keyboard.waitForExistence(timeout: 5) {
+            // The keyboard exists before its slide-in ends; wait until its frame stops moving.
+            var last = keyboard.frame
+            for _ in 0 ..< 10 {
+                usleep(150_000)
+                let now = keyboard.frame
+                if now == last { break }
+                last = now
             }
         }
     }
 
-    /// Clears a text/secure field (a failed login attempt leaves the typed text in the field) and types `text`.
-    func replaceText(_ text: String) {
-        // The simulator sometimes drops a character while the app is busy ("Invalid master password", 20 instead of 21
-        // dots). The count is checked after typing and the text is typed again (at most three times).
-        for _ in 0 ..< 3 {
+    /// Clears a text/secure field (a failed login attempt leaves the typed text in the field) and types `text`, then
+    /// verifies the field content (secure fields: one dot per character). A mismatch is printed as `PASSY-RETYPE` and
+    /// typed again; the third mismatch fails the test, so a real stall cannot hide behind the retries.
+    func replaceText(_ text: String, file: StaticString = #filePath, line: UInt = #line) {
+        var shown = ""
+        for attempt in 1 ... 3 {
             focus()
             if let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") {
                 typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
             }
             typeText(text)
             if typedTextIsComplete(text) { return }
+            shown = value as? String ?? "nil"
+            PassYTyping.retypes += 1
+            let secure = elementType == .secureTextField
+            print("PASSY-RETYPE \(PassYTyping.retypes) field=\(identifier) attempt=\(attempt) want=\(text.count) got=\(shown.count)"
+                + (secure ? "" : " value='\(shown)'") + " focus=\((value(forKey: "hasKeyboardFocus") as? Bool) == true)"
+                + " keyboard=\(XCUIApplication().keyboards.firstMatch.exists) load=\(passYLoad())")
         }
+        XCTFail("typing into \(identifier) lost keystrokes three times (field shows \(shown.count) of \(text.count) characters)",
+                file: file, line: line)
+    }
+
+    /// After appending with `typeText`: when the field does not hold `expected`, logs a `PASSY-RETYPE` line and types
+    /// the whole value again (verified).
+    func ensureText(_ expected: String, file: StaticString = #filePath, line: UInt = #line) {
+        let shown = value as? String ?? "nil"
+        guard shown != expected else { return }
+        PassYTyping.retypes += 1
+        print("PASSY-RETYPE \(PassYTyping.retypes) field=\(identifier) attempt=append want=\(expected.count) got=\(shown.count) value='\(shown)' load=\(passYLoad())")
+        replaceText(expected, file: file, line: line)
     }
 
     /// Whether the field holds all of `text` (secure fields show one dot per character).
@@ -53,7 +111,20 @@ extension XCTestCase {
             search.tap()
             XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 6), "keyboard shows after tapping the search field")
         }
-        sleep(1)
+        // Instead of a fixed second: wait for keyboard focus and the end of the keyboard animation.
+        search.focus()
+    }
+
+    /// Types into the focused bottom search bar key by key (the list filters after every key, a fast `typeText` on a
+    /// busy list dropped keys) and verifies the field; a mismatch is logged as `PASSY-RETYPE` and typed again.
+    func typeSearch(_ app: XCUIApplication, _ text: String, file: StaticString = #filePath, line: UInt = #line) {
+        for ch in text { app.typeText(String(ch)); usleep(150_000) }
+        let field = app.searchFields.firstMatch
+        let shown = field.value as? String ?? "nil"
+        guard shown != text else { return }
+        PassYTyping.retypes += 1
+        print("PASSY-RETYPE \(PassYTyping.retypes) field=search attempt=1 want=\(text.count) got=\(shown.count) value='\(shown)' load=\(passYLoad())")
+        field.replaceText(text, file: file, line: line)
     }
 
     /// Taps "Login" in the open add menu (on iPad the category tile of the same name is also visible behind it).
@@ -66,15 +137,95 @@ extension XCTestCase {
         button.tap()
     }
 
+    /// Returns the app with the given launch configuration. Within one test run the app is launched (and logged in)
+    /// once and then reused: when it is still running in the foreground with the same launch arguments it is brought
+    /// back to a root screen (`returnToRoot`) instead of being relaunched, which would lock the vault and make every
+    /// test type the master password again. A test that needs a cold start terminates the app first (`app.terminate()`)
+    /// or changes the launch arguments (appearance, text size). `TEST_RUNNER_PASSY_REUSE_APP=0` relaunches every time.
     func launchApp(extraArguments: [String] = [], appearance: String? = nil) -> XCUIApplication {
-        let app = XCUIApplication()
         // `XCUIDevice.shared.appearance = .dark` and `-AppleInterfaceStyle` do not change the rendering on the iOS 27
         // simulator (every "dark" run of ui-r5 to ui-r8 rendered light, proven by the pixel check below). The app has a
         // launch argument that sets its windows' interface style (`AppProcessor`).
         let style: [String] = passYWantedStyle.map { ["-passyForceInterfaceStyle", $0] } ?? []
-        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + style + extraArguments
+        let arguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + style + extraArguments
+        if ProcessInfo.processInfo.environment["PASSY_REUSE_APP"] != "0", let app = PassYSession.app,
+           PassYSession.arguments == arguments, app.state == .runningForeground {
+            if returnToRoot(app) {
+                PassYSession.reused += 1
+                return app
+            }
+            print("PASSY-RELAUNCH \(name): could not return to a root screen\n\(app.debugDescription)")
+        }
+        let app = PassYSession.app ?? XCUIApplication()
+        app.launchArguments = arguments
         app.launch()
+        PassYSession.app = app
+        PassYSession.arguments = arguments
+        PassYSession.launches += 1
+        print("PASSY-LAUNCH \(PassYSession.launches) (reused \(PassYSession.reused)) for \(name)")
         return app
+    }
+
+    /// Brings a running app back to a root screen: dismisses alerts, menus, sheets and the search, pops to the vault
+    /// home and scrolls it to the top. Screens outside the unlocked vault (landing, login, unlock) count as root:
+    /// `ensureUnlockedVault` takes it from there. Every step waits for the state it causes, no fixed sleeps. Returns
+    /// false when the app does not reach a root screen (the caller then relaunches it).
+    func returnToRoot(_ app: XCUIApplication) -> Bool {
+        let fab = app.buttons["AddItemFloatingActionButton"]
+        let vaultButton = app.buttons["BottomBarVaultButton"]
+        let searchCancel = app.buttons["VaultSearchCancel"]
+        for _ in 0 ..< 12 {
+            let alert = app.alerts.firstMatch
+            if alert.exists {
+                // Never confirm (Yes/Delete): cancel, or acknowledge an error.
+                let button = ["Cancel", "OK", "Close", "No"].map { alert.buttons[$0] }.first { $0.exists } ?? alert.buttons.firstMatch
+                button.tap()
+                _ = waitForDisappearance(of: alert, timeout: 5)
+                continue
+            }
+            if app.menuItems.firstMatch.exists || app.buttons["ProfileMenuSyncButton"].exists {
+                // A menu (add menu, avatar menu, context menu) is open: tap outside it.
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap()
+                _ = waitUntil(3) { !app.menuItems.firstMatch.exists && !app.buttons["ProfileMenuSyncButton"].exists }
+                continue
+            }
+            // Outside the unlocked vault: landing, server sheet, login, two-step login, unlock are fine as they are.
+            if app.buttons["Log in"].exists || app.buttons["RegionSelectorDropdown"].exists || app.textFields["ServerUrlEntry"].exists
+                || app.buttons["LogInWithMasterPasswordButton"].exists || app.textFields["VerificationCodeEntry"].exists
+                || app.buttons["UnlockVaultButton"].exists {
+                return true
+            }
+            if let close = ["CancelButton", "CloseButton", "Close", "Cancel"].map({ app.buttons[$0].firstMatch })
+                .first(where: { $0.exists && $0.isHittable }), !(fab.exists && fab.isHittable) {
+                close.tap()
+                _ = waitUntil(5) { !close.exists || !close.isHittable }
+                continue
+            }
+            if searchCancel.exists, searchCancel.isHittable {
+                searchCancel.tap()
+                _ = waitForDisappearance(of: searchCancel, timeout: 5)
+                continue
+            }
+            if vaultButton.exists, vaultButton.isHittable {
+                vaultButton.tap()
+                _ = waitForDisappearance(of: vaultButton, timeout: 5)
+                continue
+            }
+            if fab.exists, fab.isHittable {
+                // Vault home: make sure it is scrolled to the top (tests expect the category tiles).
+                let tile = app.buttons["CategoryTile_login"]
+                for _ in 0 ..< 6 where !(tile.exists && tile.isHittable) { app.swipeDown() }
+                return tile.exists && tile.isHittable
+            }
+            let back = app.navigationBars.buttons.firstMatch
+            if back.exists, back.isHittable, back.identifier != "CurrentActiveAccount" {
+                back.tap()
+                usleep(500_000)
+                continue
+            }
+            usleep(500_000)
+        }
+        return false
     }
 
     /// Attaches a screenshot without the appearance check (for screens that are not the app: "Recovery code" opens Safari).
@@ -115,12 +266,14 @@ extension XCTestCase {
         return condition()
     }
 
-    /// Brings the app to the unlocked vault list from any of: intro, login, unlock, vault.
+    /// Brings the app to the unlocked vault list from any of: intro, landing, server sheet, login (also of another
+    /// account), two-step login, unlock, vault.
     ///
     /// State driven: it waits for the app to reach the next state (vault, error alert) instead of sleeping for fixed
-    /// times, the overall budget grows with the load of the host (a login under load 100 takes minutes), and an error
-    /// alert (network or credentials) is dismissed and the step is tried again, at most three times.
-    func ensureUnlockedVault(_ app: XCUIApplication) {
+    /// times, the overall budget grows with the load of the host (a login under load 100 takes minutes), every typed
+    /// value is verified (`replaceText`, retypes are logged as `PASSY-RETYPE`), and an error alert (network or
+    /// credentials) is logged as `LOGIN-ALERT`, dismissed and the step is tried again, at most three times.
+    func ensureUnlockedVault(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
         let fab = app.buttons["AddItemFloatingActionButton"]
         var load = [Double](repeating: 0, count: 3)
         getloadavg(&load, 3)
@@ -129,24 +282,36 @@ extension XCTestCase {
         var dismissedAlerts = 0
         /// Waits for the vault or an alert after an asynchronous step (login, unlock).
         func settle() {
-            waitUntil(max(5, min(120, deadline.timeIntervalSinceNow))) { fab.exists || app.alerts.firstMatch.exists }
+            waitUntil(max(5, min(120, deadline.timeIntervalSinceNow))) {
+                fab.exists || app.alerts.firstMatch.exists || app.textFields["VerificationCodeEntry"].exists
+            }
         }
         while Date() < deadline {
             if fab.exists { return }
             let alert = app.alerts.firstMatch
             if alert.exists {
                 dismissedAlerts += 1
-                print("LOGIN-ALERT \(dismissedAlerts): \(alert.staticTexts.allElementsBoundByIndex.map(\.label))")
-                if dismissedAlerts > 3 { XCTFail("Login keeps failing with an alert: \(alert.debugDescription) texts: \(alert.staticTexts.allElementsBoundByIndex.map(\.label))"); return }
+                print("LOGIN-ALERT \(dismissedAlerts): \(alert.staticTexts.allElementsBoundByIndex.map(\.label)) load=\(passYLoad())")
+                if dismissedAlerts > 3 {
+                    XCTFail("Login keeps failing with an alert: \(alert.debugDescription) texts: \(alert.staticTexts.allElementsBoundByIndex.map(\.label))",
+                            file: file, line: line)
+                    return
+                }
                 alert.buttons.firstMatch.tap()
-                sleep(1)
+                _ = waitForDisappearance(of: alert, timeout: 5)
+                continue
+            }
+            // Two-step login of another account (AuthTwoFactorTests): leave it.
+            if app.textFields["VerificationCodeEntry"].exists {
+                let cancel = app.buttons["CancelButton"].exists ? app.buttons["CancelButton"] : app.navigationBars.buttons.firstMatch
+                cancel.tap()
+                waitUntil(10) { !app.textFields["VerificationCodeEntry"].exists }
                 continue
             }
             if app.buttons["Log in"].exists { app.buttons["Log in"].tap() }
             let server = app.textFields["ServerUrlEntry"]
             if server.exists {
-                server.focus()
-                server.typeText(TestAccount.server)
+                server.replaceText(TestAccount.server, file: file, line: line)
                 app.buttons["SaveButton"].firstMatch.tap()
                 waitUntil(10) { !server.exists }
                 continue
@@ -157,29 +322,106 @@ extension XCTestCase {
                     // The server sheet is presented automatically; wait until the selector is tappable.
                     if app.buttons["RegionSelectorDropdown"].isHittable { app.buttons["RegionSelectorDropdown"].tap() }
                 } else if email.isHittable {
-                    email.focus()
-                    email.typeText(TestAccount.email)
+                    // The landing remembers the last e-mail: replace it, never append.
+                    email.replaceText(TestAccount.email, file: file, line: line)
+                    PassYSession.loginEmail = TestAccount.email
                     app.buttons["ContinueButton"].tap()
                     waitUntil(20) { !email.exists || app.alerts.firstMatch.exists }
                 }
             }
             let loginPw = app.secureTextFields["LoginMasterPasswordEntry"]
             if loginPw.exists {
-                loginPw.replaceText(TestAccount.password)
+                // The login screen of another account (left by an auth test): back to the landing ("Not you?").
+                let loggingInAs = app.staticTexts["LoggingInAsLabel"]
+                if loggingInAs.exists, !loggingInAs.label.contains(TestAccount.email), app.buttons["NotYouLabel"].exists {
+                    app.buttons["NotYouLabel"].tap()
+                    waitUntil(10) { !loginPw.exists }
+                    continue
+                }
+                loginPw.replaceText(TestAccount.password, file: file, line: line)
                 app.buttons["LogInWithMasterPasswordButton"].tap()
                 // The login is asynchronous and the field disappears when it succeeded: wait for the result instead of
                 // typing into the vanishing field again (snapshot race seen in Flow test02).
                 settle()
             }
             let unlockPw = app.secureTextFields["MasterPasswordEntry"]
-            if !fab.exists, unlockPw.exists {
-                unlockPw.replaceText(TestAccount.password)
+            if !fab.exists, unlockPw.exists, app.buttons["UnlockVaultButton"].exists {
+                unlockPw.replaceText(TestAccount.password, file: file, line: line)
                 app.buttons["UnlockVaultButton"].tap()
                 settle()
             }
             usleep(500_000)
         }
-        XCTFail("Could not reach the vault list (budget \(Int(budget)) s at load \(String(format: "%.0f", load[0])))")
+        XCTFail("Could not reach the vault list (budget \(Int(budget)) s at load \(String(format: "%.0f", load[0])))", file: file, line: line)
+    }
+
+    /// Logs the signed-in account out (Settings > account row > Log out) if the vault is open or locked, and returns
+    /// once the landing or login screen is shown.
+    func logOutIfLoggedIn(_ app: XCUIApplication) {
+        guard app.buttons["AddItemFloatingActionButton"].exists || app.buttons["UnlockVaultButton"].exists else { return }
+        ensureUnlockedVault(app)
+        goTo(app, "Settings")
+        let row = app.buttons["SettingsAccountRow"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10), "settings account row")
+        row.tap()
+        let logOut = app.buttons["Log out"]
+        XCTAssertTrue(logOut.waitForExistence(timeout: 5), "account menu offers Log out")
+        logOut.tap()
+        let yes = app.alerts.buttons["Yes"]
+        XCTAssertTrue(yes.waitForExistence(timeout: 5), "log out asks for confirmation")
+        yes.tap()
+        XCTAssertTrue(waitUntil(20) {
+            app.textFields["LoginEmailAddressEntry"].exists || app.buttons["Log in"].exists
+        }, "landing after log out")
+    }
+
+    /// From any state (vault, locked, landing, intro, a login of another account): logs out if needed, sets the server if
+    /// it is not set and enters `email`; returns on the login (master password) screen of that account.
+    func reachLoginPasswordScreen(_ app: XCUIApplication, email: String, file: StaticString = #filePath, line: UInt = #line) {
+        logOutIfLoggedIn(app)
+        let pw = app.secureTextFields["LoginMasterPasswordEntry"]
+        let emailField = app.textFields["LoginEmailAddressEntry"]
+        let deadline = Date().addingTimeInterval(120)
+        while Date() < deadline {
+            if pw.exists {
+                let loggingInAs = app.staticTexts["LoggingInAsLabel"]
+                if !loggingInAs.exists || loggingInAs.label.contains(email) { return }
+                app.buttons["NotYouLabel"].tap()
+                waitUntil(10) { !pw.exists }
+                continue
+            }
+            if app.textFields["VerificationCodeEntry"].exists {
+                (app.buttons["CancelButton"].exists ? app.buttons["CancelButton"] : app.navigationBars.buttons.firstMatch).tap()
+                waitUntil(10) { !app.textFields["VerificationCodeEntry"].exists }
+                continue
+            }
+            if app.buttons["Log in"].exists { app.buttons["Log in"].tap() }
+            let server = app.textFields["ServerUrlEntry"]
+            if server.waitForExistence(timeout: 2) {
+                server.replaceText(TestAccount.server, file: file, line: line)
+                app.buttons["SaveButton"].firstMatch.tap()
+                waitUntil(10) { !server.exists }
+                continue
+            }
+            if emailField.exists {
+                if app.buttons["RegionSelectorDropdown"].label.contains("Not set") {
+                    if app.buttons["RegionSelectorDropdown"].isHittable { app.buttons["RegionSelectorDropdown"].tap() }
+                    continue
+                }
+                guard emailField.isHittable else { usleep(500_000); continue }
+                emailField.replaceText(email, file: file, line: line)
+                PassYSession.loginEmail = email
+                app.buttons["ContinueButton"].tap()
+                waitUntil(20) { pw.exists || app.alerts.firstMatch.exists }
+                if app.alerts.firstMatch.exists {
+                    print("LOGIN-ALERT e-mail step: \(app.alerts.firstMatch.staticTexts.allElementsBoundByIndex.map(\.label))")
+                    app.alerts.firstMatch.buttons.firstMatch.tap()
+                }
+                continue
+            }
+            usleep(500_000)
+        }
+        XCTFail("login screen of \(email) not reached\n\(app.debugDescription)", file: file, line: line)
     }
 }
 
@@ -205,7 +447,7 @@ extension XCTestCase {
         let nameField = app.textFields["ItemNameEntry"]
         XCTAssertTrue(waitFor(nameField))
         app.dismissNewLoginCard()
-        nameField.tap(); nameField.typeText(name)
+        nameField.replaceText(name)
         if let totp {
             let setup = app.buttons["SetupTotpButton"]
             if !setup.exists { app.swipeUp() }
@@ -215,11 +457,11 @@ extension XCTestCase {
                 for _ in 0 ..< 4 where !field.exists { app.swipeUp() }
             }
             if !field.exists, setup.exists { setup.tap() }
-            if field.waitForExistence(timeout: 10) { field.tap(); field.typeText(totp) }
+            if field.waitForExistence(timeout: 10) { field.replaceText(totp) }
         }
         if totp != nil { app.swipeDown() }
         let userField = app.textFields["LoginUsernameEntry"]
-        userField.tap(); userField.typeText(user)
+        userField.replaceText(user)
         let pw = app.secureTextFields["LoginPasswordEntry"]
         pw.tap(); pw.typeText(password)
         app.buttons["SaveButton"].firstMatch.tap()
@@ -228,6 +470,30 @@ extension XCTestCase {
         if close.exists { close.firstMatch.tap() }
         sleep(2)
     }
+}
+
+/// Whether the avatar menu is open (its Sync entry is always there).
+func avatarMenuIsOpen(_ app: XCUIApplication) -> Bool {
+    app.buttons["ProfileMenuSyncButton"].exists || app.buttons["ProfileMenuSettingsButton"].exists
+        || app.menuItems["Sync now"].exists || app.buttons.matching(NSPredicate(format: "label == 'Sync now'")).firstMatch.exists
+}
+
+/// Opens the avatar menu (top right) once and waits until it is open (state driven: a second tap while it is still
+/// opening would close it again). Returns whether it is open.
+@discardableResult
+func openAvatarMenu(_ app: XCUIApplication) -> Bool {
+    if avatarMenuIsOpen(app) { return true }
+    let avatar = app.buttons["CurrentActiveAccount"]
+    guard avatar.waitForExistence(timeout: 10) else { return false }
+    for _ in 0 ..< 2 {
+        avatar.tap()
+        let end = Date().addingTimeInterval(10)
+        while Date() < end {
+            if avatarMenuIsOpen(app) { return true }
+            usleep(300_000)
+        }
+    }
+    return avatarMenuIsOpen(app)
 }
 
 /// Opens the avatar menu (top right) and returns the entry for a destination ("My vault", "Send", "Generator",
@@ -243,25 +509,32 @@ func avatarMenuEntry(_ app: XCUIApplication, _ label: String) -> XCUIElement {
         let item = app.menuItems[label]
         return item.exists ? item : nil
     }
+    if avatarMenuIsOpen(app), let found = lookup() { return found }
+    openAvatarMenu(app)
     if let found = lookup() { return found }
-    // The menu is closed: open it (once) and look again.
-    let avatar = app.buttons["CurrentActiveAccount"]
-    if avatar.waitForExistence(timeout: 10) { avatar.tap() }
-    for _ in 0 ..< 10 {
-        if let found = lookup() { return found }
-        usleep(300_000)
-    }
     return app.buttons[ids[label] ?? label]
 }
 
-/// A button of the open avatar menu by identifier or, failing that, by its label.
+/// A button of the avatar menu by identifier or, failing that, by its label. Opens the menu first (and waits for it)
+/// when it is not open yet.
 func menuButton(_ app: XCUIApplication, id: String, label: String) -> XCUIElement {
-    let byId = app.buttons[id]
-    if byId.exists { return byId }
-    let byLabel = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
-    if byLabel.exists { return byLabel }
-    let item = app.menuItems[label]
-    return item.exists ? item : byId
+    func lookup() -> XCUIElement? {
+        let byId = app.buttons[id]
+        if byId.exists { return byId }
+        let byLabel = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+        if byLabel.exists { return byLabel }
+        let item = app.menuItems[label]
+        return item.exists ? item : nil
+    }
+    if let found = lookup() { return found }
+    if id.hasPrefix("ProfileMenu") {
+        openAvatarMenu(app)
+        if let found = lookup() { return found }
+    }
+    // Not there yet (a menu still opening): a query that matches either way, so `waitForExistence` on it works.
+    return app.descendants(matching: .any).matching(NSPredicate(
+        format: "(identifier == %@ OR label == %@) AND NOT (identifier BEGINSWITH 'CategoryTile') AND (elementType == %d OR elementType == %d)",
+        id, label, XCUIElement.ElementType.button.rawValue, XCUIElement.ElementType.menuItem.rawValue)).firstMatch
 }
 
 /// Switches to a top-level screen through the avatar menu. The vault is not in the menu any more (ui-r9): it is the
@@ -281,6 +554,11 @@ func goTo(_ app: XCUIApplication, _ label: String) {
 /// Whether the current test step wants the dark interface style (set by `setPassYAppearance`, or by the chain through
 /// `TEST_RUNNER_PASSY_EXPECT_APPEARANCE=dark`).
 nonisolated(unsafe) private var passYForcedAppearance: String?
+
+/// The appearances a light/dark test runs: `PASSY_MODE` (one), else light and dark.
+func passYModes() -> [String] {
+    ProcessInfo.processInfo.environment["PASSY_MODE"].map { [$0] } ?? ["light", "dark"]
+}
 
 var passYWantedStyle: String? {
     passYForcedAppearance ?? ProcessInfo.processInfo.environment["PASSY_EXPECT_APPEARANCE"]

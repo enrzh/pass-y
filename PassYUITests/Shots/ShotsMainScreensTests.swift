@@ -4,6 +4,7 @@ import XCTest
 final class ShotsMainScreensTests: PassYUITestCase {
     /// Formerly `PassYShotsTests.test_shots`.
     func test_mainScreens() {
+        addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
         let tag = ProcessInfo.processInfo.environment["PASSY_SHOT_TAG"] ?? "shot"
         let env = ProcessInfo.processInfo.environment
         if env["PASSY_SHOT_MODE"] == "dark" { setPassYAppearance(.dark) }
@@ -27,7 +28,7 @@ final class ShotsMainScreensTests: PassYUITestCase {
         if !app.staticTexts["GitHub"].exists {
             // With a large vault the item is below the fold: find it through the bottom search bar.
             focusSearch(app)
-            for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+            typeSearch(app, "GitHub")
             _ = app.staticTexts["GitHub"].waitForExistence(timeout: 20)
         }
         if app.staticTexts["GitHub"].exists {
@@ -101,7 +102,7 @@ final class ShotsMainScreensTests: PassYUITestCase {
             }
             // Search.
             focusSearch(app)
-            for ch in "Git" { app.typeText(String(ch)); usleep(150_000) }
+            typeSearch(app, "Git")
             sleep(2)
             shot(app, mode, n, "search"); n += 1
             if app.buttons["VaultSearchCancel"].exists { app.buttons["VaultSearchCancel"].tap(); sleep(1) }

@@ -6,33 +6,27 @@ final class AuthTwoFactorTests: PassYUITestCase {
     /// (it starts at the intro or the login screen).
     /// Formerly `PassYUiR6ShotsTests.test_auth2FAScreens`.
     func test_twoStepLoginScreens() {
-        let mode = ProcessInfo.processInfo.environment["PASSY_MODE"] ?? "light"
+        // Formerly one chain step per appearance (TEST_RUNNER_PASSY_MODE); now both in one run unless PASSY_MODE is set.
+        for mode in passYModes() {
         setPassYAppearance(mode == "dark" ? .dark : .light)
         let app = launchApp()
         let pw = app.secureTextFields["LoginMasterPasswordEntry"]
-        if !pw.waitForExistence(timeout: 5) {
-            let logIn = app.buttons["Log in"]
-            XCTAssertTrue(logIn.waitForExistence(timeout: 20)); logIn.tap()
-            let server = app.textFields["ServerUrlEntry"]
-            if server.waitForExistence(timeout: 10) {
-                server.tap(); server.typeText(TestAccount.server)
-                app.buttons["SaveButton"].firstMatch.tap(); sleep(2)
-            }
-            let email = app.textFields["LoginEmailAddressEntry"]
-            XCTAssertTrue(email.waitForExistence(timeout: 10))
-            for _ in 0 ..< 10 where !email.isHittable { sleep(1) }
-            email.replaceText("passy-2fa@example.test")
-            app.buttons["ContinueButton"].tap()
-        }
+        // Deterministic start from any state (vault, landing, intro, another login): log out, server, e-mail (verified).
+        reachLoginPasswordScreen(app, email: TestAccount.twoFactorEmail)
         XCTAssertTrue(pw.waitForExistence(timeout: 15), "login screen")
-        // The simulator can drop characters of a masked field (Vaultwarden log: "Username or password is incorrect" for the
-        // 2FA account), so the password is typed into the revealed (plain) field.
+        // The password goes into the revealed (plain) field and is verified there (`replaceText` compares the exact
+        // value): the former unverified `typeText` lost a character under load, Vaultwarden answered "Username or
+        // password is incorrect" and the two-step screen never came (the 2fa-dark flake of ui-r9).
         let eye = app.buttons["PasswordVisibilityToggle"]
-        if eye.waitForExistence(timeout: 5) { eye.tap(); sleep(1) }
+        if eye.waitForExistence(timeout: 5) { eye.tap() }
         let plainPw = app.textFields["LoginMasterPasswordEntry"]
-        if plainPw.waitForExistence(timeout: 5) { plainPw.tap(); plainPw.typeText(TestAccount.password) } else { pw.replaceText(TestAccount.password) }
+        if plainPw.waitForExistence(timeout: 5) { plainPw.replaceText(TestAccount.password) } else { pw.replaceText(TestAccount.password) }
         app.buttons["LogInWithMasterPasswordButton"].tap()
         let code = app.textFields["VerificationCodeEntry"]
+        waitUntil(60) { code.exists || app.alerts.firstMatch.exists }
+        if app.alerts.firstMatch.exists {
+            print("LOGIN-ALERT 2fa: \(app.alerts.firstMatch.staticTexts.allElementsBoundByIndex.map(\.label)) load=\(passYLoad())")
+        }
         XCTAssertTrue(code.waitForExistence(timeout: 20), "two-step login (authenticator) screen")
         shot(app, 44, "\(mode)-2fa-authenticator")
         print("R6REACH 2fa buttons: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
@@ -50,6 +44,7 @@ final class AuthTwoFactorTests: PassYUITestCase {
         // ui-r9: the recovery code (it opened the web vault in Safari) is not offered any more.
         let recovery = app.buttons["Recovery code"].exists ? app.buttons["Recovery code"] : app.menuItems["Recovery code"]
         XCTAssertFalse(recovery.exists, "the recovery code (web vault link) must not be offered")
+        }
         setPassYAppearance(.light)
     }
 }

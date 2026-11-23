@@ -20,10 +20,13 @@ final class ItemListActionsTests: PassYUITestCase {
                           || app.menuItems["Copy username"].exists, "context menu offers Copy username")
             XCTAssertTrue(app.buttons["Delete"].exists || app.menuItems["Delete"].exists, "context menu offers Delete")
             shot(app, 2, "\(mode)-context-menu")
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.45)).tap(); sleep(2)
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.45)).tap()
+            waitUntil(5) { !app.buttons["Copy username"].exists && !app.menuItems["Copy username"].exists }
             XCTAssertFalse(app.buttons["Copy username"].exists || app.menuItems["Copy username"].exists, "menu dismissed")
-            // Swipe: Delete + More.
-            row.swipeLeft(); sleep(1)
+            // Swipe: Delete + More (the row must be on screen and clear of the bottom bar for the swipe to reach it).
+            for _ in 0 ..< 4 where !row.isHittable { app.swipeDown() }
+            row.swipeLeft()
+            _ = app.buttons["Delete"].waitForExistence(timeout: 5)
             XCTAssertTrue(app.buttons["Delete"].exists, "swipe offers Delete")
             XCTAssertTrue(app.buttons["More options"].exists, "swipe offers More options")
             shot(app, 3, "\(mode)-swipe")
@@ -90,7 +93,7 @@ final class ItemListActionsTests: PassYUITestCase {
         addLogin(app, name: b, user: "b@example.test", password: "x2")
         addLogin(app, name: c, user: "c@example.test", password: "x3")
         focusSearch(app)
-        app.searchFields.firstMatch.typeText("Qzx")
+        typeSearch(app, "Qzx")
         XCTAssertTrue(app.staticTexts[a].waitForExistence(timeout: 10), "search finds the items")
         shot(app, 1, "search-results")
         // Context menu: Delete is offered.

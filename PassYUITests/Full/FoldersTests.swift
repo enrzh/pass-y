@@ -18,7 +18,7 @@ final class FoldersTests: PassYUITestCase {
             add.tap()
             let field = app.textFields.firstMatch
             XCTAssertTrue(field.waitForExistence(timeout: 10), "folder name field")
-            field.tap(); field.typeText("PassY Folder \(String(format: "%02d", i))")
+            field.replaceText("PassY Folder \(String(format: "%02d", i))")
             app.buttons["SaveButton"].firstMatch.tap()
             XCTAssertTrue(add.waitForExistence(timeout: 10), "back on the folders list")
             sleep(1)

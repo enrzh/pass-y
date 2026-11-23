@@ -2,7 +2,6 @@ import XCTest
 
 /// Add, open, edit and delete an item (the critical item paths).
 final class ItemCrudTests: PassYUITestCase {
-    // MARK: 05 Generator
     /// The add (+) menu in the bottom bar opens and offers the item types and Folder (iPhone and iPad).
     /// Formerly `PassYFlowTests.test08_addMenuOpensWithEntries`.
     func test_addMenuOpensWithEntries() {
@@ -11,7 +10,8 @@ final class ItemCrudTests: PassYUITestCase {
         let add = app.buttons["AddItemFloatingActionButton"]
         XCTAssertTrue(waitFor(add), "add button is on screen")
         XCTAssertGreaterThanOrEqual(add.frame.width, 40, "the add button exposes a full-size tap target (frame \(add.frame))")
-        add.tap(); sleep(2)
+        add.tap()
+        _ = menuButton(app, id: "none", label: "Login").waitForExistence(timeout: 5)
         attach(app, "08-add-menu")
         for title in ["Login", "Card", "Identity", "Folder"] {
             let entry = app.descendants(matching: .any)
@@ -34,9 +34,9 @@ final class ItemCrudTests: PassYUITestCase {
         let name = app.textFields["ItemNameEntry"]
         XCTAssertTrue(waitFor(name))
         app.dismissNewLoginCard()
-        name.tap(); name.typeText(itemName)
+        name.replaceText(itemName)
         let user = app.textFields["LoginUsernameEntry"]
-        user.tap(); user.typeText("tester@example.test")
+        user.replaceText("tester@example.test")
         let pw = app.secureTextFields["LoginPasswordEntry"]
         pw.tap(); pw.typeText("Sup3r-Secret-Pass")
         attach(app, "03-add-login")
@@ -57,7 +57,7 @@ final class ItemCrudTests: PassYUITestCase {
         let search = app.searchFields.firstMatch
         focusSearch(app) // the first tap on the bottom search bar is sometimes ignored; make sure the keyboard is up
         // Type slowly: with a 2000-item vault the main thread is busy after each keystroke and fast typing drops characters.
-        for ch in itemName { app.typeText(String(ch)); usleep(150_000) }
+        typeSearch(app, itemName)
         attach(app, "03-search")
         let hit = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", itemName)).firstMatch
         XCTAssertTrue(waitFor(hit), "search finds the item (search field value: \(search.value as? String ?? "nil"))")
@@ -76,6 +76,7 @@ final class ItemCrudTests: PassYUITestCase {
         // middle of the text; tap at the trailing edge to put the caret at the end, then append.
         editName.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
         editName.typeText(" Edited")
+        editName.ensureText("\(itemName) Edited")
         app.buttons["SaveButton"].firstMatch.tap()
         XCTAssertTrue(waitFor(app.staticTexts["\(itemName) Edited"]), "edit saved")
         attach(app, "03-edited")

@@ -5,6 +5,7 @@ final class IPadTests: PassYUITestCase {
     /// iPad shots in the simulator's current appearance, portrait and landscape (no sidebar: avatar menu shell).
     /// Formerly `PassYUiR5ShotsTests.test_ipadShell`.
     func test_shellPortraitAndLandscape() {
+        addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
         let app = launchApp()
         ensureUnlockedVault(app)
         for (name, orientation) in [("portrait", UIDeviceOrientation.portrait), ("landscape", UIDeviceOrientation.landscapeLeft)] {

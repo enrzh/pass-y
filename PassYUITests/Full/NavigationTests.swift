@@ -175,7 +175,7 @@ final class NavigationTests: PassYUITestCase {
         attach(app, "20-folders-bar")
         // Typing in the bar on a page that cannot search opens the vault search with results.
         focusSearch(app)
-        for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+        typeSearch(app, "GitHub")
         XCTAssertTrue(app.staticTexts["GitHub"].firstMatch.waitForExistence(timeout: 20), "searching from a pushed settings page shows vault results")
         XCTAssertTrue(app.staticTexts["My vault"].waitForExistence(timeout: 5), "search routed to the vault")
         attach(app, "20-search-from-folders")
@@ -214,7 +214,7 @@ final class NavigationTests: PassYUITestCase {
         assertNoOptional("vault")
         // Vault search results: last row above the bottom bar.
         focusSearch(app)
-        for ch in "GitHub" { app.typeText(String(ch)); usleep(150_000) }
+        typeSearch(app, "GitHub")
         XCTAssertTrue(app.staticTexts["GitHub"].firstMatch.waitForExistence(timeout: 20), "search finds GitHub")
         // The search key closes the keyboard so the bar sits at the bottom again.
         let searchKey = app.keyboards.buttons["Search"]

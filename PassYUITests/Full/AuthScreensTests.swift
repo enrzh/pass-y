@@ -7,21 +7,13 @@ final class AuthScreensTests: PassYUITestCase {
     /// What is reachable is printed as `R6REACH`; each screen found is asserted.
     /// Formerly `PassYUiR6ShotsTests.test_authPagesInRunningApp`.
     func test_loginSubscreens() {
-        let mode = ProcessInfo.processInfo.environment["PASSY_MODE"] ?? "light"
+        // Formerly one chain step per appearance (TEST_RUNNER_PASSY_MODE); now both in one run unless PASSY_MODE is set.
+        for mode in passYModes() {
         setPassYAppearance(mode == "dark" ? .dark : .light)
         let app = launchApp()
-        let logIn = app.buttons["Log in"]
-        XCTAssertTrue(logIn.waitForExistence(timeout: 20)); logIn.tap()
-        let server = app.textFields["ServerUrlEntry"]
-        if server.waitForExistence(timeout: 10) {
-            server.tap(); server.typeText(TestAccount.server)
-            app.buttons["SaveButton"].firstMatch.tap(); sleep(2)
-        }
-        let email = app.textFields["LoginEmailAddressEntry"]
-        XCTAssertTrue(email.waitForExistence(timeout: 10))
-        for _ in 0 ..< 10 where !email.isHittable { sleep(1) }
-        email.tap(); email.typeText("passy-2fa@example.test")
-        app.buttons["ContinueButton"].tap()
+        // Deterministic start from any state: log out if needed, set the server, enter the e-mail (verified). The intro
+        // ("Log in") and the server sheet of a fresh install are asserted by AuthLandingTests.
+        reachLoginPasswordScreen(app, email: TestAccount.twoFactorEmail)
         let pw = app.secureTextFields["LoginMasterPasswordEntry"]
         XCTAssertTrue(pw.waitForExistence(timeout: 15), "login screen")
         shot(app, 40, "\(mode)-login")
@@ -48,6 +40,7 @@ final class AuthScreensTests: PassYUITestCase {
             if ok.waitForExistence(timeout: 3) { ok.tap(); sleep(1); shot(app, 47, "\(mode)-sso-after-alert") }
             leaveScreen(app)
         }
+        }
         setPassYAppearance(.light)
     }
 
@@ -55,14 +48,16 @@ final class AuthScreensTests: PassYUITestCase {
     /// server knows this app id, so the login screen shows the button and the screen can be opened and shot.
     /// Formerly `PassYUiR6ShotsTests.test_loginWithDeviceAfterLogout`.
     func test_loginWithDeviceAfterLogout() {
-        let mode = ProcessInfo.processInfo.environment["PASSY_MODE"] ?? "light"
+        // Formerly four chain steps (light, dark, light-b, dark-b); now light and dark in one run unless PASSY_MODE is set.
+        for mode in passYModes() {
         setPassYAppearance(mode == "dark" ? .dark : .light)
         let app = launchApp()
         ensureUnlockedVault(app)
         goTo(app, "Settings")
         let row = app.buttons["SettingsAccountRow"]
         XCTAssertTrue(row.waitForExistence(timeout: 10))
-        row.tap(); sleep(1)
+        row.tap()
+        XCTAssertTrue(app.buttons["Log out"].waitForExistence(timeout: 5), "account menu offers Log out")
         app.buttons["Log out"].tap()
         let yes = app.alerts.buttons["Yes"]
         XCTAssertTrue(yes.waitForExistence(timeout: 5)); yes.tap()
@@ -70,8 +65,9 @@ final class AuthScreensTests: PassYUITestCase {
         let logIn = app.buttons["Log in"]
         if !email.waitForExistence(timeout: 15), logIn.waitForExistence(timeout: 5) { logIn.tap() }
         XCTAssertTrue(email.waitForExistence(timeout: 15))
-        for _ in 0 ..< 10 where !email.isHittable { sleep(1) }
+        waitUntil(10) { email.isHittable }
         email.replaceText(TestAccount.email)
+        PassYSession.loginEmail = TestAccount.email
         app.buttons["ContinueButton"].tap()
         let device = app.buttons["LogInWithAnotherDeviceButton"]
         let offered = device.waitForExistence(timeout: 30)
@@ -81,6 +77,7 @@ final class AuthScreensTests: PassYUITestCase {
         device.tap(); sleep(4)
         shot(app, 51, "\(mode)-login-with-device")
         print("R6REACH login-with-device screen buttons: " + app.buttons.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
+        }
         setPassYAppearance(.light)
     }
 
@@ -89,12 +86,15 @@ final class AuthScreensTests: PassYUITestCase {
     func test_registrationStart() {
         let t = tag
         let app = launchApp()
+        // Runs after other tests in the same app: log out first (the landing then has the server set already).
+        logOutIfLoggedIn(app)
         // A fresh install starts on the intro carousel; "Log in" leads to the landing screen.
-        if app.buttons["Log in"].waitForExistence(timeout: 10) { app.buttons["Log in"].tap() }
-        // The server sheet is presented automatically on a fresh install.
+        if app.buttons["Log in"].waitForExistence(timeout: 3) { app.buttons["Log in"].tap() }
+        // The server sheet is presented automatically on a fresh install (state driven: sheet or landing, no fixed 40 s).
         let server = app.textFields["ServerUrlEntry"]
-        if waitFor(server, timeout: 40) {
-            server.tap(); server.typeText(TestAccount.server)
+        waitUntil(40) { server.exists || app.buttons["CreateAccountButton"].exists }
+        if server.exists {
+            server.replaceText(TestAccount.server)
             app.buttons["SaveButton"].firstMatch.tap()
         }
         let create = app.buttons["CreateAccountButton"]
@@ -108,9 +108,9 @@ final class AuthScreensTests: PassYUITestCase {
         sleep(2)
         attachDarkIfRendered(app, "\(t)-reg-start-dark")
         setPassYAppearance(.light)
-        email.tap(); email.typeText("passy-ir-new@example.test")
+        email.replaceText("passy-ir-new@example.test")
         let name = app.textFields["NameEntry"]
-        name.tap(); name.typeText("IR Test")
+        name.replaceText("IR Test")
         attach(app, "\(t)-reg-start-filled")
         app.keyboards.buttons["return"].firstMatch.tap()
         // The landing screen below the registration form also has a "ContinueButton": take the visible, hittable one.

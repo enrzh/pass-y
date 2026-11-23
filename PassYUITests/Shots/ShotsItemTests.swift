@@ -133,7 +133,7 @@ final class ShotsItemTests: PassYUITestCase {
                 let itemName = "AA Qzx \(type.replacingOccurrences(of: " ", with: "")) \(token)"
                 if (app.searchFields.firstMatch.value as? String) != "Qzx" {
                     focusSearch(app)
-                    for ch in "Qzx" { app.typeText(String(ch)); usleep(150_000) }
+                    typeSearch(app, "Qzx")
                 }
                 let row = app.staticTexts[itemName]
                 XCTAssertTrue(row.waitForExistence(timeout: 10), "search finds \(itemName)")

@@ -50,7 +50,9 @@ class PassYUITestCase: XCTestCase {
         let confirm = app.alerts.buttons["Yes"].exists ? app.alerts.buttons["Yes"] : app.alerts.buttons.element(boundBy: 1)
         XCTAssertTrue(waitFor(confirm, timeout: 5))
         confirm.tap()
-        sleep(3)
+        // State driven instead of a fixed 3 s: the item sheet closes after the delete went through.
+        _ = waitUntil(20) { !app.buttons["CipherOptionsButton"].exists && !app.alerts.firstMatch.exists }
+        usleep(500_000)
     }
 
     /// Opens the seeded "GitHub" login through the bottom search bar and returns once the item sheet is up.
@@ -201,7 +203,7 @@ class PassYUITestCase: XCTestCase {
         entry.tap()
         let field = app.textFields["FolderNameField"].exists ? app.textFields["FolderNameField"] : app.textFields.firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 10))
-        field.tap(); field.typeText(name)
+        field.replaceText(name)
         app.buttons["SaveButton"].firstMatch.tap()
         _ = waitFor(app.buttons["AddItemFloatingActionButton"])
         sleep(2)

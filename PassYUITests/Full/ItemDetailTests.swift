@@ -12,7 +12,7 @@ final class ItemDetailTests: PassYUITestCase {
         let name = app.textFields["ItemNameEntry"]
         XCTAssertTrue(waitFor(name))
         app.dismissNewLoginCard()
-        name.tap(); name.typeText("PassY TOTP Item")
+        name.replaceText("PassY TOTP Item")
         let setup = app.buttons["SetupTotpButton"]
         if !setup.exists { app.swipeUp() }
         let totp = app.secureTextFields["LoginTotpEntry"].exists ? app.secureTextFields["LoginTotpEntry"] : app.textFields["LoginTotpEntry"]
@@ -21,7 +21,7 @@ final class ItemDetailTests: PassYUITestCase {
         }
         if !totp.exists, setup.exists { setup.tap() }
         guard totp.waitForExistence(timeout: 10) else { dump(app, "totp"); return XCTFail("no TOTP field") }
-        totp.tap(); totp.typeText("JBSWY3DPEHPK3PXP")
+        totp.replaceText("JBSWY3DPEHPK3PXP")
         attach(app, "04-add-totp")
         app.buttons["SaveButton"].firstMatch.tap()
         XCTAssertTrue(waitFor(app.staticTexts["PassY TOTP Item"]))
@@ -59,20 +59,24 @@ final class ItemDetailTests: PassYUITestCase {
         user.press(forDuration: 1.2); sleep(1)
         let copy = app.buttons["Copy"].exists ? app.buttons["Copy"] : app.menuItems["Copy"]
         XCTAssertTrue(copy.waitForExistence(timeout: 5), "context menu offers Copy")
-        copy.tap(); sleep(1)
+        // The toast lives 3 s (ToastView): poll right after the tap (the former fixed sleep(1) plus a slow snapshot under
+        // load could miss it), and wait for it to go before the second copy instead of a fixed 4 s.
+        copy.tap()
         XCTAssertTrue(app.staticTexts.matching(copied).firstMatch.waitForExistence(timeout: 5), "context menu copy shows a copied toast")
         attach(app, "12-item-copy-toast")
-        sleep(4)
-        app.descendants(matching: .any)["LoginUsernameEntry"].tap(); sleep(1)
+        _ = waitForDisappearance(of: app.staticTexts.matching(copied).firstMatch, timeout: 10)
+        app.descendants(matching: .any)["LoginUsernameEntry"].tap()
         XCTAssertTrue(app.staticTexts.matching(copied).firstMatch.waitForExistence(timeout: 5), "tapping the row copies and shows the toast")
         attach(app, "12-item-row-tap-toast")
         XCTAssertTrue(app.buttons["CheckPasswordButton"].waitForExistence(timeout: 5), "breach check is a plain row")
         let star = app.buttons["FavoriteToolbarButton"]
         XCTAssertTrue(star.exists, "favorite star in the toolbar")
         let before = star.value as? String
-        star.tap(); sleep(3)
+        star.tap()
+        waitUntil(15) { (app.buttons["FavoriteToolbarButton"].value as? String) != before }   // saved through the server
         XCTAssertNotEqual(app.buttons["FavoriteToolbarButton"].value as? String, before, "tapping the star toggles favorite")
-        app.buttons["FavoriteToolbarButton"].tap(); sleep(3)
+        app.buttons["FavoriteToolbarButton"].tap()
+        waitUntil(15) { (app.buttons["FavoriteToolbarButton"].value as? String) == before }
         XCTAssertEqual(app.buttons["FavoriteToolbarButton"].value as? String, before, "toggled back")
     }
 
@@ -161,9 +165,9 @@ final class ItemDetailTests: PassYUITestCase {
         if ok.waitForExistence(timeout: 3) { ok.tap() }
         let nameField = app.textFields["ItemNameEntry"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 10))
-        nameField.tap(); nameField.typeText(name)
+        nameField.replaceText(name)
         let user = app.textFields["LoginUsernameEntry"]
-        user.tap(); user.typeText("pw@example.test")
+        user.replaceText("pw@example.test")
         typePassword(app, password)
         app.buttons["SaveButton"].firstMatch.tap()
         _ = app.buttons["Close"].waitForExistence(timeout: 8)
@@ -174,7 +178,7 @@ final class ItemDetailTests: PassYUITestCase {
         func openEdit() {
             if (app.searchFields.firstMatch.value as? String) != "Qzx" {
                 focusSearch(app)
-                for ch in "Qzx" { app.typeText(String(ch)); usleep(150_000) }
+                typeSearch(app, "Qzx")
             }
             let row = app.staticTexts[name]
             XCTAssertTrue(row.waitForExistence(timeout: 10), "search finds the item")

@@ -39,10 +39,10 @@ final class SendTests: PassYUITestCase {
         (menuText.exists ? menuText : text).tap()
         let nameField = app.textFields["SendNameEntry"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 10), "send name field")
-        nameField.tap(); nameField.typeText(name)
+        nameField.replaceText(name)
         let body = app.textViews["SendTextContentEntry"]
         if !body.exists { for _ in 0 ..< 3 where !body.exists { app.swipeUp() } }
-        body.tap(); body.typeText("secret for \(name)")
+        body.replaceText("secret for \(name)")
         app.buttons["SaveButton"].firstMatch.tap()
         sleep(4)
         attach(app, "16-after-save-share-sheet")

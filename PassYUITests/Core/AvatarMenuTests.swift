@@ -8,7 +8,7 @@ final class AvatarMenuTests: PassYUITestCase {
     func test_menuEntriesServerUrlNoAccountEntries() {
         let app = launchApp()
         ensureUnlockedVault(app)
-        app.buttons["CurrentActiveAccount"].tap(); sleep(1)
+        XCTAssertTrue(openAvatarMenu(app), "avatar menu opens")
         for label in ["Send", "Generator", "Settings"] {
             XCTAssertTrue(avatarMenuEntry(app, label).exists, "menu entry \(label)")
         }
