@@ -154,6 +154,13 @@ public class AppProcessor {
         coordinator.start()
         self.coordinator = coordinator
 
+        #if DEBUG
+        // From the first screen on (unlock, login), not only once the vault shell exists.
+        if let window {
+            PassYAnimationDump.installOnce { [weak window] in window?.windowScene }
+        }
+        #endif
+
         Task {
             for await appTheme in await services.stateService.appThemePublisher().values {
                 navigator.appTheme = appTheme

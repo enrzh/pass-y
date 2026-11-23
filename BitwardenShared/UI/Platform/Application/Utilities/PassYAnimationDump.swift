@@ -38,7 +38,7 @@ enum PassYAnimationDump {
                 let described = keys.compactMap { key -> String? in
                     guard let animation = layer.animation(forKey: key) else { return nil }
                     let repeating = animation.repeatCount == .infinity || animation.repeatDuration == .infinity
-                    return "\(key)\(repeating ? " (repeats forever)" : "") \(type(of: animation))"
+                    return "\(key)\(repeating ? " (repeats forever)" : "") \(type(of: animation)) duration=\(animation.duration)"
                 }
                 lines.append("\(path) <\(type(of: layer))> hidden=\(layer.isHidden) opacity=\(layer.opacity) \(described)\(owner(of: layer))")
             }
@@ -48,6 +48,7 @@ enum PassYAnimationDump {
         }
         for scene in [sceneProvider?()].compactMap({ $0 }) {
             for (index, window) in scene.windows.enumerated() {
+                lines.append("window w\(index)(\(type(of: window))) hidden=\(window.isHidden) alpha=\(window.alpha) level=\(window.windowLevel.rawValue)")
                 visit(window.layer, "w\(index)(\(type(of: window)))")
             }
         }
@@ -78,10 +79,19 @@ enum PassYAnimationDump {
     @MainActor
     static func dump() {
         let lines = report()
-        let text = lines.isEmpty ? "no running animations" : lines.joined(separator: "\n")
-        NSLog("ANIMDUMP %d\n%@", lines.count, text)
+        let animated = lines.filter { !$0.hasPrefix("window ") }
+        let text = (animated.isEmpty ? ["no running animations"] : []) + lines
+        NSLog("ANIMDUMP %d\n%@", animated.count, text.joined(separator: "\n"))
+        // Appended (one block per trigger), so several stalls of one run stay readable.
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("passy-animations.txt")
-        try? text.write(to: url, atomically: true, encoding: .utf8)
+        let block = "=== \(Date()) ANIMDUMP \(animated.count)\n" + text.joined(separator: "\n") + "\n"
+        if let handle = try? FileHandle(forWritingTo: url) {
+            handle.seekToEndOfFile()
+            handle.write(Data(block.utf8))
+            try? handle.close()
+        } else {
+            try? block.write(to: url, atomically: true, encoding: .utf8)
+        }
     }
 }
 #endif
