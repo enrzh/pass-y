@@ -151,9 +151,11 @@ struct VaultGroupState: Equatable, Sendable {
     /// The search vault filter used to display a single or all vaults for the user.
     var searchVaultFilterType = VaultFilterType.allVaults
 
-    /// Whether the archive Premium subscription ended card should be shown.
+    /// Whether the archive Premium subscription ended card should be shown. Always `false` in
+    /// Pass-Y: its "Restart Premium" button would open the server's upgrade page and Pass-Y never
+    /// offers upsells.
     var showArchivePremiumSubscriptionEndedCard: Bool {
-        !hasPremium && group == .archive
+        false
     }
 
     /// Whether to show the special web icons.

@@ -33,7 +33,7 @@ extension VaultRoute: PremiumUpgradeRoute {}
 ///
 protocol PremiumUpgradeHelper { // sourcery: AutoMockable
     /// Navigates to the Premium upgrade screen. Shows the upgrade pending alert instead if an upgrade
-    /// is already pending, or opens the web vault upgrade URL if in-app upgrade isn't available.
+    /// is already pending. Does nothing if in-app upgrade isn't available (no web fallback in Pass-Y).
     ///
     /// - Parameters:
     ///   - onConfirmed: An optional closure called when the upgrade is confirmed.
@@ -119,10 +119,9 @@ class DefaultPremiumUpgradeHelper<Route: PremiumUpgradeRoute, Event>: PremiumUpg
     // MARK: Methods
 
     func navigateToPremiumUpgrade(onConfirmed: (() async -> Void)? = nil) async {
-        guard await services.billingRepository.isInAppUpgradeAvailable() else {
-            setURL(services.environmentService.upgradeToPremiumURL)
-            return
-        }
+        // Pass-Y never offers Premium: without the in-app path there is no web fallback either
+        // (the server's upgrade URL is never opened). `setURL` is kept only for call-site parity.
+        guard await services.billingRepository.isInAppUpgradeAvailable() else { return }
         await startInAppPremiumUpgrade(onConfirmed: onConfirmed)
     }
 

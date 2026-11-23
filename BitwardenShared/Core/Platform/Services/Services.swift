@@ -69,7 +69,6 @@ typealias Services = HasAPIService
     & HasTextAutofillHelperFactory
     & HasTimeProvider
     & HasTrustDeviceService
-    & HasTwoStepLoginService
     & HasUserSessionStateService
     & HasUserVerificationHelperFactory
     & HasVaultRepository
@@ -464,13 +463,6 @@ protocol HasTOTPService {
 protocol HasTrustDeviceService {
     /// A service used to handle device trust.
     var trustDeviceService: TrustDeviceService { get }
-}
-
-/// Protocol for an object that provides a `TwoStepLoginService`.
-///
-protocol HasTwoStepLoginService {
-    /// The service used by the application to generate a two step login URL.
-    var twoStepLoginService: TwoStepLoginService { get }
 }
 
 /// Protocol for an object that provides a `UserVerificationHelperFactory`.

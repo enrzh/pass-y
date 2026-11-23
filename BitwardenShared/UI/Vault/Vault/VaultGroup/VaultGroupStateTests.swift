@@ -160,15 +160,14 @@ class VaultGroupStateTests: BitwardenTestCase {
         XCTAssertNil(subjectTotp.noItemsTitle)
     }
 
-    /// `showArchivePremiumSubscriptionEndedCard` returns `true` when the user doesn't have Premium
-    /// and is viewing the archive group.
+    /// `showArchivePremiumSubscriptionEndedCard` is always `false` (Pass-Y never shows Premium upsells).
     func test_showArchivePremiumSubscriptionEndedCard() {
         let subjectNoPremiumArchive = VaultGroupState(
             group: .archive,
             hasPremium: false,
             vaultFilterType: .myVault,
         )
-        XCTAssertTrue(subjectNoPremiumArchive.showArchivePremiumSubscriptionEndedCard)
+        XCTAssertFalse(subjectNoPremiumArchive.showArchivePremiumSubscriptionEndedCard)
 
         let subjectHasPremiumArchive = VaultGroupState(
             group: .archive,
