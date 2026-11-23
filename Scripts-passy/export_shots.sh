@@ -1,6 +1,7 @@
 #!/bin/bash
 # usage: export_shots.sh <xcresult> <destdir>   exports the named screenshot attachments as PNG
-src=$(mktemp -d "$HOME/Library/Caches/passy-vw/exp.XXXXXX"); mkdir -p "$2"
+source "$(dirname "$0")/env.sh"
+src=$(mktemp -d "$PASSY_SCRATCH/exp.XXXXXX"); mkdir -p "$2"
 xcrun xcresulttool export attachments --path "$1" --output-path "$src" >/dev/null 2>&1
 python3 - "$2" "$src" <<'P'
 import json,sys,shutil,re

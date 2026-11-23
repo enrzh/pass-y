@@ -1,83 +1,66 @@
 import XCTest
 
-/// Audit screenshots of the main screens in light and dark mode (used for the before/after comparison of ui-r3).
-/// Works with the tab bar (before) and the avatar menu (after). Screenshots are kept as xcresult attachments named
-/// `<PASSY_SHOT_TAG>-<light|dark>-<nn>-<screen>`. Needs the throwaway Vaultwarden and a fresh install for the first test.
-final class PassYAuditShotsTests: XCTestCase {
-    override func setUp() { continueAfterFailure = true }
-
-    private var tag: String { ProcessInfo.processInfo.environment["PASSY_SHOT_TAG"] ?? "audit" }
-
-    /// Switches the top-level screen with the tab bar (before) or the avatar menu (after).
-    private func open(_ app: XCUIApplication, _ label: String) {
-        let bar = app.tabBars.buttons[label]
-        if bar.exists { bar.tap(); return }
-        let avatar = app.buttons["CurrentActiveAccount"]
-        if avatar.waitForExistence(timeout: 10) { avatar.tap() }
-        let item = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
-        if item.waitForExistence(timeout: 5) { item.tap() }
-    }
-
-    private func shot(_ app: XCUIApplication, _ mode: String, _ n: Int, _ name: String) {
-        sleep(1)
-        attach(app, "\(tag)-\(mode)-\(String(format: "%02d", n))-\(name)")
-    }
-
-    private func back(_ app: XCUIApplication) {
-        let b = app.navigationBars.buttons.firstMatch
-        if b.exists { b.tap() }
-        sleep(1)
-    }
-
-    /// Fresh install: landing, server sheet, login e-mail and master password screens.
-    func test_a_onboarding() {
-        for mode in ["light", "dark"] {
-            setPassYAppearance(mode == "dark" ? .dark : .light)
-            let app = launchApp()
-            XCTAssertTrue(waitFor(app.buttons["Log in"]), "landing")
-            shot(app, mode, 1, "landing")
-            if app.buttons["Create account"].exists {
-                app.buttons["Create account"].tap()
-                if waitFor(app.textFields["EmailAddressEntry"], timeout: 10) {
-                    shot(app, mode, 5, "registration")
-                    let cancel = app.buttons["CancelButton"].firstMatch
-                    if cancel.exists { cancel.tap() } else { app.navigationBars.buttons.firstMatch.tap() }
-                    sleep(1)
-                }
-            }
-            app.buttons["Log in"].tap()
-            if waitFor(app.textFields["ServerUrlEntry"], timeout: 10) {
-                shot(app, mode, 2, "server-setup")
-                app.buttons["CancelButton"].firstMatch.tap()
-            }
-            if mode == "light" {
-                // Set the server once, then show the e-mail and password screens.
-                let dropdown = app.buttons["RegionSelectorDropdown"]
-                if waitFor(dropdown, timeout: 10) { dropdown.tap() }
-                let server = app.textFields["ServerUrlEntry"]
-                if waitFor(server, timeout: 10) {
-                    server.tap(); server.typeText(TestAccount.server)
-                    app.buttons["SaveButton"].firstMatch.tap(); sleep(2)
-                }
-            }
-            let email = app.textFields["LoginEmailAddressEntry"]
-            if waitFor(email, timeout: 10), email.isHittable {
-                if mode == "light" { email.tap(); email.typeText(TestAccount.email) }
-                shot(app, mode, 3, "login-email")
-                if mode == "light", app.buttons["ContinueButton"].isEnabled {
-                    app.buttons["ContinueButton"].tap()
-                    if waitFor(app.secureTextFields["LoginMasterPasswordEntry"], timeout: 15) {
-                        shot(app, mode, 4, "login-password")
-                    }
-                }
-            }
-            app.terminate()
+/// Audit screenshots of the main screens, light and dark. Never gating.
+final class ShotsMainScreensTests: PassYUITestCase {
+    /// Formerly `PassYShotsTests.test_shots`.
+    func test_mainScreens() {
+        addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
+        let tag = ProcessInfo.processInfo.environment["PASSY_SHOT_TAG"] ?? "shot"
+        let env = ProcessInfo.processInfo.environment
+        if env["PASSY_SHOT_MODE"] == "dark" { setPassYAppearance(.dark) }
+        defer { setPassYAppearance(.light) }
+        let app = launchApp(extraArguments: env["PASSY_SHOT_XXXL"] == "1"
+            ? ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] : [])
+        ensureUnlockedVault(app)
+        // seed_ciphers.py creates GitHub (with TOTP), Netflix and Bank; only add them through the UI when missing.
+        if env["PASSY_SKIP_SEED"] != "1", !app.staticTexts["GitHub"].exists,
+           !app.buttons["CategoryTile_totp"].waitForExistence(timeout: 5) {
+            addLogin(app, name: "GitHub", user: "octo@example.test", password: "Gh-Pass-1234", totp: "JBSWY3DPEHPK3PXP")
+            addLogin(app, name: "Netflix", user: "movie@example.test", password: "Nf-Pass-5678")
+            addLogin(app, name: "Bank", user: "me@example.test", password: "Bk-Pass-9012")
         }
-        setPassYAppearance(.light)
+        sleep(2)
+        attach(app, "\(tag)-1-home")
+        XCUIDevice.shared.orientation = .landscapeLeft; sleep(2)
+        let land = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        land.name = "\(tag)-1b-home-landscape"; land.lifetime = .keepAlways; add(land)
+        XCUIDevice.shared.orientation = .portrait; sleep(1)
+        if !app.staticTexts["GitHub"].exists {
+            // With a large vault the item is below the fold: find it through the bottom search bar.
+            focusSearch(app)
+            typeSearch(app, "GitHub")
+            _ = app.staticTexts["GitHub"].waitForExistence(timeout: 20)
+        }
+        if app.staticTexts["GitHub"].exists {
+            app.staticTexts["GitHub"].firstMatch.tap()
+            sleep(2)
+            attach(app, "\(tag)-2-detail")
+            let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
+            if close.exists { close.firstMatch.tap() }
+            if app.buttons["Cancel"].waitForExistence(timeout: 3) { app.buttons["Cancel"].tap() }
+        }
+        goTo(app, "Generator"); sleep(1)
+        attach(app, "\(tag)-3-generator")
+        goTo(app, "Settings"); sleep(1)
+        attach(app, "\(tag)-4-settings")
+        goTo(app, "My vault")
+        // iOS 26 shows the search bar cancel as an X button (label "Cancel" or "Close" depending on the OS build).
+        // The cancel/X button belongs to the bottom search bar (other "Close" buttons, e.g. sheets, must not match).
+        let cancel = app.buttons["VaultSearchCancel"]
+        attach(app, "\(tag)-4a-before-cancel")
+        if cancel.waitForExistence(timeout: 3) { cancel.tap(); sleep(2) }
+        attach(app, "\(tag)-4b-before-add")
+        if !app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 5) {
+            XCTFail("Add button missing after closing the search\n\(app.debugDescription)")
+        }
+        app.buttons["AddItemFloatingActionButton"].tap()
+        tapNewLoginMenuItem(app); sleep(2)
+        attach(app, "\(tag)-5-add")
     }
 
     /// Vault, lists, settings, generator, send, item view and add form in both appearances.
-    func test_b_mainScreens() {
+    /// Formerly `PassYAuditShotsTests.test_b_mainScreens`.
+    func test_auditMainScreens() {
         for mode in ["light", "dark"] {
             setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
@@ -119,7 +102,7 @@ final class PassYAuditShotsTests: XCTestCase {
             }
             // Search.
             focusSearch(app)
-            for ch in "Git" { app.typeText(String(ch)); usleep(150_000) }
+            typeSearch(app, "Git")
             sleep(2)
             shot(app, mode, n, "search"); n += 1
             if app.buttons["VaultSearchCancel"].exists { app.buttons["VaultSearchCancel"].tap(); sleep(1) }
@@ -167,7 +150,8 @@ final class PassYAuditShotsTests: XCTestCase {
     }
 
     /// Locked vault: master password unlock screen in both appearances.
-    func test_c_unlock() {
+    /// Formerly `PassYAuditShotsTests.test_c_unlock`.
+    func test_auditUnlock() {
         for mode in ["light", "dark"] {
             setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
@@ -183,7 +167,8 @@ final class PassYAuditShotsTests: XCTestCase {
     }
 
     /// Send: add form (text) and the typed list.
-    func test_d_send() {
+    /// Formerly `PassYAuditShotsTests.test_d_send`.
+    func test_auditSend() {
         for mode in ["light", "dark"] {
             setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
@@ -209,7 +194,8 @@ final class PassYAuditShotsTests: XCTestCase {
     }
 
     /// Password history, item attachments and the item "..." menu.
-    func test_e_sheets() {
+    /// Formerly `PassYAuditShotsTests.test_e_sheets`.
+    func test_auditSheets() {
         for mode in ["light", "dark"] {
             setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()

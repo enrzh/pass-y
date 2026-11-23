@@ -1,39 +1,36 @@
 #!/bin/bash
-# UI chain (generic; round tag in ROUND, default r9), started detached (see start_chain below). PID file: $O/chain.pid, log: $O/chain.log,
-# result per step: $O/summary.txt. Never ends foreign processes. Sim: own PassY-${ROUND_UP}b (booted only for the duration of a
-# step, shut down afterwards), PassY-2FA for the 2FA step, an own iPad simulator for the iPad steps.
-# Gate (only with PASSY_LOAD_GATE=1): 1-minute load < 25 for 3 minutes (sampled every 30 s) before the first step, < 25 before every further step.
+# UI test chain by tier. usage (start detached, e.g. `nohup ... &`):
+#   TIER=core|full|shots [PASSY_SCRATCH=... PASSY_DD=... VW_PORT=... PASSY_SIM_PREFIX=...] Scripts-passy/ui_chain.sh
+#
+# Tiers (see Docs/Testing.md, "Pass-Y UI tests"):
+#   core   PassYUITests/Core: critical paths, ONE simulator boot, ONE install, ONE xcodebuild run, one Vaultwarden,
+#          the app is launched and logged in once and stays running between tests. Gating, no retry.
+#   full   core + PassYUITests/Full (phone) + Full/iPad (own iPad simulator) + Full/Perf (2000 item account). Gating.
+#   shots  PassYUITests/Shots: screenshot export only (into $O/shots/<step>), never gating.
+#
+# Strict PASS per step (unchanged): `** TEST SUCCEEDED **` (`** TEST EXECUTE SUCCEEDED **` for test-without-building),
+# no "Test Case ... failed", no "Failing tests:" entry, no TEST FAILED marker, no runner restart, and at least the
+# expected number of passed tests (counted from the sources of the step's classes). A retry only with PASSY_RETRIES=1;
+# a step that is green only after a retry is FLAKY and the tier is then not PASS.
+# Before every test run the chain waits (PID based, max 45 min) until no foreign xcodebuild runs. It never ends a
+# foreign process: only PIDs it started itself (xcodebuild, Vaultwarden, the screenshot driver).
+# Files: $O/chain.pid, $O/chain.log, $O/summary.txt (one line per step), $O/<step>.log.
 export HOME=${HOME:-/Users/enrico}
-ROUND="${ROUND:-r9}"; ROUND_UP=$(echo "$ROUND" | tr a-z A-Z)   # (bash 3.2 on macOS: no ${var^^})   # tag for sims, screenshot names and the UiR<N> test class
-R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"                       # the worktree of the round
-S="${PASSY_SCRATCH:-$HOME/Library/Caches/passy-vw-scratch}"; O="$S/out"      # scratch: logs, result bundles, Vaultwarden data
-export PASSY_SCRATCH="$S" PASSY_OUT="$O" PASSY_REPO="$R" PASSY_DD="${PASSY_DD:-$HOME/Library/Caches/passy-vw-dd}"
-VW_BIN="${VW_BIN:-/Users/enrico/Documents/GitHub/vaultwarden-build/vaultwarden}"; PORT="${VW_PORT:-8089}"   # override for parallel runs (own server per run)
-export VW_PORT=$PORT TEST_RUNNER_PASSY_SERVER="http://localhost:$PORT"
-mkdir -p "$O"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
+TIER="${TIER:-core}"
+R="$PASSY_REPO"; S="$PASSY_SCRATCH"; O="$PASSY_OUT"; PORT="$VW_PORT"
+export TEST_RUNNER_PASSY_SERVER="http://localhost:$PORT"
 SUMMARY=$O/summary.txt; LOG=$O/chain.log
-sim_id() { # sim_id <name> <device type> <runtime>: UDID of the own simulator with that name (created when missing)
-  local id; id=$(xcrun simctl list devices | grep -F "$1 (" | grep -oE "[0-9A-F-]{36}" | head -1)
-  [ -n "$id" ] || id=$(xcrun simctl create "$1" "$2" "$3")
-  echo "$id"
-}
-IOS=com.apple.CoreSimulator.SimRuntime.iOS-27-0
-SIM_PHONE=$(sim_id PassY-${ROUND_UP}b com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro $IOS)
-SIM_2FA=$(sim_id PassY-$ROUND_UP-2FA com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro $IOS)
-echo $$ > $O/chain.pid
-log() { echo "$(date '+%F %T') [load $(sysctl -n vm.loadavg | awk '{print $2}')] $*" | tee -a $LOG; }
-load1() { sysctl -n vm.loadavg | awk '{print int($2)}'; }
-note() { echo "$(date '+%F %T') $*" >> $SUMMARY; log "$*"; }
+RETRIES=${PASSY_RETRIES:-0}
+IOS=${PASSY_IOS_RUNTIME:-com.apple.CoreSimulator.SimRuntime.iOS-27-0}
 
-gate() { # gate <quiet samples needed> <max seconds>; off unless PASSY_LOAD_GATE=1
-  [ "${PASSY_LOAD_GATE:-0}" = 1 ] || return 0
-  local need=$1 max=$2 ok=0 waited=0
-  while [ $ok -lt $need ]; do
-    if [ "$(load1)" -lt 25 ]; then ok=$((ok+1)); else ok=0; fi
-    [ $ok -ge $need ] && break
-    sleep 30; waited=$((waited+30)); [ $waited -ge $max ] && return 1
-  done
-  return 0
+log() { echo "$(date '+%F %T') [load $(sysctl -n vm.loadavg | awk '{print $2}')] $*" | tee -a "$LOG"; }
+note() { echo "$(date '+%F %T') $*" >> "$SUMMARY"; log "$*"; }
+
+sim_id() { # sim_id <name> <device type>: UDID of the own simulator with that name (created when missing)
+  local id; id=$(xcrun simctl list devices | grep -F "$1 (" | grep -oE "[0-9A-F-]{36}" | head -1)
+  [ -n "$id" ] || id=$(xcrun simctl create "$1" "$2" "$IOS")
+  echo "$id"
 }
 
 foreign_apps() { # prints user apps on simulator $1 that are not ours
@@ -46,138 +43,175 @@ for bid,a in d.items():
         print(bid)'
 }
 
-prepare_sim() { # prepare_sim <udid>: boot, verify no foreign app (erase an own sim once), 0 = clean
+boot() { # boot <udid>: boots the own simulator; the first time also applies the keyboard/language defaults (one reboot)
   local u=$1
   xcrun simctl boot "$u" 2>/dev/null; xcrun simctl bootstatus "$u" -b >/dev/null 2>&1
-  local f; f=$(foreign_apps "$u")
-  if [ -n "$f" ] && [ "$u" = "$SIM_PHONE" ]; then
-    note "foreign apps on own sim: $f -> erase own sim once"
-    xcrun simctl shutdown "$u" 2>/dev/null; xcrun simctl erase "$u"; xcrun simctl boot "$u"; xcrun simctl bootstatus "$u" -b >/dev/null 2>&1
-    xcrun simctl spawn "$u" defaults write -g AppleKeyboards -array "en_US@sw=QWERTY;hw=Automatic"
-    xcrun simctl spawn "$u" defaults write -g AppleLanguages -array en
-    xcrun simctl spawn "$u" defaults write -g AppleLocale en_US
-    f=$(foreign_apps "$u")
+  if [ ! -f "$O/.prepared-$u" ]; then
+    passy_sim_defaults "$u"
+    xcrun simctl shutdown "$u"; xcrun simctl boot "$u"; xcrun simctl bootstatus "$u" -b >/dev/null 2>&1
+    touch "$O/.prepared-$u"; note "sim $u: keyboard/language defaults applied (one-time reboot)"
   fi
+  xcrun simctl ui "$u" appearance light 2>/dev/null   # baseline; dark tests force dark through a launch argument
+  local f; f=$(foreign_apps "$u")
   [ -z "$f" ] || { note "DISCARD: foreign apps on $u: $f"; return 1; }
-  return 0
 }
 
+VW_PID=""
 vw_up() {
-  curl -s -o /dev/null http://localhost:$PORT/alive && return 0
+  curl -s -o /dev/null "http://localhost:$PORT/alive" && return 0
+  mkdir -p "$S/vw-data"
   DATA_FOLDER=$S/vw-data ROCKET_PORT=$PORT LOGIN_RATELIMIT_SECONDS=1 LOGIN_RATELIMIT_MAX_BURST=1000 DOMAIN=http://localhost:$PORT \
     SIGNUPS_ALLOWED=true WEB_VAULT_ENABLED=false EXPERIMENTAL_CLIENT_FEATURE_FLAGS=pm-32009-new-item-types \
-    nohup "$VW_BIN" >> $O/vaultwarden.log 2>&1 &
-  echo $! > $O/vw.pid; sleep 5; curl -s -o /dev/null http://localhost:$PORT/alive
+    nohup "$VW_BIN" >> "$O/vaultwarden.log" 2>&1 &
+  VW_PID=$!; echo $VW_PID > "$O/vw.pid"
+  for _ in $(seq 1 30); do curl -s -o /dev/null "http://localhost:$PORT/alive" && return 0; sleep 1; done
+  return 1
 }
 
-# step <name> <fresh 0|1|erase> <udid> <tests...> ; env: STEP_ENV (space separated TEST_RUNNER_* assignments)
+seed() { # idempotent (markers; the data directory is in the scratch directory)
+  local url=http://localhost:$PORT
+  cd "$R"
+  [ -f "$O/.seedmain" ] || { python3 Scripts-passy/vaultwarden/seed_account.py $url >> "$LOG" 2>&1 && \
+    python3 Scripts-passy/vaultwarden/seed_ciphers.py 25 $url >> "$LOG" 2>&1 && touch "$O/.seedmain"; }
+  if [ "$TIER" != core ]; then
+    [ -f "$O/.seed2fa" ] || { PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/seed_account.py $url >> "$LOG" 2>&1; \
+      PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/enable_2fa.py $url >> "$LOG" 2>&1 && touch "$O/.seed2fa"; }
+  fi
+  if [ "$TIER" = full ]; then   # the perf tests use their own account: the 2000 items never slow down the other tests
+    [ -f "$O/.seedperf" ] || { PASSY_EMAIL=passy-perf@example.test python3 Scripts-passy/vaultwarden/seed_account.py $url >> "$LOG" 2>&1 && \
+      PASSY_EMAIL=passy-perf@example.test python3 Scripts-passy/vaultwarden/seed_ciphers.py 2000 $url >> "$LOG" 2>&1 && touch "$O/.seedperf"; }
+  fi
+}
+
+classes_in() { # classes_in <dir...>: test classes (file names) directly in the given PassYUITests sub-directories
+  local d; for d in "$@"; do ls "$R/PassYUITests/$d"/*.swift 2>/dev/null; done | xargs -n1 basename | sed 's/\.swift$//' | sort
+}
+expected_tests() { # expected_tests <class...>: number of test methods in the sources of the classes
+  local c n=0 f
+  for c in "$@"; do f=$(find "$R/PassYUITests" -name "$c.swift" | head -1); n=$((n + $(grep -cE '^    func test' "$f"))); done
+  echo $n
+}
+
+build() {
+  local log=$O/build.log; : > "$log"
+  local t0=$(date +%s)
+  cd "$R"
+  passy_run_xcodebuild "$log" build-for-testing -project Bitwarden.xcodeproj -scheme PassYUITests \
+    -destination "generic/platform=iOS Simulator" -derivedDataPath "$PASSY_DD" -clonedSourcePackagesDirPath "$PASSY_DD/SourcePackages" \
+    -disableAutomaticPackageResolution -skipPackagePluginValidation -skipMacroValidation \
+    CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO
+  if grep -qE '^\*\* TEST BUILD SUCCEEDED' "$log" && [ -n "$(passy_xctestrun)" ]; then
+    note "build: PASS ($(( $(date +%s) - t0 )) s)"; return 0
+  fi
+  note "build: FAIL (see $log)"; return 1
+}
+
+# step <name> <fresh 0|1> <udid> <gating 0|1> <class...>; env STEP_ENV: space separated KEY=VALUE for the test runner
+STEP_RESULT=""
 step() {
-  local name=$1 fresh=$2 u=$3; shift 3
-  gate 1 10800 || { note "$name: SKIPPED (load stayed >= 25)"; return; }
-  vw_up || { note "$name: SKIPPED (no Vaultwarden)"; return; }
-  prepare_sim "$u" || { xcrun simctl shutdown "$u" 2>/dev/null; return; }
-  xcrun simctl ui "$u" appearance light 2>/dev/null   # baseline; dark steps force dark through launch arguments
-  local attempt result
-  for attempt in 1 2; do
-    local n=$name; [ $attempt = 2 ] && n=$name-retry
-    local un=0; [ "$fresh" != 0 ] && [ $attempt = 1 ] && un=1
-    local start_load=$(sysctl -n vm.loadavg | awk '{print $2}')
-    ( export PASSY_MAX_LOAD=100000 U=$u PASSY_PHONE=$u; [ "$fresh" = erase ] && export PASSY_ERASE=1
+  local name=$1 fresh=$2 u=$3 gating=$4; shift 4
+  local classes=("$@") tests=() c
+  for c in "${classes[@]}"; do tests+=(-only-testing:"PassYUITests/$c"); done
+  local min; min=$(expected_tests "${classes[@]}")
+  vw_up || { note "$name: FAIL (no Vaultwarden)"; STEP_RESULT=FAIL; return; }
+  boot "$u" || { STEP_RESULT=FAIL; return; }
+  local attempt n=$name
+  for attempt in $(seq 0 "$RETRIES"); do
+    [ "$attempt" -gt 0 ] && n=$name-retry$attempt
+    local waited; waited=$(passy_wait_no_foreign_xcodebuild)
+    [ "$waited" != 0 ] && note "$n: waited ${waited}s for foreign xcodebuild"
+    WAIT_TOTAL=$((WAIT_TOTAL + ${waited%% *}))
+    [ "$fresh" = 1 ] && passy_fresh_app "$u"
+    local log=$O/$n.log; echo "start load $(sysctl -n vm.loadavg)" > "$log"
+    rm -rf "$O/$n.xcresult"
+    local start_load end_load t0 t1; start_load=$(sysctl -n vm.loadavg | awk '{print $2}'); t0=$(date +%s)
+    ( export TEST_RUNNER_PASSY_SERVER TEST_RUNNER_PASSY_HOLD_DIR="$O/hold"
       for kv in $STEP_ENV; do export "TEST_RUNNER_$kv"; done
-      "$R/Scripts-passy/run_ui.sh" "$n" $un "$@" ) >> $LOG 2>&1
-    local end_load=$(sysctl -n vm.loadavg | awk '{print $2}')
-    local failed; failed=$(grep -E "^Test Case .* failed" $O/$n.log | sed -E "s/^Test Case '-\[([^ ]+) ([^]]+)\]'.*/\1\/\2/" | sort -u)
-    local passed; passed=$(grep -cE "^Test Case .* passed" $O/$n.log)
-    local succeeded; succeeded=$(grep -c '^\*\* TEST SUCCEEDED' $O/$n.log)
-    local marker; marker=$(grep -c '^\*\* TEST FAILED' $O/$n.log)
-    local crashed; crashed=$(grep -c 'Restarting after unexpected exit' $O/$n.log)
-    local failing; failing=$(sed -n '/^Failing tests:/,/^\*\* TEST/p' $O/$n.log | grep '()' | sed -E 's/^[[:space:]]*//; s/\(\)$//; s#\.#/#' | sort -u)
-    # a crashed test is only listed under "Failing tests:", not as "Test Case ... failed"
-    [ -n "$failing" ] && failed=$(echo "$failed $(for t in $failing; do echo PassYUITests.$t; done)" | tr ' ' '\n' | sort -u)
-    local foreign; foreign=$(foreign_apps "$u")
-    local min=${STEP_MIN:-1}; [ $attempt = 2 ] && [ -n "$RETRY_N" ] && min=$RETRY_N
-    # strict: TEST SUCCEEDED, no failing tests, no TEST FAILED marker, no runner restart, at least the expected tests
+      cd "$R"
+      passy_run_xcodebuild "$log" test-without-building -xctestrun "$(passy_xctestrun)" -destination "id=$u" \
+        -parallel-testing-enabled NO -collect-test-diagnostics never -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
+        -maximum-test-execution-time-allowance 1800 "${tests[@]}" -resultBundlePath "$O/$n.xcresult" )
+    t1=$(date +%s); end_load=$(sysctl -n vm.loadavg | awk '{print $2}')
+    local failed passed succeeded marker crashed failing retypes alerts
+    failed=$(grep -E "^Test Case .* failed" "$log" | sed -E "s/^Test Case '-\[([^ ]+) ([^]]+)\]'.*/\1\/\2/" | sort -u)
+    passed=$(grep -cE "^Test Case .* passed" "$log")
+    succeeded=$(grep -cE '^\*\* TEST (EXECUTE )?SUCCEEDED' "$log")
+    marker=$(grep -cE '^\*\* TEST (EXECUTE )?FAILED' "$log")
+    crashed=$(grep -c 'Restarting after unexpected exit' "$log")
+    failing=$(sed -n '/^Failing tests:/,/^\*\* TEST/p' "$log" | grep '()' | sed -E 's/^[[:space:]]*//; s/\(\)$//; s#\.#/#' | sort -u)
+    [ -n "$failing" ] && failed=$(echo "$failed $(for t in $failing; do echo "PassYUITests.$t"; done)" | tr ' ' '\n' | grep . | sort -u)
+    retypes=$(grep -c 'PASSY-RETYPE [0-9]' "$log"); alerts=$(grep -c 'LOGIN-ALERT ' "$log"); launches=$(grep -c 'PASSY-LAUNCH [0-9]' "$log")
+    local info="$passed of >= $min tests; $((t1 - t0)) s; app launches $launches; retypes $retypes; login alerts $alerts; load start $start_load end $end_load"
     if [ "$succeeded" -ge 1 ] && [ -z "$failed" ] && [ "$marker" = 0 ] && [ "$crashed" = 0 ] && [ "$passed" -ge "$min" ]; then
-      note "$n: PASS ($passed of >= $min tests; TEST SUCCEEDED; load start $start_load end $end_load)"; break
+      if [ "$attempt" = 0 ]; then STEP_RESULT=PASS; else STEP_RESULT=FLAKY; fi
+      note "$n: $STEP_RESULT ($info; TEST SUCCEEDED)"; break
     fi
-    note "$n: FAIL (passed $passed of >= $min; succeeded-marker $succeeded; failed-marker $marker; runner restarts $crashed; failed: $(echo $failed | tr '\n' ' '); load start $start_load end $end_load; foreign: ${foreign:-none})"
-    [ $attempt = 2 ] && break
-    # retry once, each failed test alone (or the whole step if no test result exists)
+    STEP_RESULT=FAIL
+    note "$n: FAIL ($info; succeeded-marker $succeeded; failed-marker $marker; runner restarts $crashed; failed: $(echo $failed | tr '\n' ' '); foreign: $(foreign_apps "$u" | tr '\n' ' '))"
+    grep -E "error: -\[|XCTAssert|Failed to|PASSY-RETYPE|LOGIN-ALERT" "$log" | head -20 >> "$LOG"
+    # a retry repeats only the failed tests (or the whole step if no test result exists)
     if [ -n "$failed" ]; then
-      set -- $(for t in $failed; do echo "PassYUITests/$t" | sed "s#PassYUITests/PassYUITests\.#PassYUITests/#"; done)
-      RETRY_N=$#
+      tests=(); for t in $failed; do tests+=(-only-testing:"$(echo "PassYUITests/$t" | sed 's#PassYUITests/PassYUITests\.#PassYUITests/#')"); done
+      min=${#tests[@]}
     fi
-    gate 1 10800 || { note "$name: retry skipped (load)"; break; }
-    prepare_sim "$u" || break
   done
-  xcrun simctl shutdown "$u" 2>/dev/null
-  for x in "$name" "$name-retry"; do   # keep the screenshots of the step (small), then drop the large result bundle
-    [ -d "$O/$x.xcresult" ] && "$R/Scripts-passy/export_shots.sh" "$O/$x.xcresult" "$O/shots/$x" >/dev/null 2>&1
+  [ "$gating" = 1 ] || STEP_RESULT="INFO-$STEP_RESULT"
+  for x in "$O/$name".xcresult "$O/$name"-retry*.xcresult; do   # keep the screenshots (small), drop the bundles (large)
+    [ -d "$x" ] && "$R/Scripts-passy/export_shots.sh" "$x" "$O/shots/$(basename "$x" .xcresult)" >/dev/null 2>&1
+    rm -rf "$x"
   done
-  rm -rf "$O/$name".xcresult "$O/$name"-retry.xcresult   # result bundles are large; the logs and the summary stay
 }
 
-: > $SUMMARY
-note "chain start (pid $$)"
-gate 6 43200 || { note "chain: load never below 25 for 3 minutes; aborted"; exit 1; }
-vw_up || { note "no Vaultwarden binary/start"; exit 1; }
-cd $R
-# accounts and data (idempotent markers; the data directory is in the scratch directory and starts empty)
-[ -f $O/.seedmain ] || { python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:$PORT >> $LOG 2>&1 && \
-  python3 Scripts-passy/vaultwarden/seed_ciphers.py 25 http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seedmain; }
-[ -f $O/.seed2fa ] || { PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:$PORT >> $LOG 2>&1; \
-  PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/enable_2fa.py http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seed2fa; }
+TIER_OK=1; WAIT_TOTAL=0
+gate() { case "$STEP_RESULT" in PASS|INFO-*) ;; *) TIER_OK=0 ;; esac; }
 
-STEP_MIN=1 step diag      0 $SIM_PHONE PassYUITests/PassYUiR8Tests/test00_dumpGroupListTree
-STEP_MIN=1 step landing   erase $SIM_PHONE PassYUITests/PassYLandingShotsTests
-STEP_MIN=28 step flow      erase $SIM_PHONE PassYUITests/PassYFlowTests
-STEP_MIN=15 step rest      1 $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_exportVault PassYUITests/PassYShotsTests PassYUITests/PassYZAppearanceTests \
-  PassYUITests/PassYUiR5ShotsTests/test_newTypeForms PassYUITests/PassYUiR5ShotsTests/test_dynamicTypeForms PassYUITests/PassYUiR5ShotsTests/test_compare \
-  PassYUITests/PassYUiR5ShotsTests/test_voiceOverLabels PassYUITests/PassYUiR5ShotsTests/test_addMenuAccessibilityXXXL \
-  PassYUITests/PassYUiR6ShotsTests/test_rowChevronContextMenuSwipe PassYUITests/PassYUiR6ShotsTests/test_selectModeDelete PassYUITests/PassYUiR6ShotsTests/test_swipeDelete \
-  PassYUITests/PassYUiR7ShotsTests
-STEP_MIN=1 step regstart  erase $SIM_PHONE PassYUITests/PassYImportRegShotsTests/test_registrationStart
-STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-auth-light"; STEP_MIN=1 step auth-light  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-auth-dark";  step auth-dark   1 $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_authPagesInRunningApp
-STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-2fa-light"; STEP_MIN=1 step 2fa-light  erase $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-2fa-dark";   step 2fa-dark   1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-2fa-dark2";  step 2fa-dark2  1 $SIM_2FA PassYUITests/PassYUiR6ShotsTests/test_auth2FAScreens
-STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-dev-light"; STEP_MIN=1 step device-light erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-dev-dark";   step device-dark  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
-STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-dev-light-b"; STEP_MIN=1 step device-light-b erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
-STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-dev-dark-b";   STEP_MIN=1 step device-dark-b  erase $SIM_PHONE PassYUITests/PassYUiR6ShotsTests/test_loginWithDeviceAfterLogout
-STEP_ENV=""
-STEP_MIN=7 step ui-r8     erase $SIM_PHONE PassYUITests/PassYUiR8Tests
-STEP_ENV="PASSY_SHOT_TAG=${ROUND}"; STEP_MIN=${R9_MIN:-6} step ui-r9     erase $SIM_PHONE PassYUITests/PassYUiR9Tests; STEP_ENV=""
-# iPad: own simulator
-T=$(xcrun simctl list devicetypes | grep -E "iPad Air 11" | head -1 | grep -oE 'com\.apple[^)]*')
-IPAD=$(sim_id PassY-$ROUND_UP-iPad "$T" $IOS)
-if [ -n "$IPAD" ]; then
-  STEP_ENV="PASSY_MODE=light PASSY_EXPECT_APPEARANCE=light PASSY_SHOT_TAG=${ROUND}-ipad-light"; STEP_MIN=2 step ipad-light erase $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
-  STEP_ENV="PASSY_MODE=dark PASSY_EXPECT_APPEARANCE=dark PASSY_SHOT_TAG=${ROUND}-ipad-dark";   step ipad-dark  1 $IPAD PassYUITests/PassYUiR5ShotsTests/test_ipadShell PassYUITests/PassYUiR4ShotsTests/test_ipad
-  STEP_ENV=""
-  xcrun simctl boot $IPAD 2>/dev/null; xcrun simctl bootstatus $IPAD -b >/dev/null 2>&1
-  ( U=$IPAD bash $R/Scripts-passy/ipad_landscape_shots.sh $IPAD $O/ipad-landscape $ROUND ) >> $LOG 2>&1 &
-  SHOT_PID=$!   # explicit PID: job numbers (%1) are not reliable here (a "kill %1" once ended Vaultwarden)
-  STEP_MIN=1 step ipad-landscape 0 $IPAD PassYUITests/PassYUiR6ShotsTests/test_ipadLandscapeHold
-  kill "$SHOT_PID" 2>/dev/null; wait "$SHOT_PID" 2>/dev/null
-else
-  note "ipad steps: SKIPPED (no iPad simulator type found)"
-fi
-# 2000 item perf: the server may have been restarted: bring it up, seed (verified by the item count through the API), and
-# only then run perf. The app needs a fresh login (the first sync with the 2000 items).
-vw_up || note "perf: Vaultwarden not reachable before seeding"
-if [ ! -f $O/.seed2000 ]; then
-  python3 Scripts-passy/vaultwarden/seed_ciphers.py 2000 http://localhost:$PORT >> $LOG 2>&1 && touch $O/.seed2000
-fi
-COUNT=$(python3 Scripts-passy/vaultwarden/seed_ciphers.py --count http://localhost:$PORT 2>>$LOG | tail -1)
-case "$COUNT" in ''|*[!0-9]*) COUNT=0;; esac
-if [ "$COUNT" -lt 2000 ]; then
-  note "perf: SKIPPED (server has $COUNT items, 2000 needed; .seed2000 removed so the next run seeds again)"; rm -f $O/.seed2000
-else
-  note "perf: seeding verified ($COUNT items on the server)"
-fi
-[ "${COUNT:-0}" -ge 2000 ] && STEP_MIN=6 step perf      erase $SIM_PHONE PassYUITests/PassYPerfTests
-STEP_MIN=5 step audit     1 $SIM_PHONE PassYUITests/PassYAuditShotsTests
-note "chain done"
-rm -f $O/chain.pid
+mkdir -p "$O" "$O/hold"
+echo $$ > "$O/chain.pid"
+: > "$SUMMARY"
+T0=$(date +%s)
+note "chain start TIER=$TIER (pid $$, port $PORT, scratch $S, dd $PASSY_DD, retries $RETRIES)"
+PHONE=${PASSY_PHONE:-$(sim_id "$PASSY_SIM_PREFIX-Phone" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro)}
+IPAD=${PASSY_IPAD:-$(sim_id "$PASSY_SIM_PREFIX-iPad" com.apple.CoreSimulator.SimDeviceType.iPad-Air-11-inch-M4)}
+note "simulators: phone $PHONE, iPad $IPAD"
+if [ "${PASSY_SKIP_BUILD:-0}" = 1 ] && [ -n "$(passy_xctestrun)" ]; then note "build: skipped (PASSY_SKIP_BUILD=1, $(basename "$(passy_xctestrun)"))"
+else build || { note "TIER $TIER: FAIL (build)"; rm -f "$O/chain.pid"; exit 1; }; fi
+vw_up || { note "TIER $TIER: FAIL (no Vaultwarden binary/start)"; rm -f "$O/chain.pid"; exit 1; }
+seed
+T1=$(date +%s)
+
+case "$TIER" in
+  core)
+    step core 1 "$PHONE" 1 $(classes_in Core); gate ;;
+  full)
+    step core 1 "$PHONE" 1 $(classes_in Core); gate
+    step full-phone 1 "$PHONE" 1 $(classes_in Full); gate
+    xcrun simctl shutdown "$PHONE" 2>/dev/null
+    step full-ipad 1 "$IPAD" 1 $(classes_in Full/iPad); gate
+    xcrun simctl shutdown "$IPAD" 2>/dev/null
+    COUNT=$(PASSY_EMAIL=passy-perf@example.test python3 "$R/Scripts-passy/vaultwarden/seed_ciphers.py" --count "http://localhost:$PORT" 2>>"$LOG" | tail -1)
+    case "$COUNT" in ''|*[!0-9]*) COUNT=0;; esac
+    if [ "$COUNT" -ge 2000 ]; then
+      note "perf: seeding verified ($COUNT Perf items on the perf account)"
+      STEP_ENV="PASSY_EMAIL=passy-perf@example.test" step full-perf 1 "$PHONE" 1 $(classes_in Full/Perf); gate
+    else
+      note "full-perf: FAIL (perf account has $COUNT items, 2000 needed; .seedperf removed)"; rm -f "$O/.seedperf"; TIER_OK=0
+    fi ;;
+  shots)
+    step shots-onboarding 1 "$PHONE" 0 ShotsOnboardingTests; gate
+    step shots-main 1 "$PHONE" 0 $(classes_in Shots | grep -v '^ShotsOnboardingTests$'); gate
+    xcrun simctl shutdown "$PHONE" 2>/dev/null
+    rm -f "$O/hold"/*
+    boot "$IPAD" && {
+      ( bash "$R/Scripts-passy/ipad_landscape_shots.sh" "$IPAD" "$O/shots/ipad-landscape" "${PASSY_SHOT_TAG:-passy}" "$O/hold" ) >> "$LOG" 2>&1 &
+      SHOT_PID=$!   # explicit PID: job numbers (%1) are not reliable here (a "kill %1" once ended Vaultwarden)
+      step shots-ipad 1 "$IPAD" 0 $(classes_in Shots/iPad); gate
+      kill "$SHOT_PID" 2>/dev/null; wait "$SHOT_PID" 2>/dev/null; } ;;
+  *) note "unknown TIER=$TIER (core|full|shots)"; TIER_OK=0 ;;
+esac
+
+xcrun simctl shutdown "$PHONE" 2>/dev/null; xcrun simctl shutdown "$IPAD" 2>/dev/null
+[ -n "$VW_PID" ] && { kill "$VW_PID" 2>/dev/null; wait "$VW_PID" 2>/dev/null; }   # only the Vaultwarden this chain started
+T2=$(date +%s)
+if [ $TIER_OK = 1 ]; then V=PASS; else V=FAIL; fi
+note "TIER $TIER: $V (wall $((T2 - T0)) s: build+seed $((T1 - T0)) s, waiting for foreign xcodebuild $WAIT_TOTAL s, own work without that wait $((T2 - T0 - WAIT_TOTAL)) s)"
+rm -f "$O/chain.pid"

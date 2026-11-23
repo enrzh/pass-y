@@ -1269,20 +1269,246 @@ When adding a new test:
 3. Order within the group by logical flow (not strict alphabetical)
 4. If testing a new function, insert the group alphabetically by function name
 
-## Local UI test runs (Pass-Y, ui-r7)
+## Pass-Y UI tests (PassYUITests)
 
-Everything lives outside `/tmp` (it gets cleaned from outside): `~/Library/Caches/passy-vw/` holds the Vaultwarden source/binary (`src/`, built as in the README), its data (`data/`), logs and result bundles (`out/`) and DerivedData (`dd/`).
+UI tests run against a throwaway local Vaultwarden (`Scripts-passy/vaultwarden/`). They are grouped by **feature**
+(class name) and by **tier** (directory); the tier decides when a test runs and whether it gates.
+
+### Structure
+
+| Directory | Classes (feature) | Tier |
+|---|---|---|
+| `Core/` | `AuthLandingTests`, `AuthLoginTests`, `AvatarMenuTests`, `ItemCrudTests`, `LockUnlockTests`, `SearchTests`, `VaultHomeTests` (15 tests) | core |
+| `Full/` | `AccessibilityTests`, `AppearanceTests`, `AuthScreensTests`, `AuthTwoFactorTests`, `FoldersTests`, `GeneratorTests`, `ItemDetailTests`, `ItemListActionsTests`, `NavigationTests`, `PendingRequestsTests`, `SendTests`, `SettingsTests` (43) | full |
+| `Full/iPad/` | `IPadTests` (2, own iPad simulator) | full |
+| `Full/Perf/` | `PerfTests`, `PerfCompareTests` (9, own 2000 item account `passy-perf@example.test`) | full |
+| `Shots/`, `Shots/iPad/` | `Shots*Tests` (17): screenshot export only | shots (never gating) |
+| `Diagnostics/` | `DiagnosticsTests`, `KeystrokeProbeTests` | none, run by name |
+| `Support/` | `PassYUITestCase` (base class, shared helpers), `PassYUITestSupport.swift` (session, typing, login) | |
+
+A new test goes into the feature class it belongs to, in the directory of its tier; the chain picks the classes up
+from the directories and counts the expected tests from the sources (no list to maintain). Every class derives from
+`PassYUITestCase` (`continueAfterFailure = false`).
+
+### Tiers
+
+- **core** (`TIER=core`, gating, mandatory before a merge): the critical paths: first launch (server first, no cloud
+  preset), login and sync, lock/unlock, vault home and list, search, open an item, add/edit/delete, avatar menu
+  navigation. One simulator boot, one fresh install, one `xcodebuild test-without-building` run, one Vaultwarden. The
+  app is launched and logged in once and stays running: `launchApp` reuses it and `returnToRoot` brings it back to the
+  vault home between tests (only `LockUnlockTests` relaunches on purpose). No retry: a retry would be a FAIL.
+  `AuthLandingTests` sorts first and needs the fresh install the step starts with.
+- **full** (`TIER=full`, gating): core, then everything functional: `Full/` on the phone (fresh install, shared session:
+  2FA, login sub-screens, log in with device, registration, dark mode, Dynamic Type up to AX-XXXL, accessibility audit,
+  idle-stall loop, pending requests, folders, send, settings, navigation, list actions), `Full/iPad/` on an own iPad
+  simulator, `Full/Perf/` against the 2000 item perf account (the perf items never slow down the other tests). Tests
+  that need light and dark loop over both inside one run (`passYModes()`, `TEST_RUNNER_PASSY_MODE` picks one).
+- **shots** (`TIER=shots`, never gating): `Shots/` exports screenshots to `$PASSY_SCRATCH/out/shots/<step>/`
+  (`ShotsOnboardingTests` in its own fresh step, then the rest; iPad landscape with the `ipad_landscape_shots.sh` driver).
+
+### Running
 
 ```sh
-Scripts-passy/vaultwarden/run_local.sh --fresh &        # port 8088, flag pm-32009-new-item-types, rate limit relaxed
-python3 Scripts-passy/vaultwarden/seed_account.py http://localhost:8088
-python3 Scripts-passy/vaultwarden/seed_ciphers.py 25
-# 2FA account: PASSY_EMAIL=passy-2fa@example.test python3 Scripts-passy/vaultwarden/seed_account.py ... ; python3 Scripts-passy/vaultwarden/enable_2fa.py
-Scripts-passy/run_plan.sh unit Bitwarden-Unit            # logs: ~/Library/Caches/passy-vw/out/unit.log
-Scripts-passy/run_ui.sh flow 1 PassYUITests/PassYFlowTests   # 1 = uninstall the app first
-Scripts-passy/export_shots.sh ~/Library/Caches/passy-vw/out/flow.xcresult /path/to/dir
+# own paths/port/simulators per parallel run (the chain never touches other runs' directories, sims or processes)
+export PASSY_SCRATCH=~/Library/Caches/passy-scratch-x PASSY_DD=~/Library/Caches/passy-dd-x VW_PORT=8094 PASSY_SIM_PREFIX=PassY-X
+TIER=core nohup Scripts-passy/ui_chain.sh > /dev/null 2>&1 &     # PID: $PASSY_SCRATCH/out/chain.pid
+cat $PASSY_SCRATCH/out/summary.txt                                # one line per step + "TIER core: PASS|FAIL (wall ...)"
+# ad hoc, after a build (Scripts-passy/build_ui.sh <name> or a chain run):
+Scripts-passy/run_ui.sh one 0 PassYUITests/SearchTests/test_cancelRestoresVault
 ```
 
-The runners wait for a 1-minute load below 8 and end a hung `xcodebuild` after the result line. Never count UI results taken under load. After a red run read `~/Library/Caches/passy-vw/out/vaultwarden.log` (a failed login names the user).
+The chain builds once (`build-for-testing`, skip with `PASSY_SKIP_BUILD=1`), starts its own Vaultwarden (data in the
+scratch directory, seeded once: `passy-test` with 25 items, `passy-2fa` with authenticator 2FA, `passy-perf` with
+2000 items for full), creates its simulators (`<prefix>-Phone`, `<prefix>-iPad`, iOS 27.0, keyboard defaults once:
+English QWERTY, no autocorrection/prediction/smart punctuation, no slide-to-type intro) and before every run waits PID
+based until no foreign `xcodebuild` runs (at most 45 min, `PASSY_FOREIGN_WAIT`). A fresh install is uninstall +
+keychain reset + removal of the app group containers (they survive `simctl uninstall`; a leftover account made the app
+start on the unlock screen), so no step erases or reboots a simulator.
 
-Known simulator behaviour (iOS 27.0 simulator, PassY-R3): typing into the masked password field of the add/edit login form keeps only the last character; on a device (iPhone Air) all characters stay. UI tests that need a whole password type it into the revealed field first (`typePassword` in `PassYUiR7ShotsTests`). `PASSY_KNOWN_ISSUE_TESTS=1` enables the diagnostic tests. Saving a typed password on a device has not been verified.
+**Strict PASS per step** (unchanged): `** TEST SUCCEEDED **` (for `test-without-building`: `** TEST EXECUTE SUCCEEDED **`),
+no `Test Case ... failed`, no `Failing tests:` entry, no `TEST FAILED` marker, no runner restart, at least the number of
+test methods of the step's classes passed. `PASSY_RETRIES=1` allows one retry of the failed tests; a step green only
+after it is `FLAKY` and the tier is then FAIL. Each summary line also reports wall time, app launches, `PASSY-RETYPE`
+and `LOGIN-ALERT` counts and the load. Only PIDs the chain started are ended (xcodebuild after its result line,
+its Vaultwarden, the landscape driver).
+
+### Typing and lost keystrokes
+
+All credentials, names and search terms are typed with verified helpers: `replaceText` (clears, types, compares the
+field; secure fields by dot count), `typeSearch` (key by key, then compares the search field), `ensureText` (after
+an append). Every mismatch prints `PASSY-RETYPE <n> field=... want=... got=... load=...` and is typed again; the third
+mismatch fails the test, so a real stall cannot hide behind the retries. `focus()` waits for keyboard focus and the end
+of the keyboard animation before typing. `KeystrokeProbeTests` (Diagnostics) measures losses per field.
+
+**Finding (2026-11-23, iOS 27.0 simulator, `KeystrokeProbeTests`, own simulator with the keyboard defaults above):**
+
+- Hardware keyboard: not involved (`ConnectHardwareKeyboard` = 0, Simulator.app not running during the runs).
+- **Add/edit-form masked fields keep only the last key: an app component bug, not the simulator in general.** In the
+  add-login form the masked `LoginPasswordEntry` held 1 of 21 characters in all 10 measurements (5 rounds, key by key and as one
+  `typeText`, focus never lost); revealed afterwards it really contains 1 character (`revealedCount=1`). The masked
+  `LoginTotpEntry` of the same form showed 1 of 16 three times in a row. In the same session and simulator the unlock
+  screen's `SecureField` (`VaultUnlockView`, plain SwiftUI) lost 0 of 21 in 8 measurements, the revealed unlock field 0 in 8,
+  the add-form name field 0 in 10, the search bar 0 key by key (4 rounds). Both affected fields are the masked branch of
+  `BitwardenTextField` (BitwardenKit: `SecureField` with the local-echo binding `localText`/`pendingEchoes`, `.id(title)`
+  and an `.onTapGesture` focus). Product code was not changed here; whether a person typing on a device is affected is
+  unverified (an earlier device check on an iPhone Air kept all characters). The tests type these fields unverified as
+  before or through the revealed field (`typePassword`), and the end-to-end assertions (TOTP code, saved password) stay.
+- **Occasional loss in the unlock field right after a relaunch:** 3 `PASSY-RETYPE` lines in about 30 unlocks of the
+  ad-hoc full runs (got 17 and 20 of 21, once 26 after lost delete keys), at load 3 to 4 with keyboard focus and the
+  keyboard on screen; 0 in 8 probe rounds once the screen had settled (the probe waits until the app's own focus from
+  the `appeared` effect is set). It is timing on a screen that is still settling after launch, not load: the verified
+  retype repairs it and every case is logged. Counted runs: 0 retypes in the core runs; the final full run had 2 (both in the unlock field after the text-size relaunches of `test_addMenuOpenCloseLoopNoIdleStall`, got 18 and 17 of 21, load 2 to 3).
+- One fast `typeText` into the search bar once showed 25 of 21 (a leftover after lost delete keys); 0 key by key.
+- Since the shared session unlocks once per run instead of once per test, the master password is typed about 30 times
+  in a full run instead of ~90, and core types it twice.
+
+
+### Former flakes and their causes
+
+The ui-r9 final validation (`Docs/verdicts/2026-11-23-ui-r9-final.md`) needed a retry for four steps; causes and fixes:
+
+| Former flake | Cause (evidence) | Fix |
+|---|---|---|
+| `test02_pendingRequestsFromMenu` (now `PendingRequestsTests.test_opensFromAvatarMenu`) | Two order/time dependencies. (1) The assertion accepted "No pending requests" or a navigation-bar `Close` button; the sheet has no `Close` (its toolbar button is `cancelToolbarItem`: label Cancel, id `CancelButton`, `View+Toolbar.swift`), so only the empty state could pass. The chain ran the "log in with device" steps (each creates an auth request for the test account) right before ui-r9; with a recent request the sheet shows the list, not the empty state. The retry ran later, the request had expired, green; three later single runs green. (2) `avatar.tap(); sleep(1)` then `menuButton` looked the entry up once, without waiting. | The sheet is asserted by its title, then "empty state or `LoginRequestCell`", then `CancelButton`; `openAvatarMenu` waits for the menu (state driven, one tap). |
+| 2FA dark (`AuthTwoFactorTests`) | The master password went into the revealed field with an unverified `typeText`; a lost key gives "Username or password is incorrect" and the two-step screen never appears (the README's earlier server-log evidence for the same account). The step also started from an uninstall, not from a defined screen. | `replaceText` into the revealed field (exact value compared, retypes logged), `reachLoginPasswordScreen` starts from any state, a login alert is logged as `LOGIN-ALERT 2fa`. |
+| iPad light (`IPadTests`) | "Login keeps failing": the Vaultwarden log showed the user name `passy-test@exam.`, i.e. the e-mail typed by `ensureUnlockedVault` with an unverified `typeText` right after the server sheet closed, on a freshly erased simulator. | Server URL and e-mail are typed with `replaceText` (verified, after keyboard focus and the end of the keyboard animation); the landing's remembered e-mail is replaced, never appended to. |
+| iPad landscape (`ShotsIPadLandscapeTests`) | Screenshot collector with an out-of-process handshake over the shared `/tmp/r6hold` (parallel validators share it) and a 600 s driver wait; the first run restarted the runner ("Interface orientation changed to Portrait"). No functional assertion. | Moved to the shots tier (never gating); own hold directory (`TEST_RUNNER_PASSY_HOLD_DIR`), whole-screen shots also attached in the test, orientation reset in a teardown block. |
+
+Other causes found on the way (all fixed): `deleteCurrentItem` slept 3 s before "item deleted" (now waits for the row
+to go); the "copied" toast lives 3 s (`ToastView`) and was looked for after a fixed `sleep(1)` (now polled right
+after the tap; the second copy waits for the first toast to go instead of 4 s); favorite toggling slept 3 s;
+`menuButton` returned a never-existing element while a menu was still opening (now a query that matches when it
+appears); swipe actions were asserted 1 s after the swipe without waiting; folder, send, item names and search terms
+were typed unverified (the "empty folder row" and "no keyboard focus" reds of ui-r8/r9); every test relaunched the app
+and typed the master password again (about one unlock per test, each a chance to lose a key; now one launch per run plus
+deliberate relaunches); after a green run `xcodebuild` sat up to 600 s in `simctl diagnose` (sampled:
+`XCTHRunDestinationAllocator.collectSimulatorDiagnostics`), now `-collect-test-diagnostics never`; app group
+containers survive `simctl uninstall` (fresh install now removes them, no erase).
+
+
+Measured on this branch (Vaultwarden 1.37.5, iOS 27.0, own simulators, no foreign xcodebuild running at the
+starts): `TIER=core` three runs in a row 305 s, 325 s, 314 s wall (15/15 tests each, 0 retries, 0 retypes, 2 app
+launches); the step itself 272 to 289 s. `TIER=full` (commit 8fd4e7af3): PASS, wall 4319 s (72 min): core 311 s, full-phone 2897 s
+(43/43; `test_addMenuOpenCloseLoopNoIdleStall` alone ~7 min), iPad 338 s (2/2), perf 704 s (9/9), 0 retries.
+
+**iPad finding:** after the first-launch server sheet is cancelled, tapping "Server: Not set" does not open it again
+on the iPad (reproduced: `AuthLandingTests` then `AuthLoginTests` on the iPad simulator fail with "the server sheet does
+not open from the region selector"; on the phone it opens). Not fixed here.
+
+### Old to new test names
+
+All 88 former UI tests are kept; bodies were moved verbatim first (commit "restructure by feature and tier": the
+sorted set of `XCTAssert*`/`XCTFail`/`XCTSkip` lines equals `main`, 415 lines). Assertion changes made afterwards are
+listed below the table.
+
+| Old test | New test | Tier |
+|---|---|---|
+| `PassYAuditShotsTests.test_a_onboarding` | `ShotsOnboardingTests.test2_auditOnboarding` | shots |
+| `PassYAuditShotsTests.test_b_mainScreens` | `ShotsMainScreensTests.test_auditMainScreens` | shots |
+| `PassYAuditShotsTests.test_c_unlock` | `ShotsMainScreensTests.test_auditUnlock` | shots |
+| `PassYAuditShotsTests.test_d_send` | `ShotsMainScreensTests.test_auditSend` | shots |
+| `PassYAuditShotsTests.test_e_sheets` | `ShotsMainScreensTests.test_auditSheets` | shots |
+| `PassYFlowTests.test01_landingAsksForServerAndHasNoCloudPreset` | `AuthLandingTests.test_landingAsksForServerAndHasNoCloudPreset` | core |
+| `PassYFlowTests.test02_loginAndSync` | `AuthLoginTests.test_loginAndSync` | core |
+| `PassYFlowTests.test03_createSearchEditDelete` | `ItemCrudTests.test_createSearchEditDelete` | core |
+| `PassYFlowTests.test04_totpCodeShown` | `ItemDetailTests.test_totpCodeShown` | full |
+| `PassYFlowTests.test05_generator` | `GeneratorTests.test_generatorRegenerates` | full |
+| `PassYFlowTests.test06_settingsHasNoPremiumUpsell` | `SettingsTests.test_noPremiumUpsellNoBranding` | full |
+| `PassYFlowTests.test07_lockAndUnlock` | `LockUnlockTests.test_lockedAfterRestartWrongPasswordRejectedThenUnlock` | core |
+| `PassYFlowTests.test08_addMenuOpensWithEntries` | `ItemCrudTests.test_addMenuOpensWithEntries` | core |
+| `PassYFlowTests.test09_searchCancelRestoresVault` | `SearchTests.test_cancelRestoresVault` | core |
+| `PassYFlowTests.test10_searchOpenCloseCancel` | `SearchTests.test_openResultCloseThenCancel` | core |
+| `PassYFlowTests.test12_itemViewRevealAndCopyTaps` | `ItemDetailTests.test_revealCopyAndFavoriteTaps` | full |
+| `PassYFlowTests.test13_settingsAccountMenu` | `SettingsTests.test_accountRowMenuLockAndLogoutConfirm` | full |
+| `PassYFlowTests.test14_settingsSubscreens` | `SettingsTests.test_subscreensAppearanceOtherVaultFolders` | full |
+| `PassYFlowTests.test15_sendTabAddMenu` | `SendTests.test_addMenuOffersTextAndOpensForm` | full |
+| `PassYFlowTests.test16_createSendAndShowList` | `SendTests.test_createTextSendAndList` | full |
+| `PassYFlowTests.test16_settingsAccountSecurityAutofillAbout` | `SettingsTests.test_accountSecurityAutofillAbout` | full |
+| `PassYFlowTests.test17_foldersListLastRowClearOfAddButton` | `FoldersTests.test_foldersListLastRowClearOfBar` | full |
+| `PassYFlowTests.test18_noOptionalTextAndLastRowsClearOfBar` | `NavigationTests.test_noOptionalTextAndLastRowsClearOfBar` | full |
+| `PassYFlowTests.test19_noTabBarAndAvatarMenuNavigates` | `AvatarMenuTests.test_noTabBarAndMenuNavigates` | core |
+| `PassYFlowTests.test20_searchBarPersistentAtBottom` | `NavigationTests.test_searchBarPersistentAtBottom` | full |
+| `PassYFlowTests.test21_categoryTilesAreLarge` | `VaultHomeTests.test_categoryTilesAreLarge` | core |
+| `PassYFlowTests.test22_editInToolbarAndSendInfoInMenu` | `ItemDetailTests.test_editInToolbarAndSendInfoInMenu` | full |
+| `PassYFlowTests.test23_barBackdropIsPageIndependent` | `NavigationTests.test_barBackdropIsPageIndependent` | full |
+| `PassYFlowTests.test24_settingsFoldersNative` | `FoldersTests.test_settingsFoldersNative` | full |
+| `PassYFlowTests.test25_tilesEqualHeightNoWrap` | `VaultHomeTests.test_tilesEqualHeightNoWrap` | core |
+| `PassYFlowTests.test26_itemViewItemEditAndSendAddAreNativeForms` | `ItemDetailTests.test_viewEditAndSendAddAreNativeForms` | full |
+| `PassYFlowTests.test27_setupSectionIsNativeRows` | `SettingsTests.test_autofillSetupSectionNativeAndDismissPersists` | full |
+| `PassYFlowTests.test28_homeLargeTitleAndInlineItemRows` | `VaultHomeTests.test_largeTitleAndInlineItemRows` | core |
+| `PassYImportRegShotsTests.test_exportVault` | `SettingsTests.test_exportVaultForm` | full |
+| `PassYImportRegShotsTests.test_registrationStart` | `AuthScreensTests.test_registrationStart` | full |
+| `PassYLandingShotsTests.test_landingShot` | `ShotsOnboardingTests.test1_landing` | shots |
+| `PassYPerfTests.test_perf_scroll` | `PerfTests.test_perf_scroll` | full (perf) |
+| `PassYPerfTests.test_perf_scrollMetrics` | `PerfTests.test_perf_scrollMetrics` | full (perf) |
+| `PassYPerfTests.test_perf_search` | `PerfTests.test_perf_search` | full (perf) |
+| `PassYPerfTests.test_perf_singleTapOpensItem_2000` | `PerfTests.test_perf_singleTapOpensItem_2000` | full (perf) |
+| `PassYPerfTests.test_perf_tapToPush_signposts` | `PerfTests.test_perf_tapToPush_signposts` | full (perf) |
+| `PassYPerfTests.test_perf_unlockToVault` | `PerfTests.test_perf_unlockToVault` | full (perf) |
+| `PassYShotsTests.test_shots` | `ShotsMainScreensTests.test_mainScreens` | shots |
+| `PassYUiR4ShotsTests.test_a_auth` | `ShotsOnboardingTests.test3_loginSubscreens` | shots |
+| `PassYUiR4ShotsTests.test_addTypes` | `ShotsItemTests.test_addFormOfEveryType` | shots |
+| `PassYUiR4ShotsTests.test_ipad` | `IPadTests.test_mainScreensLightAndDark` | full (iPad) |
+| `PassYUiR4ShotsTests.test_item` | `ShotsItemTests.test_itemViewAndEdit` | shots |
+| `PassYUiR4ShotsTests.test_send` | `ShotsSendTests.test_sendFormsAndPasswordHistory` | shots |
+| `PassYUiR4ShotsTests.test_sendTypeList` | `ShotsSendTests.test_sendTypeList` | shots |
+| `PassYUiR4ShotsTests.test_setupSections` | `ShotsSettingsTests.test_setupSections` | shots |
+| `PassYUiR4ShotsTests.test_tiles` | `ShotsHomeTests.test_tiles` | shots |
+| `PassYUiR5ShotsTests.test_addMenuAccessibilityXXXL` | `AccessibilityTests.test_addMenuReachableAtAXXXL` | full |
+| `PassYUiR5ShotsTests.test_compare` | `ShotsItemTests.test_appleComparison` | shots |
+| `PassYUiR5ShotsTests.test_dynamicTypeForms` | `AccessibilityTests.test_dynamicTypeAddForms` | full |
+| `PassYUiR5ShotsTests.test_ipadShell` | `IPadTests.test_shellPortraitAndLandscape` | full (iPad) |
+| `PassYUiR5ShotsTests.test_newTypeForms` | `ItemDetailTests.test_newItemTypeForms` | full |
+| `PassYUiR5ShotsTests.test_voiceOverLabels` | `AccessibilityTests.test_voiceOverLabelsAndAudit` | full |
+| `PassYUiR6ShotsTests.test_auth2FAScreens` | `AuthTwoFactorTests.test_twoStepLoginScreens` | full |
+| `PassYUiR6ShotsTests.test_authPagesInRunningApp` | `AuthScreensTests.test_loginSubscreens` | full |
+| `PassYUiR6ShotsTests.test_ipadLandscapeHold` | `ShotsIPadLandscapeTests.test_landscapeHold` | shots (iPad) |
+| `PassYUiR6ShotsTests.test_loginWithDeviceAfterLogout` | `AuthScreensTests.test_loginWithDeviceAfterLogout` | full |
+| `PassYUiR6ShotsTests.test_rowChevronContextMenuSwipe` | `ItemListActionsTests.test_rowChevronContextMenuSwipe` | full |
+| `PassYUiR6ShotsTests.test_selectModeDelete` | `ItemListActionsTests.test_selectModeDelete` | full |
+| `PassYUiR6ShotsTests.test_swipeDelete` | `ItemListActionsTests.test_swipeDelete` | full |
+| `PassYUiR7ShotsTests.test_addEditFormsAreInlineRows` | `ItemDetailTests.test_addEditFormsAreInlineRows` | full |
+| `PassYUiR7ShotsTests.test_editFormOfEveryType` | `ShotsItemTests.test_editFormOfEveryType` | shots |
+| `PassYUiR7ShotsTests.test_homeSearchSelectDelete` | `ItemListActionsTests.test_searchResultsContextMenuSelectSwipeDelete` | full |
+| `PassYUiR7ShotsTests.test_loginPasswordSaveAndRevealRoundTrip` | `ItemDetailTests.test_passwordSaveAndRevealRoundTrip` | full |
+| `PassYUiR7ShotsTests.test_secureFieldTypingDiagnostic` | `DiagnosticsTests.test_secureFieldTypingDiagnostic` | none (by name) |
+| `PassYUiR8CompareTests.test_cmp_rowTapOpensItem` | `PerfCompareTests.test_cmp_rowTapOpensItem` | full (perf) |
+| `PassYUiR8CompareTests.test_cmp_tileTapToList` | `PerfCompareTests.test_cmp_tileTapToList` | full (perf) |
+| `PassYUiR8CompareTests.test_cmp_unlockToFirstRow` | `PerfCompareTests.test_cmp_unlockToFirstRow` | full (perf) |
+| `PassYUiR8Tests.test00_dumpGroupListTree` | `DiagnosticsTests.test_dumpGroupListTree` | none (by name) |
+| `PassYUiR8Tests.test01_singleTapOpensItemFromBlankArea` | `ItemCrudTests.test_singleTapOnBlankAreaOpensItem` | core |
+| `PassYUiR8Tests.test02_singleTapOpensFolder` | `FoldersTests.test_singleTapOpensFolder` | full |
+| `PassYUiR8Tests.test03_largeTitlesCollapse` | `NavigationTests.test_largeTitlesCollapse` | full |
+| `PassYUiR8Tests.test04_vaultButtonLeftOfSearch` | `NavigationTests.test_vaultButtonLeftOfSearch` | full |
+| `PassYUiR8Tests.test05_noBackdropBehindBar` | `FoldersTests.test_emptyFolderNoBackdropBehindBar` | full |
+| `PassYUiR8Tests.test06_backAndCloseEverywhere` | `NavigationTests.test_backAndCloseEverywhere` | full |
+| `PassYUiR9Tests.test01_avatarMenu` | `AvatarMenuTests.test_menuEntriesServerUrlNoAccountEntries` | core |
+| `PassYUiR9Tests.test02_pendingRequestsFromMenu` | `PendingRequestsTests.test_opensFromAvatarMenu` | full |
+| `PassYUiR9Tests.test03_settingsAccountRowAndNoWebVaultNoWatch` | `SettingsTests.test_accountRowServerAddAccountNoWebVaultNoWatch` | full |
+| `PassYUiR9Tests.test04_itemOpensWithoutSpinner` | `ItemCrudTests.test_itemOpensWithoutSpinner` | core |
+| `PassYUiR9Tests.test05_listNoSpinner_vaultButtonFollowsStack` | `VaultHomeTests.test_listNoSpinnerVaultButtonFollowsStack` | core |
+| `PassYUiR9Tests.test06_contentScrollsUnderBars` | `NavigationTests.test_contentScrollsUnderBars` | full |
+| `PassYUiR9Tests.test07_addMenuOpenCloseLoop` | `AccessibilityTests.test_addMenuOpenCloseLoopNoIdleStall` | full |
+| `PassYZAppearanceTests.test_darkMode` | `AppearanceTests.test_darkModeWalk` | full |
+| `PassYZAppearanceTests.test_largeText` | `AccessibilityTests.test_largeTextWalk` | full |
+
+Assertion changes after the move (diff of the sorted assertion lines `main` vs. this branch):
+
+- `PendingRequestsTests.test_opensFromAvatarMenu`: `"No pending requests" || navigationBars.buttons["Close"]` replaced by
+  three assertions (title "Pending login requests"; empty state or `LoginRequestCell`; `CancelButton`). Stronger, and
+  no longer dependent on server state.
+- `AuthScreensTests.test_loginSubscreens`, `AuthTwoFactorTests.test_twoStepLoginScreens`: the start-up assertions
+  `logIn.waitForExistence(20)` and `email.waitForExistence(10)` moved into `reachLoginPasswordScreen` (it fails the test
+  when the login screen is not reached); the fresh-install intro ("Log in") and server sheet are asserted by
+  `AuthLandingTests` (core). Both tests (and `test_loginWithDeviceAfterLogout`, `IPadTests.test_shellPortraitAndLandscape`)
+  now run light and dark in one run instead of one chain step per appearance.
+- Added: `openAvatarMenu` checks (3x), "account menu offers Log out" (2x), helper failures with the caller's line
+  (`ensureUnlockedVault`, `reachLoginPasswordScreen`, `replaceText` after three lost-keystroke attempts).
+- `continueAfterFailure` is `false` for every class (it was `true` in the former ui-r4..r9/audit classes): a test stops at
+  its first failure; a passing run checks the same assertions.
+
+
+Unit/ViewInspector tests named by round stay as they are (renaming them is not cheap: `PassYUiR9PreloadTests` is
+being changed on another branch): `BitwardenShared/UI/Platform/Application/Views/PassYUiR9Tests.swift`
+(`PassYUiR9Tests`, `PassYUiR9IdleTests`, `PassYUiR9NoRefreshControlTests`, `PassYUiR9PreloadTests`) and
+`PassYUiR9+ViewInspectorTests.swift` (`PassYUiR9ViewInspectorTests`). Unit plans: `Scripts-passy/run_plan.sh`.

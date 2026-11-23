@@ -1,17 +1,9 @@
 import XCTest
 
-/// ui-r8 before/after: identical test code on `main` (v1.24) and on ui-r8, against the same 2000 item vault and the same
-/// simulator. Prints `R8CMP <name> ...` lines (wall clock, includes XCUITest overhead: compare the two trees only).
-final class PassYUiR8CompareTests: XCTestCase {
-    override func setUp() { continueAfterFailure = true }
-
-    private func line(_ name: String, _ values: [Double], extra: String = "") {
-        let sorted = values.sorted()
-        let median = sorted.isEmpty ? -1 : sorted[sorted.count / 2]
-        print("R8CMP \(name) n=\(values.count) median=\(String(format: "%.2f", median)) all=\(values.map { String(format: "%.2f", $0) }) \(extra)")
-    }
-
+/// Before/after comparison against the 2000 item perf account. Prints `R8CMP <name> ...`.
+final class PerfCompareTests: PassYUITestCase {
     /// Unlock until the first list row exists (2000 items).
+    /// Formerly `PassYUiR8CompareTests.test_cmp_unlockToFirstRow`.
     func test_cmp_unlockToFirstRow() {
         var values: [Double] = []
         let first = launchApp()
@@ -33,6 +25,7 @@ final class PassYUiR8CompareTests: XCTestCase {
     }
 
     /// Tile tap until the first row of the list page exists.
+    /// Formerly `PassYUiR8CompareTests.test_cmp_tileTapToList`.
     func test_cmp_tileTapToList() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -52,6 +45,7 @@ final class PassYUiR8CompareTests: XCTestCase {
     }
 
     /// Row tap on the name (left) and on the blank middle (0.72): how many of 10 single taps open the item, and how long.
+    /// Formerly `PassYUiR8CompareTests.test_cmp_rowTapOpensItem`.
     func test_cmp_rowTapOpensItem() {
         let app = launchApp()
         ensureUnlockedVault(app)
