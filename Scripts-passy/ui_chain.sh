@@ -132,6 +132,11 @@ step() {
         -parallel-testing-enabled NO -collect-test-diagnostics never -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
         -maximum-test-execution-time-allowance 1800 "${tests[@]}" -resultBundlePath "$O/$n.xcresult" )
     t1=$(date +%s); end_load=$(sysctl -n vm.loadavg | awk '{print $2}')
+    # DEBUG animation dumps (PassYAnimationDump, requested by the tests on an idle stall): copy them out before the
+    # next fresh install deletes the app container.
+    local box; box=$(xcrun simctl get_app_container "$u" "$PASSY_BUNDLE_ID" data 2>/dev/null)
+    [ -n "$box" ] && [ -s "$box/tmp/passy-animations.txt" ] && cp "$box/tmp/passy-animations.txt" "$O/$n.animations.txt" \
+      && log "$n: animation dumps in $O/$n.animations.txt ($(grep -c '^=== ' "$O/$n.animations.txt") dumps)"
     local failed passed succeeded marker crashed failing retypes alerts
     failed=$(grep -E "^Test Case .* failed" "$log" | sed -E "s/^Test Case '-\[([^ ]+) ([^]]+)\]'.*/\1\/\2/" | sort -u)
     passed=$(grep -cE "^Test Case .* passed" "$log")
