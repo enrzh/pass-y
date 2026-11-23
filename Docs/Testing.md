@@ -1357,7 +1357,7 @@ of the keyboard animation before typing. `KeystrokeProbeTests` (Diagnostics) mea
   ad-hoc full runs (got 17 and 20 of 21, once 26 after lost delete keys), at load 3 to 4 with keyboard focus and the
   keyboard on screen; 0 in 8 probe rounds once the screen had settled (the probe waits until the app's own focus from
   the `appeared` effect is set). It is timing on a screen that is still settling after launch, not load: the verified
-  retype repairs it and every case is logged. The counted runs had 0 retypes (5 core runs, full).
+  retype repairs it and every case is logged. Counted runs: 0 retypes in the core runs; the final full run had 2 (both in the unlock field after the text-size relaunches of `test_addMenuOpenCloseLoopNoIdleStall`, got 18 and 17 of 21, load 2 to 3).
 - One fast `typeText` into the search bar once showed 25 of 21 (a leftover after lost delete keys); 0 key by key.
 - Since the shared session unlocks once per run instead of once per test, the master password is typed about 30 times
   in a full run instead of ~90, and core types it twice.
@@ -1388,8 +1388,8 @@ containers survive `simctl uninstall` (fresh install now removes them, no erase)
 
 Measured on this branch (Vaultwarden 1.37.5, iOS 27.0, own simulators, no foreign xcodebuild running at the
 starts): `TIER=core` three runs in a row 305 s, 325 s, 314 s wall (15/15 tests each, 0 retries, 0 retypes, 2 app
-launches); the step itself 272 to 289 s. `TIER=full`: see the report of the round; core ~260 s, full-phone ~48 min
-(43 tests; `test_addMenuOpenCloseLoopNoIdleStall` alone ~7 min), iPad ~5 min, perf ~12 min.
+launches); the step itself 272 to 289 s. `TIER=full` (commit 8fd4e7af3): PASS, wall 4319 s (72 min): core 311 s, full-phone 2897 s
+(43/43; `test_addMenuOpenCloseLoopNoIdleStall` alone ~7 min), iPad 338 s (2/2), perf 704 s (9/9), 0 retries.
 
 **iPad finding:** after the first-launch server sheet is cancelled, tapping "Server: Not set" does not open it again
 on the iPad (reproduced: `AuthLandingTests` then `AuthLoginTests` on the iPad simulator fail with "the server sheet does
