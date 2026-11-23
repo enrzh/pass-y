@@ -1343,24 +1343,24 @@ of the keyboard animation before typing. `KeystrokeProbeTests` (Diagnostics) mea
 **Finding (2026-11-23, iOS 27.0 simulator, `KeystrokeProbeTests`, own simulator with the keyboard defaults above):**
 
 - Hardware keyboard: not involved (`ConnectHardwareKeyboard` = 0, Simulator.app not running during the runs).
-- **Add/edit-form masked fields kept only the last key (fixed on `passy/next-fixes`).** Before: in the add-login form
-  the masked `LoginPasswordEntry` held 1 of 21 characters in all 10 measurements (key by key and as one `typeText`, focus
-  never lost; revealed it really contained 1 character), the masked `LoginTotpEntry` 1 of 16. Not a re-creation of the
-  field (one `onAppear`, no `onDisappear`) and not focus, tap or row layout (switched off one by one, no change). Debug
-  logging of the field bindings showed every key also changing the *other* masked field (cleared, then one character):
-  `typeText` lost keys only while a second password-like secure field was mounted (a secure field without content type
-  counts as one); with the authenticator key revealed the masked password kept 21/21. Consistent with iOS password
-  AutoFill treating the editor as a sign-up/password-change form. The same fields in the upstream layout (ScrollView
-  instead of the native Form) lost the same way, so upstream is affected too. Software keyboard key taps
-  (`app.keyboards.keys`) kept 21/21 with both fields masked, and an earlier iPhone Air check kept all characters: a
-  person typing on the on-screen keyboard was not affected; hardware keyboards are unverified. Side effect that was real
-  in the tests: the cross-write put a stray character into the authenticator key, and an add-login save then failed
-  with "An error has occurred". Fix: the item editor (`AddEditItemView`, `.itemDataEntryFields()`) marks its masked
-  fields `.oneTimeCode` (`itemDataEntryContentType()` in `NativeForm.swift`; elsewhere no modifier, so login and master
-  password screens keep `.password`), i.e. password AutoFill no longer applies to vault data fields. After: 21/21 in
-  10/10 password measurements, 16/16 in 10/10 authenticator key measurements, revealed values equal; the name field 21/21.
-  `KeystrokeProbeTests.test_probeAddLoginOneMaskedField` keeps the discriminator (one masked field, key taps).
-  In the same earlier session the unlock screen's `SecureField` lost 0 of 21 in 8 measurements, the search bar 0.
+- **Add/edit-form masked fields keep only the last key: an XCUITest artifact, not a user-facing bug.** In the add-login
+  form the masked `LoginPasswordEntry` held 1 of 21 characters in all 10 measurements (key by key and as one
+  `typeText`, focus never lost; revealed it really contained 1 character), the masked `LoginTotpEntry` 1 of 16. Not a
+  re-creation of the field (one `onAppear`, no `onDisappear`) and not focus, tap or row layout (switched off one by one,
+  no change). Debug logging of the field bindings showed every key also changing the *other* masked field (cleared,
+  then one character). `typeText` loses keys only while a second password-like secure field is mounted (a secure field
+  without content type counts as one): with the authenticator key revealed the masked password kept 21/21; with both
+  masked fields set to `.oneTimeCode` (experiment only, not committed) 21/21 and 16/16 in 10/10 measurements each.
+  Consistent with iOS password AutoFill treating the editor as a sign-up/password-change form. The same fields in the
+  upstream layout (ScrollView instead of the native Form) lost the same way, so upstream tests would see it too.
+  Software keyboard key taps (`app.keyboards.keys`) kept 21/21 with both fields masked, and a real iPhone Air
+  (v1.26-ui-r9) keeps the whole typed password: product behaviour is not changed. The stray character the cross-write
+  puts into the authenticator key made an add-login save fail ("An error has occurred") in an ad-hoc run.
+  Test-side handling: `revealAuthenticatorKey` (Support) shows the authenticator key as a plain field first, then the
+  password is the only masked field and is typed verified (`replaceText`); `addLogin`, `typePassword`,
+  `ItemCrudTests` and the TOTP test use it. `KeystrokeProbeTests.test_probeAddLoginOneMaskedField` keeps the
+  discriminator (one masked field, key taps). In the same earlier session the unlock screen's `SecureField` lost 0 of 21
+  in 8 measurements, the search bar 0.
 - **Occasional loss in the unlock field right after a relaunch:** 3 `PASSY-RETYPE` lines in about 30 unlocks of the
   ad-hoc full runs (got 17 and 20 of 21, once 26 after lost delete keys), at load 3 to 4 with keyboard focus and the
   keyboard on screen; 0 in 8 probe rounds once the screen had settled (the probe waits until the app's own focus from

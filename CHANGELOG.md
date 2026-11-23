@@ -6,10 +6,10 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 
 ## Unreleased
 
-- Item editor: the masked password, authenticator key and other masked fields are taken out of iOS password AutoFill
-  (`.oneTimeCode`, only in the item editor; login and master password screens keep `.password`). With two password-like
-  masked fields, synthesized keyboard input (XCUITest `typeText`) kept 1 of 21 characters and also wrote into the other
-  masked field (an add-login save then failed); now 21/21 and 16/16. Software keyboard taps were not affected.
+- UI tests: the add/edit login helpers show the authenticator key as a plain field before typing, so the password is the
+  only masked field, and type it verified (`replaceText`). With two masked fields XCUITest `typeText` kept 1 of 21
+  characters and also changed the other masked field (an add-login save then failed); software keyboard taps and a real
+  iPhone Air keep every character, so product behaviour is unchanged (finding in [Docs/Testing.md](Docs/Testing.md)).
 - iPad: the landing's "Server: Not set" row (and the registration's server row) is tappable on its whole width; after
   cancelling the first server sheet a tap in the middle of the wide row did nothing.
 - Swipe Delete in item lists no longer uses a destructive-role button: it removed the row before the confirmation (gone
