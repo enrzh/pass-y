@@ -5,14 +5,17 @@ final class IPadTests: PassYUITestCase {
     /// iPad shots in the simulator's current appearance, portrait and landscape (no sidebar: avatar menu shell).
     /// Formerly `PassYUiR5ShotsTests.test_ipadShell`.
     func test_shellPortraitAndLandscape() {
-        addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
+        addTeardownBlock { XCUIDevice.shared.orientation = .portrait; setPassYAppearance(.light) }
+        // Formerly run once per appearance by the chain (ipad-light / ipad-dark steps); now both in one run.
+        for mode in passYModes() {
+        setPassYAppearance(mode == "dark" ? .dark : .light)
         let app = launchApp()
         ensureUnlockedVault(app)
         for (name, orientation) in [("portrait", UIDeviceOrientation.portrait), ("landscape", UIDeviceOrientation.landscapeLeft)] {
             XCUIDevice.shared.orientation = orientation
             sleep(2)
             func take(_ n: Int, _ what: String) {
-                if name == "portrait" { shot(app, n, "ipad-\(name)-\(what)") } else { screenShot(n, "ipad-\(name)-\(what)") }
+                if name == "portrait" { shot(app, n, "\(mode)-ipad-\(name)-\(what)") } else { screenShot(n, "\(mode)-ipad-\(name)-\(what)") }
             }
             take(name == "portrait" ? 1 : 10, "home")
             let tile = app.buttons["CategoryTile_login"]
@@ -35,6 +38,8 @@ final class IPadTests: PassYUITestCase {
             goTo(app, "My vault"); sleep(1)
         }
         XCUIDevice.shared.orientation = .portrait
+        }
+        setPassYAppearance(.light)
     }
 
     /// iPad: vault, item view/edit, send, settings (run with an iPad destination).
