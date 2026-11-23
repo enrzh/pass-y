@@ -84,6 +84,15 @@ final class KeystrokeProbeTests: PassYUITestCase {
         app.dismissNewLoginCard()
         probe("addform-name") { app.textFields["ItemNameEntry"] }
         probe("addform-password-secure") { app.secureTextFields["LoginPasswordEntry"] }
+        // What the field really holds: type once more masked, then reveal it and read the plain value.
+        let secure = app.secureTextFields["LoginPasswordEntry"]
+        clear(secure)
+        secure.typeText(text)
+        let dots = count(secure)
+        app.buttons["ViewPasswordButton"].firstMatch.tap()
+        let plain = app.textFields["LoginPasswordEntry"]
+        _ = plain.waitForExistence(timeout: 5)
+        print("KEYPROBE field=addform-password-revealed mode=whole round=1 want=\(text.count) dots=\(dots) revealedCount=\(count(plain)) revealedEqual=\((plain.value as? String) == text) load=\(passYLoad())")
         _ = returnToRoot(app)
     }
 }
