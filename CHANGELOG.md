@@ -6,6 +6,7 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 
 ## Unreleased
 
+- Security: the item preload drops results that arrive after the 1 s timeout or after lock, logout or account switch, cancels running fetches, wipes untaken entries by timer, and no item opens after a lock.
 - Apple Watch app, widget and the Connect to Watch setting restored (removed in v1.26); Mac and visionOS stay off.
 - Versioning: one scheme `MAJOR.MINOR.PATCH`, next release 1.27.0 (was 2026.4.0 upstream scheme); tags `vX.Y.Z`, see [Docs/Releasing.md](Docs/Releasing.md).
 - Removed unused Authenticator test plans/xcconfigs and the dead `TwoStepLoginService`; the Premium web-upgrade fallback and the archive "Restart Premium" card no longer open the server's upgrade page.
