@@ -288,6 +288,79 @@ class AppCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertNil(ViewItemPreloadCache.take(id: "id"))
     }
 
+    /// Starts a preload whose fetch hangs (3 s) and waits until the fetch is running.
+    @MainActor
+    private func startHangingPreload(id: String) async throws -> Task<Bool, Never> {
+        ViewItemPreloadCache.clear()
+        let repository = MockVaultRepository()
+        repository.fetchCipherResult = .success(.fixture(id: id))
+        repository.fetchCipherDelay = 3
+        let services = ServiceContainer.withMocks(vaultRepository: repository)
+        let task = Task { await ViewItemPreloadCache.preload(id: id, services: services, timeout: 10) }
+        try await waitForAsync { ViewItemPreloadCache.inFlightCount == 1 }
+        return task
+    }
+
+    /// Asserts that the running preload was cancelled, reported the clear and stored nothing.
+    @MainActor
+    private func assertPreloadDropped(_ task: Task<Bool, Never>, id: String, line: UInt = #line) async {
+        XCTAssertEqual(ViewItemPreloadCache.inFlightCount, 0, line: line)
+        let stillUnlocked = await task.value
+        XCTAssertFalse(stillUnlocked, line: line)
+        XCTAssertNil(ViewItemPreloadCache.take(id: id), line: line)
+    }
+
+    /// Locking the vault cancels a running preload: its decrypted result is never stored.
+    @MainActor
+    func test_showAuth_lock_cancelsInFlightPreload() async throws {
+        let task = try await startHangingPreload(id: "lock")
+        subject.navigate(to: .auth(.vaultUnlock(
+            .fixture(),
+            animated: false,
+            attemptAutomaticBiometricUnlock: false,
+            didSwitchAccountAutomatically: false,
+        )))
+        await assertPreloadDropped(task, id: "lock")
+    }
+
+    /// Logging out cancels a running preload.
+    @MainActor
+    func test_showAuth_logout_cancelsInFlightPreload() async throws {
+        let task = try await startHangingPreload(id: "logout")
+        subject.navigate(to: .auth(.landing))
+        await assertPreloadDropped(task, id: "logout")
+    }
+
+    /// Auth events (here the vault timeout) clear the preload cache before the router locks the vault: the generation
+    /// has already changed and the running fetch is cancelled when the router handles the event.
+    @MainActor
+    func test_handleAuthEvent_clearsPreloadBeforeRouting() async throws {
+        let task = try await startHangingPreload(id: "timeout")
+        let generationBefore = ViewItemPreloadCache.generation
+        var atRouting: (generation: Int, inFlight: Int)?
+        router.routeForEvent = { _ in
+            let read = { MainActor.assumeIsolated {
+                (ViewItemPreloadCache.generation, ViewItemPreloadCache.inFlightCount)
+            } }
+            atRouting = Thread.isMainThread ? read() : DispatchQueue.main.sync(execute: read)
+            return .landing
+        }
+        await subject.handleEvent(.didTimeout(userId: "1"))
+        let observed = try XCTUnwrap(atRouting)
+        XCTAssertGreaterThan(observed.generation, generationBefore, "cleared before routing")
+        XCTAssertEqual(observed.inFlight, 0, "running fetch cancelled before routing")
+        await assertPreloadDropped(task, id: "timeout")
+    }
+
+    /// Switching the account cancels a running preload.
+    @MainActor
+    func test_switchAccount_cancelsInFlightPreload() async throws {
+        let task = try await startHangingPreload(id: "switch")
+        subject.switchAccount(userId: "1", isAutomatic: false, authCompletionRoute: nil)
+        try await waitForAsync { !self.module.authCoordinator.routes.isEmpty }
+        await assertPreloadDropped(task, id: "switch")
+    }
+
     /// `lockVault(_:)` passes the lock event to the router.
     @MainActor
     func test_didLockVault() {

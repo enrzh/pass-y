@@ -496,6 +496,21 @@ class VaultCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertNil(masterPasswordRepromptHelper.repromptForMasterPasswordCipherId)
     }
 
+    /// A lock (cache cleared) while the item is being preloaded: the item is not opened afterwards.
+    @MainActor
+    func test_navigateTo_viewItem_clearedDuringPreload_doesNotPresent() async throws {
+        ViewItemPreloadCache.clear()
+        vaultRepository.fetchCipherResult = .success(.fixture(id: "id"))
+        vaultRepository.fetchCipherDelay = 3
+        subject.navigate(to: .viewItem(id: "id", masterPasswordRepromptCheckCompleted: true))
+        try await waitForAsync { ViewItemPreloadCache.inFlightCount == 1 }
+        ViewItemPreloadCache.clear()
+        try await Task.sleep(nanoseconds: 500_000_000)
+        XCTAssertTrue(stackNavigator.actions.isEmpty, "no item sheet after the lock")
+        XCTAssertFalse(module.vaultItemCoordinator.isStarted)
+        XCTAssertNil(ViewItemPreloadCache.take(id: "id"))
+    }
+
     /// `navigate(to:)` with `.viewProfileSwitcher` opens the profile switcher.
     @MainActor
     func test_navigate_viewProfileSwitcher() throws {

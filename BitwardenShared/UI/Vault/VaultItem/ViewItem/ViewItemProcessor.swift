@@ -859,6 +859,10 @@ extension ViewItemProcessor {
 
 /// Holds the finished state of an item view between the tap on a row and the moment the view is shown, so the item
 /// view never starts with a spinner (ui-r9). An entry is taken (removed) by the first view that uses it.
+///
+/// Security: a preload only stores its result while its generation is current and before its timeout. `clear()` (lock,
+/// logout, account switch) starts a new generation and cancels every running fetch, so a fetch that finishes late
+/// (after the timeout or after a lock) drops its decrypted result instead of storing it.
 @MainActor
 enum ViewItemPreloadCache {
     /// How long an entry stays valid (seconds): it is only a hand-over between the tap and the presented view, so no
@@ -867,58 +871,139 @@ enum ViewItemPreloadCache {
 
     private static var states: [String: (state: ViewItemState, date: Date)] = [:]
 
+    /// Increased by `clear()`: a preload started in an older generation never stores its result.
+    private(set) static var generation = 0
+
+    /// The running fetches, cancelled by `clear()`.
+    private static var inFlight: [Int: Task<Void, Never>] = [:]
+    private static var nextFetchId = 0
+
+    /// The number of running preload fetches (for tests).
+    static var inFlightCount: Int { inFlight.count }
+
+    /// One timer per entry: wipes it after `lifetime` even when it is never taken.
+    private static var expiryTasks: [String: Task<Void, Never>] = [:]
+
+    /// The number of stored entries, expired or not (for tests).
+    static var entryCount: Int { states.count }
+
     /// Loads the state of an item (a single decrypt, the same data the view's stream would load after appearing) and
     /// keeps it for `take(id:)`. A failure only means the view loads on its own, as before.
     ///
     /// Waits at most `timeout` seconds: if the fetch hangs (a stuck collection or TOTP fetch), the caller opens the
     /// item without the preloaded state (the view then loads on its own, with the delayed spinner) instead of never
-    /// opening anything. A late result is dropped, it expires like any other entry.
+    /// opening anything. On timeout the fetch is cancelled and its late result is dropped (never stored).
+    ///
+    /// - Returns: `false` when the cache was cleared (lock, logout, account switch) while the preload ran: the caller
+    ///   must then not open the item.
+    @discardableResult
     static func preload(
         id: String,
         services: HasEnvironmentService & HasStateService & HasVaultRepository,
         timeout: TimeInterval = 1,
-    ) async {
+    ) async -> Bool {
         clear(olderThan: lifetime)
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            var finished = false
-            func finish() {
-                guard !finished else { return }
-                finished = true
-                continuation.resume()
+        let startGeneration = generation
+        let fetchId = nextFetchId
+        nextFetchId += 1
+        let run = PreloadRun()
+        let fetch = Task { @MainActor in
+            // Every step re-checks that this preload may still store: not finished (timeout), not cancelled
+            // (clear), same generation (no lock/logout/account switch in between).
+            @MainActor func isCurrent() -> Bool {
+                !run.isFinished && !Task.isCancelled && generation == startGeneration
             }
-            Task { @MainActor in
-                if let cipher = try? await services.vaultRepository.fetchCipher(withId: id),
-                   let state = try? await ViewItemProcessor.makeState(for: cipher, services: services) {
-                    store(state, id: id)
-                }
-                finish()
+            if isCurrent(),
+               let cipher = try? await services.vaultRepository.fetchCipher(withId: id),
+               isCurrent(),
+               let state = try? await ViewItemProcessor.makeState(for: cipher, services: services),
+               isCurrent() {
+                store(state, id: id)
             }
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-                finish()
-            }
+            run.finish()
         }
+        inFlight[fetchId] = fetch
+        let timeoutTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+            run.finish()
+        }
+        // Whichever ends first (the fetch, its cancel by `clear()`, or the timeout) ends the preload: the other is
+        // cancelled and a fetch still running can no longer store.
+        run.onFinish = {
+            fetch.cancel()
+            timeoutTask.cancel()
+            inFlight[fetchId] = nil
+        }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task { @MainActor in run.attach(continuation) }
+        }
+        return generation == startGeneration
     }
 
-    /// Keeps a state for `take(id:)`.
+    /// Keeps a state for `take(id:)`, wiped by a timer `lifetime` seconds after `date` at the latest.
     static func store(_ state: ViewItemState, id: String, date: Date = Date()) {
         states[id] = (state, date)
+        expiryTasks[id]?.cancel()
+        let remaining = max(0, lifetime - Date().timeIntervalSince(date))
+        expiryTasks[id] = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
+            // Cancelled: the entry was taken, replaced or cleared, and its new owner handles it.
+            guard !Task.isCancelled else { return }
+            if states[id]?.date == date { states[id] = nil }
+            expiryTasks[id] = nil
+        }
     }
 
     /// The preloaded state of an item, removed from the cache (nil when absent or older than `lifetime`).
     static func take(id: String, now: Date = Date()) -> ViewItemState? {
+        expiryTasks.removeValue(forKey: id)?.cancel()
         guard let entry = states.removeValue(forKey: id), now.timeIntervalSince(entry.date) <= lifetime else { return nil }
         return entry.state
     }
 
-    /// Drops all entries. Called when the vault is locked, on logout and on account switch (`AppCoordinator.showAuth`),
-    /// so no decrypted item state stays in memory after the vault is closed.
+    /// Drops all entries, cancels every running fetch and starts a new generation, so no late result is stored.
+    /// Called when the vault is locked, on logout and on account switch (`AppCoordinator.showAuth`), so no decrypted
+    /// item state stays in memory after the vault is closed.
     static func clear() {
+        generation += 1
+        let running = inFlight.values
+        inFlight.removeAll()
+        running.forEach { $0.cancel() }
+        expiryTasks.values.forEach { $0.cancel() }
+        expiryTasks.removeAll()
         states.removeAll()
     }
 
     private static func clear(olderThan age: TimeInterval) {
         let now = Date()
         states = states.filter { now.timeIntervalSince($0.value.date) <= age }
+    }
+}
+
+/// The state of one preload: finished once the fetch ends, `clear()` cancels it or the timeout fires (after that its
+/// fetch must not store anything).
+@MainActor
+private final class PreloadRun {
+    private(set) var isFinished = false
+    var onFinish: (@MainActor () -> Void)?
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    /// Resumes `continuation` when the run finishes (at once if it already has).
+    func attach(_ continuation: CheckedContinuation<Void, Never>) {
+        if isFinished {
+            continuation.resume()
+        } else {
+            self.continuation = continuation
+        }
+    }
+
+    /// Ends the run once: cancels the other task and resumes the waiting preload.
+    func finish() {
+        guard !isFinished else { return }
+        isFinished = true
+        onFinish?()
+        onFinish = nil
+        continuation?.resume()
+        continuation = nil
     }
 }

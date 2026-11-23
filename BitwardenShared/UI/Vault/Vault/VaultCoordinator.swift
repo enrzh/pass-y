@@ -546,8 +546,10 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             // ui-r9: the item is loaded completely (at most one second) before its screen is presented, so it opens
             // without a spinner.
             Task {
-                await ViewItemPreloadCache.preload(id: cipherId, services: self.services)
+                let isStillUnlocked = await ViewItemPreloadCache.preload(id: cipherId, services: self.services)
                 self.isPreparingItem = false
+                // The vault was locked (or the account logged out or switched) during the preload: don't open it.
+                guard isStillUnlocked else { return }
                 self.showVaultItem(route: .viewItem(id: cipherId, toastTitle: toastTitle), delegate: delegate)
             }
         }

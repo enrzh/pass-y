@@ -158,6 +158,10 @@ class AppCoordinator: Coordinator, HasRootNavigator { // swiftlint:disable:this 
     /// - Parameter event: The auth event to handle.
     ///
     private func handleAuthEvent(_ authEvent: AuthEvent) async {
+        // Pass-Y preload-sec: lock, logout, account switch and timeout end the vault session inside the router, so the
+        // preload cache is cleared (new generation, running fetches cancelled) before it, leaving no window where a
+        // finishing fetch could still store decrypted item state.
+        ViewItemPreloadCache.clear()
         let router = module.makeAuthRouter()
         let route = await router.handleAndRoute(authEvent)
 
