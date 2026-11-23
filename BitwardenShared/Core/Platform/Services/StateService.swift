@@ -1926,7 +1926,9 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
 
     func getSyncToAuthenticator(userId: String?) async throws -> Bool {
         let userId = try userId ?? getActiveAccountUserId()
-        return appSettingsStore.syncToAuthenticator(userId: userId)
+        // Pass-Y: the sync with Bitwarden's Authenticator app can never be on (own bundle IDs, app group and team);
+        // a stored `true` (e.g. from an earlier build) is ignored.
+        return Self.isAuthenticatorSyncAvailable && appSettingsStore.syncToAuthenticator(userId: userId)
     }
 
     func getTimeoutAction(userId: String?) async throws -> SessionTimeoutAction {
@@ -2461,11 +2463,18 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
                     return (nil, false)
                 }
                 let userValue = values[userId] ?? self.appSettingsStore.syncToAuthenticator(userId: userId)
-                return (userId, userValue)
+                return (userId, Self.isAuthenticatorSyncAvailable && userValue)
             }
         }
         .eraseToAnyPublisher()
     }
+
+    // MARK: Pass-Y
+
+    /// Whether syncing TOTP codes with Bitwarden's Authenticator app is possible. Always `false` in Pass-Y: the app
+    /// uses its own bundle IDs, app group and team, so the shared keychain/app group of the Authenticator app is not
+    /// reachable. The upstream sync code stays in place for mergeability; it just never sees an enabled account.
+    static let isAuthenticatorSyncAvailable = false
 
     // MARK: Private
 

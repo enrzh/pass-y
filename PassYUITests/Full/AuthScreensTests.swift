@@ -112,7 +112,10 @@ final class AuthScreensTests: PassYUITestCase {
         let name = app.textFields["NameEntry"]
         name.replaceText("IR Test")
         attach(app, "\(t)-reg-start-filled")
-        app.keyboards.buttons["return"].firstMatch.tap()
+        // Return through the focused field, not the on-screen key: when the simulator's software keyboard is hidden
+        // (reported off screen, e.g. {300.7, 1087.0}, while a hardware keyboard is considered connected) the key button
+        // exists but cannot be tapped; typed input still reaches the focused field.
+        name.typeText("\n")
         // The landing screen below the registration form also has a "ContinueButton": take the visible, hittable one.
         _ = app.buttons["ContinueButton"].firstMatch.waitForExistence(timeout: 5)
         guard let cont = app.buttons.matching(identifier: "ContinueButton").allElementsBoundByIndex.first(where: { $0.isHittable }) else {

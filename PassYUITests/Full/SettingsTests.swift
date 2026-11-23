@@ -155,10 +155,10 @@ final class SettingsTests: PassYUITestCase {
         XCTAssertFalse(app2.buttons["SetupSectionActionButton"].exists, "dismissed section stays dismissed")
     }
 
-    /// Settings: the account row shows the server (not "Pass-Y") and its menu offers Add account; no watch option, no
-    /// web vault links anywhere in Settings.
-    /// Formerly `PassYUiR9Tests.test03_settingsAccountRowAndNoWebVaultNoWatch`.
-    func test_accountRowServerAddAccountNoWebVaultNoWatch() {
+    /// Settings: the account row shows the server (not "Pass-Y") and its menu offers Add account; no web vault links
+    /// anywhere in Settings; the restored "Connect to Watch" switch is in Other and only there.
+    /// Formerly `PassYUiR9Tests.test03_settingsAccountRowAndNoWebVaultNoWatch` (then `..._NoWatch`).
+    func test_accountRowServerAddAccountNoWebVaultWatchSwitchInOther() {
         let app = launchApp()
         ensureUnlockedVault(app)
         goTo(app, "Settings")
@@ -179,8 +179,13 @@ final class SettingsTests: PassYUITestCase {
                            ("OtherSettingsButton", "other"), ("AboutSettingsButton", "about")] {
             app.buttons[id].tap(); sleep(1)
             noWebVault(name)
-            XCTAssertFalse(containing(app, "watch").allElementsBoundByIndex.contains { $0.elementType == .switch }, "\(name): no watch switch")
-            if name == "other" { shot(app, 5, "other") }
+            let watchSwitches = containing(app, "watch").allElementsBoundByIndex.filter { $0.elementType == .switch }
+            if name == "other" {
+                XCTAssertTrue(app.switches["Connect to Watch"].waitForExistence(timeout: 5), "other: Connect to Watch switch")
+                shot(app, 5, "other")
+            } else {
+                XCTAssertTrue(watchSwitches.isEmpty, "\(name): no watch switch")
+            }
             app.navigationBars.buttons.firstMatch.tap(); sleep(1)
         }
     }

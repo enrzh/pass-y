@@ -1245,12 +1245,14 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertTrue(valueWithUserId)
     }
 
-    /// `getSyncToAuthenticator()` returns the sync to authenticator value for the active account.
+    /// `getSyncToAuthenticator()` is always `false` in Pass-Y, even if `true` is stored for the active account.
     func test_getSyncToAuthenticator() async throws {
         await subject.addAccount(.fixture())
         appSettingsStore.syncToAuthenticatorByUserId["1"] = true
         let value = try await subject.getSyncToAuthenticator()
-        XCTAssertTrue(value)
+        XCTAssertFalse(value)
+        let valueWithUserId = try await subject.getSyncToAuthenticator(userId: "1")
+        XCTAssertFalse(valueWithUserId)
     }
 
     /// `.getTimeoutAction(userId:)` returns the session timeout action.
@@ -2980,7 +2982,8 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertFalse(shouldDoArchiveOnboarding)
     }
 
-    /// `syncToAuthenticatorPublisher()` returns a publisher for the user's sync to authenticator settings.
+    /// `syncToAuthenticatorPublisher()` returns a publisher for the user's sync to authenticator settings; in Pass-Y
+    /// the value is always `false`, even after `setSyncToAuthenticator(true)`.
     func test_syncToAuthenticatorPublisher() async throws {
         await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
 
@@ -2996,10 +2999,10 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertEqual(publishedValues[0].userId, "1")
         XCTAssertEqual(publishedValues[0].shouldSync, false)
         XCTAssertEqual(publishedValues[1].userId, "1")
-        XCTAssertEqual(publishedValues[1].shouldSync, true)
+        XCTAssertEqual(publishedValues[1].shouldSync, false)
     }
 
-    /// `syncToAuthenticatorPublisher()` gets the initial stored value if a cached value doesn't exist.
+    /// `syncToAuthenticatorPublisher()` ignores a stored `true` (Pass-Y: the sync can never be on).
     func test_syncToAuthenticatorPublisher_fetchesInitialValue() async throws {
         await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
 
@@ -3015,7 +3018,7 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         try await subject.setSyncToAuthenticator(false)
 
         XCTAssertEqual(publishedValues[0].userId, "1")
-        XCTAssertEqual(publishedValues[0].shouldSync, true)
+        XCTAssertEqual(publishedValues[0].shouldSync, false)
         XCTAssertEqual(publishedValues[1].userId, "1")
         XCTAssertEqual(publishedValues[1].shouldSync, false)
     }

@@ -1279,8 +1279,8 @@ UI tests run against a throwaway local Vaultwarden (`Scripts-passy/vaultwarden/`
 | Directory | Classes (feature) | Tier |
 |---|---|---|
 | `Core/` | `AuthLandingTests`, `AuthLoginTests`, `AvatarMenuTests`, `ItemCrudTests`, `LockUnlockTests`, `SearchTests`, `VaultHomeTests` (15 tests) | core |
-| `Full/` | `AccessibilityTests`, `AppearanceTests`, `AuthScreensTests`, `AuthTwoFactorTests`, `FoldersTests`, `GeneratorTests`, `ItemDetailTests`, `ItemListActionsTests`, `NavigationTests`, `PendingRequestsTests`, `SendTests`, `SettingsTests` (43) | full |
-| `Full/iPad/` | `IPadTests` (2, own iPad simulator) | full |
+| `Full/` | `AccessibilityTests`, `AppearanceTests`, `AuthScreensTests`, `AuthTwoFactorTests`, `FoldersTests`, `GeneratorTests`, `ItemDetailTests`, `ItemListActionsTests`, `NavigationTests`, `PendingRequestsTests`, `SendTests`, `SettingsTests` (44) | full |
+| `Full/iPad/` | `IPadLandingTests` (1, fresh install, sorts first), `IPadTests` (2), own iPad simulator | full |
 | `Full/Perf/` | `PerfTests`, `PerfCompareTests` (9, own 2000 item account `passy-perf@example.test`) | full |
 | `Shots/`, `Shots/iPad/` | `Shots*Tests` (17): screenshot export only | shots (never gating) |
 | `Diagnostics/` | `DiagnosticsTests`, `KeystrokeProbeTests` | none, run by name |
@@ -1343,16 +1343,27 @@ of the keyboard animation before typing. `KeystrokeProbeTests` (Diagnostics) mea
 **Finding (2026-11-23, iOS 27.0 simulator, `KeystrokeProbeTests`, own simulator with the keyboard defaults above):**
 
 - Hardware keyboard: not involved (`ConnectHardwareKeyboard` = 0, Simulator.app not running during the runs).
-- **Add/edit-form masked fields keep only the last key: an app component bug, not the simulator in general.** In the
-  add-login form the masked `LoginPasswordEntry` held 1 of 21 characters in all 10 measurements (5 rounds, key by key and as one
-  `typeText`, focus never lost); revealed afterwards it really contains 1 character (`revealedCount=1`). The masked
-  `LoginTotpEntry` of the same form showed 1 of 16 three times in a row. In the same session and simulator the unlock
-  screen's `SecureField` (`VaultUnlockView`, plain SwiftUI) lost 0 of 21 in 8 measurements, the revealed unlock field 0 in 8,
-  the add-form name field 0 in 10, the search bar 0 key by key (4 rounds). Both affected fields are the masked branch of
-  `BitwardenTextField` (BitwardenKit: `SecureField` with the local-echo binding `localText`/`pendingEchoes`, `.id(title)`
-  and an `.onTapGesture` focus). Product code was not changed here; whether a person typing on a device is affected is
-  unverified (an earlier device check on an iPhone Air kept all characters). The tests type these fields unverified as
-  before or through the revealed field (`typePassword`), and the end-to-end assertions (TOTP code, saved password) stay.
+- **Add/edit-form masked fields keep only the last key: an XCUITest artifact, not a user-facing bug.** In the add-login
+  form the masked `LoginPasswordEntry` held 1 of 21 characters in all 10 measurements (key by key and as one
+  `typeText`, focus never lost; revealed it really contained 1 character), the masked `LoginTotpEntry` 1 of 16. Not a
+  re-creation of the field (one `onAppear`, no `onDisappear`) and not focus, tap or row layout (switched off one by one,
+  no change). Debug logging of the field bindings showed every key also changing the *other* masked field (cleared,
+  then one character). `typeText` loses keys only while a second password-like secure field is mounted (a secure field
+  without content type counts as one): with the authenticator key revealed the masked password kept 21/21; with both
+  masked fields set to `.oneTimeCode` (experiment only, not committed) 21/21 and 16/16 in 10/10 measurements each.
+  Consistent with iOS password AutoFill treating the editor as a sign-up/password-change form. The same fields in the
+  upstream layout (ScrollView instead of the native Form) lost the same way, so upstream tests would see it too.
+  Software keyboard key taps (`app.keyboards.keys`) kept 21/21 with both fields masked, and a real iPhone Air
+  (v1.26-ui-r9) keeps the whole typed password: product behaviour is not changed. The stray character the cross-write
+  puts into the authenticator key made an add-login save fail ("An error has occurred") in an ad-hoc run on a debug
+  build (not seen in the validated core/full runs).
+  Test-side handling unchanged: the tests type these fields as before, the password round trip goes through the
+  revealed field (`typePassword`), and the end-to-end assertions (TOTP code, saved password) stay. A helper that showed
+  the authenticator key as a plain field before typing (so the password is the only masked field) was tried and dropped:
+  after it the toolbar Save / item-view Close buttons were reported not hittable (`hit point {-1, -1}`) and the
+  `ItemListActionsTests` reproducibly failed. `KeystrokeProbeTests.test_probeAddLoginOneMaskedField` keeps the
+  discriminator (one masked field, key taps). In the same earlier session the unlock screen's `SecureField` lost 0 of 21
+  in 8 measurements, the search bar 0.
 - **Occasional loss in the unlock field right after a relaunch:** 3 `PASSY-RETYPE` lines in about 30 unlocks of the
   ad-hoc full runs (got 17 and 20 of 21, once 26 after lost delete keys), at load 3 to 4 with keyboard focus and the
   keyboard on screen; 0 in 8 probe rounds once the screen had settled (the probe waits until the app's own focus from
@@ -1391,9 +1402,23 @@ starts): `TIER=core` three runs in a row 305 s, 325 s, 314 s wall (15/15 tests e
 launches); the step itself 272 to 289 s. `TIER=full` (commit 8fd4e7af3): PASS, wall 4319 s (72 min): core 311 s, full-phone 2897 s
 (43/43; `test_addMenuOpenCloseLoopNoIdleStall` alone ~7 min), iPad 338 s (2/2), perf 704 s (9/9), 0 retries.
 
-**iPad finding:** after the first-launch server sheet is cancelled, tapping "Server: Not set" does not open it again
-on the iPad (reproduced: `AuthLandingTests` then `AuthLoginTests` on the iPad simulator fail with "the server sheet does
-not open from the region selector"; on the phone it opens). Not fixed here.
+**iPad finding (fixed on `passy/next-fixes`):** after the first-launch server sheet was cancelled, tapping "Server: Not
+set" did not open it again on the iPad. The tap never reached the button action (no `.regionPressed`): the row is a
+plain-style `Button` whose label is `Label`, `Spacer`, value, chevron, and a plain button hit-tests only its content, not
+the `Spacer`; XCUITest taps the middle of the element, which on the wide iPad row is empty space. The row now has
+`.contentShape(Rectangle())` (landing and registration). `Full/iPad/IPadLandingTests.test_serverSheetReopensAfterCancel`
+(fresh install, sorts before `IPadTests`) cancels the sheet and reopens it twice.
+
+**Fixed in the `passy/next-fixes` validation:** `SettingsTests.test_accountRowServerAddAccountNoWebVaultNoWatch` asserted
+"no watch switch" although Connect to Watch is restored on purpose; it is now
+`test_accountRowServerAddAccountNoWebVaultWatchSwitchInOther` (the switch is in Other and only there).
+`AuthScreensTests.test_registrationStart` tapped the keyboard's Return key; in some runs the software keyboard of the
+simulator was hidden for whole stretches (every `Find the Keyboard at` reported y 891/918 on an 874 pt screen instead
+of 590, starting and ending between unrelated tests on the same simulator and app build, also with the unchanged
+registration screen of `passy/next`), so the key existed but was not tappable while typing into the focused fields
+still worked. The test now ends editing with `typeText("\n")` into the focused field. Why the keyboard was hidden
+is not proven: it was bound to that simulator (on a newly created one the keyboard showed at y 590 in every check,
+and AuthScreensTests 3/3, SettingsTests 7/7 passed), while another session drove a foreign simulator at the same time.
 
 ### Old to new test names
 
@@ -1484,7 +1509,7 @@ listed below the table.
 | `PassYUiR8Tests.test06_backAndCloseEverywhere` | `NavigationTests.test_backAndCloseEverywhere` | full |
 | `PassYUiR9Tests.test01_avatarMenu` | `AvatarMenuTests.test_menuEntriesServerUrlNoAccountEntries` | core |
 | `PassYUiR9Tests.test02_pendingRequestsFromMenu` | `PendingRequestsTests.test_opensFromAvatarMenu` | full |
-| `PassYUiR9Tests.test03_settingsAccountRowAndNoWebVaultNoWatch` | `SettingsTests.test_accountRowServerAddAccountNoWebVaultNoWatch` | full |
+| `PassYUiR9Tests.test03_settingsAccountRowAndNoWebVaultNoWatch` | `SettingsTests.test_accountRowServerAddAccountNoWebVaultWatchSwitchInOther` | full |
 | `PassYUiR9Tests.test04_itemOpensWithoutSpinner` | `ItemCrudTests.test_itemOpensWithoutSpinner` | core |
 | `PassYUiR9Tests.test05_listNoSpinner_vaultButtonFollowsStack` | `VaultHomeTests.test_listNoSpinnerVaultButtonFollowsStack` | core |
 | `PassYUiR9Tests.test06_contentScrollsUnderBars` | `NavigationTests.test_contentScrollsUnderBars` | full |
@@ -1508,7 +1533,9 @@ Assertion changes after the move (diff of the sorted assertion lines `main` vs. 
   its first failure; a passing run checks the same assertions.
 
 
-Unit/ViewInspector tests named by round stay as they are (renaming them is not cheap: `PassYUiR9PreloadTests` is
-being changed on another branch): `BitwardenShared/UI/Platform/Application/Views/PassYUiR9Tests.swift`
-(`PassYUiR9Tests`, `PassYUiR9IdleTests`, `PassYUiR9NoRefreshControlTests`, `PassYUiR9PreloadTests`) and
-`PassYUiR9+ViewInspectorTests.swift` (`PassYUiR9ViewInspectorTests`). Unit plans: `Scripts-passy/run_plan.sh`.
+Pass-Y unit/ViewInspector tests (BitwardenShared, `UI/Platform/Application/Views/`) are named by feature; the former
+round names map as follows: `PassYUiR9Tests` -> `PassYAppHygieneTests` (`PassYAppHygieneTests.swift`, run by CI),
+`PassYUiR9IdleTests` -> `PassYIdleTests` and `PassYUiR9NoRefreshControlTests` -> `PassYVaultNoRefreshControlTests`
+(`PassYIdleTests.swift`), `PassYUiR9PreloadTests` -> `PassYItemPreloadTests` (`PassYItemPreloadTests.swift`, together
+with `PassYPreloadSecurityTests`), `PassYUiR9ViewInspectorTests` -> `PassYAvatarMenuViewInspectorTests`
+(`PassYAvatarMenu+ViewInspectorTests.swift`). Unit plans: `Scripts-passy/run_plan.sh`.

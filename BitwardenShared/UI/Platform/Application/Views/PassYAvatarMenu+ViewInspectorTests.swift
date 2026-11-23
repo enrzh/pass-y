@@ -8,8 +8,8 @@ import XCTest
 
 @testable import BitwardenShared
 
-/// ui-r9: avatar menu, account row of Settings, no watch option.
-class PassYUiR9ViewInspectorTests: BitwardenTestCase {
+/// The avatar menu, the account row of Settings, no watch option (formerly `PassYUiR9ViewInspectorTests`).
+class PassYAvatarMenuViewInspectorTests: BitwardenTestCase {
     // MARK: Avatar menu
 
     @MainActor

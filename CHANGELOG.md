@@ -6,6 +6,18 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 
 ## Unreleased
 
+- Keystroke loss in the masked add/edit fields diagnosed as an XCUITest `typeText` artifact with two masked fields (not
+  field re-creation; software keyboard taps and a real iPhone Air keep every character); product and test helpers
+  unchanged, finding and probes in [Docs/Testing.md](Docs/Testing.md) / `KeystrokeProbeTests`.
+- iPad: the landing's "Server: Not set" row (and the registration's server row) is tappable on its whole width; after
+  cancelling the first server sheet a tap in the middle of the wide row did nothing.
+- Swipe Delete in item lists no longer uses a destructive-role button: it removed the row before the confirmation (gone
+  after Cancel) and the later real removal could crash the list diff ("Invalid number of items in section").
+- Settings > Account security: no "Authenticator sync" row; the sync with Bitwarden's Authenticator app is always off
+  (a stored "on" is ignored), since Pass-Y's own bundle IDs/app group/team cannot reach it.
+- Tests: Pass-Y unit/ViewInspector tests named by feature instead of round (`PassYAppHygieneTests`, `PassYIdleTests`,
+  `PassYVaultNoRefreshControlTests`, `PassYItemPreloadTests`, `PassYAvatarMenuViewInspectorTests`); new UI tests
+  `IPadLandingTests.test_serverSheetReopensAfterCancel`, `ItemListActionsTests.test_swipeDeleteKeepsRowUntilConfirmed`.
 - Security: the item preload drops results that arrive after the 1 s timeout or after lock, logout or account switch, cancels running fetches, wipes untaken entries by timer, and no item opens after a lock.
 - Apple Watch app, widget and the Connect to Watch setting restored (removed in v1.26); Mac and visionOS stay off.
 - Versioning: one scheme `MAJOR.MINOR.PATCH`, next release 1.27.0 (was 2026.4.0 upstream scheme); tags `vX.Y.Z`, see [Docs/Releasing.md](Docs/Releasing.md).
