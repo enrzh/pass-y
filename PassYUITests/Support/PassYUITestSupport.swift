@@ -188,7 +188,7 @@ extension XCTestCase {
                 || (app.buttons["folder"].exists && app.buttons["key"].exists) {
                 // A menu (add menu, avatar menu, context menu) is open: tap outside it. (The avatar menu entries carry
                 // labels, not the identifiers, in the tree, so `avatarMenuIsOpen` also matches "Sync now" by label.)
-                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap()
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.45)).tap()
                 _ = waitUntil(3) { !app.menuItems.firstMatch.exists && !avatarMenuIsOpen(app) && !app.buttons["folder"].exists }
                 continue
             }
@@ -222,7 +222,7 @@ extension XCTestCase {
             }
             if fab.exists, !fab.isHittable {
                 // Something unknown covers the vault (a context menu): tap outside it.
-                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap()
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.45)).tap()
                 usleep(800_000)
                 continue
             }
