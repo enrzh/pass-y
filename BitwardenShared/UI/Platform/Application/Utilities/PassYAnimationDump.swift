@@ -26,6 +26,8 @@ enum PassYAnimationDump {
     static let notificationName = "de.aiity.passy.dumpAnimations"
     static let plantName = "de.aiity.passy.plantStall"
     static let unplantName = "de.aiity.passy.unplantStall"
+    static let plantPausedName = "de.aiity.passy.plantPausedAnimator"
+    nonisolated(unsafe) private static var pausedAnimator: UIViewPropertyAnimator?
 
     nonisolated(unsafe) private static var installed = false
     nonisolated(unsafe) private static var tokens: [Int32] = []
@@ -49,6 +51,10 @@ enum PassYAnimationDump {
         tokens.append(token)
         notify_register_dispatch(plantName, &token, queue) { _ in
             DispatchQueue.main.async { MainActor.assumeIsolated { PassYAnimationDump.plantStall() } }
+        }
+        tokens.append(token)
+        notify_register_dispatch(plantPausedName, &token, queue) { _ in
+            DispatchQueue.main.async { MainActor.assumeIsolated { PassYAnimationDump.plantPausedAnimator() } }
         }
         tokens.append(token)
         notify_register_dispatch(unplantName, &token, queue) { _ in
@@ -193,8 +199,25 @@ enum PassYAnimationDump {
         append("=== \(stamp(Date())) PLANTED endless UIView animation on PassYPlantedStall\n")
     }
 
+    /// A started, then paused property animator: a UIView animation that is "in progress" for XCUITest.
+    @MainActor
+    private static func plantPausedAnimator() {
+        guard let window = sceneProvider?()?.windows.first else { return }
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 2, height: 2))
+        view.accessibilityIdentifier = "PassYPlantedStall"
+        view.isUserInteractionEnabled = false
+        window.addSubview(view)
+        let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) { view.alpha = 0.5 }
+        animator.startAnimation()
+        animator.pauseAnimation()
+        pausedAnimator = animator
+        append("=== \(stamp(Date())) PLANTED paused UIViewPropertyAnimator on PassYPlantedStall\n")
+    }
+
     @MainActor
     private static func unplantStall() {
+        pausedAnimator?.stopAnimation(true)
+        pausedAnimator = nil
         for window in sceneProvider?()?.windows ?? [] {
             for view in window.subviews where view.accessibilityIdentifier == "PassYPlantedStall" {
                 view.layer.removeAllAnimations()
@@ -235,7 +258,7 @@ enum PassYAnimationDump {
 /// gets a token when it is added to a layer (with the layer, key and the adding call stack); `animationDidStart:` /
 /// `animationDidStop:finished:` of `UIViewAnimationState` mark it started/stopped. Started but never stopped entries
 /// are what keeps XCUITest's "animations complete" from arriving.
-final class PassYAnimationTracker {
+public final class PassYAnimationTracker {
     private final class Entry {
         let token: Int
         let key: String
@@ -264,11 +287,36 @@ final class PassYAnimationTracker {
     nonisolated(unsafe) private static var starts = 0
     nonisolated(unsafe) private static var stops = 0
     nonisolated(unsafe) private static var untrackedStarts: [String] = []
+    /// Per `UIViewAnimationState` object: starts minus stops, the first open start and its call stack. This pairs
+    /// starts without a CAAnimation (UIKit passes nil) too, which the token map cannot see.
+    private final class StateEntry {
+        weak var state: AnyObject?
+        let stateType: String
+        var open = 0
+        var firstOpen: Date
+        var animation: String
+        var stack: [NSNumber]
+        init(state: AnyObject, animation: String, stack: [NSNumber]) {
+            self.state = state
+            stateType = "\(type(of: state))"
+            firstOpen = Date()
+            self.animation = animation
+            self.stack = stack
+        }
+    }
+    nonisolated(unsafe) private static var states: [ObjectIdentifier: StateEntry] = [:]
+    nonisolated(unsafe) private static var unmatchedStops = 0
+    /// Open states that deallocated (their address was reused) — a start whose stop never came.
+    nonisolated(unsafe) private static var orphans: [StateEntry] = []
+    /// Stops that came > 5 s after the start, and stops without a seen start (first 10 each), with the stopping stack.
+    nonisolated(unsafe) private static var events: [(Date, String, [NSNumber])] = []
     nonisolated(unsafe) private static var droppedNeverStarted = 0
     nonisolated(unsafe) private static var installed = false
     nonisolated(unsafe) private static var stateClass: AnyClass?
 
-    static func install() {
+    /// Installs the swizzles (once). Called as early as possible (app delegate), so the counter mirrors XCUITest's
+    /// from the first animation on.
+    public static func install() {
         guard !installed, let state = NSClassFromString("UIViewAnimationState") else { return }
         installed = true
         stateClass = state
@@ -298,7 +346,7 @@ final class PassYAnimationTracker {
         typealias Fn = @convention(c) (AnyObject, Selector, CAAnimation?) -> Void
         let original = unsafeBitCast(method_getImplementation(method), to: Fn.self)
         let block: @convention(block) (AnyObject, CAAnimation?) -> Void = { object, animation in
-            PassYAnimationTracker.noteStart(animation)
+            PassYAnimationTracker.noteStart(animation, state: object)
             original(object, selector, animation)
         }
         method_setImplementation(method, imp_implementationWithBlock(block))
@@ -310,7 +358,7 @@ final class PassYAnimationTracker {
         typealias Fn = @convention(c) (AnyObject, Selector, CAAnimation?, Bool) -> Void
         let original = unsafeBitCast(method_getImplementation(method), to: Fn.self)
         let block: @convention(block) (AnyObject, CAAnimation?, Bool) -> Void = { object, animation, finished in
-            PassYAnimationTracker.noteStop(animation)
+            PassYAnimationTracker.noteStop(animation, state: object)
             original(object, selector, animation, finished)
         }
         method_setImplementation(method, imp_implementationWithBlock(block))
@@ -341,10 +389,24 @@ final class PassYAnimationTracker {
         }
     }
 
-    private static func noteStart(_ animation: CAAnimation?) {
+    private static func noteStart(_ animation: CAAnimation?, state: AnyObject) {
+        let stack = Thread.callStackReturnAddresses
         lock.lock()
         defer { lock.unlock() }
         starts += 1
+        let id = ObjectIdentifier(state)
+        if let entry = states[id], entry.state !== state, entry.open > 0, orphans.count < 20 {
+            orphans.append(entry)
+        }
+        if let entry = states[id], entry.state === state {
+            if entry.open == 0 { entry.firstOpen = Date(); entry.stack = Array(stack.prefix(48)) }
+            entry.open += 1
+        } else {
+            let entry = StateEntry(state: state, animation: animation.map(describe) ?? "nil animation",
+                                   stack: Array(stack.prefix(48)))
+            entry.open = 1
+            states[id] = entry
+        }
         if let token = animation?.value(forKey: tokenKey) as? Int, let entry = entries[token] {
             entry.started = Date()
         } else if untrackedStarts.count < 20 {
@@ -352,10 +414,26 @@ final class PassYAnimationTracker {
         }
     }
 
-    private static func noteStop(_ animation: CAAnimation?) {
+    private static func noteStop(_ animation: CAAnimation?, state: AnyObject) {
         lock.lock()
         defer { lock.unlock() }
         stops += 1
+        let id = ObjectIdentifier(state)
+        if let entry = states[id], entry.state === state, entry.open > 0 {
+            let age = Date().timeIntervalSince(entry.firstOpen)
+            if age > 5, events.count < 20 {
+                events.append((Date(), "LATE-STOP after \(Int(age))s \(entry.stateType) first=\(entry.animation)",
+                               Array(Thread.callStackReturnAddresses.prefix(48))))
+            }
+            entry.open -= 1
+            if entry.open == 0 { states[id] = nil }
+        } else {
+            unmatchedStops += 1
+            if events.count < 20 {
+                events.append((Date(), "STOP-WITHOUT-START \(type(of: state)) \(animation.map(describe) ?? "nil animation")",
+                               Array(Thread.callStackReturnAddresses.prefix(48))))
+            }
+        }
         if let token = animation?.value(forKey: tokenKey) as? Int {
             entries[token] = nil
         }
@@ -374,11 +452,51 @@ final class PassYAnimationTracker {
         }
     }
 
+    /// The instance variables of an object (names, types and short values), to name what a UIKit state belongs to.
+    private static func ivars(of object: AnyObject) -> [String] {
+        var lines: [String] = []
+        var cls: AnyClass? = object_getClass(object)
+        while let current = cls, current != NSObject.self {
+            var count: UInt32 = 0
+            if let list = class_copyIvarList(current, &count) {
+                for index in 0 ..< Int(count) {
+                    let ivar = list[index]
+                    let name = ivar_getName(ivar).map { String(cString: $0) } ?? "?"
+                    let encoding = ivar_getTypeEncoding(ivar).map { String(cString: $0) } ?? "?"
+                    var value = ""
+                    if encoding.hasPrefix("@") {
+                        let held = object_getIvar(object, ivar)
+                        value = held.map { String(String(describing: $0).prefix(160)) } ?? "nil"
+                    } else if encoding == "i" || encoding == "I" || encoding == "q" || encoding == "Q" || encoding == "B"
+                        || encoding == "c" || encoding == "d" || encoding == "f" {
+                        let offset = ivar_getOffset(ivar)
+                        let base = Unmanaged.passUnretained(object).toOpaque().advanced(by: offset)
+                        switch encoding {
+                        case "d": value = "\(base.load(as: Double.self))"
+                        case "f": value = "\(base.load(as: Float.self))"
+                        case "q", "Q": value = "\(base.load(as: Int64.self))"
+                        case "B", "c": value = "\(base.load(as: Int8.self))"
+                        default: value = "\(base.load(as: Int32.self))"
+                        }
+                    }
+                    lines.append("\(NSStringFromClass(current)).\(name) \(encoding) \(value)")
+                }
+                free(list)
+            }
+            cls = class_getSuperclass(current)
+        }
+        return lines
+    }
+
     @MainActor
     static func report() -> [String] {
         lock.lock()
         let snapshot = Array(entries.values)
         let counts = (starts, stops, droppedNeverStarted, untrackedStarts)
+        let openStates = states.values.filter { $0.open > 0 }.sorted { $0.firstOpen < $1.firstOpen }
+        let unmatched = unmatchedStops
+        let orphanList = orphans
+        let eventList = events
         lock.unlock()
         let now = Date()
         let outstanding = snapshot.filter { $0.started != nil }.sorted { $0.added < $1.added }
@@ -388,6 +506,24 @@ final class PassYAnimationTracker {
                 + " droppedNeverStarted=\(counts.2)",
         ]
         if !counts.3.isEmpty { lines.append("untracked starts (first 20): " + counts.3.joined(separator: " | ")) }
+        lines.append("-- open UIViewAnimationState objects: \(openStates.count) (stops without a start seen: \(unmatched))")
+        for entry in openStates {
+            let age = Int(now.timeIntervalSince(entry.firstOpen))
+            lines.append("OPEN-STATE age=\(age)s open=\(entry.open) \(entry.stateType) first=\(entry.animation)"
+                + " alive=\(entry.state != nil)")
+            // Private ivars only for states that block (describing them is not free of risk).
+            if age >= 5, let state = entry.state { lines += ivars(of: state).map { "    ivar " + $0 } }
+            lines += symbolize(entry.stack).map { "    " + $0 }
+        }
+        for entry in orphanList {
+            lines.append("ORPHAN-STATE (deallocated while open=\(entry.open), opened \(Int(now.timeIntervalSince(entry.firstOpen)))s ago)"
+                + " \(entry.stateType) first=\(entry.animation)")
+            lines += symbolize(entry.stack).map { "    " + $0 }
+        }
+        for (date, text, stack) in eventList {
+            lines.append("\(text) \(Int(now.timeIntervalSince(date)))s ago")
+            lines += symbolize(stack).map { "    " + $0 }
+        }
         for entry in outstanding {
             let age = Int(now.timeIntervalSince(entry.started ?? entry.added))
             var line = "OUTSTANDING #\(entry.token) age=\(age)s key=\(entry.key) \(entry.animation) layer=\(entry.layerType)"
