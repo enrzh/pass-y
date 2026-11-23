@@ -73,7 +73,7 @@ Most of the app's functionality is implemented in the `BitwardenShared` and `Aut
 - `Tools`
 - `Vault`
 
-These folders align with the [CODEOWNERS](../.github/CODEOWNERS) file for the project. One **MUST** not add additional direct subfolders to `Core` or `UI`. While this top-level structure is deliberately inflexible, the folder structure within the subfolders are not specifically prescribed.
+These folders follow the upstream Bitwarden team layout (Pass-Y has no CODEOWNERS file). One **MUST** not add additional direct subfolders to `Core` or `UI`. While this top-level structure is deliberately inflexible, the folder structure within the subfolders are not specifically prescribed.
 
 The responsibilities of the core layer are to manage the storage and retrieval of data from low-level sources (such as from the network, persistence, or Bitwarden SDK) and to expose them in a more ready-to-consume manner by the UI layer via "repository" and "service" classes. The UI layer is then responsible for any final processing of this data for display in the UI as well as receiving events from the UI and updating the tracked state accordingly.
 
@@ -192,7 +192,7 @@ State represents the data and configuration needed to perform the processor's lo
 
 ### View
 
-A view renders the UI based on its state. The state within a view is managed by a [Store](../BitwardenShared/UI/Platform/Application/Utilities/Store.swift). The store is the connection between the processor and the view. Views never mutate state directly; instead, they send actions or perform effects via the store which are forwarded back to the processor. Views are updated by the store anytime the state changes.
+A view renders the UI based on its state. The state within a view is managed by a [Store](../BitwardenKit/UI/Platform/Application/Utilities/Store.swift). The store is the connection between the processor and the view. Views never mutate state directly; instead, they send actions or perform effects via the store which are forwarded back to the processor. Views are updated by the store anytime the state changes.
 
 ### Actions and Effects
 
@@ -206,7 +206,7 @@ Actions and effects are implemented as enumerations so that adding a new action 
 
 The following example demonstrates the above components in the architecture.
 
-- The coordinator creates the processor and view and handles navigation within its navigator (in this case a [StackNavigator](../BitwardenShared/UI/Platform/Application/Utilities/StackNavigator.swift) which is implemented by a `UINavigationController`).
+- The coordinator creates the processor and view and handles navigation within its navigator (in this case a [StackNavigator](../BitwardenKit/Core/Platform/Utilities/StackNavigator.swift) which is implemented by a `UINavigationController`).
 - The processor and view share:
     - State containing the properties that are used to configure the UI: `data` and `isToggleOn`.
     - Actions that are used by the processor to update the state (`updateToggle`) or trigger navigation (`nextExample`).

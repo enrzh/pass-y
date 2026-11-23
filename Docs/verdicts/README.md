@@ -4,6 +4,7 @@ Independent validator results, kept as evidence (German or English as written). 
 
 | Date | Round | Verdict | File |
 |---|---|---|---|
+| 2026-11-24 | v1.27 | FAIL (full tier red under host load, dead doc links; no product defect) | [2026-11-24-v1.27.md](2026-11-24-v1.27.md) |
 | 2026-11-23 | ui-r9 final | PASS (open UNVERIFIED points) | [2026-11-23-ui-r9-final.md](2026-11-23-ui-r9-final.md) |
 | 2026-11-22 | ui-r9 | FAIL | [2026-11-22-ui-r9.md](2026-11-22-ui-r9.md) |
 | 2026-11-21 | ui-r8 final | PASS (open observation O1) | [2026-11-21-ui-r8-final.md](2026-11-21-ui-r8-final.md) |
