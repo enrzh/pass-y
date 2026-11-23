@@ -25,19 +25,16 @@ class PassYUiR9Tests: BitwardenTestCase {
         XCTAssertTrue(storyboard.contains("systemBackgroundColor"), "neutral system background")
     }
 
-    /// The spec has no watch targets and the Mac and visionOS "Designed for iPad" support is off.
-    func test_projectSpec_noWatch_noMacNoVision() throws {
+    /// The spec includes the restored watch targets and the Mac and visionOS "Designed for iPad" support is off.
+    func test_projectSpec_watchRestored_noMacNoVision() throws {
         let spec = try read("project-pm.yml")
-        XCTAssertFalse(spec.contains("Watch"), "no watch target or dependency")
-        XCTAssertFalse(spec.contains("watchOS"))
+        XCTAssertTrue(spec.contains("BitwardenWatchApp"), "watch app target present")
+        XCTAssertTrue(spec.contains("watchOS"))
         XCTAssertTrue(spec.contains("SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO"))
         XCTAssertTrue(spec.contains("SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO"))
         XCTAssertTrue(spec.contains("TARGETED_DEVICE_FAMILY: \"1,2\""))
-        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("BitwardenWatchApp").path))
-        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("BitwardenWatchShared").path))
-        XCTAssertFalse(FileManager.default.fileExists(
-            atPath: root.appendingPathComponent("BitwardenWatchWidgetExtension").path,
-        ))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("BitwardenWatchApp").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("BitwardenWatchShared").path))
     }
 
     /// The perf counters and signposts exist only in DEBUG builds.
