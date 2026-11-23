@@ -13,11 +13,18 @@ final class PerfCompareTests: PassYUITestCase {
             let app = launchApp()
             let pw = app.secureTextFields["MasterPasswordEntry"]
             XCTAssertTrue(waitFor(pw))
-            pw.focus(); pw.typeText(TestAccount.password)
+            // Verified typing (`replaceText`): a dropped keystroke otherwise unlocks with a wrong password and the
+            // test only sees "no row" (v1.27 recheck: plain `typeText`, an alert was still up in the next test).
+            // The clock starts at the Unlock tap, so the retype does not count into the measurement.
+            pw.replaceText(TestAccount.password)
             let start = Date()
             app.buttons["UnlockVaultButton"].tap()
             let row = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Perf Item'")).firstMatch
-            XCTAssertTrue(waitFor(row, timeout: 60))
+            guard waitFor(row, timeout: 60) else {
+                let alert = app.alerts.firstMatch
+                let texts = alert.exists ? alert.staticTexts.allElementsBoundByIndex.map(\.label) : []
+                return XCTFail("no 'Perf Item' row 60 s after Unlock (alert: \(alert.exists) \(texts))\n\(app.debugDescription)")
+            }
             values.append(Date().timeIntervalSince(start))
             app.terminate()
         }
