@@ -25,7 +25,11 @@ struct AccountSecurityView: View {
                 unlockOptionsSection
             }
 
-            authenticatorSyncSection
+            // Pass-Y: no "Authenticator sync" row; the sync with Bitwarden's Authenticator app cannot work with
+            // Pass-Y's own bundle IDs/app group/team (see `DefaultStateService.isAuthenticatorSyncAvailable`).
+            if DefaultStateService.isAuthenticatorSyncAvailable {
+                authenticatorSyncSection
+            }
 
             sessionTimeoutSection
 
