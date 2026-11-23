@@ -143,11 +143,10 @@ class PassYUITestCase: XCTestCase {
         if nav.exists, nav.isHittable { nav.tap(); sleep(2) }
     }
 
-    /// Types a whole password into the login form: the authenticator key is shown first (with two masked fields
-    /// XCUITest `typeText` keeps only the last character, see `revealAuthenticatorKey`), the eye is switched on, the
-    /// text is typed into the plain field and the eye is switched off again. No product behaviour is changed.
+    /// Types a whole password in the simulator: the iOS 27.0 simulator keeps only the last character typed into a
+    /// masked field (measured; on a device all characters stay, see README), so the eye is switched on, the text is
+    /// typed into the plain field and the eye is switched off again. No product behaviour is changed.
     func typePassword(_ app: XCUIApplication, _ password: String) {
-        revealAuthenticatorKey(app)
         let eye = app.buttons["ViewPasswordButton"].firstMatch
         XCTAssertTrue(eye.waitForExistence(timeout: 8))
         eye.tap(); sleep(1)

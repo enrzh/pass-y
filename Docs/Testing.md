@@ -1355,10 +1355,13 @@ of the keyboard animation before typing. `KeystrokeProbeTests` (Diagnostics) mea
   upstream layout (ScrollView instead of the native Form) lost the same way, so upstream tests would see it too.
   Software keyboard key taps (`app.keyboards.keys`) kept 21/21 with both fields masked, and a real iPhone Air
   (v1.26-ui-r9) keeps the whole typed password: product behaviour is not changed. The stray character the cross-write
-  puts into the authenticator key made an add-login save fail ("An error has occurred") in an ad-hoc run.
-  Test-side handling: `revealAuthenticatorKey` (Support) shows the authenticator key as a plain field first, then the
-  password is the only masked field and is typed verified (`replaceText`); `addLogin`, `typePassword`,
-  `ItemCrudTests` and the TOTP test use it. `KeystrokeProbeTests.test_probeAddLoginOneMaskedField` keeps the
+  puts into the authenticator key made an add-login save fail ("An error has occurred") in an ad-hoc run on a debug
+  build (not seen in the validated core/full runs).
+  Test-side handling unchanged: the tests type these fields as before, the password round trip goes through the
+  revealed field (`typePassword`), and the end-to-end assertions (TOTP code, saved password) stay. A helper that showed
+  the authenticator key as a plain field before typing (so the password is the only masked field) was tried and dropped:
+  after it the toolbar Save / item-view Close buttons were reported not hittable (`hit point {-1, -1}`) and the
+  `ItemListActionsTests` reproducibly failed. `KeystrokeProbeTests.test_probeAddLoginOneMaskedField` keeps the
   discriminator (one masked field, key taps). In the same earlier session the unlock screen's `SecureField` lost 0 of 21
   in 8 measurements, the search bar 0.
 - **Occasional loss in the unlock field right after a relaunch:** 3 `PASSY-RETYPE` lines in about 30 unlocks of the

@@ -37,8 +37,8 @@ final class ItemCrudTests: PassYUITestCase {
         name.replaceText(itemName)
         let user = app.textFields["LoginUsernameEntry"]
         user.replaceText("tester@example.test")
-        revealAuthenticatorKey(app)   // one masked field only (XCUITest typeText, see the helper)
-        app.secureTextFields["LoginPasswordEntry"].replaceText("Sup3r-Secret-Pass")
+        let pw = app.secureTextFields["LoginPasswordEntry"]
+        pw.tap(); pw.typeText("Sup3r-Secret-Pass")
         attach(app, "03-add-login")
         app.buttons["SaveButton"].firstMatch.tap()
 

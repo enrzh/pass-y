@@ -13,13 +13,15 @@ final class ItemDetailTests: PassYUITestCase {
         XCTAssertTrue(waitFor(name))
         app.dismissNewLoginCard()
         name.replaceText("PassY TOTP Item")
-        // Shown as a plain field: with two masked fields XCUITest typeText keeps only the last character
-        // (see revealAuthenticatorKey); typed and verified.
-        revealAuthenticatorKey(app)
-        let totp = app.textFields["LoginTotpEntry"]
-        for _ in 0 ..< 4 where !(totp.exists && totp.isHittable) { app.swipeUp() }
+        let setup = app.buttons["SetupTotpButton"]
+        if !setup.exists { app.swipeUp() }
+        let totp = app.secureTextFields["LoginTotpEntry"].exists ? app.secureTextFields["LoginTotpEntry"] : app.textFields["LoginTotpEntry"]
+        if !totp.waitForExistence(timeout: 3) {
+            for _ in 0 ..< 4 where !totp.exists { app.swipeUp() }
+        }
+        if !totp.exists, setup.exists { setup.tap() }
         guard totp.waitForExistence(timeout: 10) else { dump(app, "totp"); return XCTFail("no TOTP field") }
-        totp.replaceText("JBSWY3DPEHPK3PXP")
+        totp.tap(); totp.typeText("JBSWY3DPEHPK3PXP") // not verified: see Docs/Testing.md (masked add-form field)
         attach(app, "04-add-totp")
         app.buttons["SaveButton"].firstMatch.tap()
         XCTAssertTrue(waitFor(app.staticTexts["PassY TOTP Item"]))

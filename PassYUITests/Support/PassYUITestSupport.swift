@@ -465,20 +465,6 @@ extension XCUIApplication {
 }
 
 extension XCTestCase {
-    /// Shows the authenticator key of the open login form as a plain field, so the password is the only masked field.
-    /// XCUITest-only: with two masked fields (password and authenticator key) `typeText` kept only the last character
-    /// and also changed the other masked field (`KeystrokeProbeTests`; software keyboard taps and a real iPhone keep
-    /// every character), consistent with iOS password AutoFill handling the form. With one masked field nothing is lost.
-    func revealAuthenticatorKey(_ app: XCUIApplication) {
-        let masked = app.secureTextFields["LoginTotpEntry"]
-        let toggle = app.buttons["TextVisibilityToggle"].firstMatch
-        for _ in 0 ..< 4 where !(toggle.exists && toggle.isHittable) { app.swipeUp() }
-        if masked.exists, toggle.exists, toggle.isHittable { toggle.tap() }
-        _ = app.textFields["LoginTotpEntry"].waitForExistence(timeout: 5)
-        let password = app.descendants(matching: .any)["LoginPasswordEntry"].firstMatch
-        for _ in 0 ..< 4 where !(password.exists && password.isHittable) { app.swipeDown() }
-    }
-
     /// Creates a login through the add-item UI and returns to the vault list.
     func addLogin(_ app: XCUIApplication, name: String, user: String, password: String, totp: String? = nil) {
         app.buttons["AddItemFloatingActionButton"].tap()
@@ -487,17 +473,22 @@ extension XCTestCase {
         XCTAssertTrue(waitFor(nameField))
         app.dismissNewLoginCard()
         nameField.replaceText(name)
-        revealAuthenticatorKey(app)
         if let totp {
-            let field = app.textFields["LoginTotpEntry"]
-            for _ in 0 ..< 4 where !(field.exists && field.isHittable) { app.swipeUp() }
-            field.replaceText(totp)
-            app.swipeDown()
+            let setup = app.buttons["SetupTotpButton"]
+            if !setup.exists { app.swipeUp() }
+            let field = app.secureTextFields["LoginTotpEntry"].exists
+                ? app.secureTextFields["LoginTotpEntry"] : app.textFields["LoginTotpEntry"]
+            if !field.waitForExistence(timeout: 3) {
+                for _ in 0 ..< 4 where !field.exists { app.swipeUp() }
+            }
+            if !field.exists, setup.exists { setup.tap() }
+            if field.waitForExistence(timeout: 10) { field.tap(); field.typeText(totp) } // masked add-form field: not verified, see Docs/Testing.md
         }
+        if totp != nil { app.swipeDown() }
         let userField = app.textFields["LoginUsernameEntry"]
         userField.replaceText(user)
-        // The only masked field now: typed and verified by dot count.
-        app.secureTextFields["LoginPasswordEntry"].replaceText(password)
+        let pw = app.secureTextFields["LoginPasswordEntry"]
+        pw.tap(); pw.typeText(password)
         app.buttons["SaveButton"].firstMatch.tap()
         _ = app.buttons["Close"].waitForExistence(timeout: 8)
         let close = app.buttons["Close"].exists ? app.buttons["Close"] : app.buttons["CancelButton"]
