@@ -48,6 +48,40 @@ final class KeystrokeProbeTests: PassYUITestCase {
         clear(field())
     }
 
+    /// The unlock field right after a cold launch, typed the way the tests type it (`focus()` then one `typeText`, no
+    /// settle wait), alternating the master password (one double letter, "ss" at 2-3) and a value of the same length
+    /// without double letters. Prints the missing positions (indexes only):
+    /// `KEYPROBE field=unlock-cold value=<password|nodouble> round=<n> want=21 got=<count> lost=[...] appFocus=<bool>`.
+    /// Tells a timing loss (same early positions for both values) from a dropped repeated key (only "ss").
+    func test_probeColdUnlockTyping() {
+        let first = launchApp()
+        ensureUnlockedVault(first)
+        let values = [("password", text), ("nodouble", "PasxY-Test-Only-2026!")]
+        for round in 1 ... rounds * 2 {
+            let (name, value) = values[round % 2]
+            PassYSession.app?.terminate()
+            // `TEST_RUNNER_PASSY_PROBE_APPEARANCE=toggle`: switch light/dark before every launch, as the light/dark
+            // tests do (device appearance and the app's forced style); `system`: only the device appearance.
+            switch ProcessInfo.processInfo.environment["PASSY_PROBE_APPEARANCE"] {
+            case "toggle": setPassYAppearance(round % 4 < 2 ? .dark : .light)
+            case "system": XCUIDevice.shared.appearance = round % 4 < 2 ? .dark : .light
+            default: break
+            }
+            let app = launchApp()
+            let secure = app.secureTextFields["MasterPasswordEntry"]
+            XCTAssertTrue(secure.waitForExistence(timeout: 60), "unlock screen")
+            secure.focus()
+            let appFocus = PassYTyping.lastFocusWasTheApps
+            secure.typeText(value)
+            let got = count(secure)
+            let lost = got == value.count ? "[]" : secure.lostKeystrokePositions(value)
+            print("KEYPROBE field=unlock-cold value=\(name) appearance=\(XCUIDevice.shared.appearance == .dark ? "dark" : "light") round=\(round) want=\(value.count) got=\(got) lost=\(lost) appFocus=\(appFocus) load=\(passYLoad())")
+        }
+        if ProcessInfo.processInfo.environment["PASSY_PROBE_APPEARANCE"] != nil { setPassYAppearance(.light) }
+        let app = PassYSession.app ?? launchApp()
+        ensureUnlockedVault(app)
+    }
+
     /// The unlock screen's master password field (SecureField) and, revealed, the same field as a TextField.
     func test_probeUnlockField() {
         let first = launchApp()
