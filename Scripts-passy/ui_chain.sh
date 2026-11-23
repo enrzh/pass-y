@@ -120,6 +120,7 @@ step() {
     [ "$attempt" -gt 0 ] && n=$name-retry$attempt
     local waited; waited=$(passy_wait_no_foreign_xcodebuild)
     [ "$waited" != 0 ] && note "$n: waited ${waited}s for foreign xcodebuild"
+    WAIT_TOTAL=$((WAIT_TOTAL + ${waited%% *}))
     [ "$fresh" = 1 ] && passy_fresh_app "$u"
     local log=$O/$n.log; echo "start load $(sysctl -n vm.loadavg)" > "$log"
     rm -rf "$O/$n.xcresult"
@@ -161,7 +162,7 @@ step() {
   done
 }
 
-TIER_OK=1
+TIER_OK=1; WAIT_TOTAL=0
 gate() { case "$STEP_RESULT" in PASS|INFO-*) ;; *) TIER_OK=0 ;; esac; }
 
 mkdir -p "$O" "$O/hold"
@@ -212,5 +213,5 @@ xcrun simctl shutdown "$PHONE" 2>/dev/null; xcrun simctl shutdown "$IPAD" 2>/dev
 [ -n "$VW_PID" ] && { kill "$VW_PID" 2>/dev/null; wait "$VW_PID" 2>/dev/null; }   # only the Vaultwarden this chain started
 T2=$(date +%s)
 if [ $TIER_OK = 1 ]; then V=PASS; else V=FAIL; fi
-note "TIER $TIER: $V (wall $((T2 - T0)) s: build+seed $((T1 - T0)) s, tests $((T2 - T1)) s)"
+note "TIER $TIER: $V (wall $((T2 - T0)) s: build+seed $((T1 - T0)) s, waiting for foreign xcodebuild $WAIT_TOTAL s, own work without that wait $((T2 - T0 - WAIT_TOTAL)) s)"
 rm -f "$O/chain.pid"

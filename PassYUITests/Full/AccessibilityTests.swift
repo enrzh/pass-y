@@ -22,7 +22,7 @@ final class AccessibilityTests: PassYUITestCase {
         let tile = app.buttons["CategoryTile_login"]
         XCTAssertFalse(tile.label.isEmpty)
         XCTAssertFalse((tile.value as? String ?? "").isEmpty, "tile has a count value")
-        avatar.tap(); sleep(1)
+        XCTAssertTrue(openAvatarMenu(app), "avatar menu opens")
         for label in ["Send", "Generator", "Settings"] {
             XCTAssertTrue(avatarMenuEntry(app, label).exists, "avatar menu entry \(label)")
         }

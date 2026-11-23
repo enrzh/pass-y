@@ -83,6 +83,8 @@ final class ItemCrudTests: PassYUITestCase {
 
         // Delete
         deleteCurrentItem(app)
+        // State driven instead of the former fixed 3 s in deleteCurrentItem: the row goes once the list has updated.
+        _ = waitForDisappearance(of: app.staticTexts["\(itemName) Edited"], timeout: 15)
         XCTAssertFalse(app.staticTexts["\(itemName) Edited"].exists, "item deleted from list")
         attach(app, "03-after-delete")
     }

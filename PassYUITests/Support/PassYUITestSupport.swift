@@ -183,10 +183,13 @@ extension XCTestCase {
                 _ = waitForDisappearance(of: alert, timeout: 5)
                 continue
             }
-            if app.menuItems.firstMatch.exists || app.buttons["ProfileMenuSyncButton"].exists {
-                // A menu (add menu, avatar menu, context menu) is open: tap outside it.
+            // The add menu's entries are buttons named after their symbols ("folder", "key"), not menu items.
+            if app.menuItems.firstMatch.exists || avatarMenuIsOpen(app)
+                || (app.buttons["folder"].exists && app.buttons["key"].exists) {
+                // A menu (add menu, avatar menu, context menu) is open: tap outside it. (The avatar menu entries carry
+                // labels, not the identifiers, in the tree, so `avatarMenuIsOpen` also matches "Sync now" by label.)
                 app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap()
-                _ = waitUntil(3) { !app.menuItems.firstMatch.exists && !app.buttons["ProfileMenuSyncButton"].exists }
+                _ = waitUntil(3) { !app.menuItems.firstMatch.exists && !avatarMenuIsOpen(app) && !app.buttons["folder"].exists }
                 continue
             }
             // Outside the unlocked vault: landing, server sheet, login, two-step login, unlock are fine as they are.
@@ -216,6 +219,12 @@ extension XCTestCase {
                 let tile = app.buttons["CategoryTile_login"]
                 for _ in 0 ..< 6 where !(tile.exists && tile.isHittable) { app.swipeDown() }
                 return tile.exists && tile.isHittable
+            }
+            if fab.exists, !fab.isHittable {
+                // Something unknown covers the vault (a context menu): tap outside it.
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap()
+                usleep(800_000)
+                continue
             }
             let back = app.navigationBars.buttons.firstMatch
             if back.exists, back.isHittable, back.identifier != "CurrentActiveAccount" {
