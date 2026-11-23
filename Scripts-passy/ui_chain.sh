@@ -110,6 +110,9 @@ build() {
 STEP_RESULT=""
 step() {
   local name=$1 fresh=$2 u=$3 gating=$4; shift 4
+  # PASSY_ONLY_STEP=<name>: run only that step of the tier (seeding stays the tier's); the others are skipped.
+  if [ -n "${PASSY_ONLY_STEP:-}" ] && [ "$PASSY_ONLY_STEP" != "$name" ]; then STEP_RESULT=INFO-SKIPPED; note "$name: skipped (PASSY_ONLY_STEP=$PASSY_ONLY_STEP)"; return; fi
+  [ -n "${PASSY_STEP_CLASSES:-}" ] && set -- $PASSY_STEP_CLASSES   # override (positive controls, single classes)
   local classes=("$@") tests=() c
   for c in "${classes[@]}"; do tests+=(-only-testing:"PassYUITests/$c"); done
   local min; min=$(expected_tests "${classes[@]}")
@@ -126,17 +129,26 @@ step() {
     rm -rf "$O/$n.xcresult"
     local start_load end_load t0 t1; start_load=$(sysctl -n vm.loadavg | awk '{print $2}'); t0=$(date +%s)
     # Stall watcher: the tests only request a dump for a stalled typeText. Any idle wait can stall (taps too), so fire
-    # the dump while the log sits on "Wait for ... to idle" for 20 s, and after every "not received" line.
-    ( seen=0; last=""
+    # the dump while the log sits on "Wait for ... to idle" for 20 s (again every 30 s while it stays there), and after
+    # every "not received" line. Each fire is logged ($O/<step>.watcher.log: time, log line, reason); the first 6 fires
+    # also take a host `sample` of the app process ($O/<step>.sample-<k>.txt), which works even if the app's main
+    # thread is blocked.
+    ( seen=0; lastfire=0; k=0; wlog=$O/$n.watcher.log; : > "$wlog"
       while sleep 5; do
         c=$(grep -c 'App animations complete notification not received' "$log" 2>/dev/null); c=${c:-0}
         m=$(stat -f %m "$log" 2>/dev/null); now=$(date +%s)
-        fire=0
-        [ "$c" -gt "$seen" ] && { seen=$c; fire=1; }
-        if [ -n "$m" ] && [ $((now - m)) -ge 20 ] && [ "$m" != "$last" ] && tail -n 1 "$log" | grep -q 'Wait for .* to idle'; then
-          last=$m; fire=1
+        why=""
+        [ "$c" -gt "$seen" ] && { seen=$c; why="not-received #$c"; }
+        if [ -z "$why" ] && [ -n "$m" ] && [ $((now - m)) -ge 20 ] && [ $((now - lastfire)) -ge 30 ] \
+           && tail -n 3 "$log" | grep -q 'Wait for .* to idle'; then
+          why="idle wait quiet $((now - m)) s"
         fi
-        [ "$fire" = 1 ] && xcrun simctl spawn "$u" notifyutil -p de.aiity.passy.dumpAnimations >/dev/null 2>&1
+        [ -n "$why" ] || continue
+        lastfire=$now
+        xcrun simctl spawn "$u" notifyutil -p de.aiity.passy.dumpAnimations >/dev/null 2>&1
+        pid=$(pgrep -f "Devices/$u/data/Containers/Bundle/Application/.*/Bitwarden.app/Bitwarden" | head -1)
+        echo "$(date '+%F %T') line $(wc -l < "$log" | tr -d ' ') pid ${pid:--} load $(sysctl -n vm.loadavg | awk '{print $2}'): $why; last: $(tail -n 1 "$log" | cut -c1-120)" >> "$wlog"
+        if [ -n "$pid" ] && [ $k -lt 6 ]; then k=$((k + 1)); sample "$pid" 2 -file "$O/$n.sample-$k.txt" >/dev/null 2>&1 & fi
       done ) &
     local watcher=$!
     ( export TEST_RUNNER_PASSY_SERVER TEST_RUNNER_PASSY_HOLD_DIR="$O/hold"
