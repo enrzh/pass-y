@@ -173,8 +173,10 @@ step() {
     failing=$(sed -n '/^Failing tests:/,/^\*\* TEST/p' "$log" | grep '()' | sed -E 's/^[[:space:]]*//; s/\(\)$//; s#\.#/#' | sort -u)
     [ -n "$failing" ] && failed=$(echo "$failed $(for t in $failing; do echo "PassYUITests.$t"; done)" | tr ' ' '\n' | grep . | sort -u)
     retypes=$(grep -c 'PASSY-RETYPE [0-9]' "$log"); alerts=$(grep -c 'LOGIN-ALERT ' "$log"); launches=$(grep -c 'PASSY-LAUNCH [0-9]' "$log")
-    local info="$passed of >= $min tests; $((t1 - t0)) s; app launches $launches; retypes $retypes; login alerts $alerts; load start $start_load end $end_load"
-    if [ "$succeeded" -ge 1 ] && [ -z "$failed" ] && [ "$marker" = 0 ] && [ "$crashed" = 0 ] && [ "$passed" -ge "$min" ]; then
+    # Zero-hits rule: any XCUITest idle stall fails the step (it means the app did not become idle within 60 s).
+    local hits; hits=$(grep -c 'App animations complete notification not received' "$log")
+    local info="$passed of >= $min tests; $((t1 - t0)) s; app launches $launches; retypes $retypes; login alerts $alerts; idle-stall hits $hits; load start $start_load end $end_load"
+    if [ "$succeeded" -ge 1 ] && [ -z "$failed" ] && [ "$marker" = 0 ] && [ "$crashed" = 0 ] && [ "$hits" = 0 ] && [ "$passed" -ge "$min" ]; then
       if [ "$attempt" = 0 ]; then STEP_RESULT=PASS; else STEP_RESULT=FLAKY; fi
       note "$n: $STEP_RESULT ($info; TEST SUCCEEDED)"; break
     fi
