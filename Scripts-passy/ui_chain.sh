@@ -20,6 +20,8 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 TIER="${TIER:-core}"
 R="$PASSY_REPO"; S="$PASSY_SCRATCH"; O="$PASSY_OUT"; PORT="$VW_PORT"
 export TEST_RUNNER_PASSY_SERVER="http://localhost:$PORT"
+# DEBUG animation tracker install point of the app: early|late|off (default late, see PassYAnimationTracker.mode).
+[ -n "${PASSY_TRACKER:-}" ] && export TEST_RUNNER_PASSY_TRACKER="$PASSY_TRACKER"
 SUMMARY=$O/summary.txt; LOG=$O/chain.log
 RETRIES=${PASSY_RETRIES:-0}
 IOS=${PASSY_IOS_RUNTIME:-com.apple.CoreSimulator.SimRuntime.iOS-27-0}
@@ -203,7 +205,7 @@ mkdir -p "$O" "$O/hold"
 echo $$ > "$O/chain.pid"
 : > "$SUMMARY"
 T0=$(date +%s)
-note "chain start TIER=$TIER (pid $$, port $PORT, scratch $S, dd $PASSY_DD, retries $RETRIES)"
+note "chain start TIER=$TIER tracker ${PASSY_TRACKER:-late (default)} (pid $$, port $PORT, scratch $S, dd $PASSY_DD, retries $RETRIES)"
 PHONE=${PASSY_PHONE:-$(sim_id "$PASSY_SIM_PREFIX-Phone" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro)}
 IPAD=${PASSY_IPAD:-$(sim_id "$PASSY_SIM_PREFIX-iPad" com.apple.CoreSimulator.SimDeviceType.iPad-Air-11-inch-M4)}
 note "simulators: phone $PHONE, iPad $IPAD"

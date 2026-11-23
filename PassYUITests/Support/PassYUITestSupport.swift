@@ -211,6 +211,8 @@ extension XCTestCase {
         }
         let app = PassYSession.app ?? XCUIApplication()
         app.launchArguments = arguments
+        // DEBUG animation tracker install point of the app (early|late|off, see PassYAnimationTracker.mode).
+        if let tracker = ProcessInfo.processInfo.environment["PASSY_TRACKER"] { app.launchEnvironment["PASSY_TRACKER"] = tracker }
         app.launch()
         PassYSession.app = app
         PassYSession.arguments = arguments

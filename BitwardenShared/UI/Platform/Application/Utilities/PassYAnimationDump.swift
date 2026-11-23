@@ -43,7 +43,7 @@ enum PassYAnimationDump {
         guard !installed else { return }
         Self.sceneProvider = sceneProvider
         installed = true
-        PassYAnimationTracker.install()
+        if PassYAnimationTracker.mode == "late" { PassYAnimationTracker.install() }
         var token: Int32 = 0
         // Delivered on a background queue: the trigger line and the main-thread ping are written even if the main
         // thread is blocked (the dump itself needs the main thread).
@@ -314,10 +314,19 @@ public final class PassYAnimationTracker {
     nonisolated(unsafe) private static var installed = false
     nonisolated(unsafe) private static var stateClass: AnyClass?
 
+    /// Where the swizzles are installed: `early` (main.swift, before UIApplicationMain), `late` (default: the first
+    /// `PassYAnimationDump.installOnce`, i.e. `AppProcessor.start`, after XCUITest's own hook) or `off` (UIKit stays
+    /// completely unswizzled; the dump then shows only XCUITest's counter, CAAnimations and the main-thread ping).
+    /// Set by the UI tests through the launch environment `PASSY_TRACKER` (`TEST_RUNNER_PASSY_TRACKER`).
+    public static let mode: String = {
+        let value = ProcessInfo.processInfo.environment["PASSY_TRACKER"] ?? "late"
+        return ["early", "late", "off"].contains(value) ? value : "late"
+    }()
+
     /// Installs the swizzles (once). Called as early as possible (app delegate), so the counter mirrors XCUITest's
     /// from the first animation on.
     public static func install() {
-        guard !installed, let state = NSClassFromString("UIViewAnimationState") else { return }
+        guard mode != "off", !installed, let state = NSClassFromString("UIViewAnimationState") else { return }
         installed = true
         stateClass = state
         swizzleAdd()
@@ -500,8 +509,9 @@ public final class PassYAnimationTracker {
         lock.unlock()
         let now = Date()
         let outstanding = snapshot.filter { $0.started != nil }.sorted { $0.added < $1.added }
+        guard installed else { return ["-- tracker \(mode): UIKit not swizzled (no start/stop pairing)"] }
         var lines = [
-            "-- UIViewAnimationState starts=\(counts.0) stops=\(counts.1) (XCUITest counter mirror \(counts.0 - counts.1))"
+            "-- tracker \(mode); UIViewAnimationState starts=\(counts.0) stops=\(counts.1) (XCUITest counter mirror \(counts.0 - counts.1))"
                 + " outstanding tracked=\(outstanding.count) addedNotStarted=\(snapshot.count - outstanding.count)"
                 + " droppedNeverStarted=\(counts.2)",
         ]

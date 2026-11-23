@@ -9,8 +9,11 @@ import BitwardenShared
 private let appDelegateClass: AnyClass = NSClassFromString("BitwardenTests.TestingAppDelegate") ?? AppDelegate.self
 
 #if DEBUG
-// Mirror XCUITest's animation idle counter from the very first animation on (PassYAnimationDump); not in unit tests.
-if NSClassFromString("BitwardenTests.TestingAppDelegate") == nil { PassYAnimationTracker.install() }
+// `PASSY_TRACKER=early`: mirror XCUITest's animation idle counter from the very first animation on (PassYAnimationDump);
+// not in unit tests. The default (`late`) installs it in `AppProcessor.start`.
+if NSClassFromString("BitwardenTests.TestingAppDelegate") == nil, PassYAnimationTracker.mode == "early" {
+    PassYAnimationTracker.install()
+}
 #endif
 
 UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, nil, NSStringFromClass(appDelegateClass))
