@@ -102,10 +102,14 @@ extension XCUIElement {
             shown = value as? String ?? "nil"
             PassYTyping.retypes += 1
             let secure = elementType == .secureTextField
+            // Focus and keyboard are read before the reveal below (its toggle taps change both); no reveal after a
+            // stall (every tap would wait for idle again).
             let focus = (value(forKey: "hasKeyboardFocus") as? Bool) == true
+            let keyboard = XCUIApplication().keyboards.firstMatch.exists
+            let lost = secure ? " lost=" + (took >= passYStallSeconds ? "n/a(stall)" : lostKeystrokePositions(text)) : ""
             print("PASSY-RETYPE \(PassYTyping.retypes) field=\(identifier) attempt=\(attempt) want=\(text.count) got=\(shown.count)"
-                + (secure ? " lost=\(lostKeystrokePositions(text))" : " value='\(shown)'") + " focus=\(focus) appFocus=\(PassYTyping.lastFocusWasTheApps)"
-                + " keyboard=\(XCUIApplication().keyboards.firstMatch.exists) load=\(passYLoad())")
+                + (secure ? lost : " value='\(shown)'") + " focus=\(focus) appFocus=\(PassYTyping.lastFocusWasTheApps)"
+                + " keyboard=\(keyboard) load=\(passYLoad())")
         }
         XCTFail("typing into \(identifier) lost keystrokes three times (field shows \(shown.count) of \(text.count) characters)",
                 file: file, line: line)
