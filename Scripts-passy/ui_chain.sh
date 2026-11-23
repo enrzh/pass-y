@@ -125,6 +125,20 @@ step() {
     local log=$O/$n.log; echo "start load $(sysctl -n vm.loadavg)" > "$log"
     rm -rf "$O/$n.xcresult"
     local start_load end_load t0 t1; start_load=$(sysctl -n vm.loadavg | awk '{print $2}'); t0=$(date +%s)
+    # Stall watcher: the tests only request a dump for a stalled typeText. Any idle wait can stall (taps too), so fire
+    # the dump while the log sits on "Wait for ... to idle" for 20 s, and after every "not received" line.
+    ( seen=0; last=""
+      while sleep 5; do
+        c=$(grep -c 'App animations complete notification not received' "$log" 2>/dev/null); c=${c:-0}
+        m=$(stat -f %m "$log" 2>/dev/null); now=$(date +%s)
+        fire=0
+        [ "$c" -gt "$seen" ] && { seen=$c; fire=1; }
+        if [ -n "$m" ] && [ $((now - m)) -ge 20 ] && [ "$m" != "$last" ] && tail -n 1 "$log" | grep -q 'Wait for .* to idle'; then
+          last=$m; fire=1
+        fi
+        [ "$fire" = 1 ] && xcrun simctl spawn "$u" notifyutil -p de.aiity.passy.dumpAnimations >/dev/null 2>&1
+      done ) &
+    local watcher=$!
     ( export TEST_RUNNER_PASSY_SERVER TEST_RUNNER_PASSY_HOLD_DIR="$O/hold"
       for kv in $STEP_ENV; do export "TEST_RUNNER_$kv"; done
       cd "$R"
@@ -132,6 +146,7 @@ step() {
         -parallel-testing-enabled NO -collect-test-diagnostics never -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
         -maximum-test-execution-time-allowance 1800 "${tests[@]}" -resultBundlePath "$O/$n.xcresult" )
     t1=$(date +%s); end_load=$(sysctl -n vm.loadavg | awk '{print $2}')
+    kill "$watcher" 2>/dev/null; wait "$watcher" 2>/dev/null
     # DEBUG animation dumps (PassYAnimationDump, requested by the tests on an idle stall): copy them out before the
     # next fresh install deletes the app container.
     local box; box=$(xcrun simctl get_app_container "$u" "$PASSY_BUNDLE_ID" data 2>/dev/null)
