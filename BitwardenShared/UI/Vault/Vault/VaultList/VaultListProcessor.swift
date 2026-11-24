@@ -139,6 +139,9 @@ final class VaultListProcessor: StateProcessor<
     /// The filter of the running vault list stream.
     private var vaultListStreamFilter: VaultFilterType?
 
+    /// Counts started streams, so only the current stream marks itself as ended.
+    private var vaultListStreamGeneration = 0
+
     deinit {
         commandsTask?.cancel()
         sessionEndTask?.cancel()
@@ -975,10 +978,14 @@ extension VaultListProcessor {
         if vaultListStreamTask != nil, vaultListStreamFilter == filterType { return }
         vaultListStreamTask?.cancel()
         vaultListStreamFilter = filterType
+        vaultListStreamGeneration += 1
+        let generation = vaultListStreamGeneration
         let services = services
         // The task holds the processor weakly between emissions, so the processor (and the decrypted list in its
         // state) is released with its view; `deinit` cancels the task.
         vaultListStreamTask = Task { [weak self] in
+            // A stream that ended on its own (an error) is started again by the next appearance, as before.
+            defer { self?.vaultListStreamEnded(generation: generation) }
             do {
                 PassYPerf.mark("listSubscribe")
                 let collapsedSectionIds = await (try? services.stateService.getCollapsedVaultListSectionIds()) ?? []
@@ -994,6 +1001,13 @@ extension VaultListProcessor {
                 services.errorReporter.log(error: error)
             }
         }
+    }
+
+    /// Forgets the stream of `generation` once it ended, unless a newer stream replaced it.
+    private func vaultListStreamEnded(generation: Int) {
+        guard vaultListStreamGeneration == generation else { return }
+        vaultListStreamTask = nil
+        vaultListStreamFilter = nil
     }
 
     /// Ends the vault list stream; `clearData` also drops the decrypted list (end of the vault session).

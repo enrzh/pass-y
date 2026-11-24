@@ -9,8 +9,55 @@ private let passYNavLogger = Logger(subsystem: "de.aiity.passy", category: "perf
     let now = CFAbsoluteTimeGetCurrent()
     passYNavLogger.notice("startup mark=nav.\(step, privacy: .public) t=\(now, format: .fixed(precision: 3), privacy: .public)")
 }
+
+/// Pass-Y perf (DEBUG only): the frames of a push/pop transition (willShow -> didShow): the longest frame and the hitch
+/// time (time beyond the display's frame interval), logged as `frameprobe frames=... maxGapMs=... hitchMs=...`.
+@MainActor
+private final class PassYTransitionFrameProbe: NSObject {
+    static let shared = PassYTransitionFrameProbe()
+    private var link: CADisplayLink?
+    private var last: CFTimeInterval = 0
+    private var frames = 0
+    private var maxGap: CFTimeInterval = 0
+    private var hitch: CFTimeInterval = 0
+
+    func start() {
+        link?.invalidate()
+        frames = 0
+        maxGap = 0
+        hitch = 0
+        last = 0
+        let link = CADisplayLink(target: self, selector: #selector(tick(_:)))
+        link.add(to: .main, forMode: .common)
+        self.link = link
+    }
+
+    func stop() {
+        guard let link else { return }
+        link.invalidate()
+        self.link = nil
+        passYNavLogger.notice(
+            "frameprobe frames=\(self.frames, privacy: .public) maxGapMs=\(self.maxGap * 1000, format: .fixed(precision: 1), privacy: .public) hitchMs=\(self.hitch * 1000, format: .fixed(precision: 1), privacy: .public)",
+        )
+    }
+
+    @objc private func tick(_ link: CADisplayLink) {
+        defer { last = link.timestamp }
+        guard last > 0 else { return }
+        frames += 1
+        let gap = link.timestamp - last
+        let interval = max(link.targetTimestamp - link.timestamp, 1.0 / 120)
+        maxGap = max(maxGap, gap)
+        if gap > interval * 1.5 { hitch += gap - interval }
+    }
+}
+
+@MainActor private func passYTransitionProbe(start: Bool) {
+    start ? PassYTransitionFrameProbe.shared.start() : PassYTransitionFrameProbe.shared.stop()
+}
 #else
 @inline(__always) private func passYNavMark(_ step: String) {}
+@inline(__always) private func passYTransitionProbe(start: Bool) {}
 #endif
 
 // MARK: - ViewLoggingNavigationController
@@ -107,6 +154,7 @@ public class ViewLoggingNavigationController: UINavigationController,
         animated: Bool,
     ) {
         passYNavMark("willShow")
+        if animated { passYTransitionProbe(start: true) }
         stackChanged?()
     }
 
@@ -116,6 +164,7 @@ public class ViewLoggingNavigationController: UINavigationController,
         animated: Bool,
     ) {
         passYNavMark("didShow")
+        passYTransitionProbe(start: false)
         logger.log("[Navigation] View appeared: \(resolveLoggingViewName(for: viewController))")
         stackChanged?()
     }

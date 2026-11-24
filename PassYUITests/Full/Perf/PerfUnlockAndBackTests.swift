@@ -61,7 +61,7 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
     // MARK: Back
 
     /// Category tile (2000 logins) -> back: from the back tap until the vault home tile exists again (`home`) and until
-    /// the group page navigation bar is gone (`settled`).
+    /// the home page slid in completely (`settled`).
     func test_cmp_backFromGroup() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -76,9 +76,8 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
             sleep(1)
             let back = app.navigationBars.buttons.firstMatch
             XCTAssertTrue(back.waitForExistence(timeout: 5))
-            // The group page's navigation bar (named after the group) is gone once the pop finished.
-            let groupBar = app.navigationBars.firstMatch.identifier
-            let (h, s) = measureBack(back, home: tile) { !app.navigationBars[groupBar].exists }
+            // Settled: the home page slid in completely (the tile is back at its resting x of 16 pt).
+            let (h, s) = measureBack(back, home: tile) { tile.frame.minX >= 15.5 }
             home.append(h)
             settled.append(s)
         }
