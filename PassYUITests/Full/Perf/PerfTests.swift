@@ -72,7 +72,7 @@ final class PerfTests: PassYUITestCase {
         }
     }
 
-    /// ui-r8: the app signposts (`PassYPerf`): list load and tap-to-push, measured by `XCTOSSignpostMetric`
+    /// ui-r8: the app signposts (`PassYPerf`): tap-to-push, measured by `XCTOSSignpostMetric`
     /// together with the wall clock. A single tap must open the item list page (asserted within 1 s).
     /// Formerly `PassYPerfTests.test_perf_tapToPush_signposts`.
     func test_perf_tapToPush_signposts() {
