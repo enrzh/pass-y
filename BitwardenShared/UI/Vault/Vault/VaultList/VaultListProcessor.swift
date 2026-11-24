@@ -950,6 +950,7 @@ extension VaultListProcessor {
     /// Streams the user's vault list.
     private func streamVaultList() async {
         do {
+            PassYPerf.mark("listSubscribe")
             let collapsedSectionIds = await (try? services.stateService.getCollapsedVaultListSectionIds()) ?? []
             state.collapsedSectionIds = Set(collapsedSectionIds)
             for try await vaultList in try await services.vaultRepository

@@ -1,4 +1,17 @@
+import os
 import UIKit
+
+#if DEBUG
+/// Pass-Y perf (DEBUG only): navigation steps with the absolute time, in the same log as `PassYPerf.mark`
+/// (`startup mark=nav.<step> t=<seconds>`), so a UI test can split "back tap -> previous page shown".
+private let passYNavLogger = Logger(subsystem: "de.aiity.passy", category: "perf")
+@inline(__always) private func passYNavMark(_ step: String) {
+    let now = CFAbsoluteTimeGetCurrent()
+    passYNavLogger.notice("startup mark=nav.\(step, privacy: .public) t=\(now, format: .fixed(precision: 3), privacy: .public)")
+}
+#else
+@inline(__always) private func passYNavMark(_ step: String) {}
+#endif
 
 // MARK: - ViewLoggingNavigationController
 
@@ -55,8 +68,10 @@ public class ViewLoggingNavigationController: UINavigationController,
 
     @discardableResult
     override public func popViewController(animated: Bool) -> UIViewController? {
+        passYNavMark("pop")
         let popped = super.popViewController(animated: animated)
         stackChanged?()
+        passYNavMark("popReturned")
         return popped
     }
 
@@ -91,6 +106,7 @@ public class ViewLoggingNavigationController: UINavigationController,
         willShow viewController: UIViewController,
         animated: Bool,
     ) {
+        passYNavMark("willShow")
         stackChanged?()
     }
 
@@ -99,6 +115,7 @@ public class ViewLoggingNavigationController: UINavigationController,
         didShow viewController: UIViewController,
         animated: Bool,
     ) {
+        passYNavMark("didShow")
         logger.log("[Navigation] View appeared: \(resolveLoggingViewName(for: viewController))")
         stackChanged?()
     }

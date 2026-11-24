@@ -214,6 +214,7 @@ class VaultUnlockProcessor: StateProcessor<
                 try EmptyInputValidator(fieldName: Localizations.masterPassword)
                     .validate(input: state.masterPassword)
                 try await services.authRepository.unlockVaultWithPassword(password: state.masterPassword)
+                PassYPerf.mark("passwordUnlocked")
             case .pin:
                 try EmptyInputValidator(fieldName: Localizations.pin)
                     .validate(input: state.pin)
@@ -258,8 +259,11 @@ class VaultUnlockProcessor: StateProcessor<
         state.shouldFocusPasswordOrPinField = false
 
         do {
+            PassYPerf.mark("bioStart")
             try await services.authRepository.unlockVaultWithBiometrics()
+            PassYPerf.mark("bioUnlocked")
             await coordinator.handleEvent(.didCompleteAuth)
+            PassYPerf.mark("authRouted")
             state.unsuccessfulUnlockAttemptsCount = 0
             await services.userSessionStateService.setUnsuccessfulUnlockAttempts(0)
         } catch BiometricsServiceError.biometryCancelled {

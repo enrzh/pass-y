@@ -8,7 +8,7 @@ final class PerfCompareTests: PassYUITestCase {
         var values: [Double] = []
         let first = launchApp()
         ensureUnlockedVault(first)
-        for _ in 0 ..< 3 {
+        for _ in 0 ..< 5 { // five runs: medians of at least five (startup work)
             first.terminate()
             let app = launchApp()
             let pw = app.secureTextFields["MasterPasswordEntry"]

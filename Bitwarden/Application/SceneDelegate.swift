@@ -31,6 +31,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions,
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
+        PassYPerf.mark("sceneConnect")
         guard let appProcessor else {
             if (UIApplication.shared.delegate as? AppDelegateType)?.isTesting == true {
                 // If the app is running tests, show a testing view.
@@ -65,6 +66,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 splashWindow: splashWindow,
                 window: appWindow,
             )
+            PassYPerf.mark("startDone")
             hideSplash()
             isStartingUp = false
 
@@ -115,10 +117,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
+        PassYPerf.mark("resignActive")
         showSplash()
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
+        PassYPerf.mark("becomeActive")
         guard !isStartingUp else { return }
         hideSplash()
     }
@@ -145,6 +149,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private func hideSplash() {
         UIView.animate(withDuration: UI.duration(0.4)) {
             self.splashWindow?.alpha = 0
+        } completion: { _ in
+            PassYPerf.mark("splashHidden")
         }
     }
 
