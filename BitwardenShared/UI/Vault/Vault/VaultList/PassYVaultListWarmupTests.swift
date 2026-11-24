@@ -62,6 +62,31 @@ class PassYVaultListWarmupTests: BitwardenTestCase {
         XCTAssertFalse(PassYVaultListWarmup.hasEntry, "the late result was dropped")
     }
 
+    /// The vault home's stream waits for a running build (no second decrypt) and gets its result once.
+    func test_sections_waitsForRunningBuild() async throws {
+        let subject = PassthroughVaultListRepository()
+        PassYVaultListWarmup.start(vaultRepository: subject, timeout: 10)
+        let waiting = Task { await PassYVaultListWarmup.sections(filter: .allVaults) }
+        try await waitForAsync { subject.subscribed }
+        subject.subject.send(VaultListData(sections: [section]))
+        let sections = await waiting.value
+        XCTAssertEqual(sections, [section])
+        XCTAssertFalse(PassYVaultListWarmup.hasEntry, "handed over once")
+        XCTAssertFalse(PassYVaultListWarmup.isBuilding)
+    }
+
+    /// A lock while the home waits for the build: the waiter gets nothing.
+    func test_sections_clearWhileWaiting_returnsNil() async throws {
+        let subject = PassthroughVaultListRepository()
+        PassYVaultListWarmup.start(vaultRepository: subject, timeout: 10)
+        let waiting = Task { await PassYVaultListWarmup.sections(filter: .allVaults) }
+        try await waitForAsync { subject.subscribed }
+        PassYVaultListWarmup.clear()
+        subject.subject.send(VaultListData(sections: [section]))
+        let sections = await waiting.value
+        XCTAssertNil(sections)
+    }
+
     /// A build that takes longer than its timeout returns and leaves nothing behind.
     func test_build_timeout_leavesNoEntry() async throws {
         let subject = PassthroughVaultListRepository()

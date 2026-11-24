@@ -991,6 +991,14 @@ extension VaultListProcessor {
                 let collapsedSectionIds = await (try? services.stateService.getCollapsedVaultListSectionIds()) ?? []
                 guard !Task.isCancelled else { return }
                 self?.state.collapsedSectionIds = Set(collapsedSectionIds)
+                // Right after an unlock the first list is being built already (PassYVaultListWarmup, started with the
+                // unlock): show it as soon as it is ready instead of decrypting the vault a second time first.
+                if case .loading = self?.state.loadingState,
+                   let sections = await PassYVaultListWarmup.sections(filter: filterType),
+                   !Task.isCancelled, let self, case .loading = state.loadingState {
+                    PassYPerf.beginListLoad()
+                    state.loadingState = .data(sections)
+                }
                 for try await vaultList in try await services.vaultRepository.vaultListPublisher(
                     filter: VaultListFilter(filterType: filterType, options: [.addTOTPGroup, .addHiddenItemsGroup]),
                 ) {
