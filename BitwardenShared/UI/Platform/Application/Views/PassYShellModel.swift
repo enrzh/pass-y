@@ -545,10 +545,13 @@ struct PassYAvatarMenu: View {
 ///
 struct PassYAvatarToolbarItem: ToolbarContent {
     var body: some ToolbarContent {
+        // Two plain `if`s instead of if/else: Xcode 26.6 rejects if/else here (ToolbarContentBuilder.buildEither
+        // is iOS 16+, the deployment target is iOS 15). Xcode 27 accepts both forms.
         if #available(iOS 26, *) {
             ToolbarItem(placement: .topBarTrailing) { PassYAvatarMenu() }
                 .sharedBackgroundVisibility(.hidden)
-        } else {
+        }
+        if #unavailable(iOS 26) {
             ToolbarItem(placement: .topBarTrailing) { PassYAvatarMenu() }
         }
     }
