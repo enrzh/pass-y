@@ -17,6 +17,7 @@ class VaultUnlockProcessor: StateProcessor<
         & HasErrorReporter
         & HasStateService
         & HasUserSessionStateService
+        & HasVaultRepository
 
     // MARK: Private Properties
 
@@ -221,6 +222,7 @@ class VaultUnlockProcessor: StateProcessor<
                 try await services.authRepository.unlockVaultWithPIN(pin: state.pin)
             }
 
+            await warmUpVaultList()
             await coordinator.handleEvent(.didCompleteAuth)
             state.unsuccessfulUnlockAttemptsCount = 0
             await services.userSessionStateService.setUnsuccessfulUnlockAttempts(0)
@@ -244,6 +246,14 @@ class VaultUnlockProcessor: StateProcessor<
         }
     }
 
+    /// Builds the first vault list while the unlock page is still shown, so the vault home starts with its rows instead
+    /// of an empty page (`PassYVaultListWarmup`; the main app only, memory only, cleared on lock).
+    private func warmUpVaultList() async {
+        guard appExtensionDelegate?.isInAppExtension != true else { return }
+        await PassYVaultListWarmup.build(vaultRepository: services.vaultRepository)
+        PassYPerf.mark("warmedUp")
+    }
+
     /// Attempts to unlock the vault with the user's biometrics
     ///
     private func unlockWithBiometrics() async {
@@ -258,10 +268,16 @@ class VaultUnlockProcessor: StateProcessor<
         // the extension completes (PM-44687).
         state.shouldFocusPasswordOrPinField = false
 
+        // The system prompt resigns the scene; the unlock page needs no privacy cover meanwhile (PassYPrivacyCover).
+        PassYPrivacyCover.beginBiometricUnlock()
+        defer { PassYPrivacyCover.endBiometricUnlock() }
         do {
             PassYPerf.mark("bioStart")
             try await services.authRepository.unlockVaultWithBiometrics()
             PassYPerf.mark("bioUnlocked")
+            // Before the vault is routed: if the scene is still inactive, the cover goes up first.
+            PassYPrivacyCover.endBiometricUnlock()
+            await warmUpVaultList()
             await coordinator.handleEvent(.didCompleteAuth)
             PassYPerf.mark("authRouted")
             state.unsuccessfulUnlockAttemptsCount = 0

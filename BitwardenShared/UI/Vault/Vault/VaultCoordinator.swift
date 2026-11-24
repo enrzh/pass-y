@@ -477,9 +477,16 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             coordinator: asAnyCoordinator(),
             masterPasswordRepromptHelper: masterPasswordRepromptHelper,
             services: services,
-            state: VaultListState(
-                iconBaseURL: services.environmentService.iconsURL,
-            ),
+            state: {
+                var state = VaultListState(iconBaseURL: services.environmentService.iconsURL)
+                // Right after an unlock the first list is already built (PassYVaultListWarmup): the home's first
+                // frame shows the rows; its stream starts as before and keeps them up to date.
+                if let sections = PassYVaultListWarmup.take(filter: state.vaultFilterType) {
+                    state.loadingState = .data(sections)
+                    PassYPerf.beginListLoad()
+                }
+                return state
+            }(),
             vaultItemMoreOptionsHelper: DefaultVaultItemMoreOptionsHelper(
                 coordinator: asAnyCoordinator(),
                 masterPasswordRepromptHelper: masterPasswordRepromptHelper,
