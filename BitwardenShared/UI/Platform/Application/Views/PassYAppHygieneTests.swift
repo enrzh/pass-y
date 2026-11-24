@@ -38,16 +38,20 @@ class PassYAppHygieneTests: BitwardenTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("BitwardenWatchShared").path))
     }
 
-    /// The perf counters and signposts exist only in DEBUG builds.
-    func test_perfHooks_onlyInDebug() throws {
-        let source = try read("BitwardenShared/UI/Platform/Application/Utilities/PassYPerf.swift")
-        let debugPart = source.components(separatedBy: "#else").first ?? ""
-        XCTAssertTrue(debugPart.contains("#if DEBUG"))
-        XCTAssertTrue(debugPart.contains("signposter"))
-        let releasePart = source.components(separatedBy: "#else").last ?? ""
-        XCTAssertFalse(releasePart.contains("OSSignposter"), "the release stubs have no signposter")
-        XCTAssertFalse(releasePart.contains("VaultListLoad"), "and no signpost names")
-        XCTAssertFalse(releasePart.contains("TapToPush"))
+    /// The diagnostics (perf signposts and counters, animation dump, navigation probe) live in one folder and exist only
+    /// in DEBUG builds: every file is one `#if DEBUG` block without an `#else` (no release stubs, no release symbols).
+    func test_diagnostics_onlyInDebug() throws {
+        let folder = "BitwardenKit/UI/Platform/Application/Diagnostics"
+        let files = try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent(folder).path)
+            .filter { $0.hasSuffix(".swift") }
+        XCTAssertEqual(Set(files), ["PassYAnimationDump.swift", "PassYNavigationProbe.swift", "PassYPerf.swift"])
+        for file in files {
+            let source = try read("\(folder)/\(file)").trimmingCharacters(in: .whitespacesAndNewlines)
+            XCTAssertTrue(source.hasPrefix("#if DEBUG"), file)
+            XCTAssertTrue(source.hasSuffix("#endif"), file)
+            XCTAssertFalse(source.contains("#else"), file)
+        }
+        XCTAssertTrue(try read("\(folder)/PassYPerf.swift").contains("signposter"))
     }
 
     /// No production source opens the web vault from a button any more.

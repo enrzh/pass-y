@@ -1,3 +1,4 @@
+import BitwardenKit
 import BitwardenResources
 import SwiftUI
 
@@ -34,7 +35,9 @@ struct CategoryTilesView: View {
             ForEach(items) { item in
                 if case let .group(group, count) = item.itemType {
                     Button {
+                        #if DEBUG
                         PassYPerf.beginTap("tile")
+                        #endif
                         CategoryTileHaptics.tapped()
                         onSelect(item)
                     } label: {

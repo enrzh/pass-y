@@ -965,7 +965,9 @@ extension VaultListProcessor {
             // A stream that ended on its own (an error) is started again by the next appearance, as before.
             defer { self?.vaultListStreamEnded(generation: generation) }
             do {
+                #if DEBUG
                 PassYPerf.mark("listSubscribe")
+                #endif
                 let collapsedSectionIds = await (try? services.stateService.getCollapsedVaultListSectionIds()) ?? []
                 guard !Task.isCancelled else { return }
                 self?.state.collapsedSectionIds = Set(collapsedSectionIds)
@@ -974,7 +976,9 @@ extension VaultListProcessor {
                 if case .loading = self?.state.loadingState,
                    let sections = await PassYVaultListWarmup.sections(filter: filterType),
                    !Task.isCancelled, let self, case .loading = state.loadingState {
+                    #if DEBUG
                     PassYPerf.beginListLoad()
+                    #endif
                     state.loadingState = .data(sections)
                 }
                 for try await vaultList in try await services.vaultRepository.vaultListPublisher(
@@ -1018,7 +1022,9 @@ extension VaultListProcessor {
                 // since this might not happen because of the sync in `refreshVault()`.
                 dismissSlowLoadingToast()
                 // If the data is not empty or if a sync is not needed, set the data.
+                #if DEBUG
                 PassYPerf.beginListLoad()
+                #endif
                 state.loadingState = .data(value)
             } else {
                 // Otherwise mark the state as `.loading` until the sync is complete.

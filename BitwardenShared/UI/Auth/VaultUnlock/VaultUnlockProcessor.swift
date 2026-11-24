@@ -215,7 +215,9 @@ class VaultUnlockProcessor: StateProcessor<
                 try EmptyInputValidator(fieldName: Localizations.masterPassword)
                     .validate(input: state.masterPassword)
                 try await services.authRepository.unlockVaultWithPassword(password: state.masterPassword)
+                #if DEBUG
                 PassYPerf.mark("passwordUnlocked")
+                #endif
             case .pin:
                 try EmptyInputValidator(fieldName: Localizations.pin)
                     .validate(input: state.pin)
@@ -253,9 +255,13 @@ class VaultUnlockProcessor: StateProcessor<
     private func warmUpVaultList() async {
         guard appExtensionDelegate?.isInAppExtension != true else { return }
         PassYVaultListWarmup.start(vaultRepository: services.vaultRepository)
+        #if DEBUG
         PassYPerf.mark("warmUpStarted")
+        #endif
         await PassYVaultListWarmup.waitForBuild(atMost: Self.warmUpWait)
+        #if DEBUG
         PassYPerf.mark("warmUpRouted")
+        #endif
     }
 
     /// The longest the unlock page waits for the first vault list before routing (seconds).
@@ -279,14 +285,20 @@ class VaultUnlockProcessor: StateProcessor<
         PassYPrivacyCover.beginBiometricUnlock()
         defer { PassYPrivacyCover.endBiometricUnlock() }
         do {
+            #if DEBUG
             PassYPerf.mark("bioStart")
+            #endif
             try await services.authRepository.unlockVaultWithBiometrics()
+            #if DEBUG
             PassYPerf.mark("bioUnlocked")
+            #endif
             // Before the vault is routed: if the scene is still inactive, the cover goes up first.
             PassYPrivacyCover.endBiometricUnlock()
             await warmUpVaultList()
             await coordinator.handleEvent(.didCompleteAuth)
+            #if DEBUG
             PassYPerf.mark("authRouted")
+            #endif
             state.unsuccessfulUnlockAttemptsCount = 0
             await services.userSessionStateService.setUnsuccessfulUnlockAttempts(0)
         } catch BiometricsServiceError.biometryCancelled {

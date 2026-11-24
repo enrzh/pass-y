@@ -453,9 +453,13 @@ extension AppCoordinator: AuthCoordinatorDelegate {
                 navigate(to: .vault(.autofillList))
             }
         case .mainApp:
+            #if DEBUG
             PassYPerf.mark("showTab")
+            #endif
             showTab(route: .vault(.list))
+            #if DEBUG
             PassYPerf.mark("showTabDone")
+            #endif
 
             if let rehydratableTarget {
                 navigate(to: rehydratableTarget.appRoute)

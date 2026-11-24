@@ -324,7 +324,9 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
         coordinator.navigate(to: .addEditFolder(folder: nil), context: delegate)
 
         stackNavigator?.present(navigationController)
+        #if DEBUG
         PassYPerf.endTap()
+        #endif
     }
 
     /// Shows the autofill list screen.
@@ -420,7 +422,9 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             navigationTitle: group.navigationTitle,
             largeTitle: true,
         )
+        #if DEBUG
         PassYPerf.endTap()
+        #endif
     }
 
     /// Shows the Credential Exchange import route (not in a tab). This is used when another app
@@ -483,7 +487,9 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
                 // frame shows the rows; its stream starts as before and keeps them up to date.
                 if let sections = PassYVaultListWarmup.take(filter: state.vaultFilterType) {
                     state.loadingState = .data(sections)
+                    #if DEBUG
                     PassYPerf.beginListLoad()
+                    #endif
                 }
                 return state
             }(),

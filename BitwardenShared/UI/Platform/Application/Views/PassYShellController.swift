@@ -290,7 +290,9 @@ class PassYShellController: UIViewController, TabNavigator {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        #if DEBUG
         PassYPerf.mark("shellAppear")
+        #endif
     }
 
     override func viewDidLayoutSubviews() {

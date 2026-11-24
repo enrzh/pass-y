@@ -98,11 +98,15 @@ struct VaultListItemRowView: View {
     }
 
     var body: some View {
+        #if DEBUG
         let _ = { PassYPerf.rowBodyCount += 1 }()
+        #endif
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 AsyncButton {
+                    #if DEBUG
                     PassYPerf.beginTap()
+                    #endif
                     await store.perform(.pressed)
                 } label: {
                     HStack(spacing: 16) {
@@ -193,7 +197,9 @@ struct VaultListItemRowView: View {
                     .padding(.leading, 40 + 16 + 16)
             }
         }
+        #if DEBUG
         .onAppear { PassYPerf.rowAppeared(store.state.item.id) }
+        #endif
         .contextMenu {
             VaultItemOptionsMenuContent(
                 kinds: accessibilityMoreOptionsActionKinds,
@@ -362,7 +368,9 @@ struct VaultListRowCell: View, Equatable {
     }
 
     var body: some View {
+        #if DEBUG
         let _ = { PassYPerf.cellBodyCount += 1 }()
+        #endif
         VaultListItemRowView(
             state: state,
             perform: perform,
