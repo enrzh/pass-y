@@ -132,6 +132,7 @@ private struct MainSendListView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .passYNativeFormBackground()
         } else {
             SearchNoResultsView()
         }
@@ -159,6 +160,7 @@ private struct MainSendListView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .passYNativeFormBackground()
     }
 
     /// The rows of a section of sends.

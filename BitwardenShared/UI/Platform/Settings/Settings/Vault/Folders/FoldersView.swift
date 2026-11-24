@@ -87,6 +87,7 @@ struct FoldersView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .passYNativeFormBackground()
     }
 }
 

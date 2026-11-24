@@ -270,6 +270,7 @@ struct VaultGroupView: View {
             // Rebuilt when the set of result rows changes (see the home search results: the incremental diff crashed).
             .id(store.state.searchResults.map(\.id))
             .listStyle(.insetGrouped)
+            .passYNativeFormBackground()
             .passYBottomBarContentMargin()
             .softBottomScrollEdge()
         } else {
@@ -326,6 +327,7 @@ struct VaultGroupView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .passYNativeFormBackground()
         // Room below the last row for the floating bottom bar (a margin, not a spacer row: a spacer row drew a stray
         // separator line in the empty area below short lists).
         .passYBottomBarContentMargin()

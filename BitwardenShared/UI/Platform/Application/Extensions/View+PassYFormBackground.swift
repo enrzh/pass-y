@@ -1,15 +1,11 @@
 import SwiftUI
 
 extension View {
-    /// Gives a native `Form` the grouped app background so its cards stay visible (also inside sheets).
-    /// On iOS 15 the form already draws the grouped background itself.
-    @ViewBuilder
+    /// Gives a native `Form` or inset-grouped `List` the grouped app background so its cards stay visible (also inside
+    /// sheets). Lists need it too: an empty grouped list drew a lighter (almost white) background than the grouped
+    /// page colour, so an empty folder page showed a light band above the bottom bar.
     func passYNativeFormBackground() -> some View {
-        if #available(iOS 16, *) {
-            scrollContentBackground(.hidden)
-                .background(Color(.systemGroupedBackground))
-        } else {
-            self
-        }
+        scrollContentBackground(.hidden)
+            .background(Color(.systemGroupedBackground))
     }
 }

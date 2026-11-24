@@ -155,6 +155,7 @@ private struct SearchableVaultListView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .passYNativeFormBackground()
             .passYBottomBarContentMargin()
             .softBottomScrollEdge()
         } else {
@@ -314,6 +315,7 @@ private struct SearchableVaultListView: View {
 
         }
         .listStyle(.insetGrouped)
+        .passYNativeFormBackground()
         // Space below the last row so the floating bottom bar never covers it (a margin, not a spacer row).
         .passYBottomBarContentMargin()
         .softBottomScrollEdge()
