@@ -83,7 +83,8 @@ final class PerfTests: PassYUITestCase {
         let metrics: [XCTMetric] = [
             XCTClockMetric(),
             XCTOSSignpostMetric(subsystem: "de.aiity.passy", category: "perf", name: "TapToPush"),
-            XCTOSSignpostMetric(subsystem: "de.aiity.passy", category: "perf", name: "VaultListLoad"),
+            // No `VaultListLoad` here any more: that interval came from the vault home reloading its whole list on every
+            // back, which it no longer does (the stream keeps running, `PerfUnlockAndBackTests.test_cmp_backFromGroup`).
         ]
         measure(metrics: metrics, options: options) {
             app.buttons["CategoryTile_login"].tap()
