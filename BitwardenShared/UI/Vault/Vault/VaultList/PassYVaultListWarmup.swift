@@ -22,6 +22,10 @@ enum PassYVaultListWarmup {
     /// How long a built list waits for the vault home (seconds): only a hand-over between unlock and the first frame.
     static let lifetime: TimeInterval = 5
 
+    /// The longest a build may run (seconds). Generous: the home's stream waits for the build instead of decrypting
+    /// a second time, so cutting a slow decrypt (a big vault, a slow device) short would only start it over.
+    static let defaultTimeout: TimeInterval = 20
+
     /// Increased by `clear()`: a build started in an older generation never stores its result.
     private(set) static var generation = 0
 
@@ -49,7 +53,7 @@ enum PassYVaultListWarmup {
     static func build(
         filter: VaultFilterType = .allVaults,
         vaultRepository: VaultRepository,
-        timeout: TimeInterval = 3,
+        timeout: TimeInterval = defaultTimeout,
     ) async {
         start(filter: filter, vaultRepository: vaultRepository, timeout: timeout)
         await waitForBuild()
@@ -70,12 +74,27 @@ enum PassYVaultListWarmup {
         }
     }
 
+    /// Waits until the running build ended, at most `seconds` (the build itself keeps running after that).
+    static func waitForBuild(atMost seconds: TimeInterval) async {
+        guard let current = run?.run else { return }
+        let waiter = WarmupRun()
+        current.onEnd { waiter.finish() }
+        let timer = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            waiter.finish()
+        }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task { @MainActor in waiter.attach(continuation) }
+        }
+        timer.cancel()
+    }
+
     /// Starts building the first vault list for `filter` and returns at once. The build ends after at most `timeout`
     /// seconds (a slow decrypt then only means the home loads on its own, as before; the late result is dropped).
     static func start(
         filter: VaultFilterType = .allVaults,
         vaultRepository: VaultRepository,
-        timeout: TimeInterval = 3,
+        timeout: TimeInterval = defaultTimeout,
     ) {
         clear()
         let startGeneration = generation
@@ -163,8 +182,15 @@ private final class WarmupRun {
     var onFinish: (@MainActor () -> Void)?
     private var continuations: [CheckedContinuation<Void, Never>] = []
 
+    private var endHandlers: [@MainActor () -> Void] = []
+
     func attach(_ continuation: CheckedContinuation<Void, Never>) {
         if isFinished { continuation.resume() } else { continuations.append(continuation) }
+    }
+
+    /// Runs `handler` when the run finishes (at once if it has).
+    func onEnd(_ handler: @escaping @MainActor () -> Void) {
+        if isFinished { handler() } else { endHandlers.append(handler) }
     }
 
     func finish() {
@@ -174,5 +200,7 @@ private final class WarmupRun {
         onFinish = nil
         continuations.forEach { $0.resume() }
         continuations = []
+        endHandlers.forEach { $0() }
+        endHandlers = []
     }
 }

@@ -169,6 +169,7 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
         XCTAssertTrue(authRepository.unlockVaultWithBiometricsCalled)
         XCTAssertEqual(coordinator.events.last, .didCompleteAuth)
         XCTAssertFalse(subject.state.shouldFocusPasswordOrPinField)
+        XCTAssertFalse(PassYPrivacyCover.isBiometricUnlockInProgress, "the privacy cover is back to normal")
     }
 
     /// `perform(.appeared)` with no master password but with a biometrics status enabled,
@@ -666,6 +667,7 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
         await subject.perform(.unlockVaultWithBiometrics)
         XCTAssertNil(coordinator.routes.last)
         XCTAssertEqual(coordinator.events, [.action(.logout(userId: nil, userInitiated: true))])
+        XCTAssertFalse(PassYPrivacyCover.isBiometricUnlockInProgress, "the privacy cover is back to normal")
     }
 
     /// `perform(_:)` with `.unlockVaultWithBiometrics` shows the KDF warning in an extension if the
@@ -736,6 +738,7 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
         XCTAssertEqual(subject.state.unsuccessfulUnlockAttemptsCount, 1)
         XCTAssertEqual(userSessionStateService.setUnsuccessfulUnlockAttemptsReceivedArguments?.attempts, 1)
         XCTAssertTrue(subject.state.shouldFocusPasswordOrPinField)
+        XCTAssertFalse(PassYPrivacyCover.isBiometricUnlockInProgress, "the privacy cover is back to normal")
 
         XCTAssertEqual(errorReporter.errors.count, 1)
         XCTAssertEqual(

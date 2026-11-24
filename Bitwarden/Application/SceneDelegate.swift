@@ -35,7 +35,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions,
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
+        #if DEBUG
         PassYPerf.mark("sceneConnect")
+        #endif
         guard let appProcessor else {
             if (UIApplication.shared.delegate as? AppDelegateType)?.isTesting == true {
                 // If the app is running tests, show a testing view.
@@ -80,7 +82,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 splashWindow: splashWindow,
                 window: appWindow,
             )
+            #if DEBUG
             PassYPerf.mark("startDone")
+            #endif
             hideSplash()
             isStartingUp = false
 
@@ -131,7 +135,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
+        #if DEBUG
         PassYPerf.mark("resignActive")
+        #endif
         // The Face ID / Touch ID prompt of an unlock resigns the scene: the locked unlock page needs no cover (see
         // `PassYPrivacyCover`). Every other reason (app switcher, control center, a call) covers as before.
         guard !PassYPrivacyCover.isBiometricUnlockInProgress else { return }
@@ -144,12 +150,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
+        #if DEBUG
         PassYPerf.mark("becomeActive")
+        #endif
         guard !isStartingUp else { return }
         if isCoverForBiometricUnlockEnd {
             isCoverForBiometricUnlockEnd = false
             splashWindow?.alpha = 0
+            #if DEBUG
             PassYPerf.mark("splashHidden")
+            #endif
             return
         }
         hideSplash()
@@ -178,7 +188,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         UIView.animate(withDuration: UI.duration(0.4)) {
             self.splashWindow?.alpha = 0
         } completion: { _ in
+            #if DEBUG
             PassYPerf.mark("splashHidden")
+            #endif
         }
     }
 
