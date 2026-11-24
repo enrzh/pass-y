@@ -34,7 +34,8 @@ final class AvatarMenuTests: PassYUITestCase {
         XCTAssertEqual(app.tabBars.count, 0, "no tab bar on the vault screen")
         let avatar = app.buttons["CurrentActiveAccount"]
         XCTAssertTrue(avatar.waitForExistence(timeout: 10), "avatar menu button exists")
-        XCTAssertLessThanOrEqual(avatar.frame.width, 56, "avatar is a plain 30 pt avatar, not wrapped in a capsule: \(avatar.frame)")
+        // The 44 pt avatar plus the bar's 10 pt item margins; a capsule around it would be wider.
+        XCTAssertLessThanOrEqual(avatar.frame.width, 64, "avatar is a plain 44 pt avatar, not wrapped in a capsule: \(avatar.frame)")
         XCTAssertLessThanOrEqual(avatar.frame.height, 56, "avatar height: \(avatar.frame)")
         let window = app.windows.firstMatch.frame
         XCTAssertGreaterThan(avatar.frame.midX, window.width * 0.8, "avatar is at the trailing edge")
