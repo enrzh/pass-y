@@ -28,4 +28,38 @@ final class ListPushTests: PassYUITestCase {
             sleep(2)
         }
     }
+
+    /// Screenshots of the list screens (home, group list, swipe actions, search results, Send) as attachments.
+    func test_listShots() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        sleep(2)
+        attachUnchecked(app, "list-01-home")
+        app.swipeUp(); sleep(1)
+        attachUnchecked(app, "list-02-home-scrolled")
+        app.swipeDown(); app.swipeDown(); sleep(1)
+        app.buttons["CategoryTile_login"].tap(); sleep(2)
+        attachUnchecked(app, "list-03-logins")
+        let row = app.buttons.matching(identifier: "VaultListItemRowButton").element(boundBy: 1)
+        row.swipeLeft(); sleep(1)
+        attachUnchecked(app, "list-04-logins-swipe")
+        row.swipeRight(); sleep(1)
+        focusSearch(app)
+        typeSearch(app, "Perf")
+        sleep(2)
+        attachUnchecked(app, "list-05-group-search")
+        let cancel = app.buttons["VaultSearchCancel"]
+        if cancel.exists { cancel.tap() }
+        sleep(1)
+        back(app)
+        focusSearch(app)
+        typeSearch(app, "Perf")
+        sleep(2)
+        attachUnchecked(app, "list-06-home-search")
+        if cancel.exists { cancel.tap() }
+        sleep(1)
+        open(app, "Send")
+        sleep(2)
+        attachUnchecked(app, "list-07-send")
+    }
 }
