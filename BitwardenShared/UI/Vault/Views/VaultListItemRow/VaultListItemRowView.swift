@@ -135,6 +135,8 @@ struct VaultListItemRowView: View {
                             }
                         }
                         .padding(.vertical, 9)
+                        // System row separators start at the item name (Apple Passwords), not under the icon.
+                        .passYListSeparatorLeading()
 
                         Spacer(minLength: 0)
 
@@ -382,6 +384,71 @@ struct VaultListRowCell: View, Equatable {
             timeProvider: timeProvider,
             onDelete: onDelete,
         )
+    }
+}
+
+// MARK: - List helpers
+
+extension View {
+    /// Starts the system row separator at this view's leading edge (plus `offset`): the text column of a row, so the
+    /// line does not run under the icon (Apple Passwords).
+    @ViewBuilder
+    func passYListSeparatorLeading(_ offset: CGFloat = 0) -> some View {
+        if #available(iOS 16, *) {
+            alignmentGuide(.listRowSeparatorLeading) { $0[.leading] + offset }
+        } else {
+            self
+        }
+    }
+
+    /// Room below the last row of a list for the floating bottom bar. A content margin, not a spacer row: a spacer row
+    /// drew a stray separator line in the empty area below short lists.
+    @ViewBuilder
+    func passYBottomBarContentMargin() -> some View {
+        if #available(iOS 17, *) {
+            contentMargins(.bottom, FloatingActionButton.bottomOffsetPadding, for: .scrollContent)
+        } else {
+            self
+        }
+    }
+}
+
+// MARK: - Swipe actions
+
+extension View {
+    /// The trailing swipe actions of a cipher row in the vault, group and search lists (Apple Passwords / Mail
+    /// style): icon-only buttons, Delete (red, trash) outermost and More (gray, ellipsis). The titles stay the
+    /// accessibility labels. Non-cipher rows (groups, codes) have none.
+    ///
+    /// No `role: .destructive` on Delete: it makes the list drop the row on the tap, before the confirmation; the later
+    /// real removal then hit a list that no longer matched its data ("Invalid number of items in section").
+    ///
+    /// - Parameters:
+    ///   - item: The row's item.
+    ///   - delete: Starts the (confirmed) delete of the item, `nil` for no Delete action.
+    ///   - more: Opens the item's options.
+    ///
+    func vaultRowSwipeActions(
+        for item: VaultListItem,
+        delete: (() -> Void)?,
+        more: @escaping () -> Void,
+    ) -> some View {
+        swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            if item.isCipherItem {
+                if let delete {
+                    Button(action: delete) {
+                        Label(Localizations.delete, systemImage: "trash")
+                            .labelStyle(.iconOnly)
+                    }
+                    .tint(.red)
+                }
+                Button(action: more) {
+                    Label(Localizations.moreOptions, systemImage: "ellipsis")
+                        .labelStyle(.iconOnly)
+                }
+                .tint(.gray)
+            }
+        }
     }
 }
 

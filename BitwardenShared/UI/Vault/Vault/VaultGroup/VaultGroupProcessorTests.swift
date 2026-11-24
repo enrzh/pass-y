@@ -226,6 +226,47 @@ class VaultGroupProcessorTests: BitwardenTestCase { // swiftlint:disable:this ty
         XCTAssertFalse(vaultRepository.fetchSyncCalled)
     }
 
+    /// `perform(_:)` with `.appeared` hands every streamed list to `onSectionsLoaded` (the coordinator's cache for a
+    /// repeat visit) and keeps a seeded, unchanged list as it is.
+    @MainActor
+    func test_perform_appeared_reportsSectionsAndKeepsSeededList() {
+        let vaultListSection = VaultListSection(id: "", items: [VaultListItem.fixture()], name: "Items")
+        var reported = [[VaultListSection]]()
+        subject = VaultGroupProcessor(
+            coordinator: coordinator.asAnyCoordinator(),
+            masterPasswordRepromptHelper: masterPasswordRepromptHelper,
+            services: ServiceContainer.withMocks(
+                authRepository: authRepository,
+                billingRepository: billingRepository,
+                billingService: billingService,
+                errorReporter: errorReporter,
+                pasteboardService: pasteboardService,
+                policyService: policyService,
+                searchProcessorMediatorFactory: searchProcessorMediatorFactory,
+                stateService: stateService,
+                syncService: syncService,
+                timeProvider: timeProvider,
+                vaultRepository: vaultRepository,
+            ),
+            state: VaultGroupState(
+                loadingState: .data([vaultListSection]),
+                vaultFilterType: .allVaults,
+            ),
+            vaultItemMoreOptionsHelper: vaultItemMoreOptionsHelper,
+            onSectionsLoaded: { reported.append($0) },
+        )
+        vaultRepository.vaultListSubject.send(VaultListData(sections: [vaultListSection]))
+
+        let task = Task {
+            await subject.perform(.appeared)
+        }
+        waitFor(!reported.isEmpty)
+        task.cancel()
+
+        XCTAssertEqual(reported, [[vaultListSection]])
+        XCTAssertEqual(subject.state.loadingState, .data([vaultListSection]))
+    }
+
     /// `perform(_:)` with `.appeared` records any errors.
     func test_perform_appeared_error_vaultListSubjectFail() {
         vaultRepository.vaultListSubject.send(completion: .failure(BitwardenTestError.example))
@@ -568,7 +609,7 @@ class VaultGroupProcessorTests: BitwardenTestCase { // swiftlint:disable:this ty
     @MainActor
     func test_perform_itemPressed_group() async {
         await subject.perform(.itemPressed(VaultListItem(id: "1", itemType: .group(.card, 2))))
-        XCTAssertEqual(coordinator.routes.last, .group(.card, filter: .allVaults))
+        XCTAssertEqual(coordinator.routes.last, .group(.card, filter: .allVaults, count: 2))
     }
 
     /// `perform(_:)` with `.itemPressed` navigates to the `.viewItem` route.

@@ -15,14 +15,13 @@ struct FoldersView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if store.state.folders.isEmpty {
-                empty
-                    .background(Color(asset: SharedAsset.Colors.backgroundPrimary))
-            } else {
-                folders
+        // One list from the first frame; the empty message lies on top of the empty list (no swap of views).
+        folders
+            .overlay {
+                if store.state.folders.isEmpty {
+                    empty
+                }
             }
-        }
         .navigationBar(title: Localizations.myFolders, titleDisplayMode: .inline)
         .toolbar {
             addToolbarItem {

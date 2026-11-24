@@ -1878,7 +1878,7 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
     func test_perform_itemPressed_group() async {
         await subject.perform(.itemPressed(VaultListItem(id: "1", itemType: .group(.card, 1))))
 
-        XCTAssertEqual(coordinator.routes.last, .group(.card, filter: .allVaults))
+        XCTAssertEqual(coordinator.routes.last, .group(.card, filter: .allVaults, count: 1))
     }
 
     /// `perform(_:)` with `.itemPressed` shows archive unavailable alert when user doesn't have Premium
@@ -1921,7 +1921,7 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
 
         await subject.perform(.itemPressed(archiveItem))
 
-        XCTAssertEqual(coordinator.routes.last, .group(.archive, filter: .allVaults))
+        XCTAssertEqual(coordinator.routes.last, .group(.archive, filter: .allVaults, count: 5))
         XCTAssertTrue(coordinator.alertShown.isEmpty)
     }
 
@@ -1934,7 +1934,7 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
 
         await subject.perform(.itemPressed(archiveItem))
 
-        XCTAssertEqual(coordinator.routes.last, .group(.archive, filter: .allVaults))
+        XCTAssertEqual(coordinator.routes.last, .group(.archive, filter: .allVaults, count: 3))
         XCTAssertTrue(coordinator.alertShown.isEmpty)
     }
 
