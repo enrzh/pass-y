@@ -6,6 +6,9 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 
 ## Unreleased
 
+- Hardening (not a proven fix): unlocking with the master password or PIN releases the field's focus before the vault
+  appears; a rejected attempt focuses it again. Against an XCUITest "App animations complete notification not
+  received" stall right after unlock whose cause was not reproduced (0 stalls in 6 later full-phone runs).
 - Keystroke loss in the masked add/edit fields diagnosed as an XCUITest `typeText` artifact with two masked fields (not
   field re-creation; software keyboard taps and a real iPhone Air keep every character); product and test helpers
   unchanged, finding and probes in [Docs/Testing.md](Docs/Testing.md) / `KeystrokeProbeTests`.
