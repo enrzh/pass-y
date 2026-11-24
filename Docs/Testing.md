@@ -1370,6 +1370,18 @@ of the keyboard animation before typing. `KeystrokeProbeTests` (Diagnostics) mea
   the `appeared` effect is set). It is timing on a screen that is still settling after launch, not load: the verified
   retype repairs it and every case is logged. Counted runs: 0 retypes in the core runs; the final full run had 2 (both in the unlock field after the text-size relaunches of `test_addMenuOpenCloseLoopNoIdleStall`, got 18 and 17 of 21, load 2 to 3).
 - One fast `typeText` into the search bar once showed 25 of 21 (a leftover after lost delete keys); 0 key by key.
+- **Known issue, Send text (`SendTextContentEntry`, a `BitwardenTextView`), 2026-11-24:** in one validator full run
+  the first `typeText` of `secret for PassY Send 94838` produced `secret for Y Send 94838ass` (load 5, the test had
+  tapped the field itself): the `P` was lost and the caret jumped back to index 11 before the `Y`, both at a
+  capital letter (shift). Not reproduced: a 30-iteration loop of `SendTests/test_createTextSendAndList` (cold
+  launch each iteration) had 0 reordered first attempts and 1 pure loss (the space before `P`, iteration 1 at load
+  169). No product cause found: the view, `BitwardenTextView`, `BitwardenUITextView` and the Send processor's
+  `.textChanged` are unchanged since v1.26-ui-r9 (Pass-Y changed only the font, the card styling and the native
+  `Form` against upstream); `updateUIView` writes `text` only when it differs and never `selectedRange`, and the
+  store updates state synchronously, so a stale round trip cannot reset the field. The retries then failed because
+  `replaceText` cleared with delete keys from the caret, which left the 3 characters after it (30 of 27): the clear
+  now puts the caret at the end before deleting and repeats until the field is empty (`clearText`, proven by
+  `KeystrokeProbeTests.test_replaceTextWithCaretMidText` with a planted mid-text caret).
 - Since the shared session unlocks once per run instead of once per test, the master password is typed about 30 times
   in a full run instead of ~90, and core types it twice.
 

@@ -6,6 +6,9 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 
 ## Unreleased
 
+- Known issue (UI tests, not reproduced): one validator run reordered the first typing into the Send text field
+  (a lost capital and a caret jump); 0 of 30 in a loop, product code unchanged since v1.26. The typing helper's clear
+  no longer leaves text after a mid-text caret (see [Docs/Testing.md](Docs/Testing.md)).
 - Hardening (not a proven fix): unlocking with the master password or PIN releases the field's focus before the vault
   appears; a rejected attempt focuses it again. Against an XCUITest "App animations complete notification not
   received" stall right after unlock whose cause was not reproduced (0 stalls in 6 later full-phone runs).
