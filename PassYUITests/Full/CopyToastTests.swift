@@ -58,11 +58,13 @@ final class CopyToastTests: PassYUITestCase {
             XCTFail("\(name): no toast")
             return nil
         }
-        attach(app, "toast-\(name)")
+        // Frame and text first, the screenshot after (it can take a second under load; the toast lives 3 s).
         let frame = toast.frame
+        let label = toast.label
+        attach(app, "toast-\(name)")
         let screen = app.windows.firstMatch.frame
         XCTAssertTrue(screen.contains(frame), "\(name): toast \(frame) inside the window \(screen)")
-        XCTAssertTrue(toast.label.localizedCaseInsensitiveContains("copied"), "\(name): toast text is '\(toast.label)'")
+        XCTAssertTrue(label.localizedCaseInsensitiveContains("copied"), "\(name): toast text is '\(label)'")
         extra?(frame)
         XCTAssertTrue(waitForDisappearance(of: toast, timeout: 10), "\(name): the toast dismisses by itself")
         let life = Date().timeIntervalSince(tapped)
