@@ -40,7 +40,7 @@ struct CategoryTilesView: View {
                     } label: {
                         CategoryTile(group: group, count: count)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(CategoryTileButtonStyle())
                     .hoverEffect(.highlight)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(group.name)
@@ -68,45 +68,75 @@ private enum CategoryTileHaptics {
 
 // MARK: - CategoryTile
 
-/// One tile: colored symbol badge, count and title.
+/// The corner radius of a tile (continuous, like the inset-grouped list cards below the tiles).
+private let categoryTileCornerRadius: CGFloat = 22
+
+/// One tile: a tinted symbol tile, the count and the title.
 private struct CategoryTile: View {
     let group: VaultListGroup
     let count: Int
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
+                // A rounded-square symbol tile with a soft tint of the category color (the shape of the item icons
+                // in the lists), instead of a saturated badge.
                 Image(systemName: group.tileSymbol)
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(group.tileSymbolColor(for: colorScheme))
                     .frame(width: 36, height: 36)
-                    .background(group.tileColor, in: Circle())
-                    // ui-r7: light badge colors are darkened so the white symbol passes the contrast audit.
-                    .overlay(Circle().fill(Color.black.opacity(group.tileBadgeDarkening)))
+                    .background(
+                        group.tileColor.opacity(colorScheme == .dark ? 0.24 : 0.14),
+                        in: RoundedRectangle(cornerRadius: 10, style: .continuous),
+                    )
                     .accessibilityHidden(true)
                 Spacer(minLength: 4)
-                Text("\(count)")
-                    .font(.title2)
-                    // A little darker than `.secondary` so the count passes the contrast audit on the white tile.
-                    .foregroundStyle(Color.primary.opacity(0.7))
+                Text(count, format: .number)
+                    .font(.system(.title, design: .rounded).weight(.bold))
+                    .monospacedDigit()
+                    // Empty categories step back; a little darker than `.secondary` so the count passes the contrast
+                    // audit on the white tile.
+                    .foregroundStyle(Color.primary.opacity(count == 0 ? 0.45 : 0.9))
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
             }
             Text(group.name)
-                .font(.title3)
-                .foregroundStyle(.primary)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.primary.opacity(0.7))
                 .multilineTextAlignment(.leading)
                 // One line, always: long names ("Verification codes") shrink instead of wrapping, so tiles in the
                 // same row keep the same height. Accessibility sizes use a single column (see `columns`).
                 .lineLimit(1)
-                .minimumScaleFactor(0.6)
+                .minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(12)
+        .padding(14)
         // Same height for every tile of a row (the shrinking long names measure a fraction of a point differently).
         .frame(minHeight: 96, alignment: .topLeading)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(
+            Color(.secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: categoryTileCornerRadius, style: .continuous),
+        )
+        .contentShape(RoundedRectangle(cornerRadius: categoryTileCornerRadius, style: .continuous))
+    }
+}
+
+// MARK: - CategoryTileButtonStyle
+
+/// The press state of a tile: it dims to the system fill and settles back with a short spring (no scale jump, no
+/// shadow), like the cells of Apple's own grouped lists.
+private struct CategoryTileButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .overlay {
+                RoundedRectangle(cornerRadius: categoryTileCornerRadius, style: .continuous)
+                    .fill(Color(.systemFill))
+                    .opacity(configuration.isPressed ? 1 : 0)
+            }
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.spring(duration: 0.25), value: configuration.isPressed)
     }
 }
 
@@ -143,16 +173,20 @@ extension VaultListGroup {
         }
     }
 
-    /// How much black is laid over the badge color (0 to 1) so that the white symbol has enough contrast.
-    var tileBadgeDarkening: Double {
-        switch self {
+    /// The color of the tile symbol: the category color, mixed with black in light mode for the light system colors so
+    /// the symbol keeps a 3:1 contrast on its pale tint (ui-r7 contrast audit).
+    func tileSymbolColor(for colorScheme: ColorScheme) -> Color {
+        guard colorScheme == .light else { return tileColor }
+        let darkening: Double = switch self {
         case .secureNote: 0.45
-        case .passport, .totp, .driversLicense, .bankAccount: 0.3
+        case .bankAccount, .driversLicense, .passport, .totp: 0.3
+        case .archive, .card, .sshKey: 0.15
         default: 0
         }
+        return tileColor.mix(with: .black, by: darkening)
     }
 
-    /// The system color of the tile badge.
+    /// The system color of the tile.
     var tileColor: Color {
         switch self {
         case .archive: .brown
