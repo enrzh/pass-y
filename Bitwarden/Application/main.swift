@@ -10,7 +10,7 @@ private let appDelegateClass: AnyClass = NSClassFromString("BitwardenTests.Testi
 
 #if DEBUG
 // `PASSY_TRACKER=early`: mirror XCUITest's animation idle counter from the very first animation on (PassYAnimationDump);
-// not in unit tests. The default (`late`) installs it in `AppProcessor.start`.
+// not in unit tests. `late` installs it in `AppProcessor.start`; the default (`off`) never swizzles UIKit.
 if NSClassFromString("BitwardenTests.TestingAppDelegate") == nil, PassYAnimationTracker.mode == "early" {
     PassYAnimationTracker.install()
 }

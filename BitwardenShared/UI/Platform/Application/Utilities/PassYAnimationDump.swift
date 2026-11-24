@@ -314,13 +314,14 @@ public final class PassYAnimationTracker {
     nonisolated(unsafe) private static var installed = false
     nonisolated(unsafe) private static var stateClass: AnyClass?
 
-    /// Where the swizzles are installed: `early` (main.swift, before UIApplicationMain), `late` (default: the first
-    /// `PassYAnimationDump.installOnce`, i.e. `AppProcessor.start`, after XCUITest's own hook) or `off` (UIKit stays
-    /// completely unswizzled; the dump then shows only XCUITest's counter, CAAnimations and the main-thread ping).
-    /// Set by the UI tests through the launch environment `PASSY_TRACKER` (`TEST_RUNNER_PASSY_TRACKER`).
+    /// Where the swizzles are installed: `early` (main.swift, before UIApplicationMain), `late` (the first
+    /// `PassYAnimationDump.installOnce`, i.e. `AppProcessor.start`, after XCUITest's own hook) or `off` (default: UIKit
+    /// stays completely unswizzled, also in a hand-launched Debug build; the dump then shows only XCUITest's counter,
+    /// CAAnimations and the main-thread ping). Set by the UI tests through the launch environment `PASSY_TRACKER`
+    /// (`TEST_RUNNER_PASSY_TRACKER`).
     public static let mode: String = {
-        let value = ProcessInfo.processInfo.environment["PASSY_TRACKER"] ?? "late"
-        return ["early", "late", "off"].contains(value) ? value : "late"
+        let value = ProcessInfo.processInfo.environment["PASSY_TRACKER"] ?? "off"
+        return ["early", "late", "off"].contains(value) ? value : "off"
     }()
 
     /// Installs the swizzles (once). Called as early as possible (app delegate), so the counter mirrors XCUITest's
