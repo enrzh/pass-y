@@ -28,7 +28,7 @@ struct PasswordHintView: View {
                 Text(Localizations.enterEmailForHint)
             }
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .navigationBar(title: Localizations.passwordHint, titleDisplayMode: .inline)
         .toolbar {
             cancelToolbarItem {

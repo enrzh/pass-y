@@ -44,7 +44,7 @@ struct LoginWithDeviceView: View {
                     .listRowBackground(Color.clear)
             }
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .navigationBar(title: store.state.navBarText, titleDisplayMode: .inline)
         .toolbar {
             cancelToolbarItem {

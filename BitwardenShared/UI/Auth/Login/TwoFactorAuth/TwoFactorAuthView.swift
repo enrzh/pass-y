@@ -152,7 +152,7 @@ struct TwoFactorAuthView: View {
     /// Applies the native form look with a visible card background (also inside sheets).
     private func nativeForm(@ViewBuilder _ content: () -> some View) -> some View {
         Form { content() }
-            .passYNativeFormBackground()
+            .passYGroupedBackground()
     }
 
     /// The body content for most 2FA methods.

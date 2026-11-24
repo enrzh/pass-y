@@ -373,22 +373,6 @@ struct VaultListRowCell: View, Equatable {
     }
 }
 
-// MARK: - List helpers
-
-extension View {
-    /// Starts the system row separator at this view's leading edge (plus `offset`): the text column of a row, so the
-    /// line does not run under the icon (Apple Passwords).
-    func passYListSeparatorLeading(_ offset: CGFloat = 0) -> some View {
-        alignmentGuide(.listRowSeparatorLeading) { $0[.leading] + offset }
-    }
-
-    /// Room below the last row of a list for the floating bottom bar. A content margin, not a spacer row: a spacer row
-    /// drew a stray separator line in the empty area below short lists.
-    func passYBottomBarContentMargin() -> some View {
-        contentMargins(.bottom, FloatingActionButton.bottomOffsetPadding, for: .scrollContent)
-    }
-}
-
 // MARK: - VaultItemOptionsMenuContent
 
 /// The options of a cipher row as native menu items (SF Symbols), shared by the long-press context menu and the

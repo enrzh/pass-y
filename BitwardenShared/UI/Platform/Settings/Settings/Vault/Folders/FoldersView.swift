@@ -20,6 +20,7 @@ struct FoldersView: View {
             .overlay {
                 if store.state.folders.isEmpty {
                     empty
+                        .passYEmptyListState()
                 }
             }
         .navigationBar(title: Localizations.myFolders, titleDisplayMode: .inline)
@@ -86,8 +87,7 @@ struct FoldersView: View {
                 .accessibilityIdentifier("FolderCell")
             }
         }
-        .listStyle(.insetGrouped)
-        .passYNativeFormBackground()
+        .passYCardList(reservesBottomBarSpace: false)
     }
 }
 

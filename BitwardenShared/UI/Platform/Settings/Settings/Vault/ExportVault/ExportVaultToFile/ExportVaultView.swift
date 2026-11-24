@@ -35,7 +35,7 @@ struct ExportVaultView: View {
 
             masterPasswordSection
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .animation(.default, value: store.state.filePasswordStrengthScore)
         .disabled(store.state.disableIndividualVaultExport)
         .navigationBar(title: Localizations.exportVault, titleDisplayMode: .inline)

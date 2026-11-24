@@ -78,7 +78,7 @@ struct CompleteRegistrationView: View {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .animation(.default, value: store.state.passwordStrengthScore)
         .navigationBar(
             title: Localizations.createAccount,

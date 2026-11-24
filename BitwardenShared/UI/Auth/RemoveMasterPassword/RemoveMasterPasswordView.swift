@@ -80,7 +80,7 @@ struct RemoveMasterPasswordView: View {
             }
         }
         .nativeFormRows()
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .navigationBar(title: Localizations.removeMasterPassword, titleDisplayMode: .inline)
     }
 }

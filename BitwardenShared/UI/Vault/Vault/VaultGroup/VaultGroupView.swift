@@ -94,41 +94,23 @@ struct VaultGroupView: View {
 
     @ViewBuilder private var selectBarContent: some View {
         if !store.state.isSearching, (store.state.displayedItemCount ?? 0) > 0, !isCipherlessGroup {
-            if isSelecting {
-                Menu {
-                    Button(Localizations.folderNone) {
-                        let items = selectedItems
-                        Task { await store.perform(.moveItems(items, folderId: nil)) }
-                    }
-                    ForEach(store.state.folders, id: \.id) { folder in
-                        Button(folder.name) {
-                            let items = selectedItems
-                            Task { await store.perform(.moveItems(items, folderId: folder.id)) }
-                        }
-                    }
-                } label: {
-                    Image(systemName: "folder")
-                }
-                .disabled(store.state.selection.isEmpty || store.state.group == .trash)
-                .accessibilityLabel(Localizations.move)
-                .accessibilityIdentifier("SelectMoveButton")
-
-                Button(role: .destructive) {
+            PassYSelectModeButtons(
+                isSelecting: isSelecting,
+                selectionIsEmpty: store.state.selection.isEmpty,
+                moveIsDisabled: store.state.group == .trash,
+                folders: store.state.folders,
+                move: { folderId in
+                    let items = selectedItems
+                    Task { await store.perform(.moveItems(items, folderId: folderId)) }
+                },
+                delete: {
                     let items = selectedItems
                     // Select mode stays: the processor ends it after a complete delete, keeps failed items
                     // selected, and a cancelled confirmation changes nothing.
                     Task { await store.perform(.deleteItems(items)) }
-                } label: {
-                    Image(systemName: "trash")
-                }
-                .disabled(store.state.selection.isEmpty)
-                .accessibilityLabel(Localizations.delete)
-                .accessibilityIdentifier("SelectDeleteButton")
-            }
-            Button(isSelecting ? Localizations.done : "Select") {
-                store.send(.setSelecting(!isSelecting))
-            }
-            .accessibilityIdentifier("SelectButton")
+                },
+                toggle: { store.send(.setSelecting(!isSelecting)) },
+            )
         }
     }
 
@@ -268,10 +250,7 @@ struct VaultGroupView: View {
             }
             // Rebuilt when the set of result rows changes (see the home search results: the incremental diff crashed).
             .id(store.state.searchResults.map(\.id))
-            .listStyle(.insetGrouped)
-            .passYNativeFormBackground()
-            .passYBottomBarContentMargin()
-            .softBottomScrollEdge()
+            .passYCardList()
         } else {
             SearchNoResultsView {
                 searchVaultFilterRow
@@ -325,27 +304,14 @@ struct VaultGroupView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
-        .passYNativeFormBackground()
-        // Room below the last row for the floating bottom bar (a margin, not a spacer row: a spacer row drew a stray
-        // separator line in the empty area below short lists).
-        .passYBottomBarContentMargin()
+        .passYCardList()
         .overlay {
             if case .data([]) = store.state.loadingState {
                 emptyView
+                    .passYEmptyListState()
             }
         }
-        .environment(\.editMode, .constant(listIsEditing ? .active : .inactive))
-        // See the home search results: leaving Select mode together with the removal of rows can crash the list diff.
-        .task(id: isSelecting) {
-            if isSelecting {
-                listIsEditing = true
-            } else {
-                try? await Task.sleep(nanoseconds: 500_000_000)
-                listIsEditing = false
-            }
-        }
-        .softBottomScrollEdge()
+        .passYSelectEditMode(isSelecting: isSelecting, listIsEditing: $listIsEditing)
     }
 
     /// A list row for the item with its selection tag and swipe actions (Delete, More menu).
@@ -354,11 +320,9 @@ struct VaultGroupView: View {
     ///
     private func swipeableRow(for item: VaultListItem) -> some View {
         vaultItemRow(for: item)
-            // The row brings its own 16 pt side margins (also used outside lists).
-            .listRowInsets(EdgeInsets())
             .tag(item.id)
-            .vaultRowSwipeActions(
-                for: item,
+            .passYVaultRow(
+                item,
                 hasPremium: store.state.hasPremium,
                 delete: { Task { await store.perform(.deleteItems([item])) } },
                 perform: { kind in Task { await store.perform(.accessibilityMoreOptionsActionPressed(item, kind)) } },
@@ -370,35 +334,21 @@ struct VaultGroupView: View {
     /// - Parameters:
     ///   - item: The `VaultListItem` to use when creating the view.
     ///
-    @ViewBuilder
     private func vaultItemRow(for item: VaultListItem) -> some View {
-        // No child `Store` per row and body pass: the row gets plain state and closures (ui-r8).
         let state = store.state
-        VaultListRowCell(
-            state: VaultListItemRowState(
-                iconBaseURL: state.iconBaseURL,
-                hasPremium: state.hasPremium,
-                isSelecting: listIsEditing,
-                item: item,
-                hasDivider: false,
-                showWebIcons: state.showWebIcons,
-            ),
-            perform: { [weak store] effect in
-                switch effect {
-                case let .accessibilityMoreOptionsActionPressed(kind):
-                    await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
-                case .pressed:
-                    await store?.perform(.itemPressed(item))
-                }
-            },
-            send: { [weak store] action in
-                switch action {
-                case let .copyTOTPCode(code):
-                    store?.send(.copyTOTPCode(code))
-                }
-            },
+        return VaultListRowCell.make(
+            for: item,
+            isSelecting: listIsEditing,
+            iconBaseURL: state.iconBaseURL,
+            hasPremium: state.hasPremium,
+            showWebIcons: state.showWebIcons,
             timeProvider: timeProvider,
-            onDelete: item.isCipherItem ? { [weak store] in Task { await store?.perform(.deleteItems([item])) } } : nil,
+            itemPressed: { [weak store] item in await store?.perform(.itemPressed(item)) },
+            moreOptions: { [weak store] item, kind in
+                await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
+            },
+            copyTOTPCode: { [weak store] code in store?.send(.copyTOTPCode(code)) },
+            deleteItem: { [weak store] item in Task { await store?.perform(.deleteItems([item])) } },
         )
         .equatable()
     }

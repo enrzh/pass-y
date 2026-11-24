@@ -142,21 +142,8 @@ private struct SearchableVaultListView: View {
             // The list is rebuilt when the set of result rows changes (a delete removes rows while Select mode is on):
             // SwiftUI's incremental list diff crashed there ("Invalid number of items in section", reproducible).
             .id(store.state.searchResults.map(\.id))
-            .environment(\.editMode, .constant(listIsEditing ? .active : .inactive))
-            // Leaving Select mode in the same update as the removal of the deleted rows makes SwiftUI's list diff crash
-            // ("Invalid number of items in section", measured), so edit mode is switched off a moment later.
-            .task(id: store.state.isSelecting) {
-                if store.state.isSelecting {
-                    listIsEditing = true
-                } else {
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    listIsEditing = false
-                }
-            }
-            .listStyle(.insetGrouped)
-            .passYNativeFormBackground()
-            .passYBottomBarContentMargin()
-            .softBottomScrollEdge()
+            .passYSelectEditMode(isSelecting: store.state.isSelecting, listIsEditing: $listIsEditing)
+            .passYCardList()
         } else {
             SearchNoResultsView {
                 searchVaultFilterRow
@@ -313,11 +300,7 @@ private struct SearchableVaultListView: View {
             }
 
         }
-        .listStyle(.insetGrouped)
-        .passYNativeFormBackground()
-        // Space below the last row so the floating bottom bar never covers it (a margin, not a spacer row).
-        .passYBottomBarContentMargin()
-        .softBottomScrollEdge()
+        .passYCardList()
     }
 
     /// A list row for the item with its swipe actions (Delete, More menu).
@@ -326,9 +309,8 @@ private struct SearchableVaultListView: View {
     ///
     private func swipeableRow(for item: VaultListItem) -> some View {
         vaultItemRow(for: item)
-            .listRowInsets(EdgeInsets())
-            .vaultRowSwipeActions(
-                for: item,
+            .passYVaultRow(
+                item,
                 hasPremium: store.state.hasPremium,
                 delete: { Task { await store.perform(.deleteItems([item])) } },
                 perform: { kind in Task { await store.perform(.accessibilityMoreOptionsActionPressed(item, kind)) } },
@@ -352,10 +334,71 @@ private struct SearchableVaultListView: View {
     }
 }
 
-// MARK: - VaultListRowCell + VaultListState
+// MARK: - VaultListRowCell + factory
 
 extension VaultListRowCell {
-    /// Creates a row of the vault or search list. No child `Store` is created: the row gets its state and closures.
+    /// Creates a row of the vault, group or search list. No child `Store` is created: the row gets plain state and
+    /// closures (ui-r8), so its body is skipped when nothing it shows changed.
+    ///
+    /// - Parameters:
+    ///   - item: The row's item.
+    ///   - isSelecting: Whether the list is in Select mode.
+    ///   - iconBaseURL: The base URL of the web icons.
+    ///   - hasPremium: Whether the account has Premium.
+    ///   - showWebIcons: Whether web icons are shown.
+    ///   - timeProvider: The `TimeProvider` used to calculate TOTP expiration.
+    ///   - itemPressed: Opens the item.
+    ///   - moreOptions: Performs one of the item's more-options actions.
+    ///   - copyTOTPCode: Copies a TOTP code.
+    ///   - deleteItem: Starts the (confirmed) delete of the item (offered for cipher rows only).
+    ///
+    @MainActor
+    static func make( // swiftlint:disable:this function_parameter_count
+        for item: VaultListItem,
+        isSelecting: Bool,
+        iconBaseURL: URL?,
+        hasPremium: Bool,
+        showWebIcons: Bool,
+        timeProvider: any TimeProvider,
+        itemPressed: @escaping (VaultListItem) async -> Void,
+        moreOptions: @escaping (VaultListItem, MoreOptionsActionKind) async -> Void,
+        copyTOTPCode: @escaping (String) -> Void,
+        deleteItem: @escaping (VaultListItem) -> Void,
+    ) -> VaultListRowCell {
+        #if DEBUG
+        PassYPerf.rowBuildCount += 1
+        #endif
+        return VaultListRowCell(
+            state: VaultListItemRowState(
+                iconBaseURL: iconBaseURL,
+                hasPremium: hasPremium,
+                isFromExtension: false,
+                isSelecting: isSelecting,
+                item: item,
+                // Lists use the system row separators (aligned to the name by the row).
+                hasDivider: false,
+                showWebIcons: showWebIcons,
+            ),
+            perform: { effect in
+                switch effect {
+                case let .accessibilityMoreOptionsActionPressed(kind):
+                    await moreOptions(item, kind)
+                case .pressed:
+                    await itemPressed(item)
+                }
+            },
+            send: { action in
+                switch action {
+                case let .copyTOTPCode(code):
+                    copyTOTPCode(code)
+                }
+            },
+            timeProvider: timeProvider,
+            onDelete: item.isCipherItem ? { deleteItem(item) } : nil,
+        )
+    }
+
+    /// Creates a row of the vault home or its search results.
     @MainActor
     static func make(
         for item: VaultListItem,
@@ -363,35 +406,20 @@ extension VaultListRowCell {
         store: Store<VaultListState, VaultListAction, VaultListEffect>,
         timeProvider: any TimeProvider,
     ) -> VaultListRowCell {
-        PassYPerf.rowBuildCount += 1
         let state = store.state
-        return VaultListRowCell(
-            state: VaultListItemRowState(
-                iconBaseURL: state.iconBaseURL,
-                hasPremium: state.hasPremium,
-                isFromExtension: false,
-                isSelecting: isSelecting,
-                item: item,
-                // Lists use the system row separators (aligned to the name by the row).
-                hasDivider: false,
-                showWebIcons: state.showWebIcons,
-            ),
-            perform: { [weak store] effect in
-                switch effect {
-                case let .accessibilityMoreOptionsActionPressed(kind):
-                    await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
-                case .pressed:
-                    await store?.perform(.itemPressed(item))
-                }
-            },
-            send: { [weak store] action in
-                switch action {
-                case let .copyTOTPCode(code):
-                    store?.send(.copyTOTPCode(code))
-                }
-            },
+        return make(
+            for: item,
+            isSelecting: isSelecting,
+            iconBaseURL: state.iconBaseURL,
+            hasPremium: state.hasPremium,
+            showWebIcons: state.showWebIcons,
             timeProvider: timeProvider,
-            onDelete: item.isCipherItem ? { [weak store] in Task { await store?.perform(.deleteItems([item])) } } : nil,
+            itemPressed: { [weak store] item in await store?.perform(.itemPressed(item)) },
+            moreOptions: { [weak store] item, kind in
+                await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
+            },
+            copyTOTPCode: { [weak store] code in store?.send(.copyTOTPCode(code)) },
+            deleteItem: { [weak store] item in Task { await store?.perform(.deleteItems([item])) } },
         )
     }
 }
@@ -653,39 +681,20 @@ struct VaultListView: View {
         ToolbarItemGroup(placement: .navigationBarLeading) {
             if shell.isEditing || !store.state.searchText.isEmpty,
                store.state.searchResults.contains(where: \.isCipherItem) {
-                if store.state.isSelecting {
-                    Menu {
-                        Button(Localizations.folderNone) {
-                            let items = selectedSearchItems
-                            Task { await store.perform(.moveItems(items, folderId: nil)) }
-                        }
-                        ForEach(store.state.folders, id: \.id) { folder in
-                            Button(folder.name) {
-                                let items = selectedSearchItems
-                                Task { await store.perform(.moveItems(items, folderId: folder.id)) }
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "folder")
-                    }
-                    .disabled(store.state.selection.isEmpty)
-                    .accessibilityLabel(Localizations.move)
-                    .accessibilityIdentifier("SelectMoveButton")
-
-                    Button(role: .destructive) {
+                PassYSelectModeButtons(
+                    isSelecting: store.state.isSelecting,
+                    selectionIsEmpty: store.state.selection.isEmpty,
+                    folders: store.state.folders,
+                    move: { folderId in
+                        let items = selectedSearchItems
+                        Task { await store.perform(.moveItems(items, folderId: folderId)) }
+                    },
+                    delete: {
                         let items = selectedSearchItems
                         Task { await store.perform(.deleteItems(items)) }
-                    } label: {
-                        Image(systemName: "trash")
-                    }
-                    .disabled(store.state.selection.isEmpty)
-                    .accessibilityLabel(Localizations.delete)
-                    .accessibilityIdentifier("SelectDeleteButton")
-                }
-                Button(store.state.isSelecting ? Localizations.done : "Select") {
-                    store.send(.setSelecting(!store.state.isSelecting))
-                }
-                .accessibilityIdentifier("SelectButton")
+                    },
+                    toggle: { store.send(.setSelecting(!store.state.isSelecting)) },
+                )
             }
         }
     }
@@ -1174,12 +1183,3 @@ struct VaultListView: View {
     }
 }
 #endif
-
-// MARK: - Soft bottom scroll edge
-
-extension View {
-    /// Fades list content out under the floating bottom bar (scroll edge effect) so rows do not shine through.
-    func softBottomScrollEdge() -> some View {
-        scrollEdgeEffectStyle(.soft, for: .bottom)
-    }
-}

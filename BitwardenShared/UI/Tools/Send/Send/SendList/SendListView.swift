@@ -59,6 +59,7 @@ private struct MainSendListView: View {
             .overlay {
                 if case let .data(sections) = store.state.loadingState, sections.isEmpty {
                     empty
+                        .passYEmptyListState()
                 }
             }
     }
@@ -131,8 +132,7 @@ private struct MainSendListView: View {
                     }
                 }
             }
-            .listStyle(.insetGrouped)
-            .passYNativeFormBackground()
+            .passYCardList(reservesBottomBarSpace: false)
         } else {
             SearchNoResultsView()
         }
@@ -159,8 +159,7 @@ private struct MainSendListView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
-        .passYNativeFormBackground()
+        .passYCardList(reservesBottomBarSpace: false)
     }
 
     /// The rows of a section of sends.

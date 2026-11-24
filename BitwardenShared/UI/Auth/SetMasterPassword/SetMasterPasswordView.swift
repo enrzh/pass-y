@@ -105,7 +105,7 @@ struct SetMasterPasswordView: View {
             }
         }
         .nativeFormRows()
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .navigationTitle(Localizations.setMasterPassword)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

@@ -111,7 +111,7 @@ struct UpdateMasterPasswordView: View {
             }
         }
         .nativeFormRows()
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .navigationTitle(Localizations.updateMasterPassword)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

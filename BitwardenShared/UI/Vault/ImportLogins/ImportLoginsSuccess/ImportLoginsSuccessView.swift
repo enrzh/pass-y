@@ -69,7 +69,7 @@ struct ImportLoginsSuccessView: View {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .navigationBar(title: Localizations.bitwardenTools, titleDisplayMode: .inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {

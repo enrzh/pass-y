@@ -56,7 +56,7 @@ struct ImportCXFView: View {
                 EmptyView()
             }
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
                 if store.state.showMainButton {
