@@ -1,7 +1,11 @@
+import BitwardenKit
+import BitwardenKitMocks
 import Combine
+import TestHelpers
 import XCTest
 
 @testable import BitwardenShared
+@testable import BitwardenSharedMocks
 
 /// The unlock warm-up of the vault list (`PassYVaultListWarmup`) and the processor-owned vault list stream: a one-shot,
 /// expiring, memory-only hand-over that a lock (`clear()`) drops, and a stream that survives a back to the home page
@@ -12,11 +16,11 @@ class PassYVaultListWarmupTests: BitwardenTestCase {
 
     override func setUp() {
         super.setUp()
-        PassYVaultListWarmup.clear()
+        MainActor.assumeIsolated { PassYVaultListWarmup.clear() }
     }
 
     override func tearDown() {
-        PassYVaultListWarmup.clear()
+        MainActor.assumeIsolated { PassYVaultListWarmup.clear() }
         super.tearDown()
     }
 
