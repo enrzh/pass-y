@@ -1281,7 +1281,7 @@ UI tests run against a throwaway local Vaultwarden (`Scripts-passy/vaultwarden/`
 | `Core/` | `AuthLandingTests`, `AuthLoginTests`, `AvatarMenuTests`, `ItemCrudTests`, `LockUnlockTests`, `SearchTests`, `VaultHomeTests` (15 tests) | core |
 | `Full/` | `AccessibilityTests`, `AppearanceTests`, `AuthScreensTests`, `AuthTwoFactorTests`, `FoldersTests`, `GeneratorTests`, `ItemDetailTests`, `ItemListActionsTests`, `NavigationTests`, `PendingRequestsTests`, `SendTests`, `SettingsTests` (44) | full |
 | `Full/iPad/` | `IPadLandingTests` (1, fresh install, sorts first), `IPadTests` (2), own iPad simulator | full |
-| `Full/Perf/` | `PerfTests`, `PerfCompareTests` (9, own 2000 item account `passy-perf@example.test`) | full |
+| `Full/Perf/` | `PerfTests`, `PerfCompareTests`, `PerfUnlockAndBackTests` (12, own 2000 item account `passy-perf@example.test`; the last enrolls simulator Face ID and sorts last on purpose) | full |
 | `Shots/`, `Shots/iPad/` | `Shots*Tests` (17): screenshot export only | shots (never gating) |
 | `Diagnostics/` | `DiagnosticsTests`, `KeystrokeProbeTests` | none, run by name |
 | `Support/` | `PassYUITestCase` (base class, shared helpers), `PassYUITestSupport.swift` (session, typing, login) | |

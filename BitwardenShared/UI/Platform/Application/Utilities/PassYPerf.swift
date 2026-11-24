@@ -10,10 +10,13 @@ import os
 /// - `RowAppear`: a row appeared (event, id as metadata).
 /// - `TapToPush`: a row (or tile) was tapped until the pushed or presented screen was handed to UIKit.
 ///
+/// - `Startup` (event): a named step of launch and unlock (`mark`), logged with the absolute time so a UI test (same
+///   host clock in the simulator) can split "Face ID match -> first row" into its steps.
+///
 /// All state is main-thread only (the call sites are views, processors and coordinators). DEBUG only (ui-r9): the
 /// release build contains no signposts, counters or log strings.
 #if DEBUG
-enum PassYPerf {
+public enum PassYPerf {
     // MARK: Constants
 
     /// The subsystem of all signposts.
@@ -53,9 +56,17 @@ enum PassYPerf {
 
     // MARK: Methods
 
+    /// A named step of launch, unlock and the first vault frame (`startup mark=<name> t=<absolute seconds>`).
+    public static func mark(_ name: String) {
+        let now = CFAbsoluteTimeGetCurrent()
+        signposter.emitEvent("Startup", "\(name, privacy: .public)")
+        logger.notice("startup mark=\(name, privacy: .public) t=\(now, format: .fixed(precision: 3), privacy: .public)")
+    }
+
     /// Starts the "list load" interval (once, until it ends).
     static func beginListLoad() {
         guard listLoadState == nil else { return }
+        mark("listData")
         listLoadState = signposter.beginInterval("VaultListLoad")
         listLoadGeneration += 1
         let generation = listLoadGeneration
@@ -70,6 +81,7 @@ enum PassYPerf {
     /// Ends the "list load" interval when the first row appeared.
     static func endListLoad() {
         guard let state = listLoadState else { return }
+        mark("firstRow")
         signposter.endInterval("VaultListLoad", state)
         listLoadState = nil
     }
@@ -98,7 +110,8 @@ enum PassYPerf {
 }
 #else
 /// Release: no signposts, no counters, no strings. The call sites stay in the code and compile to nothing.
-enum PassYPerf {
+public enum PassYPerf {
+    @inline(__always) public static func mark(_ name: String) {}
     static var rowBodyCount: Int { get { 0 } set {} }
     static var rowBuildCount: Int { get { 0 } set {} }
     static var cellBodyCount: Int { get { 0 } set {} }

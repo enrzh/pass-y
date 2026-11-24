@@ -72,7 +72,7 @@ final class PerfTests: PassYUITestCase {
         }
     }
 
-    /// ui-r8: the app signposts (`PassYPerf`): list load and tap-to-push, measured by `XCTOSSignpostMetric`
+    /// ui-r8: the app signposts (`PassYPerf`): tap-to-push, measured by `XCTOSSignpostMetric`
     /// together with the wall clock. A single tap must open the item list page (asserted within 1 s).
     /// Formerly `PassYPerfTests.test_perf_tapToPush_signposts`.
     func test_perf_tapToPush_signposts() {
@@ -83,7 +83,8 @@ final class PerfTests: PassYUITestCase {
         let metrics: [XCTMetric] = [
             XCTClockMetric(),
             XCTOSSignpostMetric(subsystem: "de.aiity.passy", category: "perf", name: "TapToPush"),
-            XCTOSSignpostMetric(subsystem: "de.aiity.passy", category: "perf", name: "VaultListLoad"),
+            // No `VaultListLoad` here any more: that interval came from the vault home reloading its whole list on every
+            // back, which it no longer does (the stream keeps running, `PerfUnlockAndBackTests.test_cmp_backFromGroup`).
         ]
         measure(metrics: metrics, options: options) {
             app.buttons["CategoryTile_login"].tap()

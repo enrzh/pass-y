@@ -18,6 +18,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     /// The main window for this scene.
     var window: UIWindow?
 
+    /// Whether the cover went up only because a biometric unlock ended while the scene was inactive (it then goes
+    /// away without the fade: the unlock already took the user's time).
+    private var isCoverForBiometricUnlockEnd = false
+
     /// The processor that manages application level logic.
     var appProcessor: AppProcessor? {
         (UIApplication.shared.delegate as? AppDelegateType)?.appProcessor
@@ -31,6 +35,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions,
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
+        #if DEBUG
+        PassYPerf.mark("sceneConnect")
+        #endif
         guard let appProcessor else {
             if (UIApplication.shared.delegate as? AppDelegateType)?.isTesting == true {
                 // If the app is running tests, show a testing view.
@@ -46,6 +53,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             self?.appProcessor?.showDebugMenu()
             #endif
         }
+        // Never black between two screens (the unlock page leaving, the vault shell arriving): the window and the root
+        // show the launch screen color.
+        appWindow.backgroundColor = .systemBackground
+        rootViewController.view.backgroundColor = .systemBackground
         appWindow.rootViewController = rootViewController
         appWindow.makeKeyAndVisible()
         window = appWindow
@@ -56,6 +67,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Splash window. This is initially visible until the app's processor has finished starting.
         splashWindow = buildSplashWindow(windowScene: windowScene)
+        PassYPrivacyCover.unlockEnded = { [weak self, weak windowScene] in
+            // The vault is about to show while the scene is still inactive (app switcher): cover it now.
+            guard let self, let windowScene, windowScene.activationState != .foregroundActive else { return }
+            isCoverForBiometricUnlockEnd = true
+            showSplash()
+        }
 
         // Start the app's processor and show the splash view until the initial view is shown.
         Task {
@@ -65,6 +82,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 splashWindow: splashWindow,
                 window: appWindow,
             )
+            #if DEBUG
+            PassYPerf.mark("startDone")
+            #endif
             hideSplash()
             isStartingUp = false
 
@@ -115,11 +135,33 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
+        #if DEBUG
+        PassYPerf.mark("resignActive")
+        #endif
+        // The Face ID / Touch ID prompt of an unlock resigns the scene: the locked unlock page needs no cover (see
+        // `PassYPrivacyCover`). Every other reason (app switcher, control center, a call) covers as before.
+        guard !PassYPrivacyCover.isBiometricUnlockInProgress else { return }
+        showSplash()
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        // The app switcher snapshot is taken after this: always covered, also when a biometric unlock is running.
         showSplash()
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
+        #if DEBUG
+        PassYPerf.mark("becomeActive")
+        #endif
         guard !isStartingUp else { return }
+        if isCoverForBiometricUnlockEnd {
+            isCoverForBiometricUnlockEnd = false
+            splashWindow?.alpha = 0
+            #if DEBUG
+            PassYPerf.mark("splashHidden")
+            #endif
+            return
+        }
         hideSplash()
     }
 
@@ -145,6 +187,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private func hideSplash() {
         UIView.animate(withDuration: UI.duration(0.4)) {
             self.splashWindow?.alpha = 0
+        } completion: { _ in
+            #if DEBUG
+            PassYPerf.mark("splashHidden")
+            #endif
         }
     }
 

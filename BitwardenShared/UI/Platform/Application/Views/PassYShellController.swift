@@ -288,6 +288,11 @@ class PassYShellController: UIViewController, TabNavigator {
             .store(in: &cancellables)
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        PassYPerf.mark("shellAppear")
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         // Pages end where the bar content begins (also above the keyboard), so lists and forms clear the bar.

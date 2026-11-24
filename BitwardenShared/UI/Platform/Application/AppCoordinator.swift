@@ -162,6 +162,8 @@ class AppCoordinator: Coordinator, HasRootNavigator { // swiftlint:disable:this 
         // preload cache is cleared (new generation, running fetches cancelled) before it, leaving no window where a
         // finishing fetch could still store decrypted item state.
         ViewItemPreloadCache.clear()
+        PassYVaultListWarmup.clear()
+        NotificationCenter.default.post(name: .passyVaultSessionEnded, object: nil)
         let router = module.makeAuthRouter()
         let route = await router.handleAndRoute(authEvent)
 
@@ -191,6 +193,8 @@ class AppCoordinator: Coordinator, HasRootNavigator { // swiftlint:disable:this 
     private func showAuth(_ authRoute: AuthRoute) {
         // Lock, logout, account switch and every other auth screen: no decrypted item state may stay in memory.
         ViewItemPreloadCache.clear()
+        PassYVaultListWarmup.clear()
+        NotificationCenter.default.post(name: .passyVaultSessionEnded, object: nil)
         if let coordinator = childCoordinator as? AnyCoordinator<AuthRoute, AuthEvent> {
             coordinator.navigate(to: authRoute)
         } else {
@@ -449,7 +453,9 @@ extension AppCoordinator: AuthCoordinatorDelegate {
                 navigate(to: .vault(.autofillList))
             }
         case .mainApp:
+            PassYPerf.mark("showTab")
             showTab(route: .vault(.list))
+            PassYPerf.mark("showTabDone")
 
             if let rehydratableTarget {
                 navigate(to: rehydratableTarget.appRoute)
