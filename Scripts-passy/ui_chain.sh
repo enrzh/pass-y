@@ -14,6 +14,7 @@
 # a step that is green only after a retry is FLAKY and the tier is then not PASS.
 # Before every test run the chain waits (PID based, max 45 min) until no foreign xcodebuild runs. It never ends a
 # foreign process: only PIDs it started itself (xcodebuild, Vaultwarden, the screenshot driver).
+# PASSY_XCB_EXTRA: extra xcodebuild test arguments (loops: "-test-iterations 30"); the strict PASS rule is unchanged.
 # Files: $O/chain.pid, $O/chain.log, $O/summary.txt (one line per step), $O/<step>.log.
 export HOME=${HOME:-/Users/enrico}
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
@@ -92,7 +93,10 @@ classes_in() { # classes_in <dir...>: test classes (file names) directly in the 
 }
 expected_tests() { # expected_tests <class...>: number of test methods in the sources of the classes
   local c n=0 f
-  for c in "$@"; do f=$(find "$R/PassYUITests" -name "$c.swift" | head -1); n=$((n + $(grep -cE '^    func test' "$f"))); done
+  for c in "$@"; do
+    case "$c" in */*) n=$((n + 1)); continue ;; esac   # Class/test_method: one test
+    f=$(find "$R/PassYUITests" -name "$c.swift" | head -1); n=$((n + $(grep -cE '^    func test' "$f")))
+  done
   echo $n
 }
 
@@ -160,7 +164,7 @@ step() {
       cd "$R"
       passy_run_xcodebuild "$log" test-without-building -xctestrun "$(passy_xctestrun)" -destination "id=$u" \
         -parallel-testing-enabled NO -collect-test-diagnostics never -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
-        -maximum-test-execution-time-allowance 1800 "${tests[@]}" -resultBundlePath "$O/$n.xcresult" )
+        -maximum-test-execution-time-allowance 1800 "${tests[@]}" ${PASSY_XCB_EXTRA:-} -resultBundlePath "$O/$n.xcresult" )
     t1=$(date +%s); end_load=$(sysctl -n vm.loadavg | awk '{print $2}')
     kill "$watcher" 2>/dev/null; wait "$watcher" 2>/dev/null
     # DEBUG animation dumps (PassYAnimationDump, requested by the tests on an idle stall): copy them out before the
