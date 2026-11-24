@@ -5,30 +5,11 @@ import Foundation
 
 // MARK: - VaultItemMoreOptionsHelper
 
-/// A protocol for a helper object to handle displaying the more options menu for a vault item and
-/// responding to the user's selection.
+/// A protocol for a helper object to perform the more-options actions of a vault item (chosen in the row's
+/// context menu, its "More" swipe menu or a VoiceOver custom action).
 ///
 protocol VaultItemMoreOptionsHelper {
-    /// Show the more options alert for the selected item.
-    ///
-    /// - Parameters
-    ///   - item: The selected item to show the options for.
-    ///   - delegate: The delegate notified of operations performed on the item from within the
-    ///     add/edit item view, used when the edit option is selected.
-    ///   - handleDisplayToast: A closure called to handle displaying a toast.
-    ///   - handleNavigateToPremiumUpgrade: A closure called to navigate to the Premium upgrade flow.
-    ///   - handleOpenURL: A closure called to open a URL.
-    ///
-    func showMoreOptionsAlert(
-        for item: VaultListItem,
-        delegate: CipherItemOperationDelegate?,
-        handleDisplayToast: @escaping (Toast) -> Void,
-        handleNavigateToPremiumUpgrade: @escaping () async -> Void,
-        handleOpenURL: @escaping (URL) -> Void,
-    ) async
-
-    /// Performs the more-options action identified by `kind` for `item` directly, without
-    /// presenting the action sheet. Used by the vault list row's VoiceOver accessibility actions.
+    /// Performs the more-options action identified by `kind` for `item`.
     ///
     /// - Parameters
     ///   - kind: The kind of more-options action to perform.
@@ -96,46 +77,6 @@ class DefaultVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
     }
 
     // MARK: Methods
-
-    func showMoreOptionsAlert(
-        for item: VaultListItem,
-        delegate: CipherItemOperationDelegate?,
-        handleDisplayToast: @escaping (Toast) -> Void,
-        handleNavigateToPremiumUpgrade: @escaping () async -> Void,
-        handleOpenURL: @escaping (URL) -> Void,
-    ) async {
-        do {
-            // Only ciphers have more options.
-            guard case let .cipher(cipherListView, _) = item.itemType,
-                  let cipherId = cipherListView.id,
-                  let cipherView = try await services.vaultRepository.fetchCipher(withId: cipherId) else {
-                return
-            }
-
-            let hasPremium = await services.vaultRepository.doesActiveAccountHavePremium()
-
-            coordinator.showAlert(.moreOptions(
-                context: MoreOptionsAlertContext(
-                    actionKinds: cipherListView.applicableMoreOptionsActionKinds(hasPremium: hasPremium),
-                    cipherView: cipherView,
-                    id: item.id,
-                ),
-            ) { action in
-                await self.handleMoreOptionsAction(
-                    action,
-                    cipherView: cipherView,
-                    delegate: delegate,
-                    handleDisplayToast: handleDisplayToast,
-                    handleNavigateToPremiumUpgrade: handleNavigateToPremiumUpgrade,
-                    handleOpenURL: handleOpenURL,
-                    hasPremium: hasPremium,
-                )
-            })
-        } catch {
-            services.errorReporter.log(error: error)
-            coordinator.showAlert(.defaultAlert(title: Localizations.anErrorHasOccurred))
-        }
-    }
 
     func performMoreOptionsAction( // swiftlint:disable:this function_parameter_count
         _ kind: MoreOptionsActionKind,
@@ -232,7 +173,7 @@ class DefaultVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
         }
     }
 
-    /// Handle the result of the selected option on the More Options alert.
+    /// Handle the result of the selected option of the more-options menu.
     ///
     /// - Parameters:
     ///   - action: The selected action.

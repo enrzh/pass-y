@@ -69,947 +69,6 @@ class VaultItemMoreOptionsHelperTests: BitwardenTestCase { // swiftlint:disable:
         vaultRepository = nil
     }
 
-    // MARK: Tests
-
-    /// `showMoreOptionsAlert()` shows archive option and calls `handleMoreOptionsAction` with
-    /// `.archive` when the archive action is tapped.
-    @MainActor
-    func test_showMoreOptionsAlert_archive() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        vaultRepository.doesActiveAccountHavePremiumResult = true
-
-        let cipherView = CipherView.loginFixture(archivedDate: nil, deletedDate: nil)
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        var toastToDisplay: Toast?
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { toastToDisplay = $0 },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertTrue(optionsAlert.alertActions.contains(where: { $0.title == Localizations.archive }))
-
-        coordinator.loadingOverlaysShown = []
-        try await optionsAlert.tapAction(title: Localizations.archive)
-
-        let confirmAlert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(confirmAlert.title, Localizations.archiveItem)
-
-        vaultRepository.archiveCipherResult = .success(())
-        try await confirmAlert.tapAction(title: Localizations.archive)
-
-        XCTAssertEqual(coordinator.loadingOverlaysShown.last?.title, Localizations.sendingToArchive)
-        XCTAssertEqual(vaultRepository.archiveCipher, [cipherView])
-        XCTAssertEqual(toastToDisplay, Toast(title: Localizations.itemMovedToArchive))
-    }
-
-    /// `showMoreOptionsAlert()` does not archive when the user cancels the confirmation alert.
-    @MainActor
-    func test_showMoreOptionsAlert_archive_confirmationCancel() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        vaultRepository.doesActiveAccountHavePremiumResult = true
-
-        let cipherView = CipherView.loginFixture(archivedDate: nil, deletedDate: nil)
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        var toastToDisplay: Toast?
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { toastToDisplay = $0 },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await optionsAlert.tapAction(title: Localizations.archive)
-
-        let confirmAlert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(confirmAlert.title, Localizations.archiveItem)
-
-        try await confirmAlert.tapCancel()
-
-        XCTAssertTrue(vaultRepository.archiveCipher.isEmpty)
-        XCTAssertNil(toastToDisplay)
-    }
-
-    /// `showMoreOptionsAlert()` and press `archive` presents master password re-prompt
-    /// alert and archives the cipher when the master password is confirmed.
-    @MainActor
-    func test_showMoreOptionsAlert_archive_passwordReprompt() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        vaultRepository.doesActiveAccountHavePremiumResult = true
-        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
-
-        let cipherView = CipherView.loginFixture(archivedDate: nil, deletedDate: nil, reprompt: .password)
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        var toastToDisplay: Toast?
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { toastToDisplay = $0 },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertTrue(optionsAlert.alertActions.contains(where: { $0.title == Localizations.archive }))
-
-        coordinator.loadingOverlaysShown = []
-        vaultRepository.archiveCipherResult = .success(())
-        try await optionsAlert.tapAction(title: Localizations.archive)
-
-        let confirmAlert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(confirmAlert.title, Localizations.archiveItem)
-        try await confirmAlert.tapAction(title: Localizations.archive)
-
-        // Validate master password re-prompt is shown.
-        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipherView)
-
-        // Validate archive operation hasn't occurred yet.
-        XCTAssertTrue(vaultRepository.archiveCipher.isEmpty)
-        XCTAssertNil(toastToDisplay)
-
-        // Complete the master password reprompt.
-        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
-
-        // Validate archive operation completes successfully.
-        XCTAssertEqual(coordinator.loadingOverlaysShown.last?.title, Localizations.sendingToArchive)
-        XCTAssertEqual(vaultRepository.archiveCipher, [cipherView])
-        XCTAssertEqual(toastToDisplay, Toast(title: Localizations.itemMovedToArchive))
-    }
-
-    /// `showMoreOptionsAlert()` shows archive option and calls `handleMoreOptionsAction` with
-    /// `.archive` when the archive action is tapped but it's unavailable so it displays an alert
-    /// and invokes the Premium upgrade navigation callback.
-    @MainActor
-    func test_showMoreOptionsAlert_archiveUnavailable_invokesPremiumUpgradeCallback() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        vaultRepository.doesActiveAccountHavePremiumResult = false
-
-        let cipherView = CipherView.loginFixture(archivedDate: nil, deletedDate: nil)
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        var toastToDisplay: Toast?
-        var navigatedToPremiumUpgrade = false
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { toastToDisplay = $0 },
-            handleNavigateToPremiumUpgrade: { navigatedToPremiumUpgrade = true },
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-
-        XCTAssertTrue(optionsAlert.alertActions.contains(where: { $0.title == Localizations.archive }))
-
-        coordinator.loadingOverlaysShown = []
-        vaultRepository.archiveCipherResult = .success(())
-        try await optionsAlert.tapAction(title: Localizations.archive)
-
-        let archiveUnavailableAlert = try XCTUnwrap(coordinator.alertShown.last)
-
-        try await archiveUnavailableAlert.tapAction(title: Localizations.upgradeToPremium)
-        try await waitForAsync { navigatedToPremiumUpgrade }
-
-        XCTAssertNil(coordinator.loadingOverlaysShown.last?.title)
-        XCTAssertTrue(vaultRepository.archiveCipher.isEmpty)
-        XCTAssertNil(toastToDisplay)
-        XCTAssertTrue(navigatedToPremiumUpgrade)
-    }
-
-    /// `showMoreOptionsAlert()` shows only the view, edit and archive options for a card cipher
-    /// with no number or security code.
-    @MainActor
-    func test_showMoreOptionsAlert_card() async throws {
-        stateService.activeAccount = .fixture()
-
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(type: .card(.init(brand: nil)))))
-        vaultRepository.fetchCipherResult = .success(.cardFixture())
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 4)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.edit)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.archive)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.cancel)
-    }
-
-    /// `showMoreOptionsAlert()` shows the copy options for a card cipher with a number and
-    /// security code, and each option performs the expected operation.
-    @MainActor
-    func test_showMoreOptionsAlert_card_withData() async throws {
-        stateService.activeAccount = .fixture()
-
-        let cardWithData = CipherView.cardFixture(card: .fixture(
-            code: "123",
-            number: "123456789",
-        ))
-        vaultRepository.fetchCipherResult = .success(cardWithData)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(
-            type: .card(.init(brand: nil)),
-            copyableFields: [.cardNumber, .cardSecurityCode],
-        )))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 6)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.edit)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.copyNumber)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.copySecurityCode)
-        XCTAssertEqual(alert.alertActions[4].title, Localizations.archive)
-        XCTAssertEqual(alert.alertActions[5].title, Localizations.cancel)
-
-        // View navigates to the view item view.
-        let viewAction = try XCTUnwrap(alert.alertActions[0])
-        await viewAction.handler?(viewAction, [])
-        XCTAssertEqual(coordinator.routes.last, .viewItem(id: item.id, masterPasswordRepromptCheckCompleted: true))
-
-        // Edit navigates to the edit view.
-        let editAction = try XCTUnwrap(alert.alertActions[1])
-        await editAction.handler?(editAction, [])
-        XCTAssertEqual(coordinator.routes.last, .editItem(cardWithData))
-
-        // Copy number copies the card's number.
-        let copyNumberAction = try XCTUnwrap(alert.alertActions[2])
-        await copyNumberAction.handler?(copyNumberAction, [])
-        XCTAssertEqual(pasteboardService.copyReceivedString, "123456789")
-
-        // Copy security code copies the card's security code.
-        let copyCodeAction = try XCTUnwrap(alert.alertActions[3])
-        await copyCodeAction.handler?(copyCodeAction, [])
-        XCTAssertEqual(pasteboardService.copyReceivedString, "123")
-    }
-
-    /// `showMoreOptionsAlert()` and press `copyPassword` presents master password re-prompt alert.
-    @MainActor
-    func test_showMoreOptionsAlert_copyPassword_rePromptMasterPassword() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
-
-        // A login with data should show the copy and launch actions.
-        let loginWithData = CipherView.loginFixture(
-            login: .fixture(
-                password: "secretPassword",
-                uris: [.fixture(uri: URL.example.relativeString, match: nil)],
-                username: "username",
-            ),
-            reprompt: .password,
-        )
-        vaultRepository.fetchCipherResult = .success(loginWithData)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(
-            type: .login(.fixture(uris: [.fixture(uri: URL.example.relativeString)])),
-            viewPassword: true,
-            copyableFields: [.loginUsername, .loginPassword],
-        )))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 7)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.copyPassword)
-
-        // Test the functionality of the copy user name and password buttons.
-
-        // Copy username copies the username.
-        let copyUsernameAction = try XCTUnwrap(alert.alertActions[2])
-        await copyUsernameAction.handler?(copyUsernameAction, [])
-        XCTAssertEqual(pasteboardService.copyReceivedString, "username")
-        pasteboardService.copyReceivedString = nil
-
-        // Copy password copies the user's password.
-        let copyPasswordAction = try XCTUnwrap(alert.alertActions[3])
-        await copyPasswordAction.handler?(copyPasswordAction, [])
-
-        // Validate master password re-prompt is shown.
-        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, loginWithData)
-
-        // Validate string is copied only if master password reprompt completes successfully.
-        XCTAssertNil(pasteboardService.copyReceivedString)
-        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
-        XCTAssertEqual(pasteboardService.copyReceivedString, "secretPassword")
-    }
-
-    /// `showMoreOptionsAlert()` and press `copyTotp` presents master password re-prompt
-    /// alert and copies the TOTP code when the master password is confirmed.
-    @MainActor
-    func test_showMoreOptionsAlert_copyTotp_passwordReprompt() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
-
-        vaultRepository.refreshTOTPCodeResult = .success(
-            LoginTOTPState(
-                authKeyModel: TOTPKeyModel(authenticatorKey: .standardTotpKey),
-                codeModel: TOTPCodeModel(code: "123321", codeGenerationDate: Date(), period: 30),
-            ),
-        )
-        let cipherView = CipherView.fixture(
-            login: .fixture(totp: "totpKey"),
-            reprompt: .password,
-        )
-        vaultRepository.fetchCipherResult = .success(cipherView)
-
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(
-            type: .login(.fixture(totp: "totpKey")),
-            copyableFields: [.loginTotp],
-        )))
-
-        var toastToDisplay: Toast?
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { toastToDisplay = $0 },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await optionsAlert.tapAction(title: Localizations.copyTotp)
-
-        // Validate master password re-prompt is shown.
-        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipherView)
-
-        // Validate string is copied only if master password reprompt completes successfully.
-        XCTAssertNil(pasteboardService.copyReceivedString)
-        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
-        XCTAssertEqual(pasteboardService.copyReceivedString, "123321")
-        XCTAssertEqual(
-            toastToDisplay,
-            Toast(title: Localizations.valueHasBeenCopied(Localizations.verificationCodeTotp)),
-        )
-    }
-
-    /// `showMoreOptionsAlert()` and press `copyTotp` copies the TOTP code if the user
-    /// doesn't have Premium but the organization uses TOTP.
-    @MainActor
-    func test_showMoreOptionsAlert_copyTotp_organizationUseTotp() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        vaultRepository.doesActiveAccountHavePremiumResult = false
-        vaultRepository.refreshTOTPCodeResult = .success(
-            LoginTOTPState(
-                authKeyModel: TOTPKeyModel(authenticatorKey: .standardTotpKey),
-                codeModel: TOTPCodeModel(code: "123321", codeGenerationDate: Date(), period: 30),
-            ),
-        )
-
-        vaultRepository.fetchCipherResult = .success(.fixture(
-            login: .fixture(totp: "totpKey"),
-            organizationUseTotp: true,
-
-        ))
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(
-            type: .login(.fixture(totp: "totpKey")),
-            organizationUseTotp: true,
-            copyableFields: [.loginTotp],
-        )))
-
-        var toastToDisplay: Toast?
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { toastToDisplay = $0 },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await optionsAlert.tapAction(title: Localizations.copyTotp)
-
-        XCTAssertEqual(pasteboardService.copyReceivedString, "123321")
-        XCTAssertEqual(
-            toastToDisplay,
-            Toast(title: Localizations.valueHasBeenCopied(Localizations.verificationCodeTotp)),
-        )
-    }
-
-    /// `showMoreOptionsAlert()` and press `copyTotp` logs an error if refreshing the TOTP code
-    /// doesn't return a code.
-    @MainActor
-    func test_showMoreOptionsAlert_copyTotp_refreshTOTPEmpty() async throws {
-        stateService.activeAccount = .fixture()
-        vaultRepository.refreshTOTPCodeResult = .success(
-            LoginTOTPState(authKeyModel: TOTPKeyModel(authenticatorKey: .standardTotpKey)),
-        )
-
-        let cipherView = CipherView.fixture(login: .fixture(totp: "totpKey"))
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(
-            type: .login(.fixture(totp: "totpKey")),
-            copyableFields: [.loginTotp],
-        )))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await optionsAlert.tapAction(title: Localizations.copyTotp)
-
-        XCTAssertEqual(coordinator.alertShown.last, .defaultAlert(title: Localizations.anErrorHasOccurred))
-        XCTAssertEqual(errorReporter.errors as? [TOTPServiceError], [.unableToGenerateCode(nil)])
-    }
-
-    /// `showMoreOptionsAlert()` and press `copyTotp` logs an error if refreshing the TOTP code fails.
-    @MainActor
-    func test_showMoreOptionsAlert_copyTotp_refreshTOTPError() async throws {
-        stateService.activeAccount = .fixture()
-        vaultRepository.refreshTOTPCodeResult = .failure(BitwardenTestError.example)
-
-        let cipherView = CipherView.fixture(login: .fixture(totp: "totpKey"))
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(
-            type: .login(.fixture(totp: "totpKey")),
-            copyableFields: [.loginTotp],
-        )))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await optionsAlert.tapAction(title: Localizations.copyTotp)
-
-        XCTAssertEqual(coordinator.alertShown.last, .defaultAlert(title: Localizations.anErrorHasOccurred))
-        XCTAssertEqual(errorReporter.errors as? [BitwardenTestError], [.example])
-    }
-
-    /// `showMoreOptionsAlert()` and press `edit` presents master password re-prompt
-    /// alert and navigates to the edit view when the master password is confirmed.
-    @MainActor
-    func test_showMoreOptionsAlert_edit_passwordReprompt() async throws {
-        stateService.activeAccount = .fixture()
-        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
-
-        let cipherView = CipherView.fixture(reprompt: .password)
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        authRepository.validatePasswordResult = .success(true)
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await optionsAlert.tapAction(title: Localizations.edit)
-
-        // Validate master password re-prompt is shown.
-        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipherView)
-
-        // Validate string is copied only if master password reprompt completes successfully.
-        XCTAssertTrue(coordinator.routes.isEmpty)
-        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
-        XCTAssertEqual(coordinator.routes, [.editItem(cipherView)])
-    }
-
-    /// `showMoreOptionsAlert()` and press `edit` passes the delegate it was given as the
-    /// navigation context, so that the caller is notified when the item is saved.
-    @MainActor
-    func test_showMoreOptionsAlert_edit_passesDelegateAsContext() async throws {
-        stateService.activeAccount = .fixture()
-
-        let cipherView = CipherView.fixture(type: .identity)
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        let delegate = MockCipherItemOperationDelegate()
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: delegate,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await optionsAlert.tapAction(title: Localizations.edit)
-
-        XCTAssertEqual(coordinator.routes.last, .editItem(cipherView))
-        XCTAssertIdentical(coordinator.contexts.last as AnyObject, delegate)
-    }
-
-    /// `showMoreOptionsAlert()` and press `edit` routes the saved confirmation through the
-    /// caller's delegate rather than a toast closure held by the helper.
-    @MainActor
-    func test_showMoreOptionsAlert_edit_savedToastComesFromDelegate() async throws {
-        stateService.activeAccount = .fixture()
-
-        vaultRepository.fetchCipherResult = .success(.fixture(type: .identity))
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        var displayedToast: Toast?
-        let delegate = MockCipherItemOperationDelegate()
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: delegate,
-            handleDisplayToast: { displayedToast = $0 },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        try await optionsAlert.tapAction(title: Localizations.edit)
-
-        let context = try XCTUnwrap(coordinator.contexts.last as? CipherItemOperationDelegate)
-        XCTAssertTrue(context.itemUpdated(type: .driversLicense))
-
-        // The helper doesn't display the toast itself, the delegate is left to do it.
-        XCTAssertNil(displayedToast)
-        XCTAssertTrue(delegate.itemUpdatedCalled)
-        XCTAssertEqual(delegate.itemUpdatedType, .driversLicense)
-    }
-
-    /// `showMoreOptionsAlert()` shows the appropriate more options alert for an identity cipher.
-    @MainActor
-    func test_showMoreOptionsAlert_identity() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-
-        vaultRepository.fetchCipherResult = .success(.fixture(type: .identity))
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(type: .identity)))
-
-        // An identity option can be viewed or edited.
-        vaultRepository.fetchCipherResult = .success(.fixture(type: .identity))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 4)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.edit)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.archive)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.cancel)
-
-        // Test the functionality of the buttons.
-
-        // View navigates to the view item view.
-        let viewAction = try XCTUnwrap(alert.alertActions[0])
-        await viewAction.handler?(viewAction, [])
-        XCTAssertEqual(coordinator.routes.last, .viewItem(id: item.id, masterPasswordRepromptCheckCompleted: true))
-
-        // Edit navigates to the edit view.
-        let editAction = try XCTUnwrap(alert.alertActions[1])
-        await editAction.handler?(editAction, [])
-        XCTAssertEqual(coordinator.routes.last, .editItem(.fixture(type: .identity)))
-    }
-
-    /// `showMoreOptionsAlert()` shows the appropriate more options alert for a deleted login cipher.
-    @MainActor
-    func test_showMoreOptionsAlert_login_deleted() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        stateService.userHasMasterPassword = [account.profile.userId: true]
-
-        vaultRepository.fetchCipherResult = .success(.fixture(deletedDate: .now, type: .login))
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(login: .fixture(), deletedDate: .now)))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 2)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.cancel)
-    }
-
-    /// `showMoreOptionsAlert()` shows the appropriate more options alert for a login cipher.
-    @MainActor
-    func test_showMoreOptionsAlert_login_minimal() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-
-        vaultRepository.fetchCipherResult = .success(.fixture(type: .login))
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(login: .fixture())))
-
-        // If the login item has no username, password, or url, only the view and add buttons should display.
-        vaultRepository.fetchCipherResult = .success(.loginFixture())
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 4)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.edit)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.archive)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.cancel)
-    }
-
-    /// `showMoreOptionsAlert()` shows the appropriate more options alert for a login cipher.
-    @MainActor
-    func test_showMoreOptionsAlert_morePressed_login_full() async throws {
-        // swiftlint:disable:previous function_body_length
-        let account = Account.fixture()
-        stateService.activeAccount = account
-
-        vaultRepository.refreshTOTPCodeResult = .success(
-            LoginTOTPState(
-                authKeyModel: TOTPKeyModel(authenticatorKey: .standardTotpKey),
-                codeModel: TOTPCodeModel(code: "123321", codeGenerationDate: Date(), period: 30),
-            ),
-        )
-
-        let loginWithData = CipherView.loginFixture(login: .fixture(
-            password: "password",
-            uris: [.fixture(uri: URL.example.relativeString, match: nil)],
-            username: "username",
-            totp: "totpKey",
-        ))
-        vaultRepository.fetchCipherResult = .success(loginWithData)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(
-            type: .login(.fixture(
-                totp: "totpKey",
-                uris: [.fixture(uri: URL.example.relativeString)],
-            )),
-            viewPassword: true,
-            copyableFields: [.loginUsername, .loginPassword, .loginTotp],
-        )))
-
-        var urlToOpen: URL?
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { urlToOpen = $0 },
-        )
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 8)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.edit)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.copyUsername)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.copyPassword)
-        XCTAssertEqual(alert.alertActions[4].title, Localizations.copyTotp)
-        XCTAssertEqual(alert.alertActions[5].title, Localizations.launch)
-        XCTAssertEqual(alert.alertActions[6].title, Localizations.archive)
-        XCTAssertEqual(alert.alertActions[7].title, Localizations.cancel)
-
-        // Test the functionality of the buttons.
-
-        // View navigates to the view item view.
-        let viewAction = try XCTUnwrap(alert.alertActions[0])
-        await viewAction.handler?(viewAction, [])
-        XCTAssertEqual(coordinator.routes.last, .viewItem(id: item.id, masterPasswordRepromptCheckCompleted: true))
-
-        // Edit navigates to the edit view.
-        let editAction = try XCTUnwrap(alert.alertActions[1])
-        await editAction.handler?(editAction, [])
-        XCTAssertEqual(coordinator.routes.last, .editItem(loginWithData))
-
-        // Copy username copies the username.
-        let copyUsernameAction = try XCTUnwrap(alert.alertActions[2])
-        await copyUsernameAction.handler?(copyUsernameAction, [])
-        XCTAssertEqual(pasteboardService.copyReceivedString, "username")
-
-        // Copy password copies the user's username.
-        let copyPasswordAction = try XCTUnwrap(alert.alertActions[3])
-        await copyPasswordAction.handler?(copyPasswordAction, [])
-        XCTAssertEqual(pasteboardService.copyReceivedString, "password")
-
-        // Copy TOTP copies the user's TOTP code.
-        let copyTotpAction = try XCTUnwrap(alert.alertActions[4])
-        await copyTotpAction.handler?(copyPasswordAction, [])
-        XCTAssertEqual(pasteboardService.copyReceivedString, "123321")
-
-        // Launch action set's the url to open.
-        let launchAction = try XCTUnwrap(alert.alertActions[5])
-        await launchAction.handler?(launchAction, [])
-        XCTAssertEqual(urlToOpen, .example)
-    }
-
-    /// `showMoreOptionsAlert()` does not show the password re-prompt alert when the user has no password.
-    @MainActor
-    func test_showMoreOptionsAlert_noPassword() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-
-        // Although the cipher calls for a password reprompt, it won't be shown
-        // because the user has no password.
-        let login = CipherView.fixture(reprompt: .password)
-        vaultRepository.fetchCipherResult = .success(login)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(reprompt: .password)))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 4)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.edit)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.archive)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.cancel)
-
-        // Edit navigates to the edit view.
-        let editAction = try XCTUnwrap(alert.alertActions[1])
-        await editAction.handler?(editAction, [])
-        XCTAssertEqual(coordinator.routes.last, .editItem(login))
-    }
-
-    /// `showMoreOptionsAlert()` shows the appropriate more options alert for a secure note cipher.
-    @MainActor
-    func test_showMoreOptionsAlert_secureNote() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-
-        vaultRepository.fetchCipherResult = .success(.fixture(type: .secureNote))
-        var item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        // If the secure note has no value, only the view and add buttons should display.
-        vaultRepository.fetchCipherResult = .success(.fixture(type: .secureNote))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        var alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 4)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.edit)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.archive)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.cancel)
-
-        // A note with data should show the copy action.
-        let noteWithData = CipherView.fixture(notes: "Test Note", type: .secureNote)
-        vaultRepository.fetchCipherResult = .success(noteWithData)
-        item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(
-            type: .secureNote,
-            copyableFields: [.secureNotes],
-        )))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, "Bitwarden")
-        XCTAssertEqual(alert.alertActions.count, 5)
-        XCTAssertEqual(alert.alertActions[0].title, Localizations.view)
-        XCTAssertEqual(alert.alertActions[1].title, Localizations.edit)
-        XCTAssertEqual(alert.alertActions[2].title, Localizations.copyNotes)
-        XCTAssertEqual(alert.alertActions[3].title, Localizations.archive)
-        XCTAssertEqual(alert.alertActions[4].title, Localizations.cancel)
-
-        // Test the functionality of the buttons.
-
-        // View navigates to the view item view.
-        let viewAction = try XCTUnwrap(alert.alertActions[0])
-        await viewAction.handler?(viewAction, [])
-        XCTAssertEqual(coordinator.routes.last, .viewItem(id: item.id, masterPasswordRepromptCheckCompleted: true))
-
-        // Edit navigates to the edit view.
-        let editAction = try XCTUnwrap(alert.alertActions[1])
-        await editAction.handler?(editAction, [])
-        XCTAssertEqual(coordinator.routes.last, .editItem(noteWithData))
-
-        // Copy copies the items notes.
-        let copyNoteAction = try XCTUnwrap(alert.alertActions[2])
-        await copyNoteAction.handler?(copyNoteAction, [])
-        XCTAssertEqual(pasteboardService.copyReceivedString, "Test Note")
-    }
-
-    /// `showMoreOptionsAlert()` does not show the password re-prompt alert when the cipher fetched is `nil`.
-    @MainActor
-    func test_showMoreOptionsAlert_noCipher() async throws {
-        vaultRepository.fetchCipherResult = .success(nil)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        XCTAssertTrue(coordinator.alertShown.isEmpty)
-    }
-
-    /// `showMoreOptionsAlert()` does not show the password re-prompt alert when fetching cipher throws.
-    @MainActor
-    func test_showMoreOptionsAlert_fetchCipherThrows() async throws {
-        vaultRepository.fetchCipherResult = .failure(BitwardenTestError.example)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
-
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { _ in },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        XCTAssertEqual(errorReporter.errors as? [BitwardenTestError], [.example])
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, Localizations.anErrorHasOccurred)
-    }
-
-    /// `showMoreOptionsAlert()` shows unarchive option and calls `handleMoreOptionsAction` with
-    /// `.unarchive` when the unarchive action is tapped.
-    @MainActor
-    func test_showMoreOptionsAlert_unarchive() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-
-        let cipherView = CipherView.loginFixture(archivedDate: .now, deletedDate: nil)
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(archivedDate: .now)))
-
-        var toastToDisplay: Toast?
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { toastToDisplay = $0 },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-
-        XCTAssertTrue(optionsAlert.alertActions.contains(where: { $0.title == Localizations.unarchive }))
-
-        coordinator.loadingOverlaysShown = []
-        vaultRepository.unarchiveCipherResult = .success(())
-        try await optionsAlert.tapAction(title: Localizations.unarchive)
-
-        XCTAssertEqual(coordinator.loadingOverlaysShown.last?.title, Localizations.movingItemToVault)
-        XCTAssertEqual(vaultRepository.unarchiveCipher, [cipherView])
-        XCTAssertEqual(toastToDisplay, Toast(title: Localizations.itemMovedToVault))
-    }
-
-    /// `showMoreOptionsAlert()` and press `unarchive` presents master password re-prompt
-    /// alert and unarchives the cipher when the master password is confirmed.
-    @MainActor
-    func test_showMoreOptionsAlert_unarchive_passwordReprompt() async throws {
-        let account = Account.fixture()
-        stateService.activeAccount = account
-        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
-
-        let cipherView = CipherView.loginFixture(archivedDate: .now, deletedDate: nil, reprompt: .password)
-        vaultRepository.fetchCipherResult = .success(cipherView)
-        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(archivedDate: .now)))
-
-        var toastToDisplay: Toast?
-        await subject.showMoreOptionsAlert(
-            for: item,
-            delegate: nil,
-            handleDisplayToast: { toastToDisplay = $0 },
-            handleNavigateToPremiumUpgrade: {},
-            handleOpenURL: { _ in },
-        )
-
-        let optionsAlert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertTrue(optionsAlert.alertActions.contains(where: { $0.title == Localizations.unarchive }))
-
-        coordinator.loadingOverlaysShown = []
-        vaultRepository.unarchiveCipherResult = .success(())
-        try await optionsAlert.tapAction(title: Localizations.unarchive)
-
-        // Validate master password re-prompt is shown.
-        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipherView)
-
-        // Validate unarchive operation hasn't occurred yet.
-        XCTAssertTrue(vaultRepository.unarchiveCipher.isEmpty)
-        XCTAssertNil(toastToDisplay)
-
-        // Complete the master password reprompt.
-        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
-
-        // Validate unarchive operation completes successfully.
-        XCTAssertEqual(coordinator.loadingOverlaysShown.last?.title, Localizations.movingItemToVault)
-        XCTAssertEqual(vaultRepository.unarchiveCipher, [cipherView])
-        XCTAssertEqual(toastToDisplay, Toast(title: Localizations.itemMovedToVault))
-    }
-
     // MARK: performMoreOptionsAction Tests
 
     /// `performMoreOptionsAction(_:for:...)` with `.view` navigates to the `.viewItem` route.
@@ -1192,10 +251,122 @@ class VaultItemMoreOptionsHelperTests: BitwardenTestCase { // swiftlint:disable:
 
         let confirmAlert = try XCTUnwrap(coordinator.alertShown.last)
         XCTAssertEqual(confirmAlert.title, Localizations.archiveItem)
+        coordinator.loadingOverlaysShown = []
         try await confirmAlert.tapAction(title: Localizations.archive)
 
+        XCTAssertEqual(coordinator.loadingOverlaysShown.last?.title, Localizations.sendingToArchive)
         XCTAssertEqual(vaultRepository.archiveCipher, [cipherView])
         XCTAssertEqual(toastToDisplay, Toast(title: Localizations.itemMovedToArchive))
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.archive` does not archive when the user cancels
+    /// the confirmation alert.
+    @MainActor
+    func test_performMoreOptionsAction_archive_confirmationCancel() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.doesActiveAccountHavePremiumResult = true
+
+        let cipherView = CipherView.loginFixture(archivedDate: nil, deletedDate: nil)
+        vaultRepository.fetchCipherResult = .success(cipherView)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
+
+        var toastToDisplay: Toast?
+        await subject.performMoreOptionsAction(
+            .archive,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { toastToDisplay = $0 },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        let confirmAlert = try XCTUnwrap(coordinator.alertShown.last)
+        XCTAssertEqual(confirmAlert.title, Localizations.archiveItem)
+
+        try await confirmAlert.tapCancel()
+
+        XCTAssertTrue(vaultRepository.archiveCipher.isEmpty)
+        XCTAssertNil(toastToDisplay)
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.archive` presents the master password re-prompt
+    /// alert and archives the cipher when the master password is confirmed.
+    @MainActor
+    func test_performMoreOptionsAction_archive_passwordReprompt() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.doesActiveAccountHavePremiumResult = true
+        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
+
+        let cipherView = CipherView.loginFixture(archivedDate: nil, deletedDate: nil, reprompt: .password)
+        vaultRepository.fetchCipherResult = .success(cipherView)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
+
+        var toastToDisplay: Toast?
+        await subject.performMoreOptionsAction(
+            .archive,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { toastToDisplay = $0 },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        coordinator.loadingOverlaysShown = []
+        vaultRepository.archiveCipherResult = .success(())
+
+        let confirmAlert = try XCTUnwrap(coordinator.alertShown.last)
+        XCTAssertEqual(confirmAlert.title, Localizations.archiveItem)
+        try await confirmAlert.tapAction(title: Localizations.archive)
+
+        // Validate master password re-prompt is shown.
+        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipherView)
+
+        // Validate archive operation hasn't occurred yet.
+        XCTAssertTrue(vaultRepository.archiveCipher.isEmpty)
+        XCTAssertNil(toastToDisplay)
+
+        // Complete the master password reprompt.
+        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
+
+        // Validate archive operation completes successfully.
+        XCTAssertEqual(coordinator.loadingOverlaysShown.last?.title, Localizations.sendingToArchive)
+        XCTAssertEqual(vaultRepository.archiveCipher, [cipherView])
+        XCTAssertEqual(toastToDisplay, Toast(title: Localizations.itemMovedToArchive))
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.archive` displays an alert and invokes the
+    /// Premium upgrade navigation callback when archiving is unavailable.
+    @MainActor
+    func test_performMoreOptionsAction_archiveUnavailable_invokesPremiumUpgradeCallback() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.doesActiveAccountHavePremiumResult = false
+
+        let cipherView = CipherView.loginFixture(archivedDate: nil, deletedDate: nil)
+        vaultRepository.fetchCipherResult = .success(cipherView)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
+
+        var toastToDisplay: Toast?
+        var navigatedToPremiumUpgrade = false
+        coordinator.loadingOverlaysShown = []
+        vaultRepository.archiveCipherResult = .success(())
+        await subject.performMoreOptionsAction(
+            .archive,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { toastToDisplay = $0 },
+            handleNavigateToPremiumUpgrade: { navigatedToPremiumUpgrade = true },
+            handleOpenURL: { _ in },
+        )
+
+        let archiveUnavailableAlert = try XCTUnwrap(coordinator.alertShown.last)
+
+        try await archiveUnavailableAlert.tapAction(title: Localizations.upgradeToPremium)
+        try await waitForAsync { navigatedToPremiumUpgrade }
+
+        XCTAssertNil(coordinator.loadingOverlaysShown.last?.title)
+        XCTAssertTrue(vaultRepository.archiveCipher.isEmpty)
+        XCTAssertNil(toastToDisplay)
+        XCTAssertTrue(navigatedToPremiumUpgrade)
     }
 
     /// `performMoreOptionsAction(_:for:...)` with `.unarchive` unarchives the cipher.
@@ -1217,8 +388,317 @@ class VaultItemMoreOptionsHelperTests: BitwardenTestCase { // swiftlint:disable:
             handleOpenURL: { _ in },
         )
 
+        XCTAssertEqual(coordinator.loadingOverlaysShown.last?.title, Localizations.movingItemToVault)
         XCTAssertEqual(vaultRepository.unarchiveCipher, [cipherView])
         XCTAssertEqual(toastToDisplay, Toast(title: Localizations.itemMovedToVault))
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.unarchive` presents the master password
+    /// re-prompt alert and unarchives the cipher when the master password is confirmed.
+    @MainActor
+    func test_performMoreOptionsAction_unarchive_passwordReprompt() async throws {
+        stateService.activeAccount = .fixture()
+        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
+        vaultRepository.unarchiveCipherResult = .success(())
+
+        let cipherView = CipherView.loginFixture(archivedDate: .now, deletedDate: nil, reprompt: .password)
+        vaultRepository.fetchCipherResult = .success(cipherView)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(archivedDate: .now)))
+
+        var toastToDisplay: Toast?
+        await subject.performMoreOptionsAction(
+            .unarchive,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { toastToDisplay = $0 },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        // Validate master password re-prompt is shown.
+        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipherView)
+
+        // Validate unarchive operation hasn't occurred yet.
+        XCTAssertTrue(vaultRepository.unarchiveCipher.isEmpty)
+        XCTAssertNil(toastToDisplay)
+
+        // Complete the master password reprompt.
+        coordinator.loadingOverlaysShown = []
+        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
+
+        // Validate unarchive operation completes successfully.
+        XCTAssertEqual(coordinator.loadingOverlaysShown.last?.title, Localizations.movingItemToVault)
+        XCTAssertEqual(vaultRepository.unarchiveCipher, [cipherView])
+        XCTAssertEqual(toastToDisplay, Toast(title: Localizations.itemMovedToVault))
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.copyCardNumber` copies the card's number.
+    @MainActor
+    func test_performMoreOptionsAction_copyCardNumber() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.fetchCipherResult = .success(.cardFixture(card: .fixture(code: "123", number: "123456789")))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(type: .card(.init(brand: nil)))))
+
+        await subject.performMoreOptionsAction(
+            .copyCardNumber,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { _ in },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        XCTAssertEqual(pasteboardService.copyReceivedString, "123456789")
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.copySecurityCode` copies the card's security code.
+    @MainActor
+    func test_performMoreOptionsAction_copySecurityCode() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.fetchCipherResult = .success(.cardFixture(card: .fixture(code: "123", number: "123456789")))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(type: .card(.init(brand: nil)))))
+
+        await subject.performMoreOptionsAction(
+            .copySecurityCode,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { _ in },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        XCTAssertEqual(pasteboardService.copyReceivedString, "123")
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.copyNotes` copies the cipher's notes.
+    @MainActor
+    func test_performMoreOptionsAction_copyNotes() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.fetchCipherResult = .success(.fixture(notes: "Test Note", type: .secureNote))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(type: .secureNote)))
+
+        await subject.performMoreOptionsAction(
+            .copyNotes,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { _ in },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        XCTAssertEqual(pasteboardService.copyReceivedString, "Test Note")
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.copyTotp` presents the master password
+    /// re-prompt alert and copies the TOTP code when the master password is confirmed.
+    @MainActor
+    func test_performMoreOptionsAction_copyTotp_passwordReprompt() async throws {
+        stateService.activeAccount = .fixture()
+        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
+
+        vaultRepository.refreshTOTPCodeResult = .success(
+            LoginTOTPState(
+                authKeyModel: TOTPKeyModel(authenticatorKey: .standardTotpKey),
+                codeModel: TOTPCodeModel(code: "123321", codeGenerationDate: Date(), period: 30),
+            ),
+        )
+        let cipherView = CipherView.fixture(
+            login: .fixture(totp: "totpKey"),
+            reprompt: .password,
+        )
+        vaultRepository.fetchCipherResult = .success(cipherView)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
+
+        var toastToDisplay: Toast?
+        await subject.performMoreOptionsAction(
+            .copyTotp,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { toastToDisplay = $0 },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        // Validate master password re-prompt is shown.
+        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipherView)
+
+        // Validate string is copied only if master password reprompt completes successfully.
+        XCTAssertNil(pasteboardService.copyReceivedString)
+        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
+        XCTAssertEqual(pasteboardService.copyReceivedString, "123321")
+        XCTAssertEqual(
+            toastToDisplay,
+            Toast(title: Localizations.valueHasBeenCopied(Localizations.verificationCodeTotp)),
+        )
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.copyTotp` copies the TOTP code if the user
+    /// doesn't have Premium but the organization uses TOTP.
+    @MainActor
+    func test_performMoreOptionsAction_copyTotp_organizationUseTotp() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.doesActiveAccountHavePremiumResult = false
+        vaultRepository.refreshTOTPCodeResult = .success(
+            LoginTOTPState(
+                authKeyModel: TOTPKeyModel(authenticatorKey: .standardTotpKey),
+                codeModel: TOTPCodeModel(code: "123321", codeGenerationDate: Date(), period: 30),
+            ),
+        )
+
+        vaultRepository.fetchCipherResult = .success(.fixture(
+            login: .fixture(totp: "totpKey"),
+            organizationUseTotp: true,
+        ))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(organizationUseTotp: true)))
+
+        var toastToDisplay: Toast?
+        await subject.performMoreOptionsAction(
+            .copyTotp,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { toastToDisplay = $0 },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        XCTAssertEqual(pasteboardService.copyReceivedString, "123321")
+        XCTAssertEqual(
+            toastToDisplay,
+            Toast(title: Localizations.valueHasBeenCopied(Localizations.verificationCodeTotp)),
+        )
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.copyTotp` logs an error if refreshing the TOTP
+    /// code doesn't return a code.
+    @MainActor
+    func test_performMoreOptionsAction_copyTotp_refreshTOTPEmpty() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.refreshTOTPCodeResult = .success(
+            LoginTOTPState(authKeyModel: TOTPKeyModel(authenticatorKey: .standardTotpKey)),
+        )
+
+        vaultRepository.fetchCipherResult = .success(.fixture(login: .fixture(totp: "totpKey")))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
+
+        await subject.performMoreOptionsAction(
+            .copyTotp,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { _ in },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        XCTAssertEqual(coordinator.alertShown.last, .defaultAlert(title: Localizations.anErrorHasOccurred))
+        XCTAssertEqual(errorReporter.errors as? [TOTPServiceError], [.unableToGenerateCode(nil)])
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.copyTotp` logs an error if refreshing the TOTP
+    /// code fails.
+    @MainActor
+    func test_performMoreOptionsAction_copyTotp_refreshTOTPError() async throws {
+        stateService.activeAccount = .fixture()
+        vaultRepository.refreshTOTPCodeResult = .failure(BitwardenTestError.example)
+
+        vaultRepository.fetchCipherResult = .success(.fixture(login: .fixture(totp: "totpKey")))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
+
+        await subject.performMoreOptionsAction(
+            .copyTotp,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { _ in },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        XCTAssertEqual(coordinator.alertShown.last, .defaultAlert(title: Localizations.anErrorHasOccurred))
+        XCTAssertEqual(errorReporter.errors as? [BitwardenTestError], [.example])
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.edit` presents the master password re-prompt
+    /// alert and navigates to the edit view when the master password is confirmed.
+    @MainActor
+    func test_performMoreOptionsAction_edit_passwordReprompt() async throws {
+        stateService.activeAccount = .fixture()
+        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
+
+        let cipherView = CipherView.fixture(reprompt: .password)
+        vaultRepository.fetchCipherResult = .success(cipherView)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
+
+        await subject.performMoreOptionsAction(
+            .edit,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { _ in },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        // Validate master password re-prompt is shown.
+        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipherView)
+
+        // Validate the route is only navigated to if master password reprompt completes successfully.
+        XCTAssertTrue(coordinator.routes.isEmpty)
+        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
+        XCTAssertEqual(coordinator.routes, [.editItem(cipherView)])
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.edit` routes the saved confirmation through the
+    /// caller's delegate rather than a toast closure held by the helper.
+    @MainActor
+    func test_performMoreOptionsAction_edit_savedToastComesFromDelegate() async throws {
+        stateService.activeAccount = .fixture()
+
+        vaultRepository.fetchCipherResult = .success(.fixture(type: .identity))
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture()))
+
+        var displayedToast: Toast?
+        let delegate = MockCipherItemOperationDelegate()
+        await subject.performMoreOptionsAction(
+            .edit,
+            for: item,
+            delegate: delegate,
+            handleDisplayToast: { displayedToast = $0 },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        let context = try XCTUnwrap(coordinator.contexts.last as? CipherItemOperationDelegate)
+        XCTAssertTrue(context.itemUpdated(type: .driversLicense))
+
+        // The helper doesn't display the toast itself, the delegate is left to do it.
+        XCTAssertNil(displayedToast)
+        XCTAssertTrue(delegate.itemUpdatedCalled)
+        XCTAssertEqual(delegate.itemUpdatedType, .driversLicense)
+    }
+
+    /// `performMoreOptionsAction(_:for:...)` with `.edit` does not show the password re-prompt
+    /// alert when the user has no master password.
+    @MainActor
+    func test_performMoreOptionsAction_edit_noPassword() async throws {
+        let account = Account.fixture()
+        stateService.activeAccount = account
+        stateService.userHasMasterPassword = [account.profile.userId: false]
+
+        // Although the cipher calls for a password reprompt, it won't be shown
+        // because the user has no password.
+        let login = CipherView.fixture(reprompt: .password)
+        vaultRepository.fetchCipherResult = .success(login)
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(reprompt: .password)))
+
+        await subject.performMoreOptionsAction(
+            .edit,
+            for: item,
+            delegate: nil,
+            handleDisplayToast: { _ in },
+            handleNavigateToPremiumUpgrade: {},
+            handleOpenURL: { _ in },
+        )
+
+        XCTAssertTrue(coordinator.alertShown.isEmpty)
+        XCTAssertEqual(coordinator.routes.last, .editItem(login))
     }
 
     /// `performMoreOptionsAction(_:for:...)` does nothing when the cipher fetched is `nil`.
@@ -1270,12 +750,6 @@ class MockVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
     var performActionHandlePremiumUpgrade: (() async -> Void)?
     var performActionHandleOpenURL: ((URL) -> Void)?
 
-    var showMoreOptionsAlertCalled = false
-    var showMoreOptionsAlertDelegate: CipherItemOperationDelegate?
-    var showMoreOptionsAlertHandleDisplayToast: ((Toast) -> Void)?
-    var showMoreOptionsAlertHandlePremiumUpgrade: (() async -> Void)?
-    var showMoreOptionsAlertHandleOpenURL: ((URL) -> Void)?
-
     func performMoreOptionsAction( // swiftlint:disable:this function_parameter_count
         _ kind: MoreOptionsActionKind,
         for item: VaultListItem,
@@ -1291,19 +765,5 @@ class MockVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
         performActionHandleDisplayToast = handleDisplayToast
         performActionHandlePremiumUpgrade = handleNavigateToPremiumUpgrade
         performActionHandleOpenURL = handleOpenURL
-    }
-
-    func showMoreOptionsAlert(
-        for item: VaultListItem,
-        delegate: CipherItemOperationDelegate?,
-        handleDisplayToast: @escaping (Toast) -> Void,
-        handleNavigateToPremiumUpgrade: @escaping () async -> Void,
-        handleOpenURL: @escaping (URL) -> Void,
-    ) async {
-        showMoreOptionsAlertCalled = true
-        showMoreOptionsAlertDelegate = delegate
-        showMoreOptionsAlertHandleDisplayToast = handleDisplayToast
-        showMoreOptionsAlertHandlePremiumUpgrade = handleNavigateToPremiumUpgrade
-        showMoreOptionsAlertHandleOpenURL = handleOpenURL
     }
 }

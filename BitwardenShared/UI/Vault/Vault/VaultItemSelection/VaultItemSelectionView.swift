@@ -230,13 +230,11 @@ private struct VaultItemSelectionSearchableView: View {
                         showWebIcons: state.showWebIcons,
                     )
                 },
-                mapAction: nil, // No actions are supported (TOTP copy is handled by the more pressed effect).
+                mapAction: nil, // No actions are supported.
                 mapEffect: { effect in
                     switch effect {
                     case let .accessibilityMoreOptionsActionPressed(kind):
                         .accessibilityMoreOptionsActionPressed(item, kind)
-                    case .morePressed:
-                        .morePressed(item)
                     case .pressed:
                         .vaultListItemTapped(item)
                     }

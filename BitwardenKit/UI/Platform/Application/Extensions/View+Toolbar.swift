@@ -233,8 +233,9 @@ public extension View {
         Menu {
             content()
         } label: {
-            Image(asset: SharedAsset.Icons.ellipsisVertical24, label: Text(Localizations.options))
-                .imageStyle(.toolbarIcon)
+            // The system "..." symbol (a pull-down menu, like Apple's own toolbars).
+            Image(systemName: "ellipsis")
+                .accessibilityLabel(Localizations.options)
                 .accessibilityIdentifier("HeaderBarOptionsButton")
         }
         // Ideally we would set both `minHeight` and `minWidth` to 44. Setting `minWidth` causes

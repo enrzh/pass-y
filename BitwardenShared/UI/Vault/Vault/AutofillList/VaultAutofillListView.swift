@@ -356,9 +356,6 @@ private struct VaultAutofillListSearchableView: View {
                     case .accessibilityMoreOptionsActionPressed:
                         // Unreachable: `isFromExtension: true` always hides the accessibility actions.
                         .vaultItemTapped(item)
-                    case .morePressed:
-                        // Unreachable: `isFromExtension: true` always hides `CipherOptionsButton`.
-                        .vaultItemTapped(item)
                     case .pressed:
                         .vaultItemTapped(item)
                     }

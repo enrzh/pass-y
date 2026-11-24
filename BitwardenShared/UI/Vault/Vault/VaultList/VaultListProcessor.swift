@@ -155,8 +155,6 @@ final class VaultListProcessor: StateProcessor<
             await moveItems(items, folderId: folderId)
         case let .itemPressed(item):
             handleItemTapped(item)
-        case let .morePressed(item):
-            await morePressed(item: item)
         case let .profileSwitcher(profileEffect):
             await handleProfileSwitcherEffect(profileEffect)
         case .refreshAccountProfiles:
@@ -746,26 +744,6 @@ extension VaultListProcessor {
                 services.errorReporter.log(error: error)
             }
         }
-    }
-
-    /// Shows the more options alert for the given vault item.
-    ///
-    /// - Parameter item: The vault list item for which to show more options.
-    ///
-    private func morePressed(item: VaultListItem) async {
-        await vaultItemMoreOptionsHelper.showMoreOptionsAlert(
-            for: item,
-            delegate: self,
-            handleDisplayToast: { [weak self] toast in
-                self?.state.toast = toast
-            },
-            handleNavigateToPremiumUpgrade: { [weak self] in
-                await self?.navigateToPremiumUpgrade()
-            },
-            handleOpenURL: { [weak self] url in
-                self?.state.url = url
-            },
-        )
     }
 
     /// Performs the more-options action identified by `kind` for the given vault item, activated

@@ -220,48 +220,13 @@ class VaultItemSelectionProcessorTests: BitwardenTestCase { // swiftlint:disable
         XCTAssertTrue(coordinator.routes.isEmpty)
     }
 
-    /// `perform(_:)` with `.morePressed` has the vault item more options helper display the alert.
+    /// `perform(_:)` with `.accessibilityMoreOptionsActionPressed` delegates to the Premium upgrade
+    /// helper when the upgrade action is triggered.
     @MainActor
-    func test_perform_morePressed() async throws {
-        await subject.perform(.morePressed(.fixture()))
+    func test_perform_accessibilityMoreOptionsActionPressed_navigateToPremiumUpgrade() async throws {
+        await subject.perform(.accessibilityMoreOptionsActionPressed(.fixture(), .archive))
 
-        XCTAssertTrue(vaultItemMoreOptionsHelper.showMoreOptionsAlertCalled)
-        XCTAssertNotNil(vaultItemMoreOptionsHelper.showMoreOptionsAlertHandleDisplayToast)
-        XCTAssertNotNil(vaultItemMoreOptionsHelper.showMoreOptionsAlertHandleOpenURL)
-
-        let toast = Toast(title: Localizations.valueHasBeenCopied(Localizations.password))
-        vaultItemMoreOptionsHelper.showMoreOptionsAlertHandleDisplayToast?(toast)
-        XCTAssertEqual(subject.state.toast, toast)
-
-        let url = URL.example
-        vaultItemMoreOptionsHelper.showMoreOptionsAlertHandleOpenURL?(url)
-        XCTAssertEqual(subject.state.url, url)
-    }
-
-    /// `perform(_:)` with `.morePressed` passes a delegate that shows a confirmation toast once
-    /// the item is saved and leaves this screen in place, rather than this screen's own delegate
-    /// conformance, which dismisses on save for the OTP key flow.
-    @MainActor
-    func test_perform_morePressed_editShowsToastWithoutDismissing() async throws {
-        await subject.perform(.morePressed(.fixture()))
-
-        let delegate = try XCTUnwrap(vaultItemMoreOptionsHelper.showMoreOptionsAlertDelegate)
-        XCTAssertNotIdentical(delegate as AnyObject, subject)
-
-        let shouldDismiss = delegate.itemUpdated(type: .driversLicense)
-
-        XCTAssertTrue(shouldDismiss)
-        XCTAssertEqual(subject.state.toast, Toast(title: Localizations.licenseSaved))
-        XCTAssertTrue(coordinator.routes.isEmpty)
-    }
-
-    /// `perform(_:)` with `.morePressed` delegates to the Premium upgrade helper when the
-    /// upgrade action is triggered.
-    @MainActor
-    func test_perform_morePressed_navigateToPremiumUpgrade() async throws {
-        await subject.perform(.morePressed(.fixture()))
-
-        let navigate = try XCTUnwrap(vaultItemMoreOptionsHelper.showMoreOptionsAlertHandlePremiumUpgrade)
+        let navigate = try XCTUnwrap(vaultItemMoreOptionsHelper.performActionHandlePremiumUpgrade)
         await navigate()
         try await waitForAsync { self.premiumUpgradeHelper.navigateToPremiumUpgradeCalled }
 

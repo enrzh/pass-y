@@ -302,39 +302,6 @@ extension Alert {
         )
     }
 
-    /// An alert presenting the user with more options for a vault list item.
-    ///
-    /// - Parameters:
-    ///   - context: The context for the alert, including which options are applicable to the
-    ///     cipher (see `CipherListView.applicableMoreOptionsActionKinds(hasPremium:)`).
-    ///   - action: The action to perform after selecting an option.
-    ///
-    /// - Returns: An alert presenting the user with options to select an attachment type.
-    @MainActor
-    static func moreOptions(
-        context: MoreOptionsAlertContext,
-        action: @escaping (_ action: MoreOptionsAction) async -> Void,
-    ) -> Alert {
-        let alertActions = context.actionKinds.compactMap { kind -> AlertAction? in
-            guard let moreOptionsAction = kind.moreOptionsAction(
-                cipherView: context.cipherView,
-                itemId: context.id,
-            ) else {
-                return nil
-            }
-            return AlertAction(title: kind.localizedName, style: .default) { _, _ in
-                await action(moreOptionsAction)
-            }
-        }
-
-        return Alert(
-            title: context.cipherView.name,
-            message: nil,
-            preferredStyle: .actionSheet,
-            alertActions: alertActions + [AlertAction(title: Localizations.cancel, style: .cancel)],
-        )
-    }
-
     /// An alert that informs the user about password autofill.
     ///
     /// - Returns: An alert that informs the user about password autofill.

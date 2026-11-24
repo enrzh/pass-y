@@ -161,46 +161,56 @@ struct SendListItemRowView: View {
     ///
     @ViewBuilder
     private func optionsMenu(for sendView: SendView) -> some View {
+        // A native pull-down menu from the row's "..." (SF Symbols; the destructive Delete last, after a divider).
         Menu {
             if !store.state.isSendDisabled {
                 if !sendView.disabled {
-                    AsyncButton(Localizations.copyLink) {
+                    AsyncButton {
                         await store.perform(.copyLinkPressed(sendView))
+                    } label: {
+                        Label(Localizations.copyLink, systemImage: "link")
                     }
                     .accessibilityIdentifier("Copy")
-                    AsyncButton(Localizations.shareLink) {
+                    AsyncButton {
                         await store.perform(.shareLinkPressed(sendView))
+                    } label: {
+                        Label(Localizations.shareLink, systemImage: "square.and.arrow.up")
                     }
+                    Divider()
                 }
 
-                Section("") {
-                    Button(Localizations.view) {
-                        store.send(.viewSend(sendView))
+                Button {
+                    store.send(.viewSend(sendView))
+                } label: {
+                    Label(Localizations.view, systemImage: "eye")
+                }
+                if !sendView.disabled {
+                    Button {
+                        store.send(.editPressed(sendView))
+                    } label: {
+                        Label(Localizations.edit, systemImage: "pencil")
                     }
-                    if !sendView.disabled {
-                        Button(Localizations.edit) {
-                            store.send(.editPressed(sendView))
+                    if sendView.hasPassword {
+                        AsyncButton {
+                            await store.perform(.removePassword(sendView))
+                        } label: {
+                            Label(Localizations.removePassword, systemImage: "lock.open")
                         }
-                        if sendView.hasPassword {
-                            AsyncButton(Localizations.removePassword) {
-                                await store.perform(.removePassword(sendView))
-                            }
-                        }
-                    }
-
-                    AsyncButton(Localizations.delete, role: .destructive) {
-                        await store.perform(.deletePressed(sendView))
                     }
                 }
-            } else {
-                AsyncButton(Localizations.delete, role: .destructive) {
-                    await store.perform(.deletePressed(sendView))
-                }
+                Divider()
             }
-
+            AsyncButton(role: .destructive) {
+                await store.perform(.deletePressed(sendView))
+            } label: {
+                Label(Localizations.delete, systemImage: "trash")
+            }
         } label: {
-            SharedAsset.Icons.ellipsisHorizontal24.swiftUIImage
+            Image(systemName: "ellipsis")
+                .font(.body.weight(.semibold))
                 .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .accessibilityIdentifier("SendOptionsButton")
     }

@@ -160,20 +160,6 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
             await moveItems(items, folderId: folderId)
         case let .itemPressed(item):
             handleItemTapped(item)
-        case let .morePressed(item):
-            await vaultItemMoreOptionsHelper.showMoreOptionsAlert(
-                for: item,
-                delegate: self,
-                handleDisplayToast: { [weak self] toast in
-                    self?.state.toast = toast
-                },
-                handleNavigateToPremiumUpgrade: { [weak self] in
-                    await self?.navigateToPremiumUpgrade()
-                },
-                handleOpenURL: { [weak self] url in
-                    self?.state.url = url
-                },
-            )
         case .refresh:
             await refreshVaultGroup()
         case let .search(text):
