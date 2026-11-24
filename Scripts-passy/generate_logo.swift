@@ -1,6 +1,6 @@
 #!/usr/bin/swift
 // Pass-Y logo generator. One geometry (1024 grid), rendered as SVG + PNG + PDF; writes all app icon assets.
-// A "P" cut like a key: a stem with two key teeth and an open bowl. Flat, black and white only.
+// R8 mark: a solid shield with a Y (the Y of Pass-Y) knocked out in the centre. Flat, black and white only.
 // Usage: swift Scripts-passy/generate_logo.swift <repo-root>
 import AppKit
 import CoreGraphics
@@ -16,24 +16,49 @@ let markOnly = Palette(bg: nil, fg: (0, 0, 0), hole: (0, 0, 0))
 
 func col(_ c: (CGFloat, CGFloat, CGFloat)) -> CGColor { CGColor(red: c.0, green: c.1, blue: c.2, alpha: 1) }
 
+// Mark geometry (1024 grid): shield silhouette with a Y centred inside. Solid shield, Y knocked out (flat, two tones).
+
+func shieldPath(scale s: CGFloat = 1) -> CGPath {
+    // Top edge rises gently to a centre peak, straight sides, curved flanks into a bottom point.
+    let p = CGMutablePath()
+    func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: 512 + (x - 512) * s, y: 520 + (y - 520) * s) }
+    p.move(to: pt(512, 168))
+    p.addCurve(to: pt(792, 262), control1: pt(590, 222), control2: pt(700, 262))
+    p.addLine(to: pt(792, 506))
+    p.addCurve(to: pt(512, 872), control1: pt(792, 700), control2: pt(660, 810))
+    p.addCurve(to: pt(232, 506), control1: pt(364, 810), control2: pt(232, 700))
+    p.addLine(to: pt(232, 262))
+    p.addCurve(to: pt(512, 168), control1: pt(324, 262), control2: pt(434, 222))
+    p.closeSubpath()
+    return p
+}
+
+func yPath(top: CGFloat, fork: CGFloat, bottom: CGFloat, half: CGFloat) -> CGPath {
+    let p = CGMutablePath()
+    p.move(to: CGPoint(x: 512 - half, y: top)); p.addLine(to: CGPoint(x: 512, y: fork))
+    p.addLine(to: CGPoint(x: 512 + half, y: top))
+    p.move(to: CGPoint(x: 512, y: fork)); p.addLine(to: CGPoint(x: 512, y: bottom))
+    return p
+}
+
 /// Draws the mark on a 1024 grid scaled into `size` (y axis flipped to match SVG).
+/// With a background the Y is painted in the background colour; without one it is punched out (template images).
 func drawMark(_ ctx: CGContext, size: CGFloat, palette: Palette, punchHole: Bool = false) {
     let k = size / 1024
     ctx.saveGState()
     ctx.translateBy(x: 0, y: size); ctx.scaleBy(x: k, y: -k)
     if let bg = palette.bg { ctx.setFillColor(col(bg)); ctx.fill(CGRect(x: 0, y: 0, width: 1024, height: 1024)) }
-    ctx.setStrokeColor(col(palette.fg)); ctx.setFillColor(col(palette.fg))
-    ctx.setLineWidth(118); ctx.setLineCap(.round); ctx.setLineJoin(.round)
-    ctx.translateBy(x: -33, y: -4) // optical centering of the P
-    // P: stem + bowl (arc centered 560,382 r150)
-    ctx.move(to: CGPoint(x: 380, y: 800)); ctx.addLine(to: CGPoint(x: 380, y: 232))
-    ctx.addLine(to: CGPoint(x: 560, y: 232))
-    ctx.addArc(center: CGPoint(x: 560, y: 382), radius: 150, startAngle: -.pi / 2, endAngle: .pi / 2, clockwise: false)
-    ctx.addLine(to: CGPoint(x: 380, y: 532))
-    ctx.strokePath()
-    // key teeth on the stem
-    ctx.fill(CGRect(x: 380, y: 668, width: 118, height: 66))
-    ctx.fill(CGRect(x: 380, y: 760, width: 86, height: 66))
+    ctx.setLineCap(.round); ctx.setLineJoin(.round)
+    let yColor = palette.bg ?? palette.hole
+    let clearY = palette.bg == nil
+    func strokeY(_ path: CGPath, width: CGFloat) {
+        if clearY { ctx.setBlendMode(.clear) } else { ctx.setStrokeColor(col(yColor)) }
+        ctx.setLineWidth(width); ctx.addPath(path); ctx.strokePath(); ctx.setBlendMode(.normal)
+    }
+    // Solid shield; a round-join stroke on an inset path softens the corners and the bottom point.
+    ctx.setFillColor(col(palette.fg)); ctx.setStrokeColor(col(palette.fg)); ctx.setLineWidth(48)
+    ctx.addPath(shieldPath(scale: 0.93)); ctx.drawPath(using: .fillStroke)
+    strokeY(yPath(top: 366, fork: 526, bottom: 712, half: 120), width: 90)
     ctx.restoreGState()
 }
 
@@ -62,17 +87,30 @@ func writeText(_ s: String, _ rel: String) { write(s.data(using: .utf8)!, rel) }
 
 // --- SVG source (same geometry) ---
 func hex(_ c: (CGFloat, CGFloat, CGFloat)) -> String { String(format: "#%02X%02X%02X", Int(c.0 * 255), Int(c.1 * 255), Int(c.2 * 255)) }
+/// SVG path data of the (inset) shield, taken from the same CGPath as the raster output.
+var svgShield: String {
+    var d = ""
+    func f(_ v: CGFloat) -> String { String(format: "%.1f", v) }
+    shieldPath(scale: 0.93).applyWithBlock { e in
+        let q = e.pointee.points
+        switch e.pointee.type {
+        case .moveToPoint: d += "M\(f(q[0].x)) \(f(q[0].y)) "
+        case .addLineToPoint: d += "L\(f(q[0].x)) \(f(q[0].y)) "
+        case .addCurveToPoint: d += "C\(f(q[0].x)) \(f(q[0].y)) \(f(q[1].x)) \(f(q[1].y)) \(f(q[2].x)) \(f(q[2].y)) "
+        case .closeSubpath: d += "Z"
+        default: break
+        }
+    }
+    return d
+}
 func svg(_ p: Palette) -> String {
     let bgRect = p.bg.map { "<rect width=\"1024\" height=\"1024\" fill=\"\(hex($0))\"/>" } ?? ""
+    let fg = hex(p.fg), yc = hex(p.bg ?? p.hole)
     return """
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
       \(bgRect)
-      <g transform="translate(-33 -4)">
-      <g fill="none" stroke="\(hex(p.fg))" stroke-width="118" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M380 800 L380 232 L560 232 A150 150 0 0 1 560 532 L380 532"/>
-      </g>
-      <g fill="\(hex(p.fg))"><rect x="380" y="668" width="118" height="66"/><rect x="380" y="760" width="86" height="66"/></g>
-      </g>
+      <path d="\(svgShield)" fill="\(fg)" stroke="\(fg)" stroke-width="48" stroke-linejoin="round"/>
+      <path d="M392 366 L512 526 L632 366 M512 526 L512 712" fill="none" stroke="\(yc)" stroke-width="90" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     """
 }
