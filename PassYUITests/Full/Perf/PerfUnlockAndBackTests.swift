@@ -54,7 +54,7 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
     // MARK: Back
 
     /// Category tile (2000 logins) -> back: from the back tap until the vault home tile exists again (`home`) and until
-    /// the group's rows are gone and the app is idle (`settled`).
+    /// the group page navigation bar is gone (`settled`).
     func test_cmp_backFromGroup() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -69,7 +69,9 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
             sleep(1)
             let back = app.navigationBars.buttons.firstMatch
             XCTAssertTrue(back.waitForExistence(timeout: 5))
-            let (h, s) = measureBack(back, home: tile) { !app.navigationBars.buttons["BackButton"].exists && !rows.firstMatch.exists }
+            // The group page's navigation bar (named after the group) is gone once the pop finished.
+            let groupBar = app.navigationBars.firstMatch.identifier
+            let (h, s) = measureBack(back, home: tile) { !app.navigationBars[groupBar].exists }
             home.append(h)
             settled.append(s)
         }
@@ -131,9 +133,18 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
         XCTAssertTrue(toggle.waitForExistence(timeout: 10), "Account security offers Face ID unlock\n\(app.debugDescription)")
         if (toggle.value as? String) != "1" {
             toggle.switches.firstMatch.exists ? toggle.switches.firstMatch.tap() : toggle.tap()
-            allowFaceIdIfAsked(app)
-            postFaceId(match: true)
-            XCTAssertTrue(waitUntil(10) { (toggle.value as? String) == "1" }, "Face ID unlock switched on")
+            // Enabling asks for Face ID (and the first time for the Face ID permission): answer both until it is on.
+            let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+            let on = waitUntil(20) {
+                for alert in [app.alerts.firstMatch, springboard.alerts.firstMatch] where alert.exists {
+                    print("FACEID-SETUP alert: \(alert.staticTexts.allElementsBoundByIndex.map(\.label)) buttons \(alert.buttons.allElementsBoundByIndex.map(\.label))")
+                    let ok = ["OK", "Allow", "Continue"].map { alert.buttons[$0] }.first { $0.exists } ?? alert.buttons.firstMatch
+                    ok.tap()
+                }
+                postFaceId(match: true)
+                return toggle.exists && (toggle.value as? String) == "1"
+            }
+            XCTAssertTrue(on, "Face ID unlock switched on\n\(app.debugDescription)")
         }
         app.navigationBars.buttons.firstMatch.tap()
         goTo(app, "My vault")
@@ -191,17 +202,6 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
         XCTAssertNotNil(rowAt, "\(name): no 'Perf Item' row 30 s after the Face ID match\n\(app.debugDescription)")
         print("FACEID \(name) row=\(String(format: "%.3f", rowAt ?? -1)) blank=\(String(format: "%.3f", blank))")
         return (rowAt ?? 30, blank)
-    }
-
-    /// The system Face ID permission alert ("Do you want to allow ... to use Face ID?") is answered with OK.
-    private func allowFaceIdIfAsked(_ app: XCUIApplication) {
-        for alert in [app.alerts.firstMatch, XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.firstMatch] {
-            if alert.waitForExistence(timeout: 2) {
-                let ok = alert.buttons["OK"].exists ? alert.buttons["OK"] : alert.buttons.element(boundBy: alert.buttons.count - 1)
-                ok.tap()
-                return
-            }
-        }
     }
 
     /// A frame is blank when (status bar and home indicator excluded) almost no sample differs from the page color.
