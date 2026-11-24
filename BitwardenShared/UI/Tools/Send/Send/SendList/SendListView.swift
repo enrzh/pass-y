@@ -279,7 +279,6 @@ struct SendListView: View {
                     get: \.toast,
                     send: SendListAction.toastShown,
                 ),
-                additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
             )
             .task { await store.perform(.appeared) }
             .task { await store.perform(.loadData) }

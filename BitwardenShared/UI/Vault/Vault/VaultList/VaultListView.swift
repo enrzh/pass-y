@@ -59,7 +59,6 @@ private struct SearchableVaultListView: View {
                 get: \.toast,
                 send: VaultListAction.toastShown,
             ),
-            additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
         )
         .flightRecorderToastBanner(
             activeLog: store.state.flightRecorderToastBanner.activeLog,

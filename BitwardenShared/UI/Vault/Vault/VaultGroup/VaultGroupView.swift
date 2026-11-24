@@ -62,7 +62,6 @@ struct VaultGroupView: View {
                     get: \.toast,
                     send: VaultGroupAction.toastShown,
                 ),
-                additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
             )
     }
 
