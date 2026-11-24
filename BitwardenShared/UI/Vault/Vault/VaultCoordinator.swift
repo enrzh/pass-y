@@ -69,7 +69,8 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
     /// The last sections each group page showed (per group and filter). A repeat visit opens fully formed: title,
     /// "N Items" and rows are right on the first frame instead of arriving with the first stream value. Held by this
     /// coordinator only, so it lives exactly as long as the unlocked vault tab (the tab coordinator, and with it this
-    /// coordinator, is replaced on lock, logout and account switch); never static.
+    /// coordinator, is replaced on lock and logout) and is emptied whenever the vault home is shown again (unlock,
+    /// account switch); never static.
     private(set) var groupSectionsCache = [VaultGroupCacheKey: [VaultListSection]]()
 
     // MARK: Types
@@ -275,6 +276,9 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
         case .importLogins:
             showImportLogins()
         case .list:
+            // The vault home is (re)shown after unlock and after an account switch, which may reuse this
+            // coordinator: never carry another session's (or account's) rows into a group page.
+            groupSectionsCache = [:]
             showList()
         case let .loginRequest(loginRequest):
             delegate?.presentLoginRequest(loginRequest)

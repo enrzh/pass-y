@@ -43,8 +43,8 @@ struct VaultGroupView: View {
             .navigationTitle(store.state.group.navigationTitle)
             .passYItemCountSubtitle(itemCountSubtitle)
             .navigationBarTitleDisplayMode(.large)
-            // A plain list on the system background (Apple Passwords), not the grouped gray of the home page.
-            .background(Color(.systemBackground).ignoresSafeArea())
+            // The page color of the shell (the floating bottom bar area shows it too: a different color here drew a seam).
+            .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
             .task {
                 await store.perform(.appeared)
             }

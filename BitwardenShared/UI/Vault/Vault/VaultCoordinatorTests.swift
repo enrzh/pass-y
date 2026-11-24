@@ -351,6 +351,10 @@ class VaultCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this type_
         await view.store.perform(.appeared)
         XCTAssertEqual(view.store.state.loadingState, .data(sections))
 
+        // Showing the vault home again (unlock, account switch) empties the cache.
+        subject.navigate(to: .list)
+        XCTAssertTrue(subject.groupSectionsCache.isEmpty)
+
         // Another filter is another page.
         subject.navigate(to: .group(.login, filter: .myVault))
         view = try XCTUnwrap((stackNavigator.actions.last?.view as? UIHostingController<VaultGroupView>)?.rootView)
