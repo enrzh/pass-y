@@ -80,16 +80,16 @@ enum PassYVaultListWarmup {
         clear()
         let startGeneration = generation
         let run = WarmupRun()
-        let task = Task { @MainActor in
-            defer { run.finish() }
-            guard let publisher = try? await vaultRepository.vaultListPublisher(
-                filter: VaultListFilter(filterType: filter, options: [.addTOTPGroup, .addHiddenItemsGroup]),
-            ) else { return }
-            var iterator = publisher.makeAsyncIterator()
-            guard let first = try? await iterator.next(),
-                  !run.isFinished, !Task.isCancelled, generation == startGeneration,
-                  !first.sections.isEmpty else { return }
-            store(first.sections, filter: filter)
+        // Off the main actor: the shell is built on the main thread at the same time (a main-actor task could only
+        // start after it, measured: no overlap). Only the hand-over (`store`) goes back to the main actor.
+        let task = Task.detached(priority: .userInitiated) {
+            let first = await Self.firstList(filter: filter, vaultRepository: vaultRepository)
+            await MainActor.run {
+                defer { run.finish() }
+                guard let first, !run.isFinished, !Task.isCancelled, generation == startGeneration,
+                      !first.sections.isEmpty else { return }
+                store(first.sections, filter: filter)
+            }
         }
         building = task
         let timeoutTask = Task { @MainActor in
@@ -105,6 +105,18 @@ enum PassYVaultListWarmup {
             }
         }
         self.run = (run, filter)
+    }
+
+    /// The first emission of the vault list stream (decrypt and sections), nil on failure or cancellation.
+    private nonisolated static func firstList(
+        filter: VaultFilterType,
+        vaultRepository: VaultRepository,
+    ) async -> VaultListData? {
+        guard let publisher = try? await vaultRepository.vaultListPublisher(
+            filter: VaultListFilter(filterType: filter, options: [.addTOTPGroup, .addHiddenItemsGroup]),
+        ) else { return nil }
+        var iterator = publisher.makeAsyncIterator()
+        return try? await iterator.next()
     }
 
     /// Keeps a list for `take(filter:)`, wiped by a timer `lifetime` seconds after `date` at the latest.
