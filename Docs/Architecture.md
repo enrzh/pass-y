@@ -194,6 +194,26 @@ State represents the data and configuration needed to perform the processor's lo
 
 A view renders the UI based on its state. The state within a view is managed by a [Store](../BitwardenKit/UI/Platform/Application/Utilities/Store.swift). The store is the connection between the processor and the view. Views never mutate state directly; instead, they send actions or perform effects via the store which are forwarded back to the processor. Views are updated by the store anytime the state changes.
 
+#### Pass-Y list pages
+
+The vault home, group pages, search results, Send and folders share one construction, in
+[View+PassYList.swift](../BitwardenShared/UI/Platform/Application/Extensions/View+PassYList.swift):
+`passYCardList()` (inset-grouped cards; room and a soft scroll edge for the floating bottom bar),
+`passYEmptyListState()` (the empty message over an empty list, on the grouped page colour), `passYGroupedBackground()`
+(native forms), `passYVaultRow` (row insets and the
+Delete / More swipe actions), `passYSelectEditMode` and `PassYSelectModeButtons` (Select mode). Row options are native
+menus (`VaultItemOptionsMenuContent`), shared by the context menu and the More swipe action. The minimum is iOS 26: the
+UI and app layers have no `#available` checks or fallbacks for earlier versions (left: the Core layer, the 26.2 / 27
+checks, `ReviewModifier` and a multi-platform test).
+
+#### Pass-Y diagnostics (DEBUG only)
+
+Signposts, counters and startup / navigation marks (`PassYPerf`, `PassYNavigationProbe`) and the XCUITest idle-stall
+dump (`PassYAnimationDump`, `PassYAnimationTracker`) live in
+[BitwardenKit/UI/Platform/Application/Diagnostics](../BitwardenKit/UI/Platform/Application/Diagnostics). Every file and
+every call site is inside `#if DEBUG`, so a Release build contains none of their symbols or strings
+(`PassYAppHygieneTests.test_diagnostics_onlyInDebug`).
+
 ### Actions and Effects
 
 Actions are triggered by the view and represent interactions with the processor that could potentially cause an update to state or navigation. These will usually be sent because of some user interaction with the UI, such as a button being tapped or a text field's value changing. Actions are processed synchronously by the processor.

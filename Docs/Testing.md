@@ -1283,7 +1283,7 @@ UI tests run against a throwaway local Vaultwarden (`Scripts-passy/vaultwarden/`
 | `Full/iPad/` | `IPadLandingTests` (1, fresh install, sorts first), `IPadTests` (2), own iPad simulator | full |
 | `Full/Perf/` | `PerfTests`, `PerfCompareTests`, `PerfUnlockAndBackTests` (12, own 2000 item account `passy-perf@example.test`; the last enrolls simulator Face ID and sorts last on purpose) | full |
 | `Shots/`, `Shots/iPad/` | `Shots*Tests` (17): screenshot export only | shots (never gating) |
-| `Diagnostics/` | `DiagnosticsTests`, `KeystrokeProbeTests` | none, run by name |
+| `Diagnostics/` | `DiagnosticsTests`, `KeystrokeProbeTests`, `ListPushTests` | none, run by name |
 | `Support/` | `PassYUITestCase` (base class, shared helpers), `PassYUITestSupport.swift` (session, typing, login) | |
 
 A new test goes into the feature class it belongs to, in the directory of its tier; the chain picks the classes up
