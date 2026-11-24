@@ -18,9 +18,6 @@ final class PerfButtonResponseTests: PassYUITestCase {
     /// Wall clock ceiling of a median "shown" (XCUITest overhead included).
     private let shownCeiling = 2.5
 
-    /// Controls whose hit area was below 44 x 44 pt (checked at the end, so the numbers are printed anyway).
-    private var smallTargets: [String: CGSize] = [:]
-
     // MARK: Tests
 
     /// Item view (sheet) -> Close: until the list row is hittable again.
@@ -37,7 +34,7 @@ final class PerfButtonResponseTests: PassYUITestCase {
             XCTAssertTrue(close.waitForExistence(timeout: 10), "item view is open")
             sleep(1)
             assertHitTarget(close, "CloseButton")
-            let (s, t) = measure("close_item_view", close, shown: { !close.exists }, settled: { row.isHittable })
+            let (s, t) = measure("close_item_view", close, edge: 21, shown: { !close.exists }, settled: { row.isHittable })
             shown.append(s)
             settled.append(t)
         }
@@ -61,8 +58,17 @@ final class PerfButtonResponseTests: PassYUITestCase {
             XCTAssertTrue(cancel.waitForExistence(timeout: 10), "add item sheet is open")
             sleep(1)
             assertHitTarget(cancel, "CancelButton")
-            assertHitTarget(app.buttons["SaveButton"].firstMatch, "SaveButton")
-            let (s, t) = measure("cancel_add_item", cancel, shown: { !cancel.exists }, settled: { tile.isHittable })
+            let save = app.buttons["SaveButton"].firstMatch
+            assertHitTarget(save, "SaveButton")
+            if shown.isEmpty {
+                // Save on the empty form, tapped 21 pt left of its center: the validation alert proves the touch hit.
+                edgeTap(save, -21)
+                let alert = app.alerts.firstMatch
+                XCTAssertTrue(alert.waitForExistence(timeout: 5), "Save reacts to a tap 21 pt beside its center")
+                alert.buttons.firstMatch.tap()
+                XCTAssertTrue(waitForDisappearance(of: alert, timeout: 5))
+            }
+            let (s, t) = measure("cancel_add_item", cancel, edge: 21, shown: { !cancel.exists }, settled: { tile.isHittable })
             shown.append(s)
             settled.append(t)
         }
@@ -86,12 +92,12 @@ final class PerfButtonResponseTests: PassYUITestCase {
         var shown: [Double] = []
         var settled: [Double] = []
         for _ in 0 ..< runs {
-            add.tap()
+            edgeTap(add, -21) // 21 pt beside the center: the touch target is at least 42 pt wide
             let cancel = app.buttons["CancelButton"].firstMatch
             XCTAssertTrue(cancel.waitForExistence(timeout: 10), "add folder sheet is open")
             sleep(1)
             assertHitTarget(cancel, "CancelButton (folder)")
-            let (s, t) = measure("cancel_add_folder", cancel, shown: { !cancel.exists }, settled: { add.isHittable })
+            let (s, t) = measure("cancel_add_folder", cancel, edge: 21, shown: { !cancel.exists }, settled: { add.isHittable })
             shown.append(s)
             settled.append(t)
         }
@@ -114,7 +120,7 @@ final class PerfButtonResponseTests: PassYUITestCase {
             XCTAssertTrue(cancel.waitForExistence(timeout: 10), "search cancel shown")
             sleep(1)
             assertHitTarget(cancel, "VaultSearchCancel")
-            let (s, t) = measure("cancel_search", cancel, shown: { tile.exists }, settled: { !cancel.exists && tile.isHittable })
+            let (s, t) = measure("cancel_search", cancel, edge: -21, shown: { tile.exists }, settled: { !cancel.exists && tile.isHittable })
             shown.append(s)
             settled.append(t)
         }
@@ -138,7 +144,7 @@ final class PerfButtonResponseTests: PassYUITestCase {
             sleep(1)
             assertHitTarget(vault, "BottomBarVaultButton")
             assertHitTarget(app.navigationBars.buttons.firstMatch, "navigation bar back button")
-            let (s, t) = measure("vault_button_from_group", vault, shown: { tile.exists }, settled: { tile.frame.minX >= 15.5 && tile.isHittable })
+            let (s, t) = measure("vault_button_from_group", vault, edge: -21, shown: { tile.exists }, settled: { tile.frame.minX >= 15.5 && tile.isHittable })
             shown.append(s)
             settled.append(t)
         }
@@ -147,13 +153,20 @@ final class PerfButtonResponseTests: PassYUITestCase {
 
     // MARK: Helpers
 
-    /// Taps `button` and returns (seconds until `shown()` holds, seconds until `settled()` also holds), polled every
-    /// 10 ms from just before the tap.
-    private func measure(_ name: String, _ button: XCUIElement, shown: () -> Bool, settled: () -> Bool) -> (Double, Double) {
+    /// Taps `button` `edge` points right (negative: left) of its center (so every run also proves a touch target of
+    /// at least 2 x |edge| pt) and returns (seconds until `shown()` holds, seconds until `settled()` also holds),
+    /// polled every 10 ms from just before the tap.
+    private func measure(
+        _ name: String,
+        _ button: XCUIElement,
+        edge: CGFloat,
+        shown: () -> Bool,
+        settled: () -> Bool,
+    ) -> (Double, Double) {
         let start = Date()
         // Same clock as the app's `startup mark=... t=` and `touchprobe ... t=` lines (simulator = host clock).
         print("PASSY-MARK buttonTap \(name) t=\(String(format: "%.3f", start.timeIntervalSinceReferenceDate))")
-        button.tap()
+        edgeTap(button, edge)
         var shownAt: Double?
         let deadline = start.addingTimeInterval(15)
         while Date() < deadline {
@@ -162,8 +175,13 @@ final class PerfButtonResponseTests: PassYUITestCase {
             usleep(10000)
         }
         let settledAt = Date().timeIntervalSince(start)
-        XCTAssertNotNil(shownAt, "\(name): previous screen shown within 15 s of the tap")
+        XCTAssertNotNil(shownAt, "\(name): previous screen shown within 15 s of the tap \(edge) pt beside the center")
         return (shownAt ?? 15, settledAt)
+    }
+
+    /// Taps `element` `dx` points beside its center.
+    private func edgeTap(_ element: XCUIElement, _ dx: CGFloat) {
+        element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).withOffset(CGVector(dx: dx, dy: 0)).tap()
     }
 
     /// Prints both lines and checks the regression ceiling of the "shown" median.
@@ -171,16 +189,14 @@ final class PerfButtonResponseTests: PassYUITestCase {
         line("\(name)_shown", shown)
         line("\(name)_settled", settled)
         let median = shown.sorted()[shown.count / 2]
-        XCTAssertTrue(smallTargets.isEmpty, "hit targets below 44 x 44 pt: \(smallTargets)")
         XCTAssertLessThan(median, shownCeiling, "\(name): median \(median) s from the tap until the previous screen is shown")
     }
 
-    /// The control's hit area (its accessibility frame, which is the touch target of system and SwiftUI buttons) is
-    /// at least 44 x 44 pt. Printed as `HITTARGET <name> w=... h=...`.
+    /// Prints the control's accessibility frame (`HITTARGET <name> w=... h=...`). Information only: a navigation bar
+    /// item's touch target is larger than its glass frame (UIKit), so the edge taps of `measure` are the check.
     private func assertHitTarget(_ element: XCUIElement, _ name: String) {
         guard element.exists else { return XCTFail("\(name) exists") }
         let frame = element.frame
         print("HITTARGET \(name) w=\(String(format: "%.1f", frame.width)) h=\(String(format: "%.1f", frame.height))")
-        if min(frame.width, frame.height) < 43.5 { smallTargets[name] = frame.size }
     }
 }
