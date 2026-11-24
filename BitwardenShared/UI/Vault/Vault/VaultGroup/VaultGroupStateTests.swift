@@ -196,7 +196,11 @@ class VaultGroupStateTests: BitwardenTestCase {
         var subject = VaultGroupState(expectedItemCount: 3, vaultFilterType: .allVaults)
         XCTAssertEqual(subject.displayedItemCount, 3)
 
-        subject.loadingState = .data([VaultListSection(id: "1", items: [.fixture(), .fixture()], name: "Items")])
+        let items = [
+            VaultListItem(id: "a", itemType: .group(.card, 1)),
+            VaultListItem(id: "b", itemType: .group(.card, 1)),
+        ]
+        subject.loadingState = .data([VaultListSection(id: "1", items: items, name: "Items")])
         XCTAssertEqual(subject.displayedItemCount, 2)
 
         subject.loadingState = .data([])

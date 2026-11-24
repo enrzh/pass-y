@@ -335,7 +335,10 @@ class VaultCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this type_
         let sections = [VaultListSection(id: "Items", items: [.fixture()], name: "Items")]
         vaultRepository.vaultListSubject.send(VaultListData(sections: sections))
         let task = Task { await view.store.perform(.appeared) }
-        waitFor(!subject.groupSectionsCache.isEmpty)
+        // An async test holds the main actor: wait by suspending, not by spinning the run loop.
+        for _ in 0 ..< 500 where subject.groupSectionsCache.isEmpty {
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
         task.cancel()
         XCTAssertEqual(subject.groupSectionsCache[VaultGroupCacheKey(group: .login, filter: .allVaults)], sections)
 
