@@ -320,6 +320,40 @@ class VaultCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertEqual(view.store.state.vaultFilterType, .allVaults)
     }
 
+    /// `navigate(to:)` with `.group` and a count opens the page with that count (no cached list yet), and a repeat visit
+    /// opens with the list the previous page last showed.
+    @MainActor
+    func test_navigateTo_group_seededFromCountThenCache() async throws {
+        subject.navigate(to: .group(.login, filter: .allVaults, count: 7))
+        var view = try XCTUnwrap(
+            (stackNavigator.actions.last?.view as? UIHostingController<VaultGroupView>)?.rootView,
+        )
+        XCTAssertEqual(view.store.state.expectedItemCount, 7)
+        XCTAssertEqual(view.store.state.loadingState, .loading(nil))
+        XCTAssertTrue(subject.groupSectionsCache.isEmpty)
+
+        let sections = [VaultListSection(id: "Items", items: [.fixture()], name: "Items")]
+        vaultRepository.vaultListSubject.send(VaultListData(sections: sections))
+        let task = Task { await view.store.perform(.appeared) }
+        waitFor(!subject.groupSectionsCache.isEmpty)
+        task.cancel()
+        XCTAssertEqual(subject.groupSectionsCache[VaultGroupCacheKey(group: .login, filter: .allVaults)], sections)
+
+        subject.navigate(to: .group(.login, filter: .allVaults))
+        view = try XCTUnwrap((stackNavigator.actions.last?.view as? UIHostingController<VaultGroupView>)?.rootView)
+        XCTAssertEqual(view.store.state.expectedItemCount, 1, "the count of the cached list")
+        // The cached rows come with the appearance (not in the initial state: see `initialSections`).
+        XCTAssertEqual(view.store.state.loadingState, .loading(nil))
+        vaultRepository.vaultListSubject.send(completion: .finished)
+        await view.store.perform(.appeared)
+        XCTAssertEqual(view.store.state.loadingState, .data(sections))
+
+        // Another filter is another page.
+        subject.navigate(to: .group(.login, filter: .myVault))
+        view = try XCTUnwrap((stackNavigator.actions.last?.view as? UIHostingController<VaultGroupView>)?.rootView)
+        XCTAssertEqual(view.store.state.loadingState, .loading(nil))
+    }
+
     /// `navigate(to:)` with `.importLogins` presents the import logins view onto the stack navigator.
     @MainActor
     func test_navigateTo_importLogins() throws {

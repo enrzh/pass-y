@@ -468,7 +468,7 @@ extension VaultListProcessor {
                 )
                 return
             }
-            coordinator.navigate(to: .group(group, filter: state.vaultFilterType))
+            coordinator.navigate(to: .group(group, filter: state.vaultFilterType, count: count))
         case let .totp(_, model):
             navigateToViewItem(cipherListView: model.cipherListView, id: model.id)
         }

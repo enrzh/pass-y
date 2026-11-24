@@ -44,36 +44,9 @@ class VaultGroupViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// Before iOS 26 (no `navigationSubtitle`) "N Items" is a plain secondary text row at the top of the list.
+    /// "N Items" is the navigation subtitle; there is no extra count row in the list.
     @MainActor
-    func test_itemCount_fallbackRow_withoutNavigationSubtitle() throws {
-        subject = VaultGroupView(
-            store: Store(processor: processor),
-            timeProvider: timeProvider,
-            supportsNavigationSubtitle: false,
-        )
-        processor.state.loadingState = .data([
-            VaultListSection(
-                id: "1",
-                items: [
-                    try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A"))),
-                    try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "2", name: "B"))),
-                ],
-                name: "Items",
-            ),
-        ])
-        let header = try subject.inspect().find(viewWithAccessibilityIdentifier: "ItemCountHeader").text()
-        XCTAssertEqual(try header.string(), "2 Items")
-    }
-
-    /// With the navigation subtitle (iOS 26) there is no extra row.
-    @MainActor
-    func test_itemCount_noFallbackRow_withNavigationSubtitle() throws {
-        subject = VaultGroupView(
-            store: Store(processor: processor),
-            timeProvider: timeProvider,
-            supportsNavigationSubtitle: true,
-        )
+    func test_itemCount_noCountRow() throws {
         processor.state.loadingState = .data([
             VaultListSection(
                 id: "1",
