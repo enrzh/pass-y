@@ -53,7 +53,10 @@ class AddEditFolderViewTests: BitwardenTestCase {
     func test_deleteButton_tap() async throws {
         processor.state.mode = .edit(.fixture())
 
-        let menu = try subject.inspect().find(ViewType.Menu.self, containing: Localizations.options)
+        let menu = try subject.inspect().find(ViewType.Menu.self, where: { menu in
+            // The options menu's label is the "..." symbol (identifier `HeaderBarOptionsButton`), no text.
+            (try? menu.find(viewWithAccessibilityIdentifier: "HeaderBarOptionsButton")) != nil
+        })
         let button = try menu.find(asyncButton: Localizations.delete)
         try await button.tap()
 
