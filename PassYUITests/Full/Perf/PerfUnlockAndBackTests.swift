@@ -228,17 +228,29 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
         return differing < 4
     }
 
-    /// Enrolls (or removes) Face ID in the simulator (the simulator shares one Darwin notify namespace).
+    /// Enrolls (or removes) Face ID in the simulator (the simulator shares one Darwin notify namespace; `notify.h` is
+    /// not exported to Swift, so the functions are looked up at run time).
     private func setFaceIdEnrolled(_ enrolled: Bool) {
+        typealias Register = @convention(c) (UnsafePointer<CChar>, UnsafeMutablePointer<Int32>) -> UInt32
+        typealias SetState = @convention(c) (Int32, UInt64) -> UInt32
+        let handle = dlopen(nil, RTLD_NOW)
+        guard let register = dlsym(handle, "notify_register_check"), let setState = dlsym(handle, "notify_set_state") else {
+            return XCTFail("notify functions not found")
+        }
         var token: Int32 = 0
-        notify_register_check("com.apple.BiometricKit.enrollmentChanged", &token)
-        notify_set_state(token, enrolled ? 1 : 0)
-        notify_post("com.apple.BiometricKit.enrollmentChanged")
+        _ = unsafeBitCast(register, to: Register.self)("com.apple.BiometricKit.enrollmentChanged", &token)
+        _ = unsafeBitCast(setState, to: SetState.self)(token, enrolled ? 1 : 0)
+        post("com.apple.BiometricKit.enrollmentChanged")
         sleep(1)
     }
 
     /// Lets the simulator match (or reject) the face of the running Face ID prompt.
     private func postFaceId(match: Bool) {
-        notify_post(match ? "com.apple.BiometricKit_Sim.pearl.match" : "com.apple.BiometricKit_Sim.pearl.nomatch")
+        post(match ? "com.apple.BiometricKit_Sim.pearl.match" : "com.apple.BiometricKit_Sim.pearl.nomatch")
+    }
+
+    /// Posts a Darwin notification.
+    private func post(_ name: String) {
+        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFNotificationName(name as CFString), nil, nil, true)
     }
 }
