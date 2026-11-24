@@ -344,7 +344,7 @@ struct CipherMoreOptionsTests {
     func vaultListItem_moreOptionsActionKinds_none() {
         #expect(VaultListItem.fixtureGroup().moreOptionsActionKinds(hasPremium: true).isEmpty)
         #expect(VaultListItem.fixtureTOTP(totp: .fixture()).moreOptionsActionKinds(hasPremium: true).isEmpty)
-        let failure = VaultListItem.fixture(cipherListView: CipherListView(cipherDecryptFailure: .fixture()))
+        let failure = VaultListItem(id: "1", itemType: .cipher(CipherListView(cipherDecryptFailure: .fixture())))
         #expect(failure.moreOptionsActionKinds(hasPremium: true).isEmpty)
     }
 }
