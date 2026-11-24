@@ -87,11 +87,7 @@ extension XCUIElement {
         var shown = ""
         for attempt in 1 ... 3 {
             focus()
-            // Clear until the field is really empty (delete keys can be lost too: a retype once ended with 26 dots).
-            for _ in 0 ..< 3 {
-                guard let current = value as? String, !current.isEmpty, current != (placeholderValue ?? "") else { break }
-                typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
-            }
+            clearText()
             let typing = Date()
             typeText(text)
             let took = Date().timeIntervalSince(typing)
@@ -113,6 +109,33 @@ extension XCUIElement {
         }
         XCTFail("typing into \(identifier) lost keystrokes three times (field shows \(shown.count) of \(text.count) characters)",
                 file: file, line: line)
+    }
+
+    /// Empties a focused text field, secure field or text view and verifies it. Delete keys act from the caret, which
+    /// is not always at the end (a failed attempt once left it mid-text, and 3 characters after it survived the
+    /// clear), so every round first puts the caret at the end (a tap at the field's right end; Cmd+Down in a text view)
+    /// and then deletes as
+    /// many characters as the field shows; delete keys can be lost too, so it repeats until the field is empty.
+    /// Returns whether the field is empty.
+    @discardableResult
+    func clearText() -> Bool {
+        func isEmpty() -> Bool {
+            guard let current = value as? String else { return true }
+            return current.isEmpty || current == (placeholderValue ?? "")
+        }
+        for _ in 0 ..< 4 {
+            if isEmpty() { return true }
+            let count = (value as? String)?.count ?? 0
+            if elementType == .textView {
+                // A text view inside a SwiftUI card does not get taps (the card's tap gesture takes them): Cmd+Down
+                // moves the caret to the end of the text.
+                typeKey(XCUIKeyboardKey.downArrow.rawValue, modifierFlags: .command)
+            } else {
+                coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()   // right end of the field
+            }
+            typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: count))
+        }
+        return isEmpty()
     }
 
     /// Secure fields with the eye toggle (`PasswordVisibilityToggle`: unlock, login): reveals the field, returns which

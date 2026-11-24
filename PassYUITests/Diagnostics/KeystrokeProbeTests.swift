@@ -133,6 +133,73 @@ final class KeystrokeProbeTests: PassYUITestCase {
         _ = returnToRoot(app)
     }
 
+    /// `replaceText` / `clearText` with the caret planted mid-text (a tap near the start of the text): the whole old
+    /// value must go, in a text field and a text view (Send) and in a secure field (add login).
+    func test_replaceTextWithCaretMidText() {
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        goTo(app, "Send")
+        app.buttons["AddItemFloatingActionButton"].tap()
+        let menuText = app.menuItems["Text"]
+        let textButton = app.buttons.matching(NSPredicate(format: "label == 'Text'")).firstMatch
+        XCTAssertTrue(menuText.waitForExistence(timeout: 5) || textButton.waitForExistence(timeout: 5), "add menu offers Text")
+        (menuText.exists ? menuText : textButton).tap()
+        let name = app.textFields["SendNameEntry"]
+        XCTAssertTrue(name.waitForExistence(timeout: 10), "send name field")
+        plantCaretMidText(name, "abcdefghijklmnop")
+        name.replaceText("xyz")
+        XCTAssertEqual(name.value as? String, "xyz", "text field: old text after the caret is gone")
+        let body = app.textViews["SendTextContentEntry"]
+        if !body.exists { for _ in 0 ..< 3 where !body.exists { app.swipeUp() } }
+        plantCaretMidText(body, "abcdefghijklmnop")
+        body.replaceText("xyz")
+        XCTAssertEqual(body.value as? String, "xyz", "text view: old text after the caret is gone")
+        _ = returnToRoot(app)
+
+        app.buttons["AddItemFloatingActionButton"].tap()
+        tapNewLoginMenuItem(app)
+        XCTAssertTrue(app.textFields["ItemNameEntry"].waitForExistence(timeout: 15), "add form")
+        app.dismissNewLoginCard()
+        // Only one masked field (the authenticator key revealed): with two, XCUITest typing keeps only the last key
+        // (documented artifact), which would hide what this measures.
+        let totpToggle = app.buttons["TextVisibilityToggle"].firstMatch
+        for _ in 0 ..< 4 where !(totpToggle.exists && totpToggle.isHittable) { app.swipeUp() }
+        totpToggle.tap()
+        XCTAssertTrue(app.textFields["LoginTotpEntry"].waitForExistence(timeout: 5), "authenticator key revealed")
+        let secure = app.secureTextFields["LoginPasswordEntry"]
+        for _ in 0 ..< 4 where !(secure.exists && secure.isHittable) { app.swipeDown() }
+        plantCaretMidText(secure, "abcdefghijklmnop", mustSurvive: false)
+        secure.replaceText("xyz")
+        XCTAssertEqual((secure.value as? String)?.count, 3, "secure field: three dots after the replace")
+        _ = returnToRoot(app)
+    }
+
+    /// Types `text` and taps near the start of it, so the caret sits mid-text (before `replaceText`). Control: the old
+    /// clear (as many delete keys as characters, from the caret) leaves the text after the caret; it is typed again
+    /// and the caret planted again afterwards. `mustSurvive`: the control has to show surviving text (text field and
+    /// text view; a secure field may put the caret at the end on a tap, so it is only printed there).
+    private func plantCaretMidText(_ field: XCUIElement, _ text: String, mustSurvive: Bool = true) {
+        // Caret to the start: a tap at the left end of a field; Cmd+Up in a text view (it does not get taps).
+        func plant() {
+            if field.elementType == .textView {
+                field.typeKey(XCUIKeyboardKey.upArrow.rawValue, modifierFlags: .command)
+            } else {
+                field.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5)).tap()
+            }
+        }
+        field.focus()
+        field.typeText(text)
+        plant()
+        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: text.count))
+        let survived = (field.value as? String).map { $0 == (field.placeholderValue ?? "") ? 0 : $0.count } ?? 0
+        print("KEYPROBE caret-mid control field=\(field.identifier) survived=\(survived) of \(text.count)")
+        if mustSurvive { XCTAssertGreaterThan(survived, 0, "the planted caret is really mid-text (old clear leaves text)") }
+        _ = field.clearText()
+        field.typeText(text)
+        plant()
+        print("KEYPROBE caret-mid planted field=\(field.identifier) keyboard=\(XCUIApplication().keyboards.firstMatch.exists)")
+    }
+
     /// The masked authenticator key of the add-login form (16 characters), then revealed.
     private func probeTotp(_ app: XCUIApplication) {
         let key = "JBSWY3DPEHPK3PXP"
