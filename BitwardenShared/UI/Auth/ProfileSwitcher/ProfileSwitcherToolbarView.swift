@@ -19,32 +19,26 @@ struct ProfileSwitcherToolbarView: View {
         let tintColor = store.state.showPlaceholderToolbarIcon
             ? nil
             : store.state.activeAccountProfile?.color
-        // iOS 26+ uses the tint color on liquid glass to give the button its color. Prior to iOS 26,
-        // the button's background is colored in `profileSwitcherIcon`.
-        let iconColor: Color? = if #available(iOS 26, *) { nil } else { tintColor }
-
-        let iconSize: ProfileSwitcherIconSize = if #available(iOS 26, *) { .toolbar } else { .standard }
-        // On iOS 26+, remove extra padding applied around the button, which allows the initials
-        // font size to scale larger without increasing the overall width of the button.
-        let horizontalPadding: CGFloat = if #available(iOS 26, *) { -4 } else { 0 }
 
         AsyncButton {
             await store.perform(.requestedProfileSwitcher(visible: !store.state.isVisible))
         } label: {
+            // The tint color on Liquid Glass gives the button its color (no icon background color).
             profileSwitcherIcon(
-                color: iconColor,
+                color: nil,
                 initials: store.state.showPlaceholderToolbarIcon
                     ? nil
                     : store.state.activeAccountProfile?.userInitials,
                 textColor: store.state.showPlaceholderToolbarIcon
                     ? nil
                     : store.state.activeAccountProfile?.profileIconTextColor,
-                size: iconSize,
+                size: .toolbar,
             )
         }
-        .backport.buttonStyleGlassProminent()
+        .buttonStyle(.glassProminent)
         .tint(tintColor ?? SharedAsset.Colors.backgroundTertiary.swiftUIColor)
-        .padding(.horizontal, horizontalPadding)
+        // Removes the extra padding around the button, so the initials can scale larger without widening it.
+        .padding(.horizontal, -4)
         .accessibilityIdentifier("CurrentActiveAccount")
         .accessibilityLabel(Localizations.account)
         .hidden(!store.state.showPlaceholderToolbarIcon && store.state.accounts.isEmpty)

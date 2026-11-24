@@ -666,48 +666,10 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertNil(appSettingsStore.rememberedEmail)
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.accountLongPressed)` shows the alert and allows the user to
-    /// lock the selected account.
-    @MainActor
-    func test_receive_accountLongPressed_lock() async throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        // Set up the mock data.
-        let activeProfile = ProfileSwitcherItem.fixture()
-        let otherProfile = ProfileSwitcherItem.fixture(isUnlocked: true, userId: "42")
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [otherProfile, activeProfile],
-            activeAccountId: activeProfile.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-        authRepository.activeAccount = .fixture()
-
-        await subject.perform(.profileSwitcher(.accountLongPressed(otherProfile)))
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-
-        // Select the alert action to lock the account.
-        let lockAction = try XCTUnwrap(coordinator.alertShown.last?.alertActions.first)
-        await lockAction.handler?(lockAction, [])
-
-        // Verify the results.
-        XCTAssertEqual(
-            coordinator.events.last,
-            .action(.lockVault(userId: otherProfile.userId, isManuallyLocking: true)),
-        )
-        XCTAssertEqual(subject.state.toast, Toast(title: Localizations.accountLockedSuccessfully))
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.accountLongPressed)` for iOS 26 shows the alert and allows the user to
     /// lock the selected account, dismissing the profile switcher after confirmation.
     @MainActor
     func test_receive_accountLongPressed_lock_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         // Set up the mock data.
         let activeProfile = ProfileSwitcherItem.fixture()
         let otherProfile = ProfileSwitcherItem.fixture(isUnlocked: true, userId: "42")
@@ -736,43 +698,10 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertEqual(subject.state.toast, Toast(title: Localizations.accountLockedSuccessfully))
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.accountLongPressed)` records any errors from locking the account.
-    @MainActor
-    func test_receive_accountLongPressed_lock_error() async throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        // Set up the mock data.
-        let activeProfile = ProfileSwitcherItem.fixture()
-        let otherProfile = ProfileSwitcherItem.fixture(isUnlocked: true, userId: "42")
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [otherProfile, activeProfile],
-            activeAccountId: activeProfile.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-        authRepository.activeAccount = nil
-
-        await subject.perform(.profileSwitcher(.accountLongPressed(otherProfile)))
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-
-        // Select the alert action to lock the account.
-        let lockAction = try XCTUnwrap(coordinator.alertShown.last?.alertActions.first)
-        await lockAction.handler?(lockAction, [])
-
-        // Verify the results.
-        XCTAssertEqual(errorReporter.errors.last as? StateServiceError, .noActiveAccount)
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.accountLongPressed)` for iOS 26 records any errors from locking
     /// the account and dismisses the profile switcher.
     @MainActor
     func test_receive_accountLongPressed_lock_error_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         // Set up the mock data.
         let activeProfile = ProfileSwitcherItem.fixture()
         let otherProfile = ProfileSwitcherItem.fixture(isUnlocked: true, userId: "2")
@@ -797,52 +726,10 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertEqual(errorReporter.errors.last as? StateServiceError, .noActiveAccount)
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.accountLongPressed)` shows the alert and allows the user to
-    /// log out of the selected account.
-    @MainActor
-    func test_receive_accountLongPressed_logout() async throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        // Set up the mock data.
-        let activeProfile = ProfileSwitcherItem.fixture()
-        let otherProfile = ProfileSwitcherItem.fixture(userId: "42")
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [otherProfile, activeProfile],
-            activeAccountId: activeProfile.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-        authRepository.activeAccount = .fixture()
-
-        await subject.perform(.profileSwitcher(.accountLongPressed(otherProfile)))
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-
-        // Select the alert action to log out from the account.
-        let logoutAction = try XCTUnwrap(coordinator.alertShown.last?.alertActions.first)
-        await logoutAction.handler?(logoutAction, [])
-
-        // Confirm logging out on the second alert.
-        let confirmAction = try XCTUnwrap(coordinator.alertShown.last?.alertActions.first)
-        await confirmAction.handler?(confirmAction, [])
-
-        // Verify the results.
-        XCTAssertEqual(subject.state.toast, Toast(title: Localizations.accountLoggedOutSuccessfully))
-        XCTAssertEqual(
-            coordinator.events.last,
-            .action(.logout(userId: otherProfile.userId, userInitiated: true)),
-        )
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.accountLongPressed)` for iOS 26 shows the alert and allows the user to
     /// log out of the selected account, dismissing the profile switcher after confirmation.
     @MainActor
     func test_receive_accountLongPressed_logout_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         // Set up the mock data.
         let activeProfile = ProfileSwitcherItem.fixture()
         let otherProfile = ProfileSwitcherItem.fixture(userId: "2")
@@ -875,48 +762,10 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         )
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.accountLongPressed)` records any errors from logging out the
-    /// account.
-    @MainActor
-    func test_receive_accountLongPressed_logout_error() async throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        // Set up the mock data.
-        let activeProfile = ProfileSwitcherItem.fixture()
-        let otherProfile = ProfileSwitcherItem.fixture(userId: "42")
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [otherProfile, activeProfile],
-            activeAccountId: activeProfile.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-        authRepository.activeAccount = nil
-
-        await subject.perform(.profileSwitcher(.accountLongPressed(otherProfile)))
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-
-        // Select the alert action to log out from the account.
-        let logoutAction = try XCTUnwrap(coordinator.alertShown.last?.alertActions.first)
-        await logoutAction.handler?(logoutAction, [])
-
-        // Confirm logging out on the second alert.
-        let confirmAction = try XCTUnwrap(coordinator.alertShown.last?.alertActions.first)
-        await confirmAction.handler?(confirmAction, [])
-
-        // Verify the results.
-        XCTAssertEqual(errorReporter.errors.last as? StateServiceError, .noActiveAccount)
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.accountLongPressed)` for iOS 26 records any errors from logging out
     /// the account and dismisses the profile switcher.
     @MainActor
     func test_receive_accountLongPressed_logout_error_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         // Set up the mock data.
         let activeProfile = ProfileSwitcherItem.fixture()
         let otherProfile = ProfileSwitcherItem.fixture(userId: "2")
@@ -945,52 +794,10 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertEqual(errorReporter.errors.last as? StateServiceError, .noActiveAccount)
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.accountPressed)` with the active account
-    ///  dismisses the profile switcher.
-    @MainActor
-    func test_receive_accountPressed_active_unlocked() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        let profile = ProfileSwitcherItem.fixture()
-        authRepository.profileSwitcherState = .init(
-            accounts: [profile],
-            activeAccountId: profile.userId,
-            allowLockAndLogout: true,
-            isVisible: false,
-        )
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile],
-            activeAccountId: profile.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-
-        let task = Task {
-            await subject.perform(.profileSwitcher(.accountPressed(profile)))
-        }
-        waitFor(!subject.state.profileSwitcherState.isVisible)
-        task.cancel()
-
-        XCTAssertNotNil(subject.state.profileSwitcherState)
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-        XCTAssertEqual(
-            coordinator.events,
-            [
-                .action(.switchAccount(isAutomatic: false, userId: profile.userId)),
-            ],
-        )
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.accountPressed)` for iOS 26 with the active unlocked account
     /// dismisses the profile switcher.
     @MainActor
     func test_receive_accountPressed_active_unlocked_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         let profile = ProfileSwitcherItem.fixture()
         authRepository.profileSwitcherState = .init(
             accounts: [profile],
@@ -1009,48 +816,6 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
 
         XCTAssertNotNil(subject.state.profileSwitcherState)
         XCTAssertTrue(coordinator.routes.contains(.dismiss))
-        XCTAssertEqual(
-            coordinator.events,
-            [
-                .action(.switchAccount(isAutomatic: false, userId: profile.userId)),
-            ],
-        )
-    }
-
-    /// `receive(_:)` with `.profileSwitcher(.accountPressed)`  with the active account
-    ///  dismisses the profile switcher.
-    @MainActor
-    func test_receive_accountPressed_active_locked() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        let profile = ProfileSwitcherItem.fixture(isUnlocked: false)
-        let account = Account.fixture(profile: .fixture(
-            userId: profile.userId,
-        ))
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile],
-            activeAccountId: profile.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-        authRepository.accountForItemResult = .success(account)
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile],
-            activeAccountId: profile.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-
-        let task = Task {
-            await subject.perform(.profileSwitcher(.accountPressed(profile)))
-        }
-        waitFor(!subject.state.profileSwitcherState.isVisible)
-        task.cancel()
-
-        XCTAssertNotNil(subject.state.profileSwitcherState)
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
         XCTAssertEqual(
             coordinator.events,
             [
@@ -1063,10 +828,6 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
     /// dismisses the profile switcher.
     @MainActor
     func test_receive_accountPressed_active_locked_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         let profile = ProfileSwitcherItem.fixture(isUnlocked: false)
         let account = Account.fixture(profile: .fixture(
             userId: profile.userId,
@@ -1097,56 +858,10 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         )
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.accountPressed)` updates the state to reflect the changes.
-    @MainActor
-    func test_receive_accountPressed_alternateUnlocked() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        let profile = ProfileSwitcherItem.fixture()
-        let active = ProfileSwitcherItem.fixture()
-        let account = Account.fixture(
-            profile: .fixture(
-                userId: profile.userId,
-            ),
-        )
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile, active],
-            activeAccountId: active.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-        authRepository.accountForItemResult = .success(account)
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile, active],
-            activeAccountId: active.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-
-        let task = Task {
-            await subject.perform(.profileSwitcher(.accountPressed(profile)))
-        }
-        waitFor(!coordinator.events.isEmpty)
-        task.cancel()
-
-        XCTAssertNotNil(subject.state.profileSwitcherState)
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-        XCTAssertEqual(
-            coordinator.events,
-            [.action(.switchAccount(isAutomatic: false, userId: profile.userId))],
-        )
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.accountPressed)` for iOS 26 dismisses the profile switcher
     /// and switches to an alternate unlocked account.
     @MainActor
     func test_receive_accountPressed_alternateUnlocked_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         let profile = ProfileSwitcherItem.fixture()
         let active = ProfileSwitcherItem.fixture()
         let account = Account.fixture(
@@ -1172,46 +887,6 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
 
         XCTAssertNotNil(subject.state.profileSwitcherState)
         XCTAssertTrue(coordinator.routes.contains(.dismiss))
-        XCTAssertEqual(
-            coordinator.events,
-            [.action(.switchAccount(isAutomatic: false, userId: profile.userId))],
-        )
-    }
-
-    /// `receive(_:)` with `.profileSwitcher(.accountPressed)` updates the state to reflect the changes.
-    @MainActor
-    func test_receive_accountPressed_alternateLocked() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        let profile = ProfileSwitcherItem.fixture(isUnlocked: false)
-        let active = ProfileSwitcherItem.fixture()
-        let account = Account.fixture(profile: .fixture(
-            userId: profile.userId,
-        ))
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile, active],
-            activeAccountId: active.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-        authRepository.accountForItemResult = .success(account)
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile, active],
-            activeAccountId: active.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-
-        let task = Task {
-            await subject.perform(.profileSwitcher(.accountPressed(profile)))
-        }
-        waitFor(!coordinator.events.isEmpty)
-        task.cancel()
-
-        XCTAssertNotNil(subject.state.profileSwitcherState)
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
         XCTAssertEqual(
             coordinator.events,
             [.action(.switchAccount(isAutomatic: false, userId: profile.userId))],
@@ -1222,10 +897,6 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
     /// and switches to an alternate locked account.
     @MainActor
     func test_receive_accountPressed_alternateLocked_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         let profile = ProfileSwitcherItem.fixture(isUnlocked: false)
         let active = ProfileSwitcherItem.fixture()
         let account = Account.fixture(profile: .fixture(
@@ -1255,50 +926,10 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         )
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.accountPressed)` updates the state to reflect the changes.
-    @MainActor
-    func test_receive_accountPressed_noMatch() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        let profile = ProfileSwitcherItem.fixture()
-        let active = ProfileSwitcherItem.fixture()
-        authRepository.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile, active],
-            activeAccountId: active.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [profile, active],
-            activeAccountId: active.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-
-        let task = Task {
-            await subject.perform(.profileSwitcher(.accountPressed(profile)))
-        }
-        waitFor(!coordinator.events.isEmpty)
-        task.cancel()
-
-        XCTAssertNotNil(subject.state.profileSwitcherState)
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-        XCTAssertEqual(
-            coordinator.events,
-            [.action(.switchAccount(isAutomatic: false, userId: profile.userId))],
-        )
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.accountPressed)` for iOS 26 dismisses the profile switcher
     /// and switches to an account that doesn't match.
     @MainActor
     func test_receive_accountPressed_noMatch_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         let profile = ProfileSwitcherItem.fixture()
         let active = ProfileSwitcherItem.fixture()
         authRepository.profileSwitcherState = ProfileSwitcherState(
@@ -1324,39 +955,9 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         )
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.addAccountPressed)` updates the state to reflect the changes.
-    @MainActor
-    func test_receive_addAccountPressed() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        let active = ProfileSwitcherItem.fixture()
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [active],
-            activeAccountId: active.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-
-        let task = Task {
-            await subject.perform(.profileSwitcher(.addAccountPressed))
-        }
-        waitFor(!subject.state.profileSwitcherState.isVisible)
-        task.cancel()
-
-        XCTAssertNotNil(subject.state.profileSwitcherState)
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-        XCTAssertEqual(coordinator.routes, [])
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.addAccountPressed)` for iOS 26 dismisses the profile switcher.
     @MainActor
     func test_receive_addAccountPressed_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         let active = ProfileSwitcherItem.fixture()
         subject.state.profileSwitcherState = ProfileSwitcherState(
             accounts: [active],
@@ -1371,39 +972,9 @@ class LandingProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertTrue(coordinator.routes.contains(.dismiss))
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.backgroundTapped)` updates the state to reflect the changes.
-    @MainActor
-    func test_receive_backgroundTapped() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        let active = ProfileSwitcherItem.fixture()
-        subject.state.profileSwitcherState = ProfileSwitcherState(
-            accounts: [active],
-            activeAccountId: active.userId,
-            allowLockAndLogout: true,
-            isVisible: true,
-        )
-
-        let task = Task {
-            subject.receive(.profileSwitcher(.backgroundTapped))
-        }
-        waitFor(!subject.state.profileSwitcherState.isVisible)
-        task.cancel()
-
-        XCTAssertNotNil(subject.state.profileSwitcherState)
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-        XCTAssertEqual(coordinator.routes, [])
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.backgroundTapped)` for iOS 26 dismisses the profile switcher.
     @MainActor
     func test_receive_backgroundTapped_iOS26() throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         let active = ProfileSwitcherItem.fixture()
         subject.state.profileSwitcherState = ProfileSwitcherState(
             accounts: [active],

@@ -90,13 +90,7 @@ struct ImportCXFView: View {
         .task {
             await store.perform(.appeared)
         }
-        .apply { view in
-            if #available(iOS 16.0, *) {
-                view.toolbar(.hidden)
-            } else {
-                view.navigationBarHidden(true)
-            }
-        }
+        .toolbar(.hidden)
     }
 
     /// The SF Symbol for the current status.

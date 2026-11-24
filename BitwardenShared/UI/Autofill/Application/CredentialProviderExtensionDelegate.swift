@@ -12,7 +12,6 @@ public protocol CredentialProviderExtensionDelegate: AppExtensionDelegate {
 
     /// Completes the assertion request with a Fido2 credential.
     /// - Parameter assertionCredential: The passkey credential to be used to complete the assertion.
-    @available(iOSApplicationExtension 17.0, *)
     func completeAssertionRequest(assertionCredential: ASPasskeyAssertionCredential)
 
     /// Completes the generate-password request with the user-selected password and kind.
@@ -24,19 +23,16 @@ public protocol CredentialProviderExtensionDelegate: AppExtensionDelegate {
 
     /// Completes the autofill OTP request with the specified code.
     /// - Parameter code: The code to autofill.
-    @available(iOSApplicationExtension 18.0, *)
     func completeOTPRequest(code: String)
 
     /// Completes the registration request with a Fido2 credential
     /// - Parameter asPasskeyRegistrationCredential: The passkey credential to be used to complete the registration.
-    @available(iOSApplicationExtension 17.0, *)
     func completeRegistrationRequest(asPasskeyRegistrationCredential: ASPasskeyRegistrationCredential)
 
     /// Completes the save password request.
     func completeSavePasswordRequest()
 
     /// Completes the text request with some text to insert.
-    @available(iOSApplicationExtension 18.0, *)
     func completeTextRequest(text: String)
 
     /// Gets a publisher for when `didAppear` happens.
@@ -48,7 +44,6 @@ public protocol CredentialProviderExtensionDelegate: AppExtensionDelegate {
 
     /// Marks that a credential matching one in the relying party's excluded credentials list was
     /// found and fails the registration request accordingly.
-    @available(iOSApplicationExtension 18.0, *)
     func setMatchedExcludedCredentialFound()
 
     /// Marks that user interaction is required.
@@ -102,8 +97,7 @@ extension CredentialProviderExtensionDelegate {
         case let .autofillFido2VaultList(_, parameters):
             return parameters.relyingPartyIdentifier
         case let .registerFido2Credential(passkeyRequest):
-            guard #available(iOSApplicationExtension 17.0, *),
-                  let asPasskeyRequest = passkeyRequest as? ASPasskeyCredentialRequest,
+            guard let asPasskeyRequest = passkeyRequest as? ASPasskeyCredentialRequest,
                   let credentialIdentity = asPasskeyRequest.credentialIdentity as? ASPasskeyCredentialIdentity else {
                 return nil
             }

@@ -5,7 +5,6 @@ import Foundation
 /// A mediator to process `AppIntent` actions.
 public protocol AppIntentMediator {
     /// Whether app intents can be run.
-    @available(iOSApplicationExtension 16, *)
     func canRunAppIntents() async throws -> Bool
 
     /// Generates a passphrase.
@@ -54,7 +53,6 @@ class DefaultAppIntentMediator: AppIntentMediator {
         self.stateService = stateService
     }
 
-    @available(iOSApplicationExtension 16, *)
     func canRunAppIntents() async throws -> Bool {
         do {
             return try await stateService.getSiriAndShortcutsAccess()
@@ -104,7 +102,6 @@ class DefaultAppIntentMediator: AppIntentMediator {
 }
 
 /// The errors that can be thrown by app intents.
-@available(iOS 16, *)
 public enum AppIntentError: Error, CustomLocalizedStringResourceConvertible {
     case noActiveAccount
     case notAllowed

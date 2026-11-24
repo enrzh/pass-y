@@ -55,10 +55,6 @@ struct DefaultTextAutofillHelperFactory: TextAutofillHelperFactory {
     // MARK: Methods
 
     func create(delegate: TextAutofillHelperDelegate) -> TextAutofillHelper {
-        guard #available(iOS 18.0, *) else {
-            return NoOpTextAutofillHelper()
-        }
-
         let userVerificationHelper = userVerificationHelperFactory.create()
         let textAutofillHelper = TextAutofillHelperRepromptWrapper(
             authRepository: authRepository,

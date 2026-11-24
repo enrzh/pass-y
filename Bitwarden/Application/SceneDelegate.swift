@@ -96,8 +96,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 await appProcessor.openUrl(url)
             }
 
-            if #available(iOS 26.0, *),
-               let userActivity = connectionOptions.userActivities.first {
+            if let userActivity = connectionOptions.userActivities.first {
                 await checkAndHandleCredentialExchangeActivity(appProcessor: appProcessor, userActivity: userActivity)
             }
         }
@@ -116,10 +115,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             appProcessor.handleAppLinks(incomingURL: incomingURL)
         }
 
-        if #available(iOS 26.0, *) {
-            Task {
-                await checkAndHandleCredentialExchangeActivity(appProcessor: appProcessor, userActivity: userActivity)
-            }
+        Task {
+            await checkAndHandleCredentialExchangeActivity(appProcessor: appProcessor, userActivity: userActivity)
         }
     }
 
@@ -223,7 +220,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 // MARK: - SceneDelegate 26.0
 
-@available(iOS 26.0, *)
 extension SceneDelegate {
     /// Checks  whether there is an `ASCredentialExchangeActivity` in the `userActivity` and handles it.
     /// - Parameters:

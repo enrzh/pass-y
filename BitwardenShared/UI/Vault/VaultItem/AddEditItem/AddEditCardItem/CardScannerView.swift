@@ -8,7 +8,6 @@ import VisionKit
 /// A SwiftUI view that hosts the card scanner with a navigation bar, instruction text,
 /// and a Done button. This is the entry point for card scanning presented as a sheet.
 ///
-@available(iOS 16.0, *)
 struct CardScannerWrapperView: View {
     // MARK: Properties
 
@@ -109,7 +108,6 @@ struct CardScannerWrapperView: View {
 /// - `isScanning` drives `startScanning()`/`stopScanning()` via `updateUIViewController`,
 ///   toggled by the wrapper's `.onAppear`/`.onDisappear`.
 ///
-@available(iOS 16.0, *)
 struct CardScannerView: UIViewControllerRepresentable {
     // MARK: Properties
 
@@ -179,7 +177,6 @@ struct CardScannerView: UIViewControllerRepresentable {
 
 // MARK: - Coordinator
 
-@available(iOS 16.0, *)
 extension CardScannerView {
     /// Coordinator acting as `DataScannerViewControllerDelegate`.
     /// Accumulates recognized text lines and forwards them to the processor via `onLinesUpdated`.

@@ -194,17 +194,13 @@ public struct ToastView: View {
             .compactMap(\.self)
             .joined(separator: ", ")
 
-        if #available(iOS 17, *) {
-            // Use a high priority so the announcement isn't dropped when shown alongside a
-            // screen transition, such as dismissing the share sheet.
-            let announcement = NSAttributedString(
-                string: message,
-                attributes: [.accessibilitySpeechAnnouncementPriority: UIAccessibilityPriority.high],
-            )
-            UIAccessibility.post(notification: .announcement, argument: announcement)
-        } else {
-            UIAccessibility.post(notification: .announcement, argument: message)
-        }
+        // Use a high priority so the announcement isn't dropped when shown alongside a
+        // screen transition, such as dismissing the share sheet.
+        let announcement = NSAttributedString(
+            string: message,
+            attributes: [.accessibilitySpeechAnnouncementPriority: UIAccessibilityPriority.high],
+        )
+        UIAccessibility.post(notification: .announcement, argument: announcement)
     }
 }
 

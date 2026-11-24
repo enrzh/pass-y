@@ -35,7 +35,6 @@ protocol ProfileSwitcherHandler: AnyObject { // sourcery: AutoMockable
 
     /// Dismisses the profile switcher; this is used on iOS >=26 for making sure the sheet
     /// is dismissed appropriately; on iOS <26, `profileSwitcherState.isVisible` is used instead.
-    @available(iOS 26, *)
     func dismissProfileSwitcher()
 
     /// Handles auth events that require asynchronous management.
@@ -72,7 +71,6 @@ protocol ProfileSwitcherHandler: AnyObject { // sourcery: AutoMockable
 
     /// Shows the profile switcher; this is used on iOS >=26 for displaying the sheet;
     /// on iOS <26, `profileSwitcherState.isVisible` is used instead.
-    @available(iOS 26, *)
     func showProfileSwitcher()
 }
 
@@ -130,11 +128,7 @@ extension ProfileSwitcherHandler {
                 await profileServices.authRepository.checkSessionTimeouts(handleActiveUser: nil)
                 await refreshProfileState()
             }
-            if #available(iOS 26, *) {
-                showProfileSwitcher()
-            } else {
-                profileSwitcherState.isVisible = isVisible
-            }
+            showProfileSwitcher()
         case let .rowAppeared(rowType):
             await rowAppeared(rowType)
         }
@@ -160,9 +154,7 @@ private extension ProfileSwitcherHandler {
         showAlert(
             .logoutConfirmation(profile) { [weak self] in
                 guard let self else { return }
-                if #available(iOS 26, *) {
-                    dismissProfileSwitcher()
-                }
+                dismissProfileSwitcher()
                 await logout(profile)
             },
         )
@@ -176,9 +168,7 @@ private extension ProfileSwitcherHandler {
         showAlert(
             .removeAccountConfirmation(profile) { [weak self] in
                 guard let self else { return }
-                if #available(iOS 26, *) {
-                    dismissProfileSwitcher()
-                }
+                dismissProfileSwitcher()
                 await removeAccount(profile)
             },
         )
@@ -189,20 +179,13 @@ private extension ProfileSwitcherHandler {
     /// - Parameter account: The `ProfileSwitcherItem` long pressed by the user.
     ///
     func didLongPressProfileSwitcherItem(_ account: ProfileSwitcherItem) async {
-        if #unavailable(iOS 26) {
-            // We only want to hide the profile switcher on long press prior to iOS 26.
-            // From iOS 26 onwards, the alert presents from the sheet, and should therefore
-            // be part of the sheet; the sheet should otherwise dismiss when it makes sense
-            // in the flow.
-            profileSwitcherState.isVisible = false
-        }
+        // The alert presents from the profile switcher sheet and is part of it; the sheet dismisses when it makes
+        // sense in the flow.
         showAlert(
             .accountOptions(
                 account,
                 lockAction: {
-                    if #available(iOS 26, *) {
-                        self.dismissProfileSwitcher()
-                    }
+                    self.dismissProfileSwitcher()
                     await self.lock(account)
                 },
                 logoutAction: {
@@ -215,15 +198,10 @@ private extension ProfileSwitcherHandler {
         )
     }
 
-    /// Hides the profile switcher. On iOS 26, this means dismissing it; on earlier versions, this
-    /// means making the view invisible.
+    /// Hides (dismisses) the profile switcher sheet.
     ///
     func hideProfileSwitcher() {
-        if #available(iOS 26, *) {
-            dismissProfileSwitcher()
-        } else {
-            profileSwitcherState.isVisible = false
-        }
+        dismissProfileSwitcher()
     }
 
     /// Lock an account.
@@ -315,18 +293,11 @@ private extension ProfileSwitcherHandler {
     /// - Parameter account: The profile switcher item for the account to activate.
     ///
     func select(_ account: ProfileSwitcherItem) async {
-        defer {
-            if #unavailable(iOS 26) {
-                profileSwitcherState.isVisible = false
-            }
-        }
-        if #available(iOS 26, *) {
-            // This has to happen before the account switch event is handled, otherwise in the share extension,
-            // the stack navigator believes it's not presenting anything, and the dismiss becomes a no-op, leaving
-            // the profile switcher on the screen.
-            // Making sure we do the dismiss *first* solves the problem.
-            dismissProfileSwitcher()
-        }
+        // This has to happen before the account switch event is handled, otherwise in the share extension,
+        // the stack navigator believes it's not presenting anything, and the dismiss becomes a no-op, leaving
+        // the profile switcher on the screen.
+        // Making sure we do the dismiss *first* solves the problem.
+        dismissProfileSwitcher()
         guard account.userId != profileSwitcherState.activeAccountId || showPlaceholderToolbarIcon else {
             return
         }

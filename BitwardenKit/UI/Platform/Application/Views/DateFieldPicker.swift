@@ -331,7 +331,6 @@ public struct DateFieldPicker: View {
 // MARK: - Previews
 
 #if DEBUG
-@available(iOS 17, *)
 #Preview("Collapsed empty") {
     @Previewable @SwiftUI.State var date: Date?
     DateFieldPicker(title: "Date of birth", date: $date)
@@ -339,7 +338,6 @@ public struct DateFieldPicker: View {
         .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
 }
 
-@available(iOS 17, *)
 #Preview("Collapsed selected") {
     @Previewable @SwiftUI.State var date: Date? = Date(year: 2025, month: 4, day: 20)
     DateFieldPicker(title: "Date of birth", date: $date)
@@ -347,7 +345,6 @@ public struct DateFieldPicker: View {
         .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
 }
 
-@available(iOS 17, *)
 #Preview("With footer") {
     @Previewable @SwiftUI.State var date: Date? = Date(year: 2025, month: 4, day: 20)
     DateFieldPicker(

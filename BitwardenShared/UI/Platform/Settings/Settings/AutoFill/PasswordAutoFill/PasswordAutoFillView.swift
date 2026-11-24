@@ -71,10 +71,6 @@ struct PasswordAutoFillView: View {
             .padding(.top, 12)
             .padding(.horizontal, 12)
 
-            if #unavailable(iOS 18) {
-                autofillInstructions
-            }
-
             Text(
                 LocalizedStringKey(
                     Localizations.needHelpCheckOutAutofillHelp(
@@ -148,15 +144,6 @@ struct PasswordAutoFillView: View {
             .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
-    }
-
-    /// The current auto fill instructions to present in the list.
-    private var autofillInstructions: some View {
-        NumberedList {
-            ForEach(store.state.autofillInstructions, id: \.self) { instruction in
-                NumberedListRow(title: instruction)
-            }
-        }
     }
 
     /// The list of step by step instructions.

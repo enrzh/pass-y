@@ -90,9 +90,9 @@ struct AddEditItemView: View {
         }
         .nativeFormRows()
         .animation(.default, value: store.state.collectionsForOwner)
-        .backport.dismissKeyboardImmediately()
+        .scrollDismissesKeyboard(.immediately)
         .navigationBarTitleDisplayMode(.inline)
-        .backport.scrollContentMargins(Edge.Set.bottom, 30.0)
+        .contentMargins(.bottom, 30, for: .scrollContent)
     }
 
     private var existing: some View {
@@ -102,7 +102,7 @@ struct AddEditItemView: View {
                     store.send(.dismissPressed)
                 }
 
-                // Save goes on the right in iOS 26, on the left < 26
+                // Save goes on the right (after the options menu)
                 versionDependentOrderingToolbarItemGroup(
                     alfa: {
                         VaultItemManagementMenuView(

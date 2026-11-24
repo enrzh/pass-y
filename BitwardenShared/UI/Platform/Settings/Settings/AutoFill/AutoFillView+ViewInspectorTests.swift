@@ -102,56 +102,7 @@ class AutoFillViewTests: BitwardenTestCase {
 
     /// The action card is visible if the autofill setup progress isn't complete.
     @MainActor
-    func test_setUpUnlockActionCard_visible_iOSPre18() async throws {
-        guard #unavailable(iOS 18) else {
-            throw XCTSkip("Skipped on iOS >= 18.0")
-        }
-
-        processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let section = try subject.inspect().find(setupSection: Localizations.setUpAutofill)
-        _ = try section.find(asyncButton: Localizations.getStarted)
-        _ = try section.find(asyncButton: Localizations.dismiss)
-    }
-
-    /// Tapping the dismiss button in the set up autofill action card sends the
-    /// `.dismissSetUpUnlockActionCard` effect.
-    @MainActor
-    func test_setUpUnlockActionCard_visible_tapDismiss_preiOS18() async throws {
-        guard #unavailable(iOS 18) else {
-            throw XCTSkip("Skipped on iOS >= 18.0")
-        }
-
-        processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(setupSection: Localizations.setUpAutofill)
-
-        let button = try actionCard.find(asyncButton: Localizations.dismiss)
-        try await button.tap()
-        XCTAssertEqual(processor.effects, [.dismissSetUpAutofillActionCard])
-    }
-
-    /// Tapping the get started button in the set up autofill action card sends the
-    /// `.showSetUpUnlock` action.
-    @MainActor
-    func test_setUpUnlockActionCard_visible_tapGetStarted_preiOS18() async throws {
-        guard #unavailable(iOS 18) else {
-            throw XCTSkip("Skipped on iOS >= 18.0")
-        }
-
-        processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(setupSection: Localizations.setUpAutofill)
-
-        let button = try actionCard.find(asyncButton: Localizations.getStarted)
-        try await button.tap()
-        XCTAssertEqual(processor.effects, [.setUpAutofill])
-    }
-
-    /// The action card is visible if the autofill setup progress isn't complete.
-    @MainActor
     func test_setUpUnlockActionCard_visible_iOS18() async throws {
-        guard #available(iOS 18.0, *) else {
-            throw XCTSkip("Skipped on iOS < 18.0")
-        }
-
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
         let section = try subject.inspect().find(setupSection: Localizations.autofillWithBitwarden)
         _ = try section.find(text: Localizations.autofillWithBitwardenDescriptionLong)
@@ -164,10 +115,6 @@ class AutoFillViewTests: BitwardenTestCase {
     /// `.dismissSetUpUnlockActionCard` effect.
     @MainActor
     func test_setUpUnlockActionCard_visible_tapDismiss_iOS18() async throws {
-        guard #available(iOS 18.0, *) else {
-            throw XCTSkip("Skipped on iOS < 18.0")
-        }
-
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
         let actionCard = try subject.inspect().find(setupSection: Localizations.autofillWithBitwarden)
 
@@ -180,10 +127,6 @@ class AutoFillViewTests: BitwardenTestCase {
     /// `.showSetUpUnlock` action.
     @MainActor
     func test_setUpUnlockActionCard_visible_tapGetStarted_iOS18() async throws {
-        guard #available(iOS 18.0, *) else {
-            throw XCTSkip("Skipped on iOS < 18.0")
-        }
-
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
         let actionCard = try subject.inspect().find(setupSection: Localizations.autofillWithBitwarden)
 

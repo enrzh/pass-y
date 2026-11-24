@@ -39,7 +39,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         initializeApp(with: DefaultCredentialProviderContext(.autofillVaultList(serviceIdentifiers)))
     }
 
-    @available(iOSApplicationExtension 17.0, *)
     override func prepareCredentialList(
         for serviceIdentifiers: [ASCredentialServiceIdentifier],
         requestParameters: ASPasskeyCredentialRequestParameters,
@@ -53,7 +52,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         initializeApp(with: DefaultCredentialProviderContext(.configureAutofill))
     }
 
-    @available(iOSApplicationExtension 17.0, *)
     override func prepareInterface(forPasskeyRegistration registrationRequest: any ASCredentialRequest) {
         guard let fido2RegistrationRequest = registrationRequest as? ASPasskeyCredentialRequest else {
             return
@@ -81,7 +79,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         }
     }
 
-    @available(iOSApplicationExtension 17.0, *)
     override func provideCredentialWithoutUserInteraction(for credentialRequest: any ASCredentialRequest) {
         switch credentialRequest {
         case let passwordRequest as ASPasswordCredentialRequest:
@@ -98,15 +95,13 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
                 provideFido2Credential(for: passkeyRequest)
             }
         default:
-            if #available(iOSApplicationExtension 18.0, *),
-               let otpRequest = credentialRequest as? ASOneTimeCodeCredentialRequest,
+            if let otpRequest = credentialRequest as? ASOneTimeCodeCredentialRequest,
                let otpIdentity = otpRequest.credentialIdentity as? ASOneTimeCodeCredentialIdentity {
                 provideOTPCredentialWithoutUserInteraction(for: otpIdentity)
             }
         }
     }
 
-    @available(iOSApplicationExtension 17.0, *)
     override func prepareInterfaceToProvideCredential(for credentialRequest: any ASCredentialRequest) {
         switch credentialRequest {
         case let passwordRequest as ASPasswordCredentialRequest:
@@ -120,8 +115,7 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
                 ),
             )
         default:
-            if #available(iOSApplicationExtension 18.0, *),
-               let otpRequest = credentialRequest as? ASOneTimeCodeCredentialRequest,
+            if let otpRequest = credentialRequest as? ASOneTimeCodeCredentialRequest,
                let otpIdentity = otpRequest.credentialIdentity as? ASOneTimeCodeCredentialIdentity {
                 initializeApp(with: DefaultCredentialProviderContext(
                     .autofillOTPCredential(otpIdentity, userInteraction: true),
@@ -221,7 +215,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
     /// - Parameters:
     ///   - passkeyRequest: Request to get the credential
     ///   - withUserInteraction: Whether this is called in a flow with user interaction.
-    @available(iOSApplicationExtension 17.0, *)
     private func provideFido2Credential(
         for passkeyRequest: ASPasskeyCredentialRequest,
     ) {
@@ -256,7 +249,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
     ///   - repromptPasswordValidated: `true` if master password reprompt was required for the
     ///     cipher and the user's master password was validated.
     ///
-    @available(iOSApplicationExtension 18.0, *)
     private func provideOTPCredential(
         for id: String,
         repromptPasswordValidated: Bool = false,
@@ -280,7 +272,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         }
     }
 
-    @available(iOSApplicationExtension 18.0, *)
     private func provideOTPCredentialWithoutUserInteraction(for otpIdentity: ASOneTimeCodeCredentialIdentity) {
         guard let recordIdentifier = otpIdentity.recordIdentifier else {
             cancel(error: ASExtensionError(.credentialIdentityNotFound))
@@ -299,7 +290,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
 // MARK: - iOS 18
 
 extension CredentialProviderViewController {
-    @available(iOSApplicationExtension 18.0, *)
     override func prepareInterfaceForUserChoosingTextToInsert() {
         // Anchor here rather than inside initializeApp: initializeApp launches an async Task,
         // so by the time it runs something else may have stolen focus. At this call site the view
@@ -312,7 +302,6 @@ extension CredentialProviderViewController {
         initializeApp(with: DefaultCredentialProviderContext(.autofillText))
     }
 
-    @available(iOSApplicationExtension 18.0, *)
     override func prepareOneTimeCodeCredentialList(for serviceIdentifiers: [ASCredentialServiceIdentifier]) {
         initializeApp(with: DefaultCredentialProviderContext(.autofillOTP(serviceIdentifiers)))
     }
@@ -448,16 +437,14 @@ extension CredentialProviderViewController: AppExtensionDelegate {
         case .autofillCredential:
             provideCredentialWithUserInteraction()
         case let .autofillFido2Credential(passkeyRequest, _):
-            guard #available(iOSApplicationExtension 17.0, *),
-                  let asPasskeyRequest = passkeyRequest as? ASPasskeyCredentialRequest else {
+            guard let asPasskeyRequest = passkeyRequest as? ASPasskeyCredentialRequest else {
                 cancel(error: ASExtensionError(.failed))
                 return
             }
 
             provideFido2Credential(for: asPasskeyRequest)
         case let .autofillOTPCredential(otpIdentity, _):
-            guard #available(iOSApplicationExtension 18.0, *),
-                  let asOneTimeCodeIdentity = otpIdentity as? ASOneTimeCodeCredentialIdentity else {
+            guard let asOneTimeCodeIdentity = otpIdentity as? ASOneTimeCodeCredentialIdentity else {
                 cancel(error: ASExtensionError(.failed))
                 return
             }
@@ -494,7 +481,6 @@ extension CredentialProviderViewController: AppExtensionDelegate {
 
     /// Provides an OTP credential with user interaction given an `ASOneTimeCodeCredentialIdentity`.
     /// - Parameter otpIdentity: `ASOneTimeCodeCredentialIdentity` to provide the credential for.
-    @available(iOSApplicationExtension 18.0, *)
     func provideOTPCredentialWithUserInteraction(for otpIdentity: ASOneTimeCodeCredentialIdentity) {
         guard let appProcessor, let recordIdentifier = otpIdentity.recordIdentifier else {
             cancel(error: ASExtensionError(.failed))
@@ -531,7 +517,6 @@ extension CredentialProviderViewController: CredentialProviderExtensionDelegate 
         context?.flowWithUserInteraction ?? false
     }
 
-    @available(iOSApplicationExtension 17.0, *)
     func completeAssertionRequest(assertionCredential: ASPasskeyAssertionCredential) {
         extensionContext.completeAssertionRequest(using: assertionCredential)
     }
@@ -544,7 +529,6 @@ extension CredentialProviderViewController: CredentialProviderExtensionDelegate 
         )
     }
 
-    @available(iOSApplicationExtension 18.0, *)
     func completeOTPRequest(code: String) {
         extensionContext.completeOneTimeCodeRequest(using: ASOneTimeCodeCredential(code: code))
     }
@@ -554,12 +538,10 @@ extension CredentialProviderViewController: CredentialProviderExtensionDelegate 
         extensionContext.completeSavePasswordRequest(completionHandler: nil)
     }
 
-    @available(iOSApplicationExtension 17.0, *)
     func completeRegistrationRequest(asPasskeyRegistrationCredential: ASPasskeyRegistrationCredential) {
         extensionContext.completeRegistrationRequest(using: asPasskeyRegistrationCredential)
     }
 
-    @available(iOSApplicationExtension 18.0, *)
     func completeTextRequest(text: String) {
         extensionContext.completeRequest(withTextToInsert: text)
     }
@@ -575,7 +557,6 @@ extension CredentialProviderViewController: CredentialProviderExtensionDelegate 
         keyboardAnchor = nil
     }
 
-    @available(iOSApplicationExtension 18.0, *)
     func setMatchedExcludedCredentialFound() {
         cancel(error: ASExtensionError(.matchedExcludedCredential))
     }

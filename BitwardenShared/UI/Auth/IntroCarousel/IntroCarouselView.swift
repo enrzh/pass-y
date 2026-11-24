@@ -140,7 +140,6 @@ struct IntroCarouselView: View {
     IntroCarouselView(store: Store(processor: StateProcessor(state: IntroCarouselState())))
 }
 
-@available(iOS 17, *)
 #Preview("Carousel Landscape", traits: .landscapeRight) {
     IntroCarouselView(store: Store(processor: StateProcessor(state: IntroCarouselState())))
 }

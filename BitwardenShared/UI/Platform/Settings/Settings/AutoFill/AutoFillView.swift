@@ -49,33 +49,20 @@ struct AutoFillView: View {
     /// The action card for setting up autofill.
     @ViewBuilder private var autofillActionCard: some View {
         if store.state.shouldShowAutofillActionCard {
-            if #available(iOS 18, *) {
-                NativeSetupSection(
-                    title: Localizations.autofillWithBitwarden,
-                    message: Localizations.autofillWithBitwardenDescriptionLong,
-                    systemImage: "text.badge.checkmark",
-                    action: NativeSetupSection.Row(title: Localizations.turnOnNow) {
-                        await store.perform(.setUpAutofill)
-                    },
-                    secondary: NativeSetupSection.Row(title: Localizations.learnMoreAboutAutofill) {
-                        store.send(.learnMoreAboutAutofillTapped)
-                    },
-                    dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
-                        await store.perform(.dismissSetUpAutofillActionCard)
-                    },
-                )
-            } else {
-                NativeSetupSection(
-                    title: Localizations.setUpAutofill,
-                    systemImage: "text.badge.checkmark",
-                    action: NativeSetupSection.Row(title: Localizations.getStarted) {
-                        await store.perform(.setUpAutofill)
-                    },
-                    dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
-                        await store.perform(.dismissSetUpAutofillActionCard)
-                    },
-                )
-            }
+            NativeSetupSection(
+                title: Localizations.autofillWithBitwarden,
+                message: Localizations.autofillWithBitwardenDescriptionLong,
+                systemImage: "text.badge.checkmark",
+                action: NativeSetupSection.Row(title: Localizations.turnOnNow) {
+                    await store.perform(.setUpAutofill)
+                },
+                secondary: NativeSetupSection.Row(title: Localizations.learnMoreAboutAutofill) {
+                    store.send(.learnMoreAboutAutofillTapped)
+                },
+                dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
+                    await store.perform(.dismissSetUpAutofillActionCard)
+                },
+            )
         }
     }
 

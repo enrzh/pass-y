@@ -51,7 +51,6 @@ public struct ProfileSwitcherSheet: View {
 // MARK: Previews
 
 #if DEBUG
-@available(iOS 16.0, *)
 #Preview("Single Account") {
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
@@ -69,7 +68,6 @@ public struct ProfileSwitcherSheet: View {
         }
 }
 
-@available(iOS 16.0, *)
 #Preview("Dual Account") {
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
@@ -87,7 +85,6 @@ public struct ProfileSwitcherSheet: View {
         }
 }
 
-@available(iOS 16.0, *)
 #Preview("Many Accounts") {
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
@@ -105,7 +102,6 @@ public struct ProfileSwitcherSheet: View {
         }
 }
 
-@available(iOS 16.0, *)
 #Preview("Max Accounts") {
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {

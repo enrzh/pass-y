@@ -303,36 +303,9 @@ class VaultAutofillListProcessorTests: BitwardenTestCase { // swiftlint:disable:
         XCTAssertFalse(vaultRepository.fetchSyncCalled)
     }
 
-    /// `perform(_:)` with `.profileSwitcher(.accountPressed)` updates the profile switcher's
-    /// visibility and navigates to switch account.
-    @MainActor
-    func test_perform_profileSwitcher_accountPressed() async throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        subject.state.profileSwitcherState.isVisible = true
-        await subject.perform(.profileSwitcher(.accountPressed(ProfileSwitcherItem.fixture(userId: "1"))))
-        authRepository.activeAccount = .fixture(profile: .fixture(userId: "42"))
-        authRepository.altAccounts = [
-            .fixture(),
-        ]
-        authRepository.vaultTimeout = [
-            "1": .fiveMinutes,
-            "42": .immediately,
-        ]
-
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-        XCTAssertEqual(coordinator.events.last, .switchAccount(isAutomatic: false, userId: "1"))
-    }
-
     /// `perform(_:)` with `.profileSwitcher(.accountPressed)` for iOS 26 dismisses the profile switcher.
     @MainActor
     func test_perform_profileSwitcher_accountPressed_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         subject.state.profileSwitcherState = ProfileSwitcherState(
             accounts: [
                 ProfileSwitcherItem.fixture(userId: "42"),
@@ -354,10 +327,6 @@ class VaultAutofillListProcessorTests: BitwardenTestCase { // swiftlint:disable:
     /// dismisses the profile switcher but does not fire switch event.
     @MainActor
     func test_perform_profileSwitcher_accountPressed_sameAccount_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         subject.state.profileSwitcherState = ProfileSwitcherState(
             accounts: [
                 ProfileSwitcherItem.fixture(userId: "1"),
@@ -384,27 +353,10 @@ class VaultAutofillListProcessorTests: BitwardenTestCase { // swiftlint:disable:
         XCTAssertTrue(subject.state.profileSwitcherState.isVisible)
     }
 
-    /// `perform(_:)` with `.profileSwitcher(.requestedProfileSwitcher(visible:))` updates the state correctly.
-    @MainActor
-    func test_perform_profileSwitcher_toggleProfilesViewVisibility() async throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        subject.state.profileSwitcherState.isVisible = false
-        await subject.perform(.profileSwitcher(.requestedProfileSwitcher(visible: true)))
-
-        XCTAssertTrue(subject.state.profileSwitcherState.isVisible)
-    }
-
     /// `perform(_:)` with `.profileSwitcher(.requestedProfileSwitcher(visible:))`
     /// for iOS 26 navigates to present the profile switcher sheet.
     @MainActor
     func test_perform_profileSwitcher_toggleProfilesViewVisibility_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         await subject.perform(.profileSwitcher(.requestedProfileSwitcher(visible: true)))
 
         XCTAssertEqual(coordinator.routes.last, .viewProfileSwitcher)
@@ -647,26 +599,9 @@ class VaultAutofillListProcessorTests: BitwardenTestCase { // swiftlint:disable:
         XCTAssertTrue(appExtensionDelegate.didCancelCalled)
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.backgroundPressed)` turns off the Profile Switcher Visibility.
-    @MainActor
-    func test_receive_profileSwitcher_backgroundPressed() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        subject.state.profileSwitcherState.isVisible = true
-        subject.receive(.profileSwitcher(.backgroundTapped))
-
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.backgroundTapped)` for iOS 26 dismisses the profile switcher.
     @MainActor
     func test_receive_profileSwitcher_backgroundPressed_iOS26() throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         subject.receive(.profileSwitcher(.backgroundTapped))
 
         XCTAssertTrue(coordinator.routes.contains(.dismiss()))

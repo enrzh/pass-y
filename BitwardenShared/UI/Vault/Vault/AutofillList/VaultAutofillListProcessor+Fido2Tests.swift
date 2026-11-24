@@ -14,7 +14,6 @@ import XCTest
 
 /// Tests for `VaultAutofillListProcessor` Fido2 flows which require iOS 17
 /// and another setup given that the `appExtensionDelegate` is different.
-@available(iOS 17.0, *)
 class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:disable:this type_body_length
     // MARK: Properties
 
@@ -124,8 +123,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
     /// was found instead of a plain cancel when an excluded credential was found.
     @MainActor
     func test_receive_cancelTapped_withExcludedCredentialFound() throws {
-        guard #available(iOS 18.0, *) else { return }
-
         subject.state.excludedCredentialIdFound = "1"
 
         subject.receive(.cancelTapped)
@@ -530,8 +527,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
     /// was found instead of a plain cancel.
     @MainActor
     func test_perform_excludedCredentialFoundChanged_cipherPublisherThrows() async throws {
-        guard #available(iOS 18.0, *) else { return }
-
         let cipher = CipherView.fixture()
         subject.state.excludedCredentialIdFound = cipher.id
         vaultRepository.cipherDetailsSubject.send(completion: .failure(BitwardenTestError.example))
@@ -574,8 +569,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
     /// instead of a plain cancel.
     @MainActor
     func test_informExcludedCredentialFound_creatingExcludeCredentialSectionThrows() async throws {
-        guard #available(iOS 18.0, *) else { return }
-
         let cipher = CipherView.fixture(login: .fixture(fido2Credentials: [.fixture()]))
         subject.state.excludedCredentialIdFound = cipher.id
         vaultRepository.cipherDetailsSubject.send(cipher)
@@ -616,7 +609,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with Fido2 credential signals the `Fido2UserInterfaceHelper`
     /// that a cipher has been picked for authentication when in `autofillFido2VaultList` mode.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_fido2PickedForAuthentication() async {
         appExtensionDelegate.extensionMode = .autofillFido2VaultList([], MockPasskeyCredentialRequestParameters())
@@ -639,7 +631,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with Fido2 credential signals the `Fido2UserInterfaceHelper`
     /// that a cipher has been picked when user confirms overwriting it.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_fido2PickedForCreationWithAlreadyFido2Credential() async throws {
         let expectedCipher = Cipher.fixture(
@@ -686,7 +677,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with Fido2 credential doesn't signal the `Fido2UserInterfaceHelper`
     /// that a cipher has been picked when user denies overwriting it.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_fido2PickedForCreationNoOverwrite() async throws {
         let expectedCipher = Cipher.fixture(
@@ -722,7 +712,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with Fido2 credential doesn't signal the `Fido2UserInterfaceHelper`
     /// when no Fido2 options are available and shows an error to the user.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_fido2PickedForCreationNoFido2Options() async throws {
         let expectedResult = CipherListView.fixture(
@@ -750,7 +739,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with cipher signals the `Fido2UserInterfaceHelper`
     /// that a cipher has been picked when in creating Fido2 credential context and user check was verified.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_cipherPickedForFido2Creation() async throws {
         let expectedCipher = Cipher.fixture(
@@ -787,7 +775,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with cipher signals the `Fido2UserInterfaceHelper`
     /// that a cipher has been picked when in creating Fido2 credential context and user check was not verified.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_cipherPickedForFido2CreationUserCheckNotVerified() async throws {
         let expectedCipher = Cipher.fixture(
@@ -824,7 +811,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with cipher shows alert and logs when
     /// a cipher has been picked in creating Fido2 credential context and user check throws.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_cipherPickedForFido2CreationUserCheckThrows() async throws {
         let expectedCipher = Cipher.fixture(
@@ -855,7 +841,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with cipher does nothing when
     /// a cipher has been picked in creating Fido2 credential context and user check is cancelled.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_cipherPickedForFido2CreationUserCheckCancelled() async throws {
         let expectedCipher = Cipher.fixture(
@@ -885,7 +870,6 @@ class VaultAutofillListProcessorFido2Tests: BitwardenTestCase { // swiftlint:dis
 
     /// `vaultItemTapped(_:)` with Fido2 credential doesn't call the `Fido2UserInterfaceHelper`
     /// that a cipher has been picked for creation when there is no creation request.
-    @available(iOSApplicationExtension 17.0, *)
     @MainActor
     func test_perform_vaultItemTapped_fido2PickedWhenNotInCreation() async {
         let vaultListItem = VaultListItem(

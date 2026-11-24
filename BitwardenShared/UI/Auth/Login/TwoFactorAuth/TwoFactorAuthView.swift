@@ -24,16 +24,12 @@ struct TwoFactorAuthView: View {
         case .yubiKey:
             TextFieldConfiguration.oneTimeCode(keyboardType: .default)
         default:
-            if #available(iOS 26, *) {
-                TextFieldConfiguration.oneTimeCode(
-                    // WORKAROUND: Using an iPad with the floating keyboard on iOS 26 will occasionally
-                    // crash on this screen when displaying the `numberPad` keyboard type. Using the
-                    // default keyboard prevents this. (PM-31717)
-                    keyboardType: UIDevice.current.userInterfaceIdiom == .pad ? .default : .numberPad,
-                )
-            } else {
-                TextFieldConfiguration.oneTimeCode()
-            }
+            TextFieldConfiguration.oneTimeCode(
+                // WORKAROUND: Using an iPad with the floating keyboard on iOS 26 will occasionally
+                // crash on this screen when displaying the `numberPad` keyboard type. Using the
+                // default keyboard prevents this. (PM-31717)
+                keyboardType: UIDevice.current.userInterfaceIdiom == .pad ? .default : .numberPad,
+            )
         }
     }
 
@@ -196,7 +192,7 @@ struct TwoFactorAuthView: View {
     /// The keyboard type for the verification field.
     private var verificationKeyboardType: UIKeyboardType {
         if store.state.authMethod == .yubiKey { return .default }
-        if #available(iOS 26, *), UIDevice.current.userInterfaceIdiom == .pad { return .default }
+        if UIDevice.current.userInterfaceIdiom == .pad { return .default }
         return .numberPad
     }
 

@@ -166,7 +166,6 @@ public struct ExpandableHeaderView<Content: View>: View {
 // MARK: - Previews
 
 #if DEBUG
-@available(iOS 17, *)
 #Preview("Internal state") {
     VStack {
         ExpandableHeaderView(title: Localizations.localCodes, count: 3) {
@@ -180,7 +179,6 @@ public struct ExpandableHeaderView<Content: View>: View {
     .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
 }
 
-@available(iOS 17, *)
 #Preview("Caller-owned binding") {
     @Previewable @SwiftUI.State var isExpanded = false
 

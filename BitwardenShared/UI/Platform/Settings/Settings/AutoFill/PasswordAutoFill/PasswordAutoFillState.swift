@@ -19,13 +19,6 @@ struct PasswordAutoFillState: Equatable {
 
     // MARK: Properties
 
-    /// The instructions for setting up autofill.
-    var autofillInstructions = [
-        Localizations.fromYourDeviceSettingsToggleOnAutoFillPasswordsAndPasskeys,
-        Localizations.toggleOffICloudToMakeBitwardenYourDefaultAutoFillSource,
-        Localizations.toggleOnBitwardenToUseYourSavedPasswordsToLogIntoYourAccounts,
-    ]
-
     /// The current mode the view should display.
     var mode: Mode
 
@@ -41,20 +34,12 @@ struct PasswordAutoFillState: Equatable {
 
     /// The title to display.
     var title: String {
-        if #available(iOS 18, *) {
-            Localizations.autofillWithBitwarden
-        } else {
-            Localizations.turnOnAutoFill
-        }
+        Localizations.autofillWithBitwarden
     }
 
     /// The subtitle to display.
     var subtitle: String {
-        if #available(iOS 18, *) {
-            Localizations.autofillWithBitwardenDescriptionLong
-        } else {
-            Localizations.useAutoFillToLogIntoYourAccountsWithASingleTap
-        }
+        Localizations.autofillWithBitwardenDescriptionLong
     }
 
     /// The url to open in the device's web browser.

@@ -267,7 +267,6 @@ class TwoFactorAuthProcessorTests: BitwardenTestCase { // swiftlint:disable:this
     }
 
     /// `perform(_:)` with `.beginWebAuthn` initiates the WebAuthn Connector flow on self-hosted vaults.
-    @available(iOS 16.0, *)
     @MainActor
     func test_perform_beginWebAuthn_selfHosted() async throws {
         environmentService.region = .selfHosted

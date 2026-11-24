@@ -2,7 +2,6 @@ import BitwardenKit
 import BitwardenSdk
 
 /// A wrapper for `TextAutofillHelper` which adds the logic for master password reprompt if necessary.
-@available(iOS 18.0, *)
 class TextAutofillHelperRepromptWrapper: TextAutofillHelper {
     // MARK: Properties
 
@@ -62,7 +61,6 @@ class TextAutofillHelperRepromptWrapper: TextAutofillHelper {
 
 // MARK: - UserVerificationDelegate
 
-@available(iOSApplicationExtension 18.0, *)
 extension TextAutofillHelperRepromptWrapper: UserVerificationDelegate {
     func showAlert(_ alert: Alert) {
         textAutofillHelperDelegate?.showAlert(alert)

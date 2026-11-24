@@ -32,36 +32,34 @@ final class AccessibilityTests: PassYUITestCase {
         attach(app, "\(tag)-voiceover-avatar-menu")
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.45)).tap() // outside the menu: dismisses it
         sleep(1)
-        if #available(iOS 17.0, *) {
-            // Audit result is recorded (never fails the run); contrast/dynamic-type findings are listed in the README.
-            var issues: [String] = []
+        // Audit result is recorded (never fails the run); contrast/dynamic-type findings are listed in the README.
+        var issues: [String] = []
+        do {
+            try app.performAccessibilityAudit { issue in
+                issues.append("\(issue.auditType.rawValue): \(issue.compactDescription) [\(issue.element?.label ?? "?")] type=\(issue.element?.elementType.rawValue ?? 0) id=\(issue.element?.identifier ?? "") frame=\(issue.element?.frame ?? .zero) detail=\(issue.detailedDescription)")
+                return true
+            }
+        } catch { issues.append("audit error: \(error)") }
+        print("R5AUDIT home: \(issues.count) issues")
+        // ui-r7: fixed findings must not come back (avatar initials contrast).
+        XCTAssertFalse(issues.contains { $0.hasPrefix("1:") && $0.contains("[PT]") }, "avatar contrast: \(issues)")
+        for i in issues { print("R5AUDIT home: \(i)") }
+        let item = app.buttons["VaultListItemRowButton"].firstMatch
+        app.buttons["CategoryTile_login"].tap(); sleep(2)
+        if item.waitForExistence(timeout: 8) {
+            item.tap(); sleep(2)
+            var issues2: [String] = []
             do {
                 try app.performAccessibilityAudit { issue in
-                    issues.append("\(issue.auditType.rawValue): \(issue.compactDescription) [\(issue.element?.label ?? "?")] type=\(issue.element?.elementType.rawValue ?? 0) id=\(issue.element?.identifier ?? "") frame=\(issue.element?.frame ?? .zero) detail=\(issue.detailedDescription)")
+                    issues2.append("\(issue.auditType.rawValue): \(issue.compactDescription) [\(issue.element?.label ?? "?")] type=\(issue.element?.elementType.rawValue ?? 0) id=\(issue.element?.identifier ?? "") frame=\(issue.element?.frame ?? .zero) detail=\(issue.detailedDescription)")
                     return true
                 }
-            } catch { issues.append("audit error: \(error)") }
-            print("R5AUDIT home: \(issues.count) issues")
-            // ui-r7: fixed findings must not come back (avatar initials contrast).
-            XCTAssertFalse(issues.contains { $0.hasPrefix("1:") && $0.contains("[PT]") }, "avatar contrast: \(issues)")
-            for i in issues { print("R5AUDIT home: \(i)") }
-            let item = app.buttons["VaultListItemRowButton"].firstMatch
-            app.buttons["CategoryTile_login"].tap(); sleep(2)
-            if item.waitForExistence(timeout: 8) {
-                item.tap(); sleep(2)
-                var issues2: [String] = []
-                do {
-                    try app.performAccessibilityAudit { issue in
-                        issues2.append("\(issue.auditType.rawValue): \(issue.compactDescription) [\(issue.element?.label ?? "?")] type=\(issue.element?.elementType.rawValue ?? 0) id=\(issue.element?.identifier ?? "") frame=\(issue.element?.frame ?? .zero) detail=\(issue.detailedDescription)")
-                        return true
-                    }
-                } catch { issues2.append("audit error: \(error)") }
-                print("R5AUDIT item: \(issues2.count) issues")
-                // ui-r7: no clipped text (breach row) and the section header passes the contrast check.
-                XCTAssertFalse(issues2.contains { $0.hasPrefix("131072:") }, "clipped text: \(issues2)")
-                XCTAssertFalse(issues2.contains { $0.contains("[Login credentials]") }, "header contrast: \(issues2)")
-                for i in issues2 { print("R5AUDIT item: \(i)") }
-            }
+            } catch { issues2.append("audit error: \(error)") }
+            print("R5AUDIT item: \(issues2.count) issues")
+            // ui-r7: no clipped text (breach row) and the section header passes the contrast check.
+            XCTAssertFalse(issues2.contains { $0.hasPrefix("131072:") }, "clipped text: \(issues2)")
+            XCTAssertFalse(issues2.contains { $0.contains("[Login credentials]") }, "header contrast: \(issues2)")
+            for i in issues2 { print("R5AUDIT item: \(i)") }
         }
     }
 

@@ -20,31 +20,15 @@ class PasswordAutoFillStateTests: BitwardenTestCase {
         XCTAssertEqual(subject.navigationBarTitle, Localizations.passwordAutofill)
     }
 
-    /// `title` returns the iOS 18+ title on supported devices.
+    /// `title` returns the "Autofill with Bitwarden" title.
     func test_title_iOS18Plus() {
-        guard #available(iOS 18, *) else { return }
         let subject = PasswordAutoFillState(mode: .onboarding)
         XCTAssertEqual(subject.title, Localizations.autofillWithBitwarden)
     }
 
-    /// `title` returns the pre-iOS 18 title on older devices.
-    func test_title_preIOS18() {
-        guard #unavailable(iOS 18) else { return }
-        let subject = PasswordAutoFillState(mode: .onboarding)
-        XCTAssertEqual(subject.title, Localizations.turnOnAutoFill)
-    }
-
-    /// `subtitle` returns the iOS 18+ subtitle on supported devices.
+    /// `subtitle` returns the "Autofill with Bitwarden" description.
     func test_subtitle_iOS18Plus() {
-        guard #available(iOS 18, *) else { return }
         let subject = PasswordAutoFillState(mode: .onboarding)
         XCTAssertEqual(subject.subtitle, Localizations.autofillWithBitwardenDescriptionLong)
-    }
-
-    /// `subtitle` returns the pre-iOS 18 subtitle on older devices.
-    func test_subtitle_preIOS18() {
-        guard #unavailable(iOS 18) else { return }
-        let subject = PasswordAutoFillState(mode: .onboarding)
-        XCTAssertEqual(subject.subtitle, Localizations.useAutoFillToLogIntoYourAccountsWithASingleTap)
     }
 }

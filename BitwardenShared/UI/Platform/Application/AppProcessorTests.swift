@@ -943,7 +943,6 @@ class AppProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_body
     }
 
     /// `provideOTPCredential(for:repromptPasswordValidated:)` returns the credential with the specified identifier.
-    @available(iOS 18.0, *)
     func test_provideOTPCredential() async throws {
         let credential = ASOneTimeCodeCredential(code: "123")
         autofillCredentialService.provideOTPCredentialResult = .success(credential)
@@ -953,7 +952,6 @@ class AppProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_body
     }
 
     /// `provideOTPCredential(for:repromptPasswordValidated:)` throws an error if one occurs.
-    @available(iOS 18.0, *)
     func test_provideOTPCredential_error() async throws {
         autofillCredentialService.provideOTPCredentialResult = .failure(ASExtensionError(.userInteractionRequired))
 

@@ -81,30 +81,24 @@ final class PasswordAutoFillProcessor: StateProcessor<
 
     /// Attempts to turn on credential provider for autofill or navigate to the OS specific settings.
     private func attemptToTurnOnCredentialProvider() async {
-        if #available(iOS 18, *) {
-            do {
-                let isOn = try await services.asSettingsMediator.requestToTurnOnCredentialProviderExtension()
-                guard isOn else {
-                    do {
-                        try await services.stateService.setAccountSetupAutofill(.setUpLater)
-                    } catch {
-                        services.errorReporter.log(error: error)
-                    }
-                    await navigateOnCompletion()
-                    return
+        do {
+            let isOn = try await services.asSettingsMediator.requestToTurnOnCredentialProviderExtension()
+            guard isOn else {
+                do {
+                    try await services.stateService.setAccountSetupAutofill(.setUpLater)
+                } catch {
+                    services.errorReporter.log(error: error)
                 }
-            } catch ASSettingsMediatorError.cantRequest {
-                try? await services.asSettingsMediator.openVerificationCodeAppSettings()
-            } catch {
-                services.errorReporter.log(error: error)
+                await navigateOnCompletion()
+                return
             }
-
-            await checkAutofillCompletion()
-        } else if #available(iOS 17, *) {
+        } catch ASSettingsMediatorError.cantRequest {
             try? await services.asSettingsMediator.openVerificationCodeAppSettings()
-        } else {
-            state.url = ExternalLinksConstants.passwordOptions
+        } catch {
+            services.errorReporter.log(error: error)
         }
+
+        await checkAutofillCompletion()
     }
 
     /// Continues the set up unlock flow by navigating to autofill setup.

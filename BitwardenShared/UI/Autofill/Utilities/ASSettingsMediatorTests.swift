@@ -35,7 +35,6 @@ struct ASSettingsMediatorTests {
 
     /// `openVerificationCodeAppSettings()` delegates to the proxy.
     @Test
-    @available(iOS 17, *)
     func openVerificationCodeAppSettings_delegates() async throws {
         try await subject.openVerificationCodeAppSettings()
 
@@ -44,7 +43,6 @@ struct ASSettingsMediatorTests {
 
     /// `openVerificationCodeAppSettings()` rethrows errors from the proxy.
     @Test
-    @available(iOS 17, *)
     func openVerificationCodeAppSettings_rethrowsError() async {
         asSettingsHelperProxy.openVerificationCodeAppSettingsThrowableError = BitwardenTestError.example
 
@@ -58,7 +56,6 @@ struct ASSettingsMediatorTests {
     /// `requestToTurnOnCredentialProviderExtension()` throws ``ASSettingsMediatorError/cantRequest``
     /// when the wait time has not elapsed since the last request.
     @Test
-    @available(iOS 18, *)
     func requestToTurnOnCredentialProviderExtension_cantRequest() async {
         stateService.lastRequestToTurnOnCredentialProvider = timeProvider.presentTime
 
@@ -71,7 +68,6 @@ struct ASSettingsMediatorTests {
 
     /// `requestToTurnOnCredentialProviderExtension()` can make a request when no prior request exists.
     @Test
-    @available(iOS 18, *)
     func requestToTurnOnCredentialProviderExtension_canRequestWhenNoPriorRequest() async throws {
         #expect(stateService.lastRequestToTurnOnCredentialProvider == nil)
 
@@ -85,7 +81,6 @@ struct ASSettingsMediatorTests {
     /// `requestToTurnOnCredentialProviderExtension()` can make a request when the wait time
     /// has elapsed since the last request.
     @Test
-    @available(iOS 18, *)
     func requestToTurnOnCredentialProviderExtension_canRequestAfterWaitTime() async throws {
         let pastDate = timeProvider.presentTime.addingTimeInterval(
             -(Constants.requestToTurnOnCredentialProviderExtensionWaitTime + 1),
@@ -102,7 +97,6 @@ struct ASSettingsMediatorTests {
     /// `requestToTurnOnCredentialProviderExtension()` returns `true` when the proxy reports
     /// the credential provider is enabled.
     @Test
-    @available(iOS 18, *)
     func requestToTurnOnCredentialProviderExtension_returnsTrue() async throws {
         asSettingsHelperProxy.requestToTurnOnCredentialProviderExtensionReturnValue = true
 
@@ -114,7 +108,6 @@ struct ASSettingsMediatorTests {
     /// `requestToTurnOnCredentialProviderExtension()` returns `false` when the proxy reports
     /// the credential provider is disabled.
     @Test
-    @available(iOS 18, *)
     func requestToTurnOnCredentialProviderExtension_returnsFalse() async throws {
         asSettingsHelperProxy.requestToTurnOnCredentialProviderExtensionReturnValue = false
 
@@ -126,7 +119,6 @@ struct ASSettingsMediatorTests {
     /// `requestToTurnOnCredentialProviderExtension()` saves the current time as the last request date
     /// after a successful request.
     @Test
-    @available(iOS 18, *)
     func requestToTurnOnCredentialProviderExtension_savesRequestTimestamp() async throws {
         asSettingsHelperProxy.requestToTurnOnCredentialProviderExtensionReturnValue = true
 

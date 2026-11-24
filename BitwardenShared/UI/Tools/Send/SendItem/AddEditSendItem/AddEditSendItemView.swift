@@ -57,7 +57,7 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
 
             profileSwitcher
         }
-        .backport.dismissKeyboardInteractively()
+        .scrollDismissesKeyboard(.interactively)
         .navigationBar(
             title: store.state.navigationTitle,
             titleDisplayMode: .inline,
@@ -89,7 +89,7 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                 }
             }
 
-            // Save goes on the right in iOS 26, on the left < 26
+            // Save goes on the right (after the options menu)
             versionDependentOrderingToolbarItemGroup(
                 alfa: {
                     if store.state.mode == .edit {

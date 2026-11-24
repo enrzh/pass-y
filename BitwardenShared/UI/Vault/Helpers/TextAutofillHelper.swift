@@ -22,7 +22,6 @@ protocol TextAutofillHelper: AnyObject {
 @MainActor
 protocol TextAutofillHelperDelegate: AnyObject {
     /// Completes the text request with some text to insert.
-    @available(iOSApplicationExtension 18.0, *)
     func completeTextRequest(text: String)
 
     /// Shows the alert.
@@ -50,7 +49,6 @@ extension TextAutofillHelperDelegate {
 // MARK: - DefaultTextAutofillHelper
 
 /// Default implementation of `TextAutofillHelper`.
-@available(iOS 18.0, *)
 class DefaultTextAutofillHelper: TextAutofillHelper {
     // MARK: Properties
 

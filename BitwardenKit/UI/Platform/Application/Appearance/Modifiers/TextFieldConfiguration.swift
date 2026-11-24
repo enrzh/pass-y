@@ -84,31 +84,19 @@ public extension TextFieldConfiguration {
 }
 
 public extension UITextContentType {
-    /// A `.creditCardExpirationYear` value that falls back to `.dateTime`.
+    /// `.creditCardExpirationYear` (the `.dateTime` fallback was for iOS < 17).
     static var creditCardExpirationYearOrDateTime: UITextContentType {
-        if #available(iOSApplicationExtension 17.0, *) {
-            .creditCardExpirationYear
-        } else {
-            .dateTime
-        }
+        .creditCardExpirationYear
     }
 
-    /// A `.creditCardName` value that falls back to `.name`.
+    /// `.creditCardName` (the `.name` fallback was for iOS < 17).
     static var creditCardNameOrName: UITextContentType {
-        if #available(iOSApplicationExtension 17.0, *) {
-            .creditCardName
-        } else {
-            .name
-        }
+        .creditCardName
     }
 
-    /// A `.creditCardSecurityCode` value that falls back to `.password`.
+    /// `.creditCardSecurityCode` (the `.password` fallback was for iOS < 17).
     static var creditCardSecurityCodeOrPassword: UITextContentType {
-        if #available(iOSApplicationExtension 17.0, *) {
-            .creditCardSecurityCode
-        } else {
-            .password
-        }
+        .creditCardSecurityCode
     }
 }
 

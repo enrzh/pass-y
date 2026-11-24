@@ -2,7 +2,6 @@ import AppIntents
 import BitwardenShared
 
 /// App intent that log out all accounts.
-@available(iOS 16.0, *)
 struct LogoutAllAccountsIntent: AppIntent {
     static var title: LocalizedStringResource = "LogOutAllAccounts"
 

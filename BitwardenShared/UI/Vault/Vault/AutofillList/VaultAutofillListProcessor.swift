@@ -141,9 +141,7 @@ class VaultAutofillListProcessor: StateProcessor<// swiftlint:disable:this type_
         case let .vaultItemTapped(vaultItem):
             await vaultItemTapped(vaultItem)
         case .initFido2:
-            if #available(iOSApplicationExtension 17.0, *) {
-                await initFido2State()
-            }
+            await initFido2State()
         case .loadData:
             await refreshProfileState()
             await fetchInitialSyncIfNecessary()
@@ -165,8 +163,7 @@ class VaultAutofillListProcessor: StateProcessor<// swiftlint:disable:this type_
         case let .addTapped(fromFAB):
             state.profileSwitcherState.setIsVisible(false)
 
-            guard #available(iOSApplicationExtension 17.0, *),
-                  !fromFAB,
+            guard !fromFAB,
                   let credentialProviderExtensionDelegate,
                   credentialProviderExtensionDelegate.isCreatingFido2Credential else {
                 navigateToAddNewLogin()
@@ -214,8 +211,7 @@ class VaultAutofillListProcessor: StateProcessor<// swiftlint:disable:this type_
     /// Ends the extension flow, disclosing a matched excluded credential to the relying party if
     /// one was found or performing a plain cancel otherwise.
     private func cancelExtensionFlow() {
-        if #available(iOSApplicationExtension 18.0, *),
-           state.excludedCredentialIdFound != nil,
+        if state.excludedCredentialIdFound != nil,
            let credentialProviderExtensionDelegate {
             credentialProviderExtensionDelegate.setMatchedExcludedCredentialFound()
         } else {
@@ -516,8 +512,7 @@ class VaultAutofillListProcessor: StateProcessor<// swiftlint:disable:this type_
                 coordinator.showAlert(.cipherDecryptionFailure(cipherIds: [cipherId]) { stringToCopy in
                     self.services.pasteboardService.copy(stringToCopy)
                 })
-            } else if #available(iOSApplicationExtension 17.0, *),
-                      let credentialProviderExtensionDelegate,
+            } else if let credentialProviderExtensionDelegate,
                       fido2CredentialAutofillView != nil
                       || credentialProviderExtensionDelegate.isCreatingFido2Credential {
                 await onCipherForFido2CredentialPicked(cipher: cipher)
@@ -539,9 +534,7 @@ class VaultAutofillListProcessor: StateProcessor<// swiftlint:disable:this type_
         case let .group(group, _):
             coordinator.navigate(to: .autofillListForGroup(group))
         case let .totp(_, totpModel):
-            if #available(iOSApplicationExtension 18.0, *) {
-                credentialProviderExtensionDelegate?.completeOTPRequest(code: totpModel.totpCode.code)
-            }
+            credentialProviderExtensionDelegate?.completeOTPRequest(code: totpModel.totpCode.code)
         }
     }
 }
@@ -627,7 +620,6 @@ extension VaultAutofillListProcessor: Fido2UserInterfaceHelperDelegate {
 
 // MARK: - Fido2 flows
 
-@available(iOSApplicationExtension 17.0, *)
 extension VaultAutofillListProcessor {
     // MARK: Methods
 
@@ -901,7 +893,6 @@ extension VaultAutofillListProcessor: CipherItemOperationDelegate {
 // MARK: - TextAutofillHelperDelegate
 
 extension VaultAutofillListProcessor: TextAutofillHelperDelegate {
-    @available(iOSApplicationExtension 18.0, *)
     func completeTextRequest(text: String) {
         credentialProviderExtensionDelegate?.completeTextRequest(text: text)
     }

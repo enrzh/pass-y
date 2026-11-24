@@ -237,7 +237,6 @@ public class AppProcessor {
 
     /// Handles importing credentials using Credential Exchange Protocol.
     /// - Parameter credentialImportToken: The credentials import token to user with the `ASCredentialImportManager`.
-    @available(iOSApplicationExtension 26.0, *)
     public func handleImportCredentials(credentialImportToken: UUID) async {
         let route = AppRoute.tab(.vault(.importCXF(
             .importCredentials(credentialImportToken: credentialImportToken),
@@ -289,7 +288,6 @@ public class AppProcessor {
     ///     cipher and the user's master password was validated.
     /// - Returns: An `ASOneTimeCodeCredential` that matches the user-requested credential which can be
     ///     used for autofill..
-    @available(iOSApplicationExtension 18.0, *)
     public func provideOTPCredential(
         for id: String,
         repromptPasswordValidated: Bool = false,
@@ -815,7 +813,6 @@ public extension AppProcessor {
     /// - Parameters:
     ///   - passkeyRequest: Request to get the credential.
     /// - Returns: The passkey credential for assertion.
-    @available(iOS 17.0, *)
     func provideFido2Credential(
         for passkeyRequest: ASPasskeyCredentialRequest,
     ) async throws -> ASPasskeyAssertionCredential {

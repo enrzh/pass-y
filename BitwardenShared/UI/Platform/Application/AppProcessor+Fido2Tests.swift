@@ -11,7 +11,6 @@ import XCTest
 @testable import BitwardenShared
 @testable import BitwardenSharedMocks
 
-@available(iOS 17.0, *)
 class AppProcessorFido2Tests: BitwardenTestCase {
     // MARK: Properties
 
@@ -119,7 +118,6 @@ class AppProcessorFido2Tests: BitwardenTestCase {
     }
 
     /// `onNeedsUserInteraction()` throws when flows is not with user interaction but user interaction is required.
-    @available(iOS 17.0, *)
     @MainActor
     func test_onNeedsUserInteraction_throws() async {
         appExtensionDelegate.flowWithUserInteraction = false
@@ -132,7 +130,6 @@ class AppProcessorFido2Tests: BitwardenTestCase {
 
     /// `onNeedsUserInteraction()` doesn't throw when flows is not with user interaction
     /// but user interaction is required.
-    @available(iOS 17.0, *)
     @MainActor
     func test_onNeedsUserInteraction_flowWithUserInteraction() async {
         appExtensionDelegate.flowWithUserInteraction = true
@@ -151,7 +148,6 @@ class AppProcessorFido2Tests: BitwardenTestCase {
 
     /// `provideFido2Credential(for:)` succeeds calling
     /// the autofill credential service.
-    @available(iOS 17.0, *)
     func test_provideFido2Credential() async throws {
         let passkeyIdentity = ASPasskeyCredentialIdentity.fixture()
         let passkeyRequest = ASPasskeyCredentialRequest.fixture(credentialIdentity: passkeyIdentity)
@@ -178,7 +174,6 @@ class AppProcessorFido2Tests: BitwardenTestCase {
 
     /// `provideFido2Credential(for:)` throws calling
     /// the autofill credential service.
-    @available(iOS 17.0, *)
     func test_provideFido2Credential_throws() async throws {
         let passkeyIdentity = ASPasskeyCredentialIdentity.fixture()
         let passkeyRequest = ASPasskeyCredentialRequest.fixture(credentialIdentity: passkeyIdentity)

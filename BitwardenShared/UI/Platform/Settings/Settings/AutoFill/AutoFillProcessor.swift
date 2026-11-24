@@ -150,11 +150,6 @@ final class AutoFillProcessor: StateProcessor<AutoFillState, AutoFillAction, Aut
 
     /// Sets up as credential provider for autofill.
     private func setUpAutofill() async {
-        guard #available(iOS 18.0, *) else {
-            coordinator.navigate(to: .passwordAutoFill)
-            return
-        }
-
         do {
             let isOn = try await services.asSettingsMediator.requestToTurnOnCredentialProviderExtension()
             guard isOn else { return }

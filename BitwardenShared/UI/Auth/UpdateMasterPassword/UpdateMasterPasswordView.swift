@@ -119,16 +119,10 @@ struct UpdateMasterPasswordView: View {
                 AsyncButton {
                     await store.perform(.logoutTapped)
                 } label: {
+                    // Widens the Liquid Glass background to match the prominent primary action button on the other
+                    // side of the toolbar.
                     Text(Localizations.logOut)
-                        .apply { text in
-                            // On iOS 26, widen the Liquid Glass background to match the prominent
-                            // primary action button on the other side of the toolbar.
-                            if #available(iOS 26, *) {
-                                text.padding(.horizontal, 8)
-                            } else {
-                                text
-                            }
-                        }
+                        .padding(.horizontal, 8)
                 }
                 .buttonStyle(.toolbar)
                 .frame(minHeight: 44)

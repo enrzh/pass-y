@@ -100,53 +100,6 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         XCTAssertThrowsError(try menu.inspect().find(button: Localizations.typeCard))
     }
 
-    /// Long pressing a profile row dispatches the `.accountLongPressed` action.
-    @MainActor
-    func test_accountRow_longPress_currentAccount() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test is for iOS < 26 and relies on the visibility of the profile switcher.")
-        }
-
-        processor.state.profileSwitcherState.isVisible = true
-        let accountRow = try subject.inspect().find(button: "anne.account@bitwarden.com")
-        let currentAccount = processor.state.profileSwitcherState.activeAccountProfile!
-        try accountRow.labelView().callOnLongPressGesture()
-        waitFor(!processor.effects.isEmpty)
-
-        XCTAssertEqual(processor.effects.last, .profileSwitcher(.accountLongPressed(currentAccount)))
-    }
-
-    /// Tapping a profile row dispatches the `.accountPressed` action.
-    @MainActor
-    func test_accountRow_tap_currentAccount() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test is for iOS < 26 and relies on the visibility of the profile switcher.")
-        }
-
-        processor.state.profileSwitcherState.isVisible = true
-        let accountRow = try subject.inspect().find(button: "anne.account@bitwarden.com")
-        let currentAccount = processor.state.profileSwitcherState.activeAccountProfile!
-        try accountRow.labelView().callOnTapGesture()
-        waitFor(!processor.effects.isEmpty)
-
-        XCTAssertEqual(processor.effects.last, .profileSwitcher(.accountPressed(currentAccount)))
-    }
-
-    /// Tapping the add account row dispatches the `.addAccountPressed ` action.
-    @MainActor
-    func test_accountRow_tap_addAccount() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test is for iOS < 26 and relies on the visibility of the profile switcher.")
-        }
-
-        processor.state.profileSwitcherState.isVisible = true
-        let addAccountRow = try subject.inspect().find(button: "Add account")
-        try addAccountRow.tap()
-        waitFor(!processor.effects.isEmpty)
-
-        XCTAssertEqual(processor.effects.last, .profileSwitcher(.addAccountPressed))
-    }
-
     /// The action card is hidden if the import logins setup progress is set up later or complete.
     @MainActor
     func test_importLoginsActionCard_hidden() {
