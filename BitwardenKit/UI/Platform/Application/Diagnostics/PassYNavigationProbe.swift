@@ -7,7 +7,8 @@ import UIKit
 /// DEBUG only: the navigation steps of `ViewLoggingNavigationController` as `PassYPerf` marks
 /// (`startup mark=nav.<step> t=<seconds>`), so a UI test can split "back tap -> previous page shown", and the frames of a
 /// push/pop transition (willShow -> didShow): the longest frame and the hitch time (time beyond the display's frame
-/// interval), logged as `frameprobe frames=... maxGapMs=... hitchMs=...`.
+/// interval), logged as `frameprobe frames=... maxGapMs=... hitchMs=...`. `nav.firstFrame` marks the first frame
+/// after a transition started (push, pop, or a modal dismiss: `nav.dismiss` -> `nav.dismissed`).
 @MainActor
 public final class PassYNavigationProbe: NSObject {
     /// The one probe of the process (one transition at a time).
@@ -48,7 +49,8 @@ public final class PassYNavigationProbe: NSObject {
 
     @objc private func tick(_ link: CADisplayLink) {
         defer { last = link.timestamp }
-        guard last > 0 else { return }
+        // The first frame callback of the transition (the answer to "did the animation start right away").
+        guard last > 0 else { return Self.mark("firstFrame") }
         frames += 1
         let gap = link.timestamp - last
         let interval = max(link.targetTimestamp - link.timestamp, 1.0 / 120)

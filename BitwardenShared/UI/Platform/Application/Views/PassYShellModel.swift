@@ -176,6 +176,9 @@ final class PassYShellModel: ObservableObject {
 
     /// Ends editing and clears the text.
     func cancelSearch() {
+        #if DEBUG
+        PassYPerf.mark("bar.cancelSearch")
+        #endif
         text = ""
         isEditing = false
         NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
