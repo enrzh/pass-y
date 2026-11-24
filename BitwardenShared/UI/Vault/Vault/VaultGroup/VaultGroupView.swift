@@ -253,26 +253,23 @@ struct VaultGroupView: View {
     @ViewBuilder private var searchContent: some View {
         if store.state.searchText.isEmpty || !store.state.searchResults.isEmpty {
             List {
-                Section {
-                    searchVaultFilterRow
-                        .listRowInsets(EdgeInsets())
+                // No section without a filter (members of no organization): an empty section drew an empty card.
+                if !store.state.vaultFilterState.vaultFilterOptions.isEmpty {
+                    Section {
+                        searchVaultFilterRow
+                            .listRowInsets(EdgeInsets())
+                    }
                 }
 
                 Section {
                     ForEach(store.state.searchResults) { item in
-                        vaultItemRow(for: item)
-                            .listRowInsets(EdgeInsets())
-                            .vaultRowSwipeActions(
-                                    for: item,
-                                    delete: { Task { await store.perform(.deleteItems([item])) } },
-                                    more: { Task { await store.perform(.morePressed(item)) } },
-                                )
+                        swipeableRow(for: item)
                     }
                 }
             }
             // Rebuilt when the set of result rows changes (see the home search results: the incremental diff crashed).
             .id(store.state.searchResults.map(\.id))
-            .listStyle(.plain)
+            .listStyle(.insetGrouped)
             .passYBottomBarContentMargin()
             .softBottomScrollEdge()
         } else {
@@ -301,9 +298,10 @@ struct VaultGroupView: View {
 
     // MARK: Private Methods
 
-    /// The list of the sections within this vault group: a native plain list (Apple Passwords) with system row
-    /// separators aligned to the item name. It exists from the first frame; until the first stream value arrives it
-    /// is empty (no spinner), and an empty group shows its message on top of it.
+    /// The list of the sections within this vault group: a native inset-grouped list like the vault home (each section
+    /// a rounded card on the grouped background) with system row separators aligned to the item name. It exists from
+    /// the first frame; until the first stream value arrives it is empty (no spinner), and an empty group shows its
+    /// message on top of it.
     private var groupList: some View {
         List(selection: store.binding(get: \.selection, send: VaultGroupAction.selectionChanged)) {
             if store.state.showArchivePremiumSubscriptionEndedCard {
@@ -317,27 +315,17 @@ struct VaultGroupView: View {
                 ForEach(sections) { section in
                     Section {
                         ForEach(section.items) { item in
-                            vaultItemRow(for: item)
-                                // The row brings its own 16 pt side margins (also used outside lists).
-                                .listRowInsets(EdgeInsets())
-                                .tag(item.id)
-                                .vaultRowSwipeActions(
-                                    for: item,
-                                    delete: { Task { await store.perform(.deleteItems([item])) } },
-                                    more: { Task { await store.perform(.morePressed(item)) } },
-                                )
+                            swipeableRow(for: item)
                         }
                     } header: {
                         if itemCountSubtitle == nil {
                             Text(section.name)
                         }
                     }
-                    // No line between the title block and the first row (Apple Passwords).
-                    .listSectionSeparator(.hidden, edges: .top)
                 }
             }
         }
-        .listStyle(.plain)
+        .listStyle(.insetGrouped)
         // Room below the last row for the floating bottom bar (a margin, not a spacer row: a spacer row drew a stray
         // separator line in the empty area below short lists).
         .passYBottomBarContentMargin()
@@ -357,6 +345,23 @@ struct VaultGroupView: View {
             }
         }
         .softBottomScrollEdge()
+    }
+
+    /// A list row for the item with its selection tag and swipe actions (Delete, More menu).
+    ///
+    /// - Parameter item: The `VaultListItem` to show.
+    ///
+    private func swipeableRow(for item: VaultListItem) -> some View {
+        vaultItemRow(for: item)
+            // The row brings its own 16 pt side margins (also used outside lists).
+            .listRowInsets(EdgeInsets())
+            .tag(item.id)
+            .vaultRowSwipeActions(
+                for: item,
+                hasPremium: store.state.hasPremium,
+                delete: { Task { await store.perform(.deleteItems([item])) } },
+                perform: { kind in Task { await store.perform(.accessibilityMoreOptionsActionPressed(item, kind)) } },
+            )
     }
 
     /// Creates a row in the list for the provided item.
@@ -381,8 +386,6 @@ struct VaultGroupView: View {
                 switch effect {
                 case let .accessibilityMoreOptionsActionPressed(kind):
                     await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
-                case .morePressed:
-                    await store?.perform(.morePressed(item))
                 case .pressed:
                     await store?.perform(.itemPressed(item))
                 }
@@ -403,15 +406,9 @@ struct VaultGroupView: View {
 // MARK: - Item count subtitle
 
 extension View {
-    /// Shows "N Items" under the navigation title (`navigationSubtitle`, like Apple Passwords). The deployment target
-    /// of this branch is still iOS 15, so the check stays; earlier systems show no count.
-    @ViewBuilder
+    /// Shows "N Items" under the navigation title (`navigationSubtitle`, like Apple Passwords).
     func passYItemCountSubtitle(_ text: String?) -> some View {
-        if #available(iOS 26, *) {
-            navigationSubtitle(text ?? "")
-        } else {
-            self
-        }
+        navigationSubtitle(text ?? "")
     }
 }
 

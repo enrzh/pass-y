@@ -125,22 +125,18 @@ private struct SearchableVaultListView: View {
     @ViewBuilder private var search: some View {
         if store.state.searchText.isEmpty || !store.state.searchResults.isEmpty {
             List(selection: store.binding(get: \.selection, send: VaultListAction.selectionChanged)) {
-                Section {
-                    searchVaultFilterRow
+                // No section without a filter (members of no organization): an empty section drew an empty card.
+                if !store.state.searchVaultFilterState.vaultFilterOptions.isEmpty {
+                    Section {
+                        searchVaultFilterRow
+                    }
+                    .listRowInsets(EdgeInsets())
                 }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
 
                 Section {
                     ForEach(store.state.searchResults) { item in
-                        vaultItemRow(for: item)
-                            .listRowInsets(EdgeInsets())
+                        swipeableRow(for: item)
                             .tag(item.id)
-                            .vaultRowSwipeActions(
-                                for: item,
-                                delete: { Task { await store.perform(.deleteItems([item])) } },
-                                more: { Task { await store.perform(.morePressed(item)) } },
-                            )
                     }
                 }
             }
@@ -158,7 +154,7 @@ private struct SearchableVaultListView: View {
                     listIsEditing = false
                 }
             }
-            .listStyle(.plain)
+            .listStyle(.insetGrouped)
             .passYBottomBarContentMargin()
             .softBottomScrollEdge()
         } else {
@@ -291,13 +287,7 @@ private struct SearchableVaultListView: View {
                 Section {
                     if isExpanded {
                         ForEach(section.items) { item in
-                            vaultItemRow(for: item)
-                                .listRowInsets(EdgeInsets())
-                                .vaultRowSwipeActions(
-                                    for: item,
-                                    delete: { Task { await store.perform(.deleteItems([item])) } },
-                                    more: { Task { await store.perform(.morePressed(item)) } },
-                                )
+                            swipeableRow(for: item)
                         }
                     }
                 } header: {
@@ -327,6 +317,21 @@ private struct SearchableVaultListView: View {
         // Space below the last row so the floating bottom bar never covers it (a margin, not a spacer row).
         .passYBottomBarContentMargin()
         .softBottomScrollEdge()
+    }
+
+    /// A list row for the item with its swipe actions (Delete, More menu).
+    ///
+    /// - Parameter item: The `VaultListItem` to show.
+    ///
+    private func swipeableRow(for item: VaultListItem) -> some View {
+        vaultItemRow(for: item)
+            .listRowInsets(EdgeInsets())
+            .vaultRowSwipeActions(
+                for: item,
+                hasPremium: store.state.hasPremium,
+                delete: { Task { await store.perform(.deleteItems([item])) } },
+                perform: { kind in Task { await store.perform(.accessibilityMoreOptionsActionPressed(item, kind)) } },
+            )
     }
 
     /// Creates a row in the list for the provided item.
@@ -374,8 +379,6 @@ extension VaultListRowCell {
                 switch effect {
                 case let .accessibilityMoreOptionsActionPressed(kind):
                     await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
-                case .morePressed:
-                    await store?.perform(.morePressed(item))
                 case .pressed:
                     await store?.perform(.itemPressed(item))
                 }
@@ -584,9 +587,6 @@ struct VaultListView: View {
             // with the animation dump: `_UIRefreshControlModernReplicatorView`, minutes under load); XCUITest then never
             // saw the app idle ("App animations complete notification not received"). Syncing stays available as
             // "Sync now" in the avatar menu (and happens on appearing, as before). Apple Passwords has no pull either.
-            if #unavailable(iOS 26) {
-                profileSwitcher
-            }
         }
         .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .large)
         .toolbar {
@@ -720,25 +720,6 @@ struct VaultListView: View {
             serverURL: store.state.serverURL,
             showsPlaceholder: state.showPlaceholderToolbarIcon,
             sync: { Task { await store.perform(.refreshVault) } },
-        )
-    }
-
-    // MARK: Private properties
-
-    /// A view that displays the ability to add or switch between account profiles
-    @ViewBuilder private var profileSwitcher: some View {
-        ProfileSwitcherView(
-            store: store.child(
-                state: { vaultListState in
-                    vaultListState.profileSwitcherState
-                },
-                mapAction: { action in
-                    .profileSwitcher(action)
-                },
-                mapEffect: { effect in
-                    .profileSwitcher(effect)
-                },
-            ),
         )
     }
 
@@ -1196,13 +1177,8 @@ struct VaultListView: View {
 // MARK: - Soft bottom scroll edge
 
 extension View {
-    /// Fades list content out under the floating bottom bar (iOS 26 scroll edge effect) so rows do not shine through.
-    @ViewBuilder
+    /// Fades list content out under the floating bottom bar (scroll edge effect) so rows do not shine through.
     func softBottomScrollEdge() -> some View {
-        if #available(iOS 26, *) {
-            scrollEdgeEffectStyle(.soft, for: .bottom)
-        } else {
-            self
-        }
+        scrollEdgeEffectStyle(.soft, for: .bottom)
     }
 }
