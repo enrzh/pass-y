@@ -133,31 +133,14 @@ private struct SearchableVaultListView: View {
 
                 Section {
                     ForEach(store.state.searchResults) { item in
-                        vaultItemRow(
-                            for: item,
-                            isLastInSection: store.state.searchResults.last?.id == item.id,
-                        )
-                        .listRowInsets(EdgeInsets())
-                        .tag(item.id)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            if case .cipher = item.itemType {
-                                // No `role: .destructive`: it makes the list drop the row on the tap,
-                                // before the confirmation; the later real removal then hit a list that
-                                // no longer matched its data ("Invalid number of items in section").
-                                Button {
-                                    Task { await store.perform(.deleteItems([item])) }
-                                } label: {
-                                    Label(Localizations.delete, systemImage: "trash")
-                                }
-                                .tint(.red)
-                                Button {
-                                    Task { await store.perform(.morePressed(item)) }
-                                } label: {
-                                    Label(Localizations.moreOptions, systemImage: "ellipsis")
-                                }
-                                .tint(.gray)
-                            }
-                        }
+                        vaultItemRow(for: item)
+                            .listRowInsets(EdgeInsets())
+                            .tag(item.id)
+                            .vaultRowSwipeActions(
+                                for: item,
+                                delete: { Task { await store.perform(.deleteItems([item])) } },
+                                more: { Task { await store.perform(.morePressed(item)) } },
+                            )
                     }
                 }
             }
@@ -175,7 +158,8 @@ private struct SearchableVaultListView: View {
                     listIsEditing = false
                 }
             }
-            .listStyle(.insetGrouped)
+            .listStyle(.plain)
+            .passYBottomBarContentMargin()
             .softBottomScrollEdge()
         } else {
             SearchNoResultsView {
@@ -187,7 +171,7 @@ private struct SearchableVaultListView: View {
     /// Displays the vault filter for search row if the user is a member of any org.
     private var searchVaultFilterRow: some View {
         SearchVaultFilterRowView(
-            hasDivider: true, store: store.child(
+            hasDivider: false, store: store.child(
                 state: \.searchVaultFilterState,
                 mapAction: { action in
                     switch action {
@@ -307,18 +291,13 @@ private struct SearchableVaultListView: View {
                 Section {
                     if isExpanded {
                         ForEach(section.items) { item in
-                            vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
+                            vaultItemRow(for: item)
                                 .listRowInsets(EdgeInsets())
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    if case .cipher = item.itemType {
-                                        Button {
-                                            Task { await store.perform(.morePressed(item)) }
-                                        } label: {
-                                            Label(Localizations.moreOptions, systemImage: "ellipsis")
-                                        }
-                                        .tint(.gray)
-                                    }
-                                }
+                                .vaultRowSwipeActions(
+                                    for: item,
+                                    delete: { Task { await store.perform(.deleteItems([item])) } },
+                                    more: { Task { await store.perform(.morePressed(item)) } },
+                                )
                         }
                     }
                 } header: {
@@ -343,15 +322,10 @@ private struct SearchableVaultListView: View {
                 }
             }
 
-            // Space below the last row so the floating action button never covers it.
-            Section {
-                Color.clear
-                    .frame(height: FloatingActionButton.bottomOffsetPadding)
-                    .listRowBackground(Color.clear)
-                    .accessibilityHidden(true)
-            }
         }
         .listStyle(.insetGrouped)
+        // Space below the last row so the floating bottom bar never covers it (a margin, not a spacer row).
+        .passYBottomBarContentMargin()
         .softBottomScrollEdge()
     }
 
@@ -359,13 +333,11 @@ private struct SearchableVaultListView: View {
     ///
     /// - Parameters:
     ///   - item: The `VaultListItem` to use when creating the view.
-    ///   - isLastInSection: A flag indicating if this item is the last one in the section.
     ///
     @ViewBuilder
-    private func vaultItemRow(for item: VaultListItem, isLastInSection: Bool = false) -> some View {
+    private func vaultItemRow(for item: VaultListItem) -> some View {
         VaultListRowCell.make(
             for: item,
-            isLastInSection: isLastInSection,
             isSelecting: listIsEditing,
             store: store,
             timeProvider: timeProvider,
@@ -381,7 +353,6 @@ extension VaultListRowCell {
     @MainActor
     static func make(
         for item: VaultListItem,
-        isLastInSection: Bool,
         isSelecting: Bool = false,
         store: Store<VaultListState, VaultListAction, VaultListEffect>,
         timeProvider: any TimeProvider,
@@ -395,7 +366,8 @@ extension VaultListRowCell {
                 isFromExtension: false,
                 isSelecting: isSelecting,
                 item: item,
-                hasDivider: !isLastInSection,
+                // Lists use the system row separators (aligned to the name by the row).
+                hasDivider: false,
                 showWebIcons: state.showWebIcons,
             ),
             perform: { [weak store] effect in

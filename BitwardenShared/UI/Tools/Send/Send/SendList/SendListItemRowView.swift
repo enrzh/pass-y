@@ -132,6 +132,8 @@ struct SendListItemRowView: View {
                 groupLabel(for: sendType, count: count)
             }
         }
+        // System row separators start at the text (after the icon), not at the row edge.
+        .passYListSeparatorLeading(scaledIconWidth + 16)
     }
 
     /// The label for a group.
