@@ -12,8 +12,13 @@ import XCTest
 final class PerfUnlockAndBackTests: PassYUITestCase {
     // MARK: Face ID
 
-    /// Cold launch with Face ID: terminate, launch, the app asks for Face ID by itself, the simulator matches; the clock
-    /// starts at the match. Five runs, then the same from the background (session timeout "Immediately").
+    /// Cold launch with Face ID: terminate, launch (the clock starts here), the app unlocks with Face ID by itself, the
+    /// simulator matches. Five runs, then the same from the background (session timeout "Immediately", the clock starts
+    /// at the activation).
+    ///
+    /// Simulator proxy: the iOS 27 simulator reads the Face ID protected key without showing the system prompt (marks:
+    /// `bioStart` -> `bioUnlocked` in ~25 ms, no `resignActive`), so the prompt's own time and the scene deactivation
+    /// it causes on a device are not in these numbers; the app's share (unlock -> route -> first row) is.
     func test_cmp_faceIdUnlockToFirstRow() {
         let app = launchApp()
         ensureUnlockedVault(app)
@@ -23,13 +28,14 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
         var coldBlank: [Double] = []
         for run in 0 ..< 5 {
             app.terminate()
+            let start = Date()
             app.launch()
-            let (row, blank) = matchFaceIdAndMeasure(app, name: "cold-\(run)")
+            let (row, blank) = matchFaceIdAndMeasure(app, name: "cold-\(run)", start: start)
             coldRows.append(row)
             coldBlank.append(blank)
         }
-        line("faceid_cold_to_first_row", coldRows)
-        line("faceid_cold_blank_after_match", coldBlank)
+        line("faceid_cold_launch_to_first_row", coldRows)
+        line("faceid_cold_blank_frames", coldBlank)
 
         // Return from the background: the vault locks immediately when the app leaves the foreground.
         setSessionTimeoutImmediately(app)
@@ -39,13 +45,14 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
             XCUIDevice.shared.press(.home)
             XCTAssertTrue(app.wait(for: .runningBackground, timeout: 10) || app.wait(for: .runningBackgroundSuspended, timeout: 5))
             sleep(1)
+            let start = Date()
             app.activate()
-            let (row, blank) = matchFaceIdAndMeasure(app, name: "warm-\(run)")
+            let (row, blank) = matchFaceIdAndMeasure(app, name: "warm-\(run)", start: start)
             warmRows.append(row)
             warmBlank.append(blank)
         }
         line("faceid_background_to_first_row", warmRows)
-        line("faceid_background_blank_after_match", warmBlank)
+        line("faceid_background_blank_frames", warmBlank)
         // Face ID off again: the class sorts last in the perf step, but a rerun of single tests types the password.
         app.terminate()
         setFaceIdEnrolled(false)
@@ -152,8 +159,9 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
 
     /// Account security: session timeout "Immediately", so the vault locks whenever the app leaves the foreground.
     private func setSessionTimeoutImmediately(_ app: XCUIApplication) {
+        let start = Date()
         app.launch() // a fresh process locked on start: unlock with Face ID once
-        _ = matchFaceIdAndMeasure(app, name: "setup")
+        _ = matchFaceIdAndMeasure(app, name: "setup", start: start)
         goTo(app, "Settings")
         app.buttons["AccountSecuritySettingsButton"].tap()
         let chooser = app.buttons["VaultTimeoutChooser"]
@@ -167,25 +175,19 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
         goTo(app, "My vault")
     }
 
-    /// Waits for the unlock screen, lets the simulator match Face ID, then measures from the match until the first perf
-    /// row exists. Meanwhile screenshots are taken back to back; a frame without content (only the page color) counts
-    /// as blank. Returns (seconds to the first row, seconds of blank frames after the match).
-    private func matchFaceIdAndMeasure(_ app: XCUIApplication, name: String) -> (Double, Double) {
-        let unlock = app.buttons["UnlockVaultButton"]
-        let password = app.secureTextFields["MasterPasswordEntry"]
-        XCTAssertTrue(waitUntil(30) { unlock.exists || password.exists }, "\(name): unlock screen\n\(app.debugDescription)")
-        // The app asks for Face ID on its own when the unlock screen appears; give the prompt time to come up.
-        sleep(2)
+    /// Measures from `start` (launch or activation) until the first perf row exists, matching Face ID whenever the
+    /// simulator asks. Meanwhile screenshots are taken back to back; a frame without content (only the page color)
+    /// counts as blank. Returns (seconds to the first row, seconds of blank frames).
+    private func matchFaceIdAndMeasure(_ app: XCUIApplication, name: String, start: Date) -> (Double, Double) {
         let row = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Perf Item'")).firstMatch
-        postFaceId(match: true)
-        let start = Date()
-        print("PASSY-MARK faceIdMatch \(name) t=\(String(format: "%.3f", start.timeIntervalSinceReferenceDate))")
+        print("PASSY-MARK faceIdStart \(name) t=\(String(format: "%.3f", start.timeIntervalSinceReferenceDate))")
         var blank: Double = 0
         var lastFrame = start
         var lastBlank = false
         var rowAt: Double?
         let deadline = start.addingTimeInterval(30)
         while Date() < deadline {
+            postFaceId(match: true) // no-op without a prompt
             let shot = XCUIScreen.main.screenshot()
             let now = Date()
             if lastBlank { blank += now.timeIntervalSince(lastFrame) }
@@ -199,7 +201,7 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
             }
             if row.exists { rowAt = Date().timeIntervalSince(start); break }
         }
-        XCTAssertNotNil(rowAt, "\(name): no 'Perf Item' row 30 s after the Face ID match\n\(app.debugDescription)")
+        XCTAssertNotNil(rowAt, "\(name): no 'Perf Item' row within 30 s\n\(app.debugDescription)")
         print("FACEID \(name) row=\(String(format: "%.3f", rowAt ?? -1)) blank=\(String(format: "%.3f", blank))")
         return (rowAt ?? 30, blank)
     }
