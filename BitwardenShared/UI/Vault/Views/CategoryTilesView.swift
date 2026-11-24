@@ -96,9 +96,9 @@ private struct CategoryTile: View {
                 Text(count, format: .number)
                     .font(.system(.title, design: .rounded).weight(.bold))
                     .monospacedDigit()
-                    // Empty categories step back; a little darker than `.secondary` so the count passes the contrast
-                    // audit on the white tile.
-                    .foregroundStyle(Color.primary.opacity(count == 0 ? 0.45 : 0.9))
+                    // Empty categories step back, but not below 0.7 (a little darker than `.secondary`): the count
+                    // must pass the contrast audit on the white tile.
+                    .foregroundStyle(Color.primary.opacity(count == 0 ? 0.7 : 0.9))
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
             }

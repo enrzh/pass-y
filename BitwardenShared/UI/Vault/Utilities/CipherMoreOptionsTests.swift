@@ -326,4 +326,25 @@ struct CipherMoreOptionsTests {
                 ),
         )
     }
+
+    // MARK: VaultListItem
+
+    /// `VaultListItem.moreOptionsActionKinds(hasPremium:)` (the row menus) returns the cipher's applicable kinds.
+    @Test
+    func vaultListItem_moreOptionsActionKinds_cipher() {
+        let cipher = CipherListView.fixture(type: .identity)
+        #expect(
+            VaultListItem.fixture(cipherListView: cipher).moreOptionsActionKinds(hasPremium: false)
+                == cipher.applicableMoreOptionsActionKinds(hasPremium: false),
+        )
+    }
+
+    /// `VaultListItem.moreOptionsActionKinds(hasPremium:)` is empty for group, code and decryption-failure rows.
+    @Test
+    func vaultListItem_moreOptionsActionKinds_none() {
+        #expect(VaultListItem.fixtureGroup().moreOptionsActionKinds(hasPremium: true).isEmpty)
+        #expect(VaultListItem.fixtureTOTP(totp: .fixture()).moreOptionsActionKinds(hasPremium: true).isEmpty)
+        let failure = VaultListItem.fixture(cipherListView: CipherListView(cipherDecryptFailure: .fixture()))
+        #expect(failure.moreOptionsActionKinds(hasPremium: true).isEmpty)
+    }
 }
