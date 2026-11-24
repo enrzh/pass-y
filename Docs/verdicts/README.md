@@ -4,9 +4,10 @@ Independent validator results, kept as evidence (German or English as written). 
 
 | Date | Round | Verdict | File |
 |---|---|---|---|
-| 2026-11-24 | v1.27 | FAIL (full tier red under host load, dead doc links; no product defect) | [2026-11-24-v1.27.md](2026-11-24-v1.27.md) |
-| 2026-11-24 | v1.27 recheck (`960ea0185`) | FAIL | [2026-11-24-v1.27-recheck.md](2026-11-24-v1.27-recheck.md) |
+| 2026-11-24 | v1.27 | FAIL (full tier red in two steps, dead doc links; the host-load reading was not confirmed by the recheck) | [2026-11-24-v1.27.md](2026-11-24-v1.27.md) |
+| 2026-11-24 | v1.27 recheck (`960ea0185`) | FAIL (idle stall and perf compare on a quiet host) | [2026-11-24-v1.27-recheck.md](2026-11-24-v1.27-recheck.md) |
 | 2026-11-24 | v1.27 idle-fix (`2c6fbeb15`) | FAIL (idle stall in full-phone, cause not yet named) | [2026-11-24-v1.27-idle-fix.md](2026-11-24-v1.27-idle-fix.md) |
+| 2026-11-24 | v1.27 hardening (`9e5f7cb17`) | FAIL (one UI test: Send text typing; 0 idle stalls, all unit plans green) | [2026-11-24-v1.27-hardening.md](2026-11-24-v1.27-hardening.md) |
 | 2026-11-23 | ui-r9 final | PASS (open UNVERIFIED points) | [2026-11-23-ui-r9-final.md](2026-11-23-ui-r9-final.md) |
 | 2026-11-22 | ui-r9 | FAIL | [2026-11-22-ui-r9.md](2026-11-22-ui-r9.md) |
 | 2026-11-21 | ui-r8 final | PASS (open observation O1) | [2026-11-21-ui-r8-final.md](2026-11-21-ui-r8-final.md) |

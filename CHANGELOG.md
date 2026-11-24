@@ -6,6 +6,14 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 
 ## Unreleased
 
+## v1.27.0 (2026-11-24) - Watch back, preload security fix, cleanup
+Verdicts: four validator runs, all FAIL, each on a different single UI test:
+[v1.27](Docs/verdicts/2026-11-24-v1.27.md), [recheck](Docs/verdicts/2026-11-24-v1.27-recheck.md),
+[idle-fix](Docs/verdicts/2026-11-24-v1.27-idle-fix.md), [hardening](Docs/verdicts/2026-11-24-v1.27-hardening.md).
+Released without a PASS on the maintainer's judgment: every unit plan is green (6608 / 597 / 654 / 67 tests), Release
+builds carry no diagnostics, and no red test was traced to a product defect. Open: the XCUITest idle stall after unlock
+(cause not found, seen in 3 of 11 full-phone runs) and the Send text typing reorder (1 run) below.
+
 - Known issue (UI tests, not reproduced): one validator run reordered the first typing into the Send text field
   (a lost capital and a caret jump); 0 of 30 in a loop, product code unchanged since v1.26. The typing helper's clear
   no longer leaves text after a mid-text caret (see [Docs/Testing.md](Docs/Testing.md)).
