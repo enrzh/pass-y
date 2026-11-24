@@ -71,6 +71,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     ) -> Bool {
         // Exit early if testing to avoid running any app functionality.
         guard !isTesting else { return true }
+        #if DEBUG
+        PassYStartupTimeline.start(application: UIApplication.shared)
+        #endif
 
         UNUserNotificationCenter.current().delegate = self
 

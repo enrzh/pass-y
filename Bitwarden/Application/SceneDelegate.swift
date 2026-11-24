@@ -69,9 +69,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         splashWindow = buildSplashWindow(windowScene: windowScene)
         PassYPrivacyCover.unlockEnded = { [weak self, weak windowScene] in
             // The vault is about to show while the scene is still inactive (app switcher): cover it now.
+            #if DEBUG
+            PassYStartupTimeline.event(
+                "bioEnded",
+                "sceneActive=\(windowScene?.activationState == .foregroundActive ? 1 : 0)",
+                snapshot: true,
+            )
+            #endif
             guard let self, let windowScene, windowScene.activationState != .foregroundActive else { return }
             isCoverForBiometricUnlockEnd = true
-            showSplash()
+            showSplash(reason: "bioEndedInactive")
         }
 
         // Start the app's processor and show the splash view until the initial view is shown.
@@ -138,12 +145,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // The Face ID / Touch ID prompt of an unlock resigns the scene: the locked unlock page needs no cover (see
         // `PassYPrivacyCover`). Every other reason (app switcher, control center, a call) covers as before.
         guard !PassYPrivacyCover.isBiometricUnlockInProgress else { return }
-        showSplash()
+        showSplash(reason: "resignActive")
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
         // The app switcher snapshot is taken after this: always covered, also when a biometric unlock is running.
-        showSplash()
+        showSplash(reason: "enterBackground")
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
@@ -155,6 +162,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             isCoverForBiometricUnlockEnd = false
             splashWindow?.alpha = 0
             #if DEBUG
+            PassYStartupTimeline.event("coverHidden", "animated=0")
             PassYPerf.mark("splashHidden")
             #endif
             return
@@ -182,6 +190,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     /// Hides the splash view.
     private func hideSplash() {
+        #if DEBUG
+        PassYStartupTimeline.event("coverHide", "fromAlpha=\(String(format: "%.2f", splashWindow?.alpha ?? -1))")
+        #endif
         UIView.animate(withDuration: UI.duration(0.4)) {
             self.splashWindow?.alpha = 0
         } completion: { _ in
@@ -191,8 +202,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }
 
-    /// Shows the splash view.
-    private func showSplash() {
+    /// Shows the splash view (`reason`: DEBUG timeline only).
+    private func showSplash(reason: StaticString) {
+        #if DEBUG
+        PassYStartupTimeline.event("coverShown", "reason=\(reason) fromAlpha=\(String(format: "%.2f", splashWindow?.alpha ?? -1))")
+        #endif
         splashWindow?.alpha = 1
     }
 

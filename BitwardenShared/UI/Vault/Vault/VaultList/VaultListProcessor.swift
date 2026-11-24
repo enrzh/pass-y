@@ -628,6 +628,10 @@ extension VaultListProcessor {
             }
 
             do {
+                #if DEBUG
+                PassYPerf.mark("syncStart")
+                defer { PassYPerf.mark("syncEnd") }
+                #endif
                 try await services.vaultRepository.fetchSync(
                     forceSync: false,
                     isPeriodic: syncWithPeriodicCheck,

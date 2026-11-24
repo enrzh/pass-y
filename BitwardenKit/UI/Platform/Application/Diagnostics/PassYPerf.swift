@@ -64,7 +64,12 @@ public enum PassYPerf {
         let now = CFAbsoluteTimeGetCurrent()
         signposter.emitEvent("Startup", "\(name, privacy: .public)")
         logger.notice("startup mark=\(name, privacy: .public) t=\(now, format: .fixed(precision: 3), privacy: .public)")
+        // The device timeline (`Documents/startup-timeline.log`); an unlock opens a 3 s frame / hang watch window.
+        PassYStartupTimeline.event(name, watch: watchMarks.contains(name))
     }
+
+    /// The marks that open a watch window of the startup timeline.
+    static let watchMarks: Set<String> = ["bioKeyEnd", "bioUnlocked", "passwordUnlocked", "becomeActive", "firstRow"]
 
     /// Starts the "list load" interval (once, until it ends).
     public static func beginListLoad() {

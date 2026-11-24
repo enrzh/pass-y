@@ -44,7 +44,9 @@ class PassYAppHygieneTests: BitwardenTestCase {
         let folder = "BitwardenKit/UI/Platform/Application/Diagnostics"
         let files = try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent(folder).path)
             .filter { $0.hasSuffix(".swift") }
-        XCTAssertEqual(Set(files), ["PassYAnimationDump.swift", "PassYNavigationProbe.swift", "PassYPerf.swift"])
+        XCTAssertEqual(Set(files), [
+            "PassYAnimationDump.swift", "PassYNavigationProbe.swift", "PassYPerf.swift", "PassYStartupTimeline.swift",
+        ])
         for file in files {
             let source = try read("\(folder)/\(file)").trimmingCharacters(in: .whitespacesAndNewlines)
             XCTAssertTrue(source.hasPrefix("#if DEBUG"), file)

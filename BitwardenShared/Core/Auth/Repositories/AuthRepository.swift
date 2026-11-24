@@ -1081,7 +1081,13 @@ extension DefaultAuthRepository: AuthRepository {
     }
 
     func unlockVaultWithBiometrics() async throws {
+        #if DEBUG
+        PassYPerf.mark("bioKeyStart") // The keychain read with biometric access control: the Face ID prompt.
+        #endif
         let decryptedUserKey = try await biometricsRepository.getUserAuthKey()
+        #if DEBUG
+        PassYPerf.mark("bioKeyEnd")
+        #endif
         try await unlockVault(method: .decryptedKey(decryptedUserKey: decryptedUserKey))
     }
 
@@ -1312,6 +1318,9 @@ extension DefaultAuthRepository: AuthRepository {
         let account = try await stateService.getActiveAccount()
         let cryptographicState = try await stateService.getAccountCryptographicState()
         let upgradeToken = await stateService.getV2UpgradeToken(userId: account.profile.userId)
+        #if DEBUG
+        PassYPerf.mark("unlock.stateRead")
+        #endif
 
         try await clientService.crypto().initializeUserCrypto(
             account: account,
@@ -1320,22 +1329,40 @@ extension DefaultAuthRepository: AuthRepository {
             upgradeToken: upgradeToken,
         )
 
+        #if DEBUG
+        PassYPerf.mark("unlock.userCrypto")
+        #endif
         await flightRecorder.log("[Auth] Vault unlocked, method: \(method.methodType)")
 
         try await configurePinUnlockIfNeeded(method: method)
+        #if DEBUG
+        PassYPerf.mark("unlock.pinAndLog")
+        #endif
 
         _ = try await trustDeviceService.trustDeviceIfNeeded()
+        #if DEBUG
+        PassYPerf.mark("unlock.trustDevice")
+        #endif
         try await vaultTimeoutService.unlockVault(
             userId: account.profile.userId,
             hadUserInteraction: hadUserInteraction,
         )
+        #if DEBUG
+        PassYPerf.mark("unlock.timeoutService")
+        #endif
         try await organizationService.initializeOrganizationCrypto()
+        #if DEBUG
+        PassYPerf.mark("unlock.orgCrypto")
+        #endif
         do {
             try await stateService.setManuallyLockedAccount(false, userId: account.profile.userId)
         } catch {
             errorReporter.log(error: error)
         }
         await configureBiometricUnlockIfNeeded()
+        #if DEBUG
+        PassYPerf.mark("unlock.done")
+        #endif
     }
 
     /// Updates the user's KDF settings to the minimums.

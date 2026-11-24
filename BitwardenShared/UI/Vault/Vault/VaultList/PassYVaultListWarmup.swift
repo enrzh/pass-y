@@ -1,3 +1,4 @@
+import BitwardenKit
 import Foundation
 
 // MARK: - PassYVaultListWarmup
@@ -105,6 +106,9 @@ enum PassYVaultListWarmup {
             let first = await Self.firstList(filter: filter, vaultRepository: vaultRepository)
             await MainActor.run {
                 defer { run.finish() }
+                #if DEBUG
+                PassYPerf.mark(first == nil ? "warmUpFailed" : run.isFinished ? "warmUpLate" : "warmUpBuilt")
+                #endif
                 guard let first, !run.isFinished, !Task.isCancelled, generation == startGeneration,
                       !first.sections.isEmpty else { return }
                 store(first.sections, filter: filter)
