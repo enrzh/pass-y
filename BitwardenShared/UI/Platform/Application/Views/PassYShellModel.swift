@@ -505,17 +505,17 @@ struct PassYAvatarMenu: View {
             }
             if let initials = profile?.userInitials {
                 Text(initials)
-                    .font(Font.system(.footnote, design: .rounded).weight(.semibold))
+                    .font(Font.system(.body, design: .rounded).weight(.semibold))
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
                     .foregroundStyle(Color.white)
             } else {
                 Image(systemName: "person.fill")
-                    .font(.footnote)
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: avatarSize, height: avatarSize)
+        .frame(width: Self.avatarSize, height: Self.avatarSize)
     }
 
     /// The opacity of a black overlay (0 to 0.6) after which white text on `color` has a contrast ratio of at least 4.6.
@@ -535,24 +535,19 @@ struct PassYAvatarMenu: View {
         return 0.6
     }
 
-    /// The avatar diameter: 30 pt at the default text size, grows with Dynamic Type.
-    @ScaledMetric(relativeTo: .footnote) private var avatarSize: CGFloat = 30
+    /// The avatar diameter: the 44 pt of the neighbouring glass toolbar buttons (back, Select, "..."), so it has the
+    /// same size and weight. Fixed like those buttons: a Dynamic Type size would outgrow the bar; the initials shrink
+    /// to fit instead.
+    static let avatarSize: CGFloat = 44
 }
 
 // MARK: - PassYAvatarToolbarItem
 
-/// The avatar as a toolbar item. On iOS 26 the system toolbar capsule around it is removed, so only the avatar shows.
+/// The avatar as a toolbar item, without the system toolbar capsule around it, so only the avatar shows.
 ///
 struct PassYAvatarToolbarItem: ToolbarContent {
     var body: some ToolbarContent {
-        // Two plain `if`s instead of if/else: Xcode 26.6 rejects if/else here (ToolbarContentBuilder.buildEither
-        // is iOS 16+, the deployment target is iOS 15). Xcode 27 accepts both forms.
-        if #available(iOS 26, *) {
-            ToolbarItem(placement: .topBarTrailing) { PassYAvatarMenu() }
-                .sharedBackgroundVisibility(.hidden)
-        }
-        if #unavailable(iOS 26) {
-            ToolbarItem(placement: .topBarTrailing) { PassYAvatarMenu() }
-        }
+        ToolbarItem(placement: .topBarTrailing) { PassYAvatarMenu() }
+            .sharedBackgroundVisibility(.hidden)
     }
 }
