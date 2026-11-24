@@ -292,8 +292,8 @@ class VaultUnlockProcessor: StateProcessor<
             #if DEBUG
             PassYPerf.mark("bioUnlocked")
             #endif
-            // Before the vault is routed: if the scene is still inactive, the cover goes up first.
-            PassYPrivacyCover.endBiometricUnlock()
+            // Before the vault is routed (a success does not cover the vault while the system Face ID UI fades).
+            PassYPrivacyCover.endBiometricUnlock(succeeded: true)
             await warmUpVaultList()
             await coordinator.handleEvent(.didCompleteAuth)
             #if DEBUG

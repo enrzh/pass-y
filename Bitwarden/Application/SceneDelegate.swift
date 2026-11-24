@@ -18,9 +18,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     /// The main window for this scene.
     var window: UIWindow?
 
-    /// Whether the cover went up only because a biometric unlock ended while the scene was inactive (it then goes
-    /// away without the fade: the unlock already took the user's time).
-    private var isCoverForBiometricUnlockEnd = false
+    /// Whether the cover went up only because a failed or cancelled biometric unlock ended while the scene was
+    /// inactive (it then goes away without the fade: the unlock already took the user's time).
+    private(set) var isCoverForBiometricUnlockEnd = false
+
+    /// Whether a successful biometric unlock ended while the scene was inactive (the system Face ID UI still fading)
+    /// and the vault was left uncovered; until the scene becomes active or goes to the background.
+    private(set) var isUncoveredAfterBiometricUnlock = false
 
     /// The processor that manages application level logic.
     var appProcessor: AppProcessor? {
@@ -53,10 +57,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             self?.appProcessor?.showDebugMenu()
             #endif
         }
-        // Never black between two screens (the unlock page leaving, the vault shell arriving): the window and the root
-        // show the launch screen color.
-        appWindow.backgroundColor = .systemBackground
-        rootViewController.view.backgroundColor = .systemBackground
+        // Never an empty color between two screens (the unlock page leaving, the vault shell arriving): the window and
+        // the root show the vault home's background (`backgroundPrimary` = system grouped background, light and dark).
+        appWindow.backgroundColor = .systemGroupedBackground
+        rootViewController.view.backgroundColor = .systemGroupedBackground
         appWindow.rootViewController = rootViewController
         appWindow.makeKeyAndVisible()
         window = appWindow
@@ -67,18 +71,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Splash window. This is initially visible until the app's processor has finished starting.
         splashWindow = buildSplashWindow(windowScene: windowScene)
-        PassYPrivacyCover.unlockEnded = { [weak self, weak windowScene] in
-            // The vault is about to show while the scene is still inactive (app switcher): cover it now.
+        PassYPrivacyCover.unlockEnded = { [weak self, weak windowScene] succeeded in
             #if DEBUG
             PassYStartupTimeline.event(
                 "bioEnded",
-                "sceneActive=\(windowScene?.activationState == .foregroundActive ? 1 : 0)",
+                "succeeded=\(succeeded ? 1 : 0) sceneActive=\(windowScene?.activationState == .foregroundActive ? 1 : 0)",
                 snapshot: true,
             )
             #endif
-            guard let self, let windowScene, windowScene.activationState != .foregroundActive else { return }
-            isCoverForBiometricUnlockEnd = true
-            showSplash(reason: "bioEndedInactive")
+            guard let self, let windowScene else { return }
+            biometricUnlockEnded(succeeded: succeeded, sceneActive: windowScene.activationState == .foregroundActive)
         }
 
         // Start the app's processor and show the splash view until the initial view is shown.
@@ -149,7 +151,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
-        // The app switcher snapshot is taken after this: always covered, also when a biometric unlock is running.
+        // The app switcher snapshot is taken after this: always covered, also when a biometric unlock is running or
+        // a successful one left the vault uncovered while the scene was inactive.
+        isUncoveredAfterBiometricUnlock = false
         showSplash(reason: "enterBackground")
     }
 
@@ -157,6 +161,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         #if DEBUG
         PassYPerf.mark("becomeActive")
         #endif
+        isUncoveredAfterBiometricUnlock = false
         guard !isStartingUp else { return }
         if isCoverForBiometricUnlockEnd {
             isCoverForBiometricUnlockEnd = false
@@ -168,6 +173,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             return
         }
         hideSplash()
+    }
+
+    /// A biometric unlock ended. While the scene is still inactive, a failed or cancelled unlock covers (until the
+    /// scene becomes active, without the fade); a successful one leaves the vault uncovered: the system Face ID UI is
+    /// still fading out over the vault the user just unlocked (`PassYPrivacyCover`).
+    func biometricUnlockEnded(succeeded: Bool, sceneActive: Bool) {
+        guard !sceneActive else { return }
+        if succeeded {
+            isUncoveredAfterBiometricUnlock = true
+        } else {
+            isCoverForBiometricUnlockEnd = true
+            showSplash(reason: "bioFailedInactive")
+        }
     }
 
     // MARK: Private

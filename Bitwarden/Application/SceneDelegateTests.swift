@@ -117,10 +117,9 @@ class SceneDelegateTests: BitwardenTestCase {
     }
 
     /// The Face ID / Touch ID prompt of an unlock resigns the scene: the locked unlock page is not covered (the cover
-    /// and its fade-out were the black screen after Face ID). Leaving for the background always covers, and an unlock
-    /// that ends while the scene is still inactive covers before the vault shows, then uncovers without the fade.
+    /// and its fade-out were the black screen after Face ID). Leaving for the background always covers.
     @MainActor
-    func test_privacyCover_biometricUnlock() {
+    func test_privacyCover_biometricPrompt_noCoverButBackgroundCovers() {
         let scene = connectedScene()
         defer { PassYPrivacyCover.endBiometricUnlock() }
 
@@ -130,18 +129,80 @@ class SceneDelegateTests: BitwardenTestCase {
 
         subject.sceneDidEnterBackground(scene)
         XCTAssertEqual(subject.splashWindow?.alpha, 1, "the app switcher snapshot is always covered")
-        subject.sceneDidBecomeActive(scene)
-        waitFor(subject.splashWindow?.alpha == 0)
+    }
+
+    /// A successful unlock that ends while the scene is inactive (the system Face ID UI still fading) does not cover
+    /// the vault; the scene becoming active ends that state without any cover.
+    @MainActor
+    func test_privacyCover_successWhileInactive_noCover() {
+        let scene = connectedScene()
 
         // The test scene is never foreground-active: the unlock ends while it counts as inactive.
-        PassYPrivacyCover.endBiometricUnlock()
+        PassYPrivacyCover.beginBiometricUnlock()
+        subject.sceneWillResignActive(scene)
+        PassYPrivacyCover.endBiometricUnlock(succeeded: true)
         XCTAssertFalse(PassYPrivacyCover.isBiometricUnlockInProgress)
-        XCTAssertEqual(subject.splashWindow?.alpha, 1, "covered before the vault can show")
+        XCTAssertEqual(subject.splashWindow?.alpha, 0, "the unlocked vault is not covered")
+        XCTAssertTrue(subject.isUncoveredAfterBiometricUnlock)
+        XCTAssertFalse(subject.isCoverForBiometricUnlockEnd)
+
         subject.sceneDidBecomeActive(scene)
-        XCTAssertEqual(subject.splashWindow?.alpha, 0, "uncovered at once, no fade")
+        XCTAssertFalse(subject.isUncoveredAfterBiometricUnlock)
+        XCTAssertEqual(subject.splashWindow?.alpha, 0)
 
         subject.sceneWillResignActive(scene)
-        XCTAssertEqual(subject.splashWindow?.alpha, 1, "any other resign covers as before")
+        XCTAssertEqual(subject.splashWindow?.alpha, 1, "a resign without an unlock (app switcher, call) covers")
+    }
+
+    /// Going to the background while a successful unlock left the vault uncovered covers before the snapshot.
+    @MainActor
+    func test_privacyCover_successWhileInactive_thenBackground_covers() {
+        let scene = connectedScene()
+
+        PassYPrivacyCover.beginBiometricUnlock()
+        PassYPrivacyCover.endBiometricUnlock(succeeded: true)
+        XCTAssertEqual(subject.splashWindow?.alpha, 0)
+
+        subject.sceneDidEnterBackground(scene)
+        XCTAssertEqual(subject.splashWindow?.alpha, 1, "covered before the app switcher snapshot")
+        XCTAssertFalse(subject.isUncoveredAfterBiometricUnlock)
+    }
+
+    /// A failed or cancelled unlock that ends while the scene is inactive covers as before, and uncovers without the
+    /// fade when the scene becomes active.
+    @MainActor
+    func test_privacyCover_failureWhileInactive_covers() {
+        let scene = connectedScene()
+
+        PassYPrivacyCover.beginBiometricUnlock()
+        PassYPrivacyCover.endBiometricUnlock()
+        XCTAssertEqual(subject.splashWindow?.alpha, 1, "a cancelled or failed unlock covers while inactive")
+        XCTAssertTrue(subject.isCoverForBiometricUnlockEnd)
+        XCTAssertFalse(subject.isUncoveredAfterBiometricUnlock)
+
+        subject.sceneDidBecomeActive(scene)
+        XCTAssertEqual(subject.splashWindow?.alpha, 0, "uncovered at once, no fade")
+        XCTAssertFalse(subject.isCoverForBiometricUnlockEnd)
+    }
+
+    /// An unlock that ends while the scene is active changes nothing, success or not.
+    @MainActor
+    func test_privacyCover_unlockEndWhileActive_noChange() {
+        _ = connectedScene()
+
+        subject.biometricUnlockEnded(succeeded: true, sceneActive: true)
+        subject.biometricUnlockEnded(succeeded: false, sceneActive: true)
+        XCTAssertEqual(subject.splashWindow?.alpha, 0)
+        XCTAssertFalse(subject.isUncoveredAfterBiometricUnlock)
+        XCTAssertFalse(subject.isCoverForBiometricUnlockEnd)
+    }
+
+    /// The window and the root show the vault home's background, never the launch screen black/white in the gap.
+    @MainActor
+    func test_window_background_matchesHome() {
+        _ = connectedScene()
+        XCTAssertEqual(subject.window?.backgroundColor, .systemGroupedBackground)
+        XCTAssertEqual(subject.window?.rootViewController?.view.backgroundColor, .systemGroupedBackground)
     }
 
     /// `scene(_:continue)` runs successfully

@@ -163,6 +163,9 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
         biometricsRepository.getBiometricUnlockStatusReturnValue = .available(.faceID, enabled: true)
         authRepository.unlockVaultWithBiometricsResult = .success(())
         subject.shouldAttemptAutomaticBiometricUnlock = true
+        var unlockEndings = [Bool]()
+        PassYPrivacyCover.unlockEnded = { unlockEndings.append($0) }
+        defer { PassYPrivacyCover.unlockEnded = nil }
 
         await subject.perform(.appeared)
 
@@ -170,6 +173,7 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
         XCTAssertEqual(coordinator.events.last, .didCompleteAuth)
         XCTAssertFalse(subject.state.shouldFocusPasswordOrPinField)
         XCTAssertFalse(PassYPrivacyCover.isBiometricUnlockInProgress, "the privacy cover is back to normal")
+        XCTAssertEqual(unlockEndings, [true], "one end, reported as a success (no cover over the vault)")
     }
 
     /// `perform(.appeared)` with no master password but with a biometrics status enabled,
@@ -685,7 +689,12 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
         struct BiometricsError: Error {}
         authRepository.unlockVaultWithBiometricsResult = .failure(BiometricsError())
 
+        var unlockEndings = [Bool]()
+        PassYPrivacyCover.unlockEnded = { unlockEndings.append($0) }
+        defer { PassYPrivacyCover.unlockEnded = nil }
+
         await subject.perform(.unlockVaultWithBiometrics)
+        XCTAssertEqual(unlockEndings, [false], "a failure ends as before (covers while inactive)")
         XCTAssertNil(coordinator.routes.last)
         XCTAssertEqual(subject.state.unsuccessfulUnlockAttemptsCount, 1)
         XCTAssertEqual(userSessionStateService.setUnsuccessfulUnlockAttemptsReceivedArguments?.attempts, 1)
