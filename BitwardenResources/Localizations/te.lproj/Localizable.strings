@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "మీ డొమైన్ యొక్క కాన్ఫిగర్ చేసిన క్యాచ్-ఆల్ ఇన్‌బాక్స్‌ను ఉపయోగించండి.";
 "ForwardedEmailDescription" = "బాహ్య ఫార్వార్డింగ్ సేవతో ఇమెయిల్ మారుపేరును రూపొందించండి.";
 "Random" = "యాదృచ్ఛిక";
+"ConnectToWatch" = "Watchకు కనెక్ట్ చేయి";
 "LoginRequestHasAlreadyExpired" = "లాగిన్ అభ్యర్థన ఇప్పటికే గడువు ముగిసింది.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "దీని నుండి లాగిన్ ప్రయత్నం:\n%1$@\nమీరు ఈ ఖాతాకు మారాలనుకుంటున్నారా?";
 "NewAroundHere" = "ఇక్కడ కొత్తగా ఉన్నారా?";

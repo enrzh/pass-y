@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Usa la bandeja de entrada catch-all configurada de tu dominio.";
 "ForwardedEmailDescription" = "Generar un alias de correo electrónico con un servicio de reenvío externo.";
 "Random" = "Aleatorio";
+"ConnectToWatch" = "Conectar al reloj";
 "LoginRequestHasAlreadyExpired" = "La solicitud de acceso ya ha caducado.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Intento de inicio de sesión desde:\n%1$@\n¿Desea cambiar a esta cuenta?";
 "NewAroundHere" = "¿Nuevo por aquí?";

@@ -44,19 +44,17 @@ class AccountSecurityViewTests: BitwardenTestCase {
         task.cancel()
     }
 
-    /// Tapping the sync with authenticator switch should send `.toggleSyncWithAuthenticator(enabled)` with the
-    /// new value of enabled.
+    /// Pass-Y: the "Authenticator sync" section and its toggle are not shown, whatever the state says (the sync with
+    /// Bitwarden's Authenticator app cannot work with Pass-Y's own bundle IDs/app group/team).
     @MainActor
-    func test_authenticatorSync_tap() throws {
-        processor.state.isAuthenticatorSyncEnabled = false
-        let toggle = try subject.inspect().find(toggleWithAccessibilityLabel: Localizations.allowAuthenticatorSyncing)
-        XCTAssertFalse(try toggle.isOn())
-
-        let task = Task {
-            try toggle.tap()
+    func test_authenticatorSync_hidden() throws {
+        for enabled in [false, true] {
+            processor.state.isAuthenticatorSyncEnabled = enabled
+            XCTAssertThrowsError(
+                try subject.inspect().find(toggleWithAccessibilityLabel: Localizations.allowAuthenticatorSyncing),
+            )
+            XCTAssertThrowsError(try subject.inspect().find(text: Localizations.authenticatorSync))
         }
-        defer { task.cancel() }
-        waitFor(processor.effects.last == .toggleSyncWithAuthenticator(true))
     }
 
     /// The action card is hidden if the vault unlock setup progress is complete.

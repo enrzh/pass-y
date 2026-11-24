@@ -224,7 +224,6 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
     let trustDeviceService: TrustDeviceService
 
     /// The service used by the application to generate a two step login URL.
-    let twoStepLoginService: TwoStepLoginService
 
     /// The service used by the application to manage user session state.
     let userSessionStateService: UserSessionStateService
@@ -237,6 +236,9 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
 
     /// The service used by the application to manage vault access.
     let vaultTimeoutService: VaultTimeoutService
+
+    /// The service used by the application to connect to and communicate with the watch app.
+    let watchService: WatchService
 
     // MARK: Initialization
 
@@ -315,11 +317,11 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
     ///   - totpExpirationManagerFactory: The factory to create TOTP expiration managers.
     ///   - totpService: The service used by the application to validate TOTP keys and produce TOTP values.
     ///   - trustDeviceService: The service used to handle device trust.
-    ///   - twoStepLoginService: The service used by the application to generate a two step login URL.
     ///   - userSessionStateService: The service used by the application to manage user session state.
     ///   - userVerificationHelperFactory: A factory protocol to create `UserVerificationHelper`s.
     ///   - vaultRepository: The repository used by the application to manage vault data for the UI layer.
     ///   - vaultTimeoutService: The service used by the application to manage vault access.
+    ///   - watchService: The service used by the application to connect to and communicate with the watch app.
     ///
     @MainActor
     init( // swiftlint:disable:this function_body_length
@@ -388,11 +390,11 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
         totpExpirationManagerFactory: TOTPExpirationManagerFactory,
         totpService: TOTPService,
         trustDeviceService: TrustDeviceService,
-        twoStepLoginService: TwoStepLoginService,
         userSessionStateService: UserSessionStateService,
         userVerificationHelperFactory: UserVerificationHelperFactory,
         vaultRepository: VaultRepository,
         vaultTimeoutService: VaultTimeoutService,
+        watchService: WatchService,
     ) {
         self.apiService = apiService
         self.appContextHelper = appContextHelper
@@ -459,11 +461,11 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
         self.totpExpirationManagerFactory = totpExpirationManagerFactory
         self.totpService = totpService
         self.trustDeviceService = trustDeviceService
-        self.twoStepLoginService = twoStepLoginService
         self.userSessionStateService = userSessionStateService
         self.userVerificationHelperFactory = userVerificationHelperFactory
         self.vaultRepository = vaultRepository
         self.vaultTimeoutService = vaultTimeoutService
+        self.watchService = watchService
     }
 
     /// A convenience initializer to initialize the `ServiceContainer` with the default services.
@@ -762,6 +764,16 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
             userSessionStateService: stateService,
         )
 
+        let watchService = DefaultWatchService(
+            cipherService: cipherService,
+            clientService: clientService,
+            environmentService: environmentService,
+            errorReporter: errorReporter,
+            organizationService: organizationService,
+            stateService: stateService,
+            vaultTimeoutService: vaultTimeoutService,
+        )
+
         let reviewPromptService = DefaultReviewPromptService(
             appInfoService: appInfoService,
             appVersion: Bundle.main.appVersion,
@@ -809,8 +821,6 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
             keychainRepository: keychainRepository,
             stateService: stateService,
         )
-
-        let twoStepLoginService = DefaultTwoStepLoginService(environmentService: environmentService)
 
         let pasteboardService = DefaultPasteboardService(
             errorReporter: errorReporter,
@@ -1232,11 +1242,11 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
             totpExpirationManagerFactory: totpExpirationManagerFactory,
             totpService: totpService,
             trustDeviceService: trustDeviceService,
-            twoStepLoginService: twoStepLoginService,
             userSessionStateService: stateService,
             userVerificationHelperFactory: userVerificationHelperFactory,
             vaultRepository: vaultRepository,
             vaultTimeoutService: vaultTimeoutService,
+            watchService: watchService,
         )
     }
 

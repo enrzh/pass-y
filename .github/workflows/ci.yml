@@ -1,0 +1,57 @@
+# Minimal CI for the public repo: generate projects, build for the iOS Simulator, run a small unit subset.
+# No secrets, no signing, no uploads. UNVERIFIED until it has run on GitHub (see Docs/Releasing.md).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      # The project is developed with the Xcode in .xcode-version (27.x). Use the newest Xcode image offers;
+      # an older Xcode may fail to compile (the job then fails loudly instead of skipping).
+      - name: Select newest installed Xcode
+        run: |
+          newest=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$newest" ]; then sudo xcode-select -s "$newest/Contents/Developer"; fi
+          xcodebuild -version
+          echo "wanted (from .xcode-version): $(cat .xcode-version)"
+
+      - name: Install generators
+        run: brew install xcodegen swiftgen sourcery
+
+      - name: Generate Xcode projects
+        run: |
+          xcodegen --spec project-bwk.yml
+          xcodegen --spec project-pm.yml
+
+      - name: Build and test (iOS Simulator, unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Bitwarden.xcodeproj \
+            -scheme Bitwarden \
+            -testPlan Bitwarden-Unit \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            -skipPackagePluginValidation -skipMacroValidation \
+            -only-testing:BitwardenSharedTests/PassYAppHygieneTests \
+            -only-testing:BitwardenSharedTests/PassYAvatarContrastTests \
+            -only-testing:BitwardenSharedTests/VaultGroupStateTests \
+            -only-testing:BitwardenSharedTests/AccountSecurityProcessorTests \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=- \
+            | tail -n 200

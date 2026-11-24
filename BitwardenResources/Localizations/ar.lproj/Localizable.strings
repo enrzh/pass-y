@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "استخدم علبة البريد الإلكتروني الشاملة التي تم إعدادها في نطاقك.";
 "ForwardedEmailDescription" = "إنشاء بريد إلكتروني مستعار مع خدمة إعادة توجيه خارجية.";
 "Random" = "عشوائي";
+"ConnectToWatch" = "الاتصال بالساعة";
 "LoginRequestHasAlreadyExpired" = "انتهت صلاحية طلب تسجيل الدخول.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "محاولة تسجيل الدخول من:\n%1$@\nهل تريد التبديل إلى هذا الحساب؟";
 "NewAroundHere" = "هل أنت جديد هنا؟";

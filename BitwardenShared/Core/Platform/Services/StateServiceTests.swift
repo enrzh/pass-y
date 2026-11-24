@@ -810,6 +810,14 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertEqual(value, [])
     }
 
+    /// `getConnectToWatch()` returns the connect to watch value for the active account.
+    func test_getConnectToWatch() async throws {
+        await subject.addAccount(.fixture())
+        appSettingsStore.connectToWatchByUserId["1"] = true
+        let value = try await subject.getConnectToWatch()
+        XCTAssertTrue(value)
+    }
+
     /// `getClearClipboardValue()` returns `.never` if the active account doesn't have a value set.
     func test_getClearClipboardValue_notSet() async throws {
         await subject.addAccount(.fixture())
@@ -1237,12 +1245,14 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertTrue(valueWithUserId)
     }
 
-    /// `getSyncToAuthenticator()` returns the sync to authenticator value for the active account.
+    /// `getSyncToAuthenticator()` is always `false` in Pass-Y, even if `true` is stored for the active account.
     func test_getSyncToAuthenticator() async throws {
         await subject.addAccount(.fixture())
         appSettingsStore.syncToAuthenticatorByUserId["1"] = true
         let value = try await subject.getSyncToAuthenticator()
-        XCTAssertTrue(value)
+        XCTAssertFalse(value)
+        let valueWithUserId = try await subject.getSyncToAuthenticator(userId: "1")
+        XCTAssertFalse(valueWithUserId)
     }
 
     /// `.getTimeoutAction(userId:)` returns the session timeout action.
@@ -1427,6 +1437,103 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         try await subject.setLastSyncTime(updatedSync)
 
         XCTAssertEqual(publishedValues, [initialSync, updatedSync])
+    }
+
+    /// `connectToWatchPublisher()` returns a publisher for the user's connect to watch settings.
+    func test_connectToWatchPublisher() async throws {
+        await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
+
+        var publishedValues = [ConnectToWatchValue]()
+        let publisher = await subject.connectToWatchPublisher()
+            .sink(receiveValue: { userId, shouldConnect in
+                publishedValues.append(ConnectToWatchValue(userId: userId, shouldConnect: shouldConnect))
+            })
+        defer { publisher.cancel() }
+
+        try await subject.setConnectToWatch(true)
+
+        XCTAssertEqual(
+            publishedValues,
+            [
+                ConnectToWatchValue(userId: "1", shouldConnect: false),
+                ConnectToWatchValue(userId: "1", shouldConnect: true),
+            ],
+        )
+    }
+
+    /// After switching accounts, `connectToWatchPublisher()` should only emit for the new
+    /// active account and not the previous one.
+    func test_connectToWatchPublisher_accountSwitch_onlyEmitsForActiveAccount() async throws {
+        await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
+
+        var publishedValues = [ConnectToWatchValue]()
+        let publisher = await subject.connectToWatchPublisher()
+            .sink(receiveValue: { userId, shouldConnect in
+                publishedValues.append(ConnectToWatchValue(userId: userId, shouldConnect: shouldConnect))
+            })
+        defer { publisher.cancel() }
+
+        // Switch to account "2".
+        await subject.addAccount(.fixture(profile: .fixture(userId: "2")))
+        try await subject.setActiveAccount(userId: "2")
+
+        // Clear emissions from the switch so we isolate post-switch behavior.
+        publishedValues.removeAll()
+
+        // Toggle the setting for the now-active account "2".
+        try await subject.setConnectToWatch(true)
+
+        // Only account "2" should appear; account "1" must not re-emit.
+        XCTAssertEqual(publishedValues, [ConnectToWatchValue(userId: "2", shouldConnect: true)])
+    }
+
+    /// `connectToWatchPublisher()` gets the initial stored value if a cached value doesn't exist.
+    func test_connectToWatchPublisher_fetchesInitialValue() async throws {
+        await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
+
+        appSettingsStore.connectToWatchByUserId["1"] = true
+
+        var publishedValues = [ConnectToWatchValue]()
+        let publisher = await subject.connectToWatchPublisher()
+            .sink(receiveValue: { userId, shouldConnect in
+                publishedValues.append(ConnectToWatchValue(userId: userId, shouldConnect: shouldConnect))
+            })
+        defer { publisher.cancel() }
+
+        try await subject.setConnectToWatch(false)
+
+        XCTAssertEqual(
+            publishedValues,
+            [
+                ConnectToWatchValue(userId: "1", shouldConnect: true),
+                ConnectToWatchValue(userId: "1", shouldConnect: false),
+            ],
+        )
+    }
+
+    /// `connectToWatchPublisher()` uses the last connect to watch value if the user is not logged in.
+    func test_connectToWatchPublisher_notLoggedIn() async throws {
+        appSettingsStore.lastUserShouldConnectToWatch = true
+
+        var publishedValues = [ConnectToWatchValue]()
+        let publisher = await subject.connectToWatchPublisher()
+            .sink(receiveValue: { userId, shouldConnect in
+                publishedValues.append(ConnectToWatchValue(userId: userId, shouldConnect: shouldConnect))
+            })
+        defer { publisher.cancel() }
+
+        XCTAssertEqual(publishedValues, [ConnectToWatchValue(userId: nil, shouldConnect: true)])
+    }
+
+    /// `getLastUserShouldConnectToWatch()` returns the value in the app settings store.
+    func test_getLastUserShouldConnectToWatch() async {
+        var value = await subject.getLastUserShouldConnectToWatch()
+        XCTAssertFalse(value)
+
+        appSettingsStore.lastUserShouldConnectToWatch = true
+
+        value = await subject.getLastUserShouldConnectToWatch()
+        XCTAssertTrue(value)
     }
 
     /// `isAuthenticated()` returns the authentication state of the user.
@@ -1983,6 +2090,15 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
 
         try await subject.setCollapsedVaultListSectionIds(["1", "2"])
         XCTAssertEqual(appSettingsStore.collapsedVaultListSectionIdsByUserId["1"], ["1", "2"])
+    }
+
+    /// `setConnectToWatch(_:userId:)` sets the connect to watch value for a user.
+    func test_setConnectToWatch() async throws {
+        await subject.addAccount(.fixture())
+
+        try await subject.setConnectToWatch(true)
+        XCTAssertTrue(appSettingsStore.connectToWatch(userId: "1"))
+        XCTAssertTrue(appSettingsStore.lastUserShouldConnectToWatch)
     }
 
     /// `setEvents(_:userId:)` sets the events for a user.
@@ -2866,7 +2982,8 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertFalse(shouldDoArchiveOnboarding)
     }
 
-    /// `syncToAuthenticatorPublisher()` returns a publisher for the user's sync to authenticator settings.
+    /// `syncToAuthenticatorPublisher()` returns a publisher for the user's sync to authenticator settings; in Pass-Y
+    /// the value is always `false`, even after `setSyncToAuthenticator(true)`.
     func test_syncToAuthenticatorPublisher() async throws {
         await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
 
@@ -2882,10 +2999,10 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         XCTAssertEqual(publishedValues[0].userId, "1")
         XCTAssertEqual(publishedValues[0].shouldSync, false)
         XCTAssertEqual(publishedValues[1].userId, "1")
-        XCTAssertEqual(publishedValues[1].shouldSync, true)
+        XCTAssertEqual(publishedValues[1].shouldSync, false)
     }
 
-    /// `syncToAuthenticatorPublisher()` gets the initial stored value if a cached value doesn't exist.
+    /// `syncToAuthenticatorPublisher()` ignores a stored `true` (Pass-Y: the sync can never be on).
     func test_syncToAuthenticatorPublisher_fetchesInitialValue() async throws {
         await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
 
@@ -2901,7 +3018,7 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
         try await subject.setSyncToAuthenticator(false)
 
         XCTAssertEqual(publishedValues[0].userId, "1")
-        XCTAssertEqual(publishedValues[0].shouldSync, true)
+        XCTAssertEqual(publishedValues[0].shouldSync, false)
         XCTAssertEqual(publishedValues[1].userId, "1")
         XCTAssertEqual(publishedValues[1].shouldSync, false)
     }
@@ -3000,4 +3117,9 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
             ),
         )
     }
+}
+
+private struct ConnectToWatchValue: Equatable {
+    let userId: String?
+    let shouldConnect: Bool
 } // swiftlint:disable:this file_length

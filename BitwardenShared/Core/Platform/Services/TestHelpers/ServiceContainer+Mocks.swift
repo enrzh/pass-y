@@ -80,11 +80,11 @@ extension ServiceContainer {
         tokenService: TokenService = MockTokenService(),
         totpExpirationManagerFactory: TOTPExpirationManagerFactory = MockTOTPExpirationManagerFactory(),
         totpService: TOTPService = MockTOTPService(),
-        twoStepLoginService: TwoStepLoginService = MockTwoStepLoginService(),
         userSessionStateService: UserSessionStateService = MockUserSessionStateService(),
         userVerificationHelperFactory: UserVerificationHelperFactory = MockUserVerificationHelperFactory(),
         vaultRepository: VaultRepository = MockVaultRepository(),
         vaultTimeoutService: VaultTimeoutService = MockVaultTimeoutService(),
+        watchService: WatchService = MockWatchService(),
     ) -> ServiceContainer {
         var actualSearchProcessorMediatorFactory: SearchProcessorMediatorFactory
         if let searchProcessorMediatorFactory {
@@ -167,11 +167,11 @@ extension ServiceContainer {
             totpExpirationManagerFactory: totpExpirationManagerFactory,
             totpService: totpService,
             trustDeviceService: trustDeviceService,
-            twoStepLoginService: twoStepLoginService,
             userSessionStateService: userSessionStateService,
             userVerificationHelperFactory: userVerificationHelperFactory,
             vaultRepository: vaultRepository,
             vaultTimeoutService: vaultTimeoutService,
+            watchService: watchService,
         )
     }
 }

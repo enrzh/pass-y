@@ -115,6 +115,9 @@ struct StartRegistrationView: View {
                     .foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             }
+            // Whole row tappable: a plain-style button hit-tests only its content, not the Spacer
+            // (on the wide iPad row a tap in the middle did nothing).
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("RegionSelectorDropdown")

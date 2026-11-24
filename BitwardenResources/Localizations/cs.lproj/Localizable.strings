@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Použije nastavenou univerzální schránku Vaší domény.";
 "ForwardedEmailDescription" = "Vygeneruje alias e-mailu pomocí externí přeposílací služby.";
 "Random" = "Náhodně";
+"ConnectToWatch" = "Propojit s hodinkami";
 "LoginRequestHasAlreadyExpired" = "Požadavek na přihlášení již vypršel.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Pokus o přihlášení z:\n%1$@\nChcete se přepnout na tento účet?";
 "NewAroundHere" = "Jste tu noví?";

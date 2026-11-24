@@ -22,7 +22,6 @@ final class AccountSecurityProcessor: StateProcessor<// swiftlint:disable:this t
         & HasSettingsRepository
         & HasStateService
         & HasTimeProvider
-        & HasTwoStepLoginService
         & HasUserSessionStateService
 
     // MARK: Private Properties

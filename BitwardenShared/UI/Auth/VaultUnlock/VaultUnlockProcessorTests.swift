@@ -467,6 +467,7 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
         stateService.pinProtectedUserKeyValue["1"] = "123"
         stateService.encryptedPinByUserId["1"] = "123"
         subject.state.masterPassword = "password"
+        subject.state.shouldFocusPasswordOrPinField = true
 
         await subject.perform(.unlockVault)
 
@@ -474,6 +475,8 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
         XCTAssertEqual(authRepository.encryptedPin, "123")
         XCTAssertEqual(authRepository.unlockVaultPassword, "password")
         XCTAssertEqual(coordinator.events.last, .didCompleteAuth)
+        // The field is released before the unlock routes to the vault.
+        XCTAssertFalse(subject.state.shouldFocusPasswordOrPinField)
     }
 
     /// `perform(_:)` with `.unlockVault` shows the KDF warning in an extension if the KDF memory is
@@ -499,7 +502,10 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
     @MainActor
     func test_perform_unlockVault_InputValidationError_noPassword() async throws {
         subject.state.unlockMethod = .password
+        subject.state.shouldFocusPasswordOrPinField = false
         await subject.perform(.unlockVault)
+
+        XCTAssertTrue(subject.state.shouldFocusPasswordOrPinField)
 
         let alert = try XCTUnwrap(coordinator.alertShown.last)
         XCTAssertEqual(
@@ -532,12 +538,15 @@ class VaultUnlockProcessorTests: BitwardenTestCase { // swiftlint:disable:this t
 
         struct VaultUnlockError: Error {}
         authRepository.unlockWithPasswordResult = .failure(VaultUnlockError())
+        subject.state.shouldFocusPasswordOrPinField = false
 
         await subject.perform(.unlockVault)
 
         let alert = try XCTUnwrap(coordinator.alertShown.last)
         XCTAssertEqual(alert.title, Localizations.anErrorHasOccurred)
         XCTAssertEqual(alert.message, Localizations.invalidMasterPassword)
+        // A failed attempt focuses the field again (as before the unlock).
+        XCTAssertTrue(subject.state.shouldFocusPasswordOrPinField)
     }
 
     /// `perform(_:)` with `.unlockVault` displays an alert a maximum of 5 times if the master password was incorrect.

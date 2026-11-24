@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Käytä verkkotunnuksesi määritettyä catch-all -postilaatikkoa.";
 "ForwardedEmailDescription" = "Luo sähköpostialias ulkoisella ohjauspalvelulla.";
 "Random" = "Satunnainen";
+"ConnectToWatch" = "Yhdistä Watchiin";
 "LoginRequestHasAlreadyExpired" = "Kirjautumispyyntö on jo erääntynyt.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Kirjautumisyritys tunnuksella:\n%1$@\nHaluatko vaihtaa tähän tiliin?";
 "NewAroundHere" = "Oletko uusi täällä?";

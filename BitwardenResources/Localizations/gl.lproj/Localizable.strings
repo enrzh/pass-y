@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Usa a bandexa de entrada comodín configurada do teu dominio.";
 "ForwardedEmailDescription" = "Xerar un alias de correo cun servizo de redirecionado externo.";
 "Random" = "Aleatorio";
+"ConnectToWatch" = "Conectar ó reloxo";
 "LoginRequestHasAlreadyExpired" = "A solicitude de inicio de sesión expirou.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Intento de inicio de sesión dende:\n%1$@\nQueres comprobalo dende esa conta?";
 "NewAroundHere" = "Novo por aquí?";

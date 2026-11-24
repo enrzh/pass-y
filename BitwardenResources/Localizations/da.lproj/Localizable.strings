@@ -553,6 +553,7 @@
 "CatchAllEmailDescription" = "Brug dit domænes konfigurerede catch-all-indbakke.";
 "ForwardedEmailDescription" = "Generér et e-mail alias med en ekstern viderestillingstjeneste.";
 "Random" = "Tilfældig";
+"ConnectToWatch" = "Opret forbindelse til Watch";
 "LoginRequestHasAlreadyExpired" = "Loginanmodning er allerede udløbet.";
 "LoginAttemptFromXDoYouWantToSwitchToThisAccount" = "Loginforsøg fra:\n%1$@\nSkift til denne konto?";
 "NewAroundHere" = "Ny her?";

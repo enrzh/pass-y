@@ -205,6 +205,9 @@ class VaultUnlockProcessor: StateProcessor<
     /// Attempts to unlock the vault with the user's master password.
     ///
     private func unlockVault() async {
+        // Hardening (cause not reproduced): release the field before the unlock routes to the vault, so the root
+        // screen swap does not remove the first responder's view. A failed attempt focuses the field again.
+        state.shouldFocusPasswordOrPinField = false
         do {
             switch state.unlockMethod {
             case .password:
@@ -221,6 +224,7 @@ class VaultUnlockProcessor: StateProcessor<
             state.unsuccessfulUnlockAttemptsCount = 0
             await services.userSessionStateService.setUnsuccessfulUnlockAttempts(0)
         } catch let error as InputValidationError {
+            state.shouldFocusPasswordOrPinField = true
             coordinator.showAlert(Alert.inputValidationAlert(error: error))
         } catch {
             let alert = Alert.defaultAlert(
@@ -234,6 +238,7 @@ class VaultUnlockProcessor: StateProcessor<
                 await logoutUser(resetAttempts: true, userInitiated: true)
                 return
             }
+            state.shouldFocusPasswordOrPinField = true
             coordinator.showAlert(alert)
         }
     }

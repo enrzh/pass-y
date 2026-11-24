@@ -98,6 +98,7 @@ struct VaultUnlockView: View {
                     biometricAuthButton
                     if store.state.shouldShowPasswordOrPinFields {
                         AsyncButton {
+                            focusedField = nil
                             await store.perform(.unlockVault)
                         } label: {
                             Text(Localizations.unlock)
@@ -214,6 +215,7 @@ struct VaultUnlockView: View {
             .focused($focusedField, equals: .passwordOrPin)
             .accessibilityIdentifier(fieldIdentifier)
             .onSubmit {
+                focusedField = nil
                 Task { await store.perform(.unlockVault) }
             }
 

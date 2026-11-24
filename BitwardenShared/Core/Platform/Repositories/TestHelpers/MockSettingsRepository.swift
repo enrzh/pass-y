@@ -12,6 +12,8 @@ class MockSettingsRepository: SettingsRepository {
     var allowSyncOnRefresh = false
     var allowSyncOnRefreshResult: Result<Void, Error> = .success(())
     var allowUniversalClipboard: Bool = false
+    var connectToWatch = false
+    var connectToWatchResult: Result<Void, Error> = .success(())
     var deletedFolderId: String?
     var deleteFolderResult: Result<Void, Error> = .success(())
     var editedFolderName: String?
@@ -65,6 +67,11 @@ class MockSettingsRepository: SettingsRepository {
         return allowSyncOnRefresh
     }
 
+    func getConnectToWatch() async throws -> Bool {
+        try connectToWatchResult.get()
+        return connectToWatch
+    }
+
     func getDefaultUriMatchType() async -> BitwardenShared.UriMatchType {
         getDefaultUriMatchTypeResult
     }
@@ -92,6 +99,11 @@ class MockSettingsRepository: SettingsRepository {
     func updateAllowSyncOnRefresh(_ allowSyncOnRefresh: Bool) async throws {
         self.allowSyncOnRefresh = allowSyncOnRefresh
         try allowSyncOnRefreshResult.get()
+    }
+
+    func updateConnectToWatch(_ connectToWatch: Bool) async throws {
+        self.connectToWatch = connectToWatch
+        try connectToWatchResult.get()
     }
 
     func updateDefaultUriMatchType(_ defaultUriMatchType: BitwardenShared.UriMatchType) async throws {

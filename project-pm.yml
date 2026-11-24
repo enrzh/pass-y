@@ -12,7 +12,7 @@ options:
     "icon":
       file: true 
 settings:
-  MARKETING_VERSION: 2026.4.0    # Bump this for a new version update.
+  MARKETING_VERSION: 1.27.0    # Pass-Y scheme MAJOR.MINOR.PATCH, see Docs/Releasing.md.
   CURRENT_PROJECT_VERSION: 1
 projectReferences:
   BitwardenKit:
@@ -148,6 +148,14 @@ schemes:
     test:
       targets:
         - PassYUITests
+  BitwardenWatchApp:
+    build:
+      targets:
+        BitwardenWatchApp: all
+  BitwardenWatchWidgetExtension:
+    build:
+      targets:
+        BitwardenWatchWidgetExtension: all
 targets:
   PassYUITests:
     type: bundle.ui-testing
@@ -171,7 +179,7 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: Bitwarden/Application/Support/Info.plist
-        # Pass-Y is iPhone and iPad only: no Mac (Designed for iPad), no visionOS, no wrist app.
+        # Pass-Y is iPhone and iPad only: no Mac (Designed for iPad), no visionOS, Apple Watch app included.
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
         TARGETED_DEVICE_FAMILY: "1,2"
@@ -191,6 +199,7 @@ targets:
       - target: BitwardenAutoFillExtension
       - target: BitwardenNotificationExtension
       - target: BitwardenShareExtension
+      - target: BitwardenWatchApp
       - target: BitwardenKit/AuthenticatorBridgeKit
       - target: BitwardenKit/BitwardenKit
       - target: BitwardenKit/BitwardenResources
@@ -373,6 +382,7 @@ targets:
     sources:
       - path: BitwardenShared/UI/Platform/Application/Support/Generated/Assets.swift
         optional: true
+      - path: BitwardenWatchShared
     dependencies:
       - package: BitwardenSdk
       - target: BitwardenKit/AuthenticatorBridgeKit
@@ -495,3 +505,32 @@ targets:
       - package: BitwardenSdk
       - package: ViewInspector
     randomExecutionOrder: true
+
+  BitwardenWatchApp:
+    type: application
+    platform: watchOS
+    deploymentTarget: 9.0
+    configFiles:
+      Debug: Configs/BitwardenWatchApp-Debug.xcconfig
+      Release: Configs/BitwardenWatchApp-Release.xcconfig
+    settings:
+      base:
+        INFOPLIST_FILE: BitwardenWatchApp/Info.plist
+    sources:
+      - path: BitwardenWatchApp
+      - path: BitwardenWatchShared
+    dependencies:
+      - target: BitwardenWatchWidgetExtension
+
+  BitwardenWatchWidgetExtension:
+    type: app-extension
+    platform: watchOS
+    deploymentTarget: 9.0
+    configFiles:
+      Debug: Configs/BitwardenWatchWidgetExtension.xcconfig
+      Release: Configs/BitwardenWatchWidgetExtension.xcconfig
+    settings:
+      base:
+        INFOPLIST_FILE: BitwardenWatchWidgetExtension/Application/Support/Info.plist
+    sources:
+      - path: BitwardenWatchWidgetExtension
