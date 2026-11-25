@@ -18,6 +18,9 @@ struct SettingsView: View {
     /// The side of the account avatar, scaled with Dynamic Type (at most 1.6 times).
     @ScaledMetric(relativeTo: .title2) private var avatarSize: CGFloat = 56
 
+    /// The Dynamic Type size (the account row stacks vertically at accessibility sizes).
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     // MARK: View
 
     var body: some View {
@@ -131,7 +134,11 @@ struct SettingsView: View {
                 Label(Localizations.logOut, systemImage: "rectangle.portrait.and.arrow.right")
             }
         } label: {
-            HStack(spacing: 14) {
+            // At accessibility sizes the avatar sits above the text (no squeezed, centred column).
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: PassYDesign.Spacing.small))
+                : AnyLayout(HStackLayout(spacing: 14))
+            layout {
                 ZStack {
                     Circle().fill(active.color)
                     Text(active.userInitials ?? "")
@@ -142,21 +149,25 @@ struct SettingsView: View {
                     width: min(avatarSize, PassYDesign.IconSize.large * 1.6),
                     height: min(avatarSize, PassYDesign.IconSize.large * 1.6),
                 )
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(active.email)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(2)
-                        .truncationMode(.middle)
-                    Text(store.state.serverURL)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(active.email)
+                            .font(.headline)
+                            .foregroundStyle(Color.primary)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
+                            .truncationMode(.middle)
+                        Text(store.state.serverURL)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(.tertiaryLabel))
                 }
-                Spacer()
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 4)
         }
         .tint(.primary)

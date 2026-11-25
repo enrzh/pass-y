@@ -75,7 +75,7 @@ struct DeviceRow: View {
                 rowContent
             }
             .buttonStyle(.automatic)
-            .foregroundStyle(.primary)
+            .foregroundStyle(Color.primary)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isButton)
             .accessibilityIdentifier("DeviceRowCell")
@@ -129,6 +129,7 @@ struct DeviceRow: View {
         }
         .padding(.vertical, PassYDesign.Spacing.xSmall)
         .contentShape(Rectangle())
+        .foregroundStyle(Color.primary)
     }
 
     /// The SF Symbol of the device type (phone, tablet, computer, browser).

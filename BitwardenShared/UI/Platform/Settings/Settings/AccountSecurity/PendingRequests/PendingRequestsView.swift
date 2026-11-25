@@ -95,10 +95,11 @@ struct PendingRequestsView: View {
                 PassYDisclosureChevron()
             }
             .contentShape(Rectangle())
+            .foregroundStyle(Color.primary)
             .accessibilityElement(children: .combine)
         }
         .buttonStyle(.automatic)
-        .foregroundStyle(.primary)
+        .foregroundStyle(Color.primary)
         .accessibilityIdentifier("LoginRequestCell")
     }
 

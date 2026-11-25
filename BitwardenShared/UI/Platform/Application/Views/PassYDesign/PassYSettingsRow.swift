@@ -112,8 +112,11 @@ struct PassYSettingsRow: View {
                 value: value,
                 badge: badge,
                 accessory: accessory,
-                titleStyle: role == .destructive ? AnyShapeStyle(.red) : AnyShapeStyle(.primary),
+                titleStyle: role == .destructive ? AnyShapeStyle(Color.red) : AnyShapeStyle(Color.primary),
             )
+            // The list tints a button label with the accent colour; hierarchical styles (secondary value, tertiary
+            // chevron) must resolve against the label colour instead.
+            .foregroundStyle(Color.primary)
         }
         .buttonStyle(.automatic)
         .accessibilityIdentifier(identifier ?? "")
@@ -145,7 +148,7 @@ struct PassYSettingsRowLabel: View {
     var accessory: PassYSettingsAccessory = .none
 
     /// The style of the title.
-    var titleStyle = AnyShapeStyle(.primary)
+    var titleStyle = AnyShapeStyle(Color.primary)
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
