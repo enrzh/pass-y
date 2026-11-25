@@ -60,8 +60,8 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     /// Tapping the check password button performs the `.checkPassword` effect.
     @MainActor
     func test_checkPasswordButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.checkPasswordForDataBreaches)
-        try await button.tap()
+        let button = try subject.inspect().find(passYInlineButtonRow: Localizations.checkPasswordForDataBreaches)
+        await button.perform()
 
         XCTAssertEqual(processor.effects.last, .checkPasswordPressed)
     }
@@ -71,9 +71,10 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     func test_copyTotpButton_tap() async throws {
         processor.state.loginState.totpState = LoginTOTPState("JBSWY3DPEHPK3PXP")
 
-        let button = try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.copyTotp)
-        try await button.tap()
+        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copyTotp)
+        try button.tap()
 
+        try await waitForAsync { self.processor.effects.last == .copyTotpPressed }
         XCTAssertEqual(processor.effects.last, .copyTotpPressed)
     }
 
@@ -121,7 +122,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_folderTextField_updateValue() throws {
         let folder = FolderView.fixture(name: "Folder")
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.myFolder)
+        let menuField = try subject.inspect().find(passYPickerRow: Localizations.myFolder)
         try menuField.select(newValue: DefaultableType<FolderView>.custom(folder))
         XCTAssertEqual(processor.dispatchedActions.last, .folderChanged(.custom(folder)))
     }
@@ -172,7 +173,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     /// Updating the name text field dispatches the `.nameChanged()` action.
     @MainActor
     func test_nameTextField_updateValue() throws {
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.itemNameRequired)
+        let textField = try subject.inspect().find(passYFormField: Localizations.itemNameRequired)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .nameChanged("text"))
     }
@@ -198,10 +199,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_notesTextField_updateValue() throws {
         processor.state.isAdditionalOptionsExpanded = true
-        let textField = try subject.inspect().find(
-            type: BitwardenUITextViewType.self,
-            accessibilityLabel: Localizations.notes,
-        )
+        let textField = try subject.inspect().find(passYMultilineField: Localizations.notes)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .notesChanged("text"))
     }
@@ -214,7 +212,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
             CipherOwner.personal(displayName: "user@bitwarden.com"),
             organizationOwner,
         ]
-        let menu = try subject.inspect().find(bitwardenMenuField: processor.state.ownerFieldTitle)
+        let menu = try subject.inspect().find(passYPickerRow: processor.state.ownerFieldTitle)
         try menu.select(newValue: organizationOwner)
         XCTAssertEqual(processor.dispatchedActions.last, .ownerChanged(organizationOwner))
     }
@@ -222,7 +220,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     /// Updating the password text field dispatches the `.passwordChanged()` action.
     @MainActor
     func test_passwordTextField_updateValue() throws {
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.password)
+        let textField = try subject.inspect().find(passYSecureField: Localizations.password)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passwordChanged("text"))
     }
@@ -232,7 +230,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     func test_passwordVisibilityButton_tap_withPasswordNotVisible() throws {
         processor.state.loginState.isPasswordVisible = false
         let button = try subject.inspect()
-            .find(bitwardenTextField: Localizations.password)
+            .find(passYSecureField: Localizations.password)
             .find(buttonWithAccessibilityLabel: Localizations.passwordIsNotVisibleTapToShow)
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .togglePasswordVisibilityChanged(true))
@@ -243,7 +241,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     func test_passwordVisibilityButton_tap_withPasswordVisible() throws {
         processor.state.loginState.isPasswordVisible = true
         let button = try subject.inspect()
-            .find(bitwardenTextField: Localizations.password)
+            .find(passYSecureField: Localizations.password)
             .find(buttonWithAccessibilityLabel: Localizations.passwordIsVisibleTapToHide)
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .togglePasswordVisibilityChanged(false))
@@ -271,8 +269,8 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     /// Tapping the set up authenticator key button dispatches the `.setupTotpPressed` action.
     @MainActor
     func test_setupTotpButton_noKey_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.setUpAuthenticatorKey)
-        try await button.tap()
+        let button = try subject.inspect().find(passYInlineButtonRow: Localizations.setUpAuthenticatorKey)
+        await button.perform()
         XCTAssertEqual(processor.effects.last, .setupTotpPressed)
     }
 
@@ -281,8 +279,8 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     func test_setupTotpButton_withKey_tap() async throws {
         processor.state.loginState.totpState = LoginTOTPState("JBSWY3DPEHPK3PXP")
 
-        let button = try subject.inspect().find(asyncButton: Localizations.setUpAuthenticatorKey)
-        try await button.tap()
+        let button = try subject.inspect().find(passYInlineButtonRow: Localizations.setUpAuthenticatorKey)
+        await button.perform()
 
         XCTAssertEqual(processor.effects.last, .setupTotpPressed)
     }
@@ -331,7 +329,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
             ),
         ]
 
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.websiteURI)
+        let textField = try subject.inspect().find(passYFormField: Localizations.websiteURI)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .uriChanged("text", index: 0))
     }
@@ -339,7 +337,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     /// Updating the name text field dispatches the `.usernameChanged()` action.
     @MainActor
     func test_usernameTextField_updateValue() throws {
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.username)
+        let textField = try subject.inspect().find(passYFormField: Localizations.username)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .usernameChanged("text"))
     }
@@ -348,7 +346,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_identity_titleMenu_updateValue() throws {
         processor.state.type = .identity
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.title)
+        let menuField = try subject.inspect().find(passYPickerRow: Localizations.title)
         try menuField.select(newValue: DefaultableType.custom(TitleType.ms))
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.titleChanged(.custom(.ms))))
     }
@@ -357,7 +355,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_firstNameTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.firstName)
+        let textField = try subject.inspect().find(passYFormField: Localizations.firstName)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.firstNameChanged("text")))
     }
@@ -366,7 +364,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_lastNameTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.lastName)
+        let textField = try subject.inspect().find(passYFormField: Localizations.lastName)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.lastNameChanged("text")))
     }
@@ -375,7 +373,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_middleNameTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.middleName)
+        let textField = try subject.inspect().find(passYFormField: Localizations.middleName)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.middleNameChanged("text")))
     }
@@ -384,7 +382,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_identity_userNameTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.username)
+        let textField = try subject.inspect().find(passYFormField: Localizations.username)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.userNameChanged("text")))
     }
@@ -393,7 +391,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_companyTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.company)
+        let textField = try subject.inspect().find(passYFormField: Localizations.company)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.companyChanged("text")))
     }
@@ -402,7 +400,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_socialSecurityNumberTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.ssn)
+        let textField = try subject.inspect().find(passYSecureField: Localizations.ssn)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.socialSecurityNumberChanged("text")))
     }
@@ -411,7 +409,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passportNumberTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.passportNumber)
+        let textField = try subject.inspect().find(passYFormField: Localizations.passportNumber)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.passportNumberChanged("text")))
     }
@@ -420,7 +418,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_licenseNumberTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.licenseNumber)
+        let textField = try subject.inspect().find(passYFormField: Localizations.licenseNumber)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.licenseNumberChanged("text")))
     }
@@ -429,7 +427,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_emailTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.email)
+        let textField = try subject.inspect().find(passYFormField: Localizations.email)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.emailChanged("text")))
     }
@@ -438,7 +436,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_phoneTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.phone)
+        let textField = try subject.inspect().find(passYFormField: Localizations.phone)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.phoneNumberChanged("text")))
     }
@@ -447,7 +445,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_address1TextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.address1)
+        let textField = try subject.inspect().find(passYFormField: Localizations.address1)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.address1Changed("text")))
     }
@@ -456,7 +454,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_address2TextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.address2)
+        let textField = try subject.inspect().find(passYFormField: Localizations.address2)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.address2Changed("text")))
     }
@@ -465,7 +463,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_address3TextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.address3)
+        let textField = try subject.inspect().find(passYFormField: Localizations.address3)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.address3Changed("text")))
     }
@@ -474,7 +472,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_cityOrTownTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.cityTown)
+        let textField = try subject.inspect().find(passYFormField: Localizations.cityTown)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.cityOrTownChanged("text")))
     }
@@ -483,7 +481,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_stateTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.stateProvince)
+        let textField = try subject.inspect().find(passYFormField: Localizations.stateProvince)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.stateChanged("text")))
     }
@@ -492,7 +490,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_postalCodeTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.zipPostalCode)
+        let textField = try subject.inspect().find(passYFormField: Localizations.zipPostalCode)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.postalCodeChanged("text")))
     }
@@ -501,7 +499,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_countryTextField_updateValue() throws {
         processor.state.type = .identity
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.country)
+        let textField = try subject.inspect().find(passYFormField: Localizations.country)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .identityFieldChanged(.countryChanged("text")))
     }
@@ -512,7 +510,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_firstNameTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.firstName)
+        let textField = try subject.inspect().find(passYFormField: Localizations.firstName)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.firstNameChanged("text")))
     }
@@ -521,7 +519,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_middleNameTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.middleName)
+        let textField = try subject.inspect().find(passYFormField: Localizations.middleName)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.middleNameChanged("text")))
     }
@@ -530,7 +528,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_lastNameTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.lastName)
+        let textField = try subject.inspect().find(passYFormField: Localizations.lastName)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.lastNameChanged("text")))
     }
@@ -540,7 +538,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_licenseNumberTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.licenseNumber)
+        let textField = try subject.inspect().find(passYFormField: Localizations.licenseNumber)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.licenseNumberChanged("text")))
     }
@@ -550,7 +548,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_issuingCountryTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.issuingCountry)
+        let textField = try subject.inspect().find(passYFormField: Localizations.issuingCountry)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.issuingCountryChanged("text")))
     }
@@ -560,7 +558,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_issuingStateTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.issuingStateProvince)
+        let textField = try subject.inspect().find(passYFormField: Localizations.issuingStateProvince)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.issuingStateChanged("text")))
     }
@@ -570,7 +568,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_issuingAuthorityTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.issuingAuthority)
+        let textField = try subject.inspect().find(passYFormField: Localizations.issuingAuthority)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(
             processor.dispatchedActions.last,
@@ -583,7 +581,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_licenseClassTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.licenseClass)
+        let textField = try subject.inspect().find(passYFormField: Localizations.licenseClass)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.licenseClassChanged("text")))
     }
@@ -595,7 +593,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .driversLicense
         processor.state.driversLicenseItemState.isLicenseNumberVisible = false
         let button = try subject.inspect()
-            .find(bitwardenTextField: Localizations.licenseNumber)
+            .find(passYFormField: Localizations.licenseNumber)
             .find(buttonWithAccessibilityLabel: Localizations.fieldValueIsNotVisibleTapToShow(
                 Localizations.licenseNumber,
             ))
@@ -613,7 +611,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .driversLicense
         processor.state.driversLicenseItemState.isLicenseNumberVisible = true
         let button = try subject.inspect()
-            .find(bitwardenTextField: Localizations.licenseNumber)
+            .find(passYFormField: Localizations.licenseNumber)
             .find(buttonWithAccessibilityLabel: Localizations.fieldValueIsVisibleTapToHide(
                 Localizations.licenseNumber,
             ))
@@ -690,7 +688,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_givenNameTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.firstName)
+        let textField = try subject.inspect().find(passYFormField: Localizations.firstName)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.givenNameChanged("text")))
     }
@@ -699,7 +697,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_surnameTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.lastName)
+        let textField = try subject.inspect().find(passYFormField: Localizations.lastName)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.surnameChanged("text")))
     }
@@ -708,7 +706,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_sexTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.sex)
+        let textField = try subject.inspect().find(passYFormField: Localizations.sex)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.sexChanged("text")))
     }
@@ -717,7 +715,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_birthPlaceTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.birthPlace)
+        let textField = try subject.inspect().find(passYFormField: Localizations.birthPlace)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.birthPlaceChanged("text")))
     }
@@ -726,7 +724,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_nationalityTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.nationality)
+        let textField = try subject.inspect().find(passYFormField: Localizations.nationality)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.nationalityChanged("text")))
     }
@@ -735,7 +733,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_passportNumberTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.passportNumber)
+        let textField = try subject.inspect().find(passYFormField: Localizations.passportNumber)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.passportNumberChanged("text")))
     }
@@ -744,7 +742,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_passportTypeTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.passportType)
+        let textField = try subject.inspect().find(passYFormField: Localizations.passportType)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.passportTypeChanged("text")))
     }
@@ -754,7 +752,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_nationalIdentificationNumberTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.nationalIdentificationNumber)
+        let textField = try subject.inspect().find(passYSecureField: Localizations.nationalIdentificationNumber)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(
             processor.dispatchedActions.last,
@@ -766,7 +764,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_issuingCountryTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.issuingCountry)
+        let textField = try subject.inspect().find(passYFormField: Localizations.issuingCountry)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.issuingCountryChanged("text")))
     }
@@ -776,7 +774,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_issuingAuthorityTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.issuingAuthorityOffice)
+        let textField = try subject.inspect().find(passYFormField: Localizations.issuingAuthorityOffice)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.issuingAuthorityChanged("text")))
     }
@@ -788,7 +786,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.isPassportNumberVisible = false
         let button = try subject.inspect()
-            .find(bitwardenTextField: Localizations.passportNumber)
+            .find(passYFormField: Localizations.passportNumber)
             .find(buttonWithAccessibilityLabel: Localizations.passwordIsNotVisibleTapToShow)
         try button.tap()
         XCTAssertEqual(
@@ -804,7 +802,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.isPassportNumberVisible = true
         let button = try subject.inspect()
-            .find(bitwardenTextField: Localizations.passportNumber)
+            .find(passYFormField: Localizations.passportNumber)
             .find(buttonWithAccessibilityLabel: Localizations.passwordIsVisibleTapToHide)
         try button.tap()
         XCTAssertEqual(
@@ -820,7 +818,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.isNationalIdentificationNumberVisible = false
         let button = try subject.inspect()
-            .find(bitwardenTextField: Localizations.nationalIdentificationNumber)
+            .find(passYSecureField: Localizations.nationalIdentificationNumber)
             .find(buttonWithAccessibilityLabel: Localizations.passwordIsNotVisibleTapToShow)
         try button.tap()
         XCTAssertEqual(
@@ -836,7 +834,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.isNationalIdentificationNumberVisible = true
         let button = try subject.inspect()
-            .find(bitwardenTextField: Localizations.nationalIdentificationNumber)
+            .find(passYSecureField: Localizations.nationalIdentificationNumber)
             .find(buttonWithAccessibilityLabel: Localizations.passwordIsVisibleTapToHide)
         try button.tap()
         XCTAssertEqual(

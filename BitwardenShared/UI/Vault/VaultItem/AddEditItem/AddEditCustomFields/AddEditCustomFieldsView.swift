@@ -13,12 +13,12 @@ struct AddEditCustomFieldsView: View {
     @ObservedObject var store: Store<AddEditCustomFieldsState, AddEditCustomFieldsAction, Void>
 
     var body: some View {
-        SectionView(Localizations.customFields, contentSpacing: 8) {
+        Section {
             ForEachIndexed(store.state.customFields) { index, field in
                 switch field.type {
                 case .text:
-                    BitwardenTextField(
-                        title: field.name,
+                    PassYFormField(
+                        field.name ?? "",
                         text: store.binding(
                             get: { _ in field.value ?? "" },
                             send: { .customFieldChanged($0, index: index) },
@@ -27,128 +27,105 @@ struct AddEditCustomFieldsView: View {
                         menuOptions(index: index)
                     }
                 case .hidden:
-                    BitwardenTextField(
-                        title: field.name,
+                    PassYSecureField(
+                        field.name ?? "",
                         text: store.binding(
                             get: { _ in field.value ?? "" },
                             send: { .customFieldChanged($0, index: index) },
                         ),
-                        passwordVisibilityAccessibilityId: "HiddenCustomFieldShowValueButton",
-                        canViewPassword: true,
-                        isPasswordVisible: store.binding(
+                        isRevealed: store.binding(
                             get: { _ in field.isPasswordVisible },
                             send: { flag in
                                 AddEditCustomFieldsAction.togglePasswordVisibilityChanged(flag, index)
                             },
                         ),
+                        revealIdentifier: "HiddenCustomFieldShowValueButton",
                     ) {
                         menuOptions(index: index)
                     }
                     .textFieldConfiguration(.password)
                 case .boolean:
-                    BitwardenToggle(isOn: store.binding(
-                        get: { _ in field.booleanValue },
-                        send: { flag in
-                            AddEditCustomFieldsAction.booleanFieldChanged(flag, index)
-                        },
-                    )) {
-                        HStack(spacing: 8) {
-                            Text(field.name ?? "")
-
-                            menuOptions(index: index, isInFieldLabel: true)
-                                .buttonStyle(.fieldLabelIcon)
-                        }
+                    HStack(spacing: PassYDesign.Spacing.small) {
+                        PassYToggleRow(
+                            field.name ?? "",
+                            isOn: store.binding(
+                                get: { _ in field.booleanValue },
+                                send: { flag in
+                                    AddEditCustomFieldsAction.booleanFieldChanged(flag, index)
+                                },
+                            ),
+                        )
+                        menuOptions(index: index)
                     }
-                    .contentBlock()
                 case .linked:
-                    BitwardenField(title: field.name ?? "") {
-                        Menu {
-                            Picker(
-                                selection: store.binding(
-                                    get: { state in
-                                        if let idType = field.linkedIdType ??
-                                            LinkedIdType.getLinkedIdType(for: state.cipherType).first {
-                                            return idType
-                                        } else {
-                                            assertionFailure("The default LinkedIdType for the customField " +
-                                                "should have been set when the user creates linked custom fields.")
-                                            return .cardBrand
-                                        }
-                                    },
-                                    send: { idType in
-                                        AddEditCustomFieldsAction.selectedLinkedIdType(index, idType)
-                                    },
-                                ),
-                            ) {
-                                ForEach(LinkedIdType.getLinkedIdType(for: store.state.cipherType)) { idType in
-                                    Text(idType.localizedName)
-                                        .tag(idType)
-                                }
-                            } label: {
-                                EmptyView()
-                            }
-                        } label: {
-                            Text(field.linkedIdType?.localizedName ?? "")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .styleGuide(.body)
-                                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                        }
-                    } accessoryContent: {
+                    HStack(spacing: PassYDesign.Spacing.small) {
+                        PassYPickerRow(
+                            field.name ?? "",
+                            options: LinkedIdType.getLinkedIdType(for: store.state.cipherType),
+                            selection: store.binding(
+                                get: { state in
+                                    if let idType = field.linkedIdType ??
+                                        LinkedIdType.getLinkedIdType(for: state.cipherType).first {
+                                        return idType
+                                    } else {
+                                        assertionFailure("The default LinkedIdType for the customField " +
+                                            "should have been set when the user creates linked custom fields.")
+                                        return .cardBrand
+                                    }
+                                },
+                                send: { idType in
+                                    AddEditCustomFieldsAction.selectedLinkedIdType(index, idType)
+                                },
+                            ),
+                            optionTitle: \.localizedName,
+                        )
                         menuOptions(index: index)
                     }
                 }
             }
 
-            // ui-r7: a plain blue row with a plus (like "Add website"), not an outlined capsule.
-            Button {
+            PassYInlineButtonRow(
+                Localizations.newCustomField,
+                systemImage: "plus",
+                identifier: "NewCustomFieldButton",
+            ) {
                 store.send(.newCustomFieldPressed)
-            } label: {
-                Label(Localizations.newCustomField, systemImage: "plus")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 12)
-                    .padding(.leading, 16)
-                    .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.tint)
-            .accessibilityIdentifier("NewCustomFieldButton")
         }
     }
 
-    func menuOptions(index: Int, isInFieldLabel: Bool = false) -> some View {
+    /// The options of a field: rename, move up/down, remove.
+    func menuOptions(index: Int) -> some View {
         Menu {
-            Button(Localizations.edit) {
+            Button(Localizations.edit, systemImage: "pencil") {
                 store.send(.editCustomFieldNamePressed(index: index))
             }
 
-            Button(Localizations.moveUp) {
+            Button(Localizations.moveUp, systemImage: "arrow.up") {
                 store.send(.moveUpCustomFieldPressed(index: index))
             }
 
-            Button(Localizations.moveDown) {
+            Button(Localizations.moveDown, systemImage: "arrow.down") {
                 store.send(.moveDownCustomFieldPressed(index: index))
             }
 
-            Button(Localizations.remove, role: .destructive) {
+            Button(Localizations.remove, systemImage: "trash", role: .destructive) {
                 store.send(.removeCustomFieldPressed(index: index))
             }
         } label: {
-            Group {
-                if isInFieldLabel {
-                    SharedAsset.Icons.cog16.swiftUIImage
-                        .imageStyle(.accessoryIcon16(color: SharedAsset.Colors.textInteraction.swiftUIColor))
-                } else {
-                    SharedAsset.Icons.cog24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-            }
-            .accessibilityLabel(Localizations.options)
+            Image(systemName: "ellipsis.circle")
+                .foregroundStyle(.tint)
+                .frame(minWidth: 28, minHeight: 28)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(Localizations.options)
     }
 }
 
 #if DEBUG
 #Preview {
+    Form {
     AddEditCustomFieldsView(
         store: Store(
             processor: StateProcessor(
@@ -182,10 +159,6 @@ struct AddEditCustomFieldsView: View {
             ),
         ),
     )
-    .padding(16)
-    .background(
-        SharedAsset.Colors.backgroundPrimary.swiftUIColor
-            .ignoresSafeArea(),
-    )
+    }
 }
 #endif

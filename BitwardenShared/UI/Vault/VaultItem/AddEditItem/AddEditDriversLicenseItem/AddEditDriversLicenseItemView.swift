@@ -34,130 +34,128 @@ struct AddEditDriversLicenseItemView: View {
     >
 
     var body: some View {
-        SectionView(Localizations.licenseDetails, contentSpacing: 8) {
-            ContentBlock {
-                BitwardenTextField(
-                    title: Localizations.firstName,
-                    text: store.binding(
-                        get: \.firstName,
-                        send: AddEditDriversLicenseItemAction.firstNameChanged,
-                    ),
-                    accessibilityIdentifier: "DriversLicenseFirstNameEntry",
-                    focus: .field($focusedField, equals: .firstName),
-                )
-                .onSubmit { focusNextField($focusedField) }
+        Section {
+            PassYFormField(
+                Localizations.firstName,
+                text: store.binding(
+                    get: \.firstName,
+                    send: AddEditDriversLicenseItemAction.firstNameChanged,
+                ),
+                identifier: "DriversLicenseFirstNameEntry",
+                focus: .field($focusedField, equals: .firstName),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.middleName,
-                    text: store.binding(
-                        get: \.middleName,
-                        send: AddEditDriversLicenseItemAction.middleNameChanged,
-                    ),
-                    accessibilityIdentifier: "DriversLicenseMiddleNameEntry",
-                    focus: .field($focusedField, equals: .middleName),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.middleName,
+                text: store.binding(
+                    get: \.middleName,
+                    send: AddEditDriversLicenseItemAction.middleNameChanged,
+                ),
+                identifier: "DriversLicenseMiddleNameEntry",
+                focus: .field($focusedField, equals: .middleName),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.lastName,
-                    text: store.binding(
-                        get: \.lastName,
-                        send: AddEditDriversLicenseItemAction.lastNameChanged,
-                    ),
-                    accessibilityIdentifier: "DriversLicenseLastNameEntry",
-                    focus: .field($focusedField, equals: .lastName),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.lastName,
+                text: store.binding(
+                    get: \.lastName,
+                    send: AddEditDriversLicenseItemAction.lastNameChanged,
+                ),
+                identifier: "DriversLicenseLastNameEntry",
+                focus: .field($focusedField, equals: .lastName),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.licenseNumber,
-                    text: store.binding(
-                        get: \.licenseNumber,
-                        send: AddEditDriversLicenseItemAction.licenseNumberChanged,
-                    ),
-                    accessibilityIdentifier: "DriversLicenseNumberEntry",
-                    passwordVisibilityAccessibilityId: "ShowDriversLicenseNumberButton",
-                    passwordVisibilityFieldName: Localizations.licenseNumber,
-                    focus: .field($focusedField, equals: .licenseNumber),
-                    isPasswordVisible: store.binding(
-                        get: \.isLicenseNumberVisible,
-                        send: AddEditDriversLicenseItemAction.toggleLicenseNumberVisibilityChanged,
-                    ),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYSecureField(
+                Localizations.licenseNumber,
+                text: store.binding(
+                    get: \.licenseNumber,
+                    send: AddEditDriversLicenseItemAction.licenseNumberChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.isLicenseNumberVisible,
+                    send: AddEditDriversLicenseItemAction.toggleLicenseNumberVisibilityChanged,
+                ),
+                identifier: "DriversLicenseNumberEntry",
+                revealIdentifier: "ShowDriversLicenseNumberButton",
+                revealSpokenName: Localizations.licenseNumber,
+                focus: .field($focusedField, equals: .licenseNumber),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                DateFieldPicker(
-                    title: Localizations.dateOfBirth,
-                    accessibilityIdentifier: "DriversLicenseDateOfBirthEntry",
-                    date: store.binding(
-                        get: \.dateOfBirth,
-                        send: AddEditDriversLicenseItemAction.dateOfBirthChanged,
-                    ),
-                    in: Date.distantPast ... Date().asUTCCalendarDay(),
-                )
+            PassYDateRow(
+                Localizations.dateOfBirth,
+                date: store.binding(
+                    get: \.dateOfBirth,
+                    send: AddEditDriversLicenseItemAction.dateOfBirthChanged,
+                ),
+                in: Date.distantPast ... Date().asUTCCalendarDay(),
+                identifier: "DriversLicenseDateOfBirthEntry",
+            )
 
-                BitwardenTextField(
-                    title: Localizations.issuingCountry,
-                    text: store.binding(
-                        get: \.issuingCountry,
-                        send: AddEditDriversLicenseItemAction.issuingCountryChanged,
-                    ),
-                    accessibilityIdentifier: "DriversLicenseIssuingCountryEntry",
-                    focus: .field($focusedField, equals: .issuingCountry),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.issuingCountry,
+                text: store.binding(
+                    get: \.issuingCountry,
+                    send: AddEditDriversLicenseItemAction.issuingCountryChanged,
+                ),
+                identifier: "DriversLicenseIssuingCountryEntry",
+                focus: .field($focusedField, equals: .issuingCountry),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.issuingStateProvince,
-                    text: store.binding(
-                        get: \.issuingState,
-                        send: AddEditDriversLicenseItemAction.issuingStateChanged,
-                    ),
-                    accessibilityIdentifier: "DriversLicenseIssuingStateEntry",
-                    focus: .field($focusedField, equals: .issuingState),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.issuingStateProvince,
+                text: store.binding(
+                    get: \.issuingState,
+                    send: AddEditDriversLicenseItemAction.issuingStateChanged,
+                ),
+                identifier: "DriversLicenseIssuingStateEntry",
+                focus: .field($focusedField, equals: .issuingState),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.issuingAuthority,
-                    text: store.binding(
-                        get: \.issuingAuthority,
-                        send: AddEditDriversLicenseItemAction.issuingAuthorityChanged,
-                    ),
-                    accessibilityIdentifier: "DriversLicenseIssuingAuthorityEntry",
-                    focus: .field($focusedField, equals: .issuingAuthority),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.issuingAuthority,
+                text: store.binding(
+                    get: \.issuingAuthority,
+                    send: AddEditDriversLicenseItemAction.issuingAuthorityChanged,
+                ),
+                identifier: "DriversLicenseIssuingAuthorityEntry",
+                focus: .field($focusedField, equals: .issuingAuthority),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                DateFieldPicker(
-                    title: Localizations.issueDate,
-                    accessibilityIdentifier: "DriversLicenseIssueDateEntry",
-                    date: store.binding(
-                        get: \.issueDate,
-                        send: AddEditDriversLicenseItemAction.issueDateChanged,
-                    ),
-                    in: Date.distantPast ... Date().asUTCCalendarDay(),
-                )
+            PassYDateRow(
+                Localizations.issueDate,
+                date: store.binding(
+                    get: \.issueDate,
+                    send: AddEditDriversLicenseItemAction.issueDateChanged,
+                ),
+                in: Date.distantPast ... Date().asUTCCalendarDay(),
+                identifier: "DriversLicenseIssueDateEntry",
+            )
 
-                DateFieldPicker(
-                    title: Localizations.expirationDate,
-                    accessibilityIdentifier: "DriversLicenseExpirationDateEntry",
-                    date: store.binding(
-                        get: \.expirationDate,
-                        send: AddEditDriversLicenseItemAction.expirationDateChanged,
-                    ),
-                )
+            PassYDateRow(
+                Localizations.expirationDate,
+                date: store.binding(
+                    get: \.expirationDate,
+                    send: AddEditDriversLicenseItemAction.expirationDateChanged,
+                ),
+                identifier: "DriversLicenseExpirationDateEntry",
+            )
 
-                BitwardenTextField(
-                    title: Localizations.licenseClass,
-                    text: store.binding(
-                        get: \.licenseClass,
-                        send: AddEditDriversLicenseItemAction.licenseClassChanged,
-                    ),
-                    accessibilityIdentifier: "DriversLicenseClassEntry",
-                    focus: .field($focusedField, equals: .licenseClass),
-                )
-            }
+            PassYFormField(
+                Localizations.licenseClass,
+                text: store.binding(
+                    get: \.licenseClass,
+                    send: AddEditDriversLicenseItemAction.licenseClassChanged,
+                ),
+                identifier: "DriversLicenseClassEntry",
+                focus: .field($focusedField, equals: .licenseClass),
+            )
         }
     }
 }
@@ -165,7 +163,7 @@ struct AddEditDriversLicenseItemView: View {
 #if DEBUG
 #Preview("Empty") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditDriversLicenseItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -173,16 +171,14 @@ struct AddEditDriversLicenseItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Empty Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Empty Add Edit State")
     }
 }
 
 #Preview("Populated") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditDriversLicenseItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -190,16 +186,14 @@ struct AddEditDriversLicenseItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Populated Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Populated Add Edit State")
     }
 }
 
 #Preview("License Number Visible") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditDriversLicenseItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -211,10 +205,8 @@ struct AddEditDriversLicenseItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Visible Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Visible Add Edit State")
     }
 }
 

@@ -64,23 +64,21 @@ struct AddEditItemView: View {
     }
 
     private var content: some View {
-        // A native `Form` (Apple Passwords look): sections, rows and separators come from the system; the shared
-        // field components render as plain rows via `nativeFormRows()`. The "learn new logins" tour card is
+        // A native `Form` of PassYDesign rows (Apple Passwords look): the name, where the item goes, the type's
+        // fields, then the rarely used options behind "Additional options". The "learn new logins" tour card is
         // Bitwarden onboarding and is no longer shown.
         Form {
             if isPolicyEnabled {
                 Section {
-                    InfoContainer(Localizations.personalOwnershipPolicyInEffect)
+                    infoLabel(Localizations.personalOwnershipPolicyInEffect, systemImage: "building.2")
                         .accessibilityIdentifier("PersonalOwnershipPolicyLabel")
-                        .listRowBackground(Color.clear)
                 }
             }
 
             if store.state.shouldDisplayAsArchived {
                 Section {
-                    InfoContainer(text: store.state.archiveInfoText, icon: SharedAsset.Icons.archive24)
+                    infoLabel(store.state.archiveInfoText, systemImage: "archivebox")
                         .accessibilityIdentifier("ArchivedLabel")
-                        .listRowBackground(Color.clear)
                 }
             }
 
@@ -88,11 +86,19 @@ struct AddEditItemView: View {
             itemTypeSection.disabled(store.state.isReadOnly)
             additionalOptions.disabled(store.state.isReadOnly)
         }
-        .nativeFormRows()
         .animation(.default, value: store.state.collectionsForOwner)
-        .scrollDismissesKeyboard(.immediately)
+        .scrollDismissesKeyboard(.interactively)
         .navigationBarTitleDisplayMode(.inline)
         .contentMargins(.bottom, 30, for: .scrollContent)
+        .passYReadableWidth()
+    }
+
+    /// A short note at the top of the form (policy, archived).
+    private func infoLabel(_ text: String, systemImage: String) -> some View {
+        Label(text, systemImage: systemImage)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .listRowBackground(Color.clear)
     }
 
     private var existing: some View {
@@ -138,73 +144,71 @@ struct AddEditItemView: View {
             }
     }
 
-    /// The item details section containing the name, folder, and owner fields.
+    /// The name (with the favorite star), the folder and, for new items of organization members, the owner and
+    /// the collections.
     private var itemDetailsSection: some View {
-        SectionView(Localizations.itemDetails, contentSpacing: 8) {
-            BitwardenTextField(
-                title: Localizations.itemNameRequired,
-                text: store.binding(
-                    get: \.name,
-                    send: AddEditItemAction.nameChanged,
-                ),
-                accessibilityIdentifier: "ItemNameEntry",
-                isTextFieldDisabled: store.state.isReadOnly,
-            ) {
-                Button {
-                    store.send(.favoriteChanged(!store.state.isFavoriteOn))
-                } label: {
-                    store.state.isFavoriteOn
-                        ? SharedAsset.Icons.starFilled24.swiftUIImage
-                        : SharedAsset.Icons.star24.swiftUIImage
+        Group {
+            Section {
+                PassYFormField(
+                    Localizations.itemNameRequired,
+                    text: store.binding(
+                        get: \.name,
+                        send: AddEditItemAction.nameChanged,
+                    ),
+                    style: .free,
+                    identifier: "ItemNameEntry",
+                    isReadOnly: store.state.isReadOnly,
+                ) {
+                    Button {
+                        store.send(.favoriteChanged(!store.state.isFavoriteOn))
+                    } label: {
+                        Image(systemName: store.state.isFavoriteOn ? "star.fill" : "star")
+                            .foregroundStyle(store.state.isFavoriteOn ? AnyShapeStyle(.yellow) : AnyShapeStyle(.secondary))
+                    }
+                    .accessibilityIdentifier("ItemFavoriteButton")
+                    .accessibilityLabel(Localizations.favorite)
+                    .accessibilityValue(store.state.isFavoriteOn ? Localizations.on : Localizations.off)
                 }
-                .buttonStyle(.accessory)
-                .accessibilityIdentifier("ItemFavoriteButton")
-                .accessibilityLabel(Localizations.favorite)
-                .accessibilityValue(store.state.isFavoriteOn ? Localizations.on : Localizations.off)
-            }
-            // Apple: the name is a free field without a label ("Item name (required)" is its placeholder).
-            .nativeTitleAsPlaceholder()
-            .contentBlock()
+                .textInputAutocapitalization(.words)
 
-            ContentBlock {
-                BitwardenMenuField(
-                    title: store.state.folderTitle,
+                PassYPickerRow(
+                    store.state.folderTitle,
                     options: store.state.folders,
                     selection: store.binding(
                         get: \.folder,
                         send: AddEditItemAction.folderChanged,
                     ),
-                    additionalMenu: {
-                        Button(Localizations.addFolder) {
-                            store.send(.addFolder)
-                        }
-                    },
-                )
-                .accessibilityIdentifier("FolderPicker")
+                    identifier: "FolderPicker",
+                ) {
+                    Divider()
+                    Button(Localizations.addFolder, systemImage: "folder.badge.plus") {
+                        store.send(.addFolder)
+                    }
+                }
+            }
 
-                if store.state.configuration.isAdding, store.state.hasOrganizations, let owner = store.state.owner {
-                    ContentBlock(dividerLeadingPadding: 16) {
-                        BitwardenMenuField(
-                            title: store.state.ownerFieldTitle,
-                            accessibilityIdentifier: "ItemOwnershipPicker",
-                            options: store.state.ownershipOptions,
-                            selection: store.binding(
-                                get: { _ in owner },
-                                send: AddEditItemAction.ownerChanged,
-                            ),
-                        )
+            if store.state.configuration.isAdding, store.state.hasOrganizations, let owner = store.state.owner {
+                Section {
+                    PassYPickerRow(
+                        store.state.ownerFieldTitle,
+                        options: store.state.ownershipOptions,
+                        selection: store.binding(
+                            get: { _ in owner },
+                            send: AddEditItemAction.ownerChanged,
+                        ),
+                        identifier: "ItemOwnershipPicker",
+                    )
 
-                        ForEach(store.state.collectionsForOwner, id: \.id) { collection in
-                            if let collectionId = collection.id {
-                                BitwardenToggle(
-                                    collection.name,
-                                    isOn: store.binding(
-                                        get: { _ in store.state.collectionIds.contains(collectionId) },
-                                        send: { .collectionToggleChanged($0, collectionId: collectionId) },
-                                    ),
-                                )
-                                .accessibilityIdentifier("CollectionItemSwitch")
-                            }
+                    ForEach(store.state.collectionsForOwner, id: \.id) { collection in
+                        if let collectionId = collection.id {
+                            PassYToggleRow(
+                                collection.name,
+                                isOn: store.binding(
+                                    get: { _ in store.state.collectionIds.contains(collectionId) },
+                                    send: { .collectionToggleChanged($0, collectionId: collectionId) },
+                                ),
+                                identifier: "CollectionItemSwitch",
+                            )
                         }
                     }
                 }
@@ -214,10 +218,11 @@ struct AddEditItemView: View {
 }
 
 private extension AddEditItemView {
-    /// The expandable additional options section.
+    /// Notes (for types other than secure notes), the master password re-prompt and the custom fields behind
+    /// one "Additional options" row.
     @ViewBuilder var additionalOptions: some View {
-        ExpandableContent(
-            title: Localizations.additionalOptions,
+        PassYDisclosureSection(
+            Localizations.additionalOptions,
             isExpanded: store.binding(
                 get: \.isAdditionalOptionsExpanded,
                 send: AddEditItemAction.toggleAdditionalOptionsExpanded,
@@ -229,20 +234,17 @@ private extension AddEditItemView {
 
             if store.state.showMasterPasswordReprompt {
                 Section {
-                BitwardenToggle(
-                    isOn: store.binding(
-                        get: \.isMasterPasswordRePromptOn,
-                        send: AddEditItemAction.masterPasswordRePromptChanged,
-                    ),
-                    accessibilityIdentifier: "MasterPasswordRepromptToggle",
-                    accessibilityLabel: Localizations.passwordPrompt,
-                    helpURL: ExternalLinksConstants.protectIndividualItems,
-                    helpAccessibilityLabel: Localizations.masterPasswordRePromptHelp,
-                    title: {
-                        Text(Localizations.passwordPrompt)
-                    },
-                )
-                .toggleStyle(.bitwarden)
+                    PassYToggleRow(
+                        Localizations.passwordPrompt,
+                        isOn: store.binding(
+                            get: \.isMasterPasswordRePromptOn,
+                            send: AddEditItemAction.masterPasswordRePromptChanged,
+                        ),
+                        identifier: "MasterPasswordRepromptToggle",
+                        accessibilityLabel: Localizations.passwordPrompt,
+                        helpURL: ExternalLinksConstants.protectIndividualItems,
+                        helpLabel: Localizations.masterPasswordRePromptHelp,
+                    )
                 }
             }
 
@@ -262,17 +264,17 @@ private extension AddEditItemView {
         .animation(.easeInOut(duration: 0.2), value: store.state.customFieldsState)
     }
 
-    /// The notes fields.
+    /// The notes field.
     private var notesField: some View {
-        BitwardenTextView(
-            title: Localizations.notes,
+        PassYMultilineField(
+            Localizations.notes,
             text: store.binding(
                 get: \.notes,
                 send: AddEditItemAction.notesChanged,
             ),
+            identifier: "ItemNotesEntry",
             isEditable: !store.state.isReadOnly,
         )
-        .disabled(store.state.isReadOnly)
     }
 }
 

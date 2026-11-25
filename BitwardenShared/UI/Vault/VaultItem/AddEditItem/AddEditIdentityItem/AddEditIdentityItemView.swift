@@ -49,235 +49,227 @@ struct AddEditIdentityItemView: View {
 
     /// The address section.
     var addressSection: some View {
-        SectionView(Localizations.address, contentSpacing: 8) {
-            ContentBlock {
-                BitwardenTextField(
-                    title: Localizations.address1,
-                    text: store.binding(
-                        get: \.address1,
-                        send: AddEditIdentityItemAction.address1Changed,
-                    ),
-                    accessibilityIdentifier: "IdentityAddressOneEntry",
-                    focus: .field($focusedField, equals: .address1),
-                )
-                .onSubmit { focusNextField($focusedField) }
+        Section {
+            PassYFormField(
+                Localizations.address1,
+                text: store.binding(
+                    get: \.address1,
+                    send: AddEditIdentityItemAction.address1Changed,
+                ),
+                identifier: "IdentityAddressOneEntry",
+                focus: .field($focusedField, equals: .address1),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.address2,
-                    text: store.binding(
-                        get: \.address2,
-                        send: AddEditIdentityItemAction.address2Changed,
-                    ),
-                    accessibilityIdentifier: "IdentityAddressTwoEntry",
-                    focus: .field($focusedField, equals: .address2),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.address2,
+                text: store.binding(
+                    get: \.address2,
+                    send: AddEditIdentityItemAction.address2Changed,
+                ),
+                identifier: "IdentityAddressTwoEntry",
+                focus: .field($focusedField, equals: .address2),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.address3,
-                    text: store.binding(
-                        get: \.address3,
-                        send: AddEditIdentityItemAction.address3Changed,
-                    ),
-                    accessibilityIdentifier: "IdentityAddressThreeEntry",
-                    focus: .field($focusedField, equals: .address3),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.address3,
+                text: store.binding(
+                    get: \.address3,
+                    send: AddEditIdentityItemAction.address3Changed,
+                ),
+                identifier: "IdentityAddressThreeEntry",
+                focus: .field($focusedField, equals: .address3),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.cityTown,
-                    text: store.binding(
-                        get: \.cityOrTown,
-                        send: AddEditIdentityItemAction.cityOrTownChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityCityEntry",
-                    focus: .field($focusedField, equals: .city),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.cityTown,
+                text: store.binding(
+                    get: \.cityOrTown,
+                    send: AddEditIdentityItemAction.cityOrTownChanged,
+                ),
+                identifier: "IdentityCityEntry",
+                focus: .field($focusedField, equals: .city),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.stateProvince,
-                    text: store.binding(
-                        get: \.state,
-                        send: AddEditIdentityItemAction.stateChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityStateEntry",
-                    focus: .field($focusedField, equals: .state),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.stateProvince,
+                text: store.binding(
+                    get: \.state,
+                    send: AddEditIdentityItemAction.stateChanged,
+                ),
+                identifier: "IdentityStateEntry",
+                focus: .field($focusedField, equals: .state),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.zipPostalCode,
-                    text: store.binding(
-                        get: \.postalCode,
-                        send: AddEditIdentityItemAction.postalCodeChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityPostalCodeEntry",
-                    focus: .field($focusedField, equals: .zipcode),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.zipPostalCode,
+                text: store.binding(
+                    get: \.postalCode,
+                    send: AddEditIdentityItemAction.postalCodeChanged,
+                ),
+                identifier: "IdentityPostalCodeEntry",
+                focus: .field($focusedField, equals: .zipcode),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.country,
-                    text: store.binding(
-                        get: \.country,
-                        send: AddEditIdentityItemAction.countryChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityCountryEntry",
-                    focus: .field($focusedField, equals: .country),
-                )
-                .onSubmit { focusNextField($focusedField) }
-            }
+            PassYFormField(
+                Localizations.country,
+                text: store.binding(
+                    get: \.country,
+                    send: AddEditIdentityItemAction.countryChanged,
+                ),
+                identifier: "IdentityCountryEntry",
+                focus: .field($focusedField, equals: .country),
+            )
+            .onSubmit { focusNextField($focusedField) }
         }
     }
 
     /// The contact info section.
     var contactInfoSection: some View {
-        SectionView(Localizations.contactInfo, contentSpacing: 8) {
-            ContentBlock {
-                BitwardenTextField(
-                    title: Localizations.email,
-                    text: store.binding(
-                        get: \.email,
-                        send: AddEditIdentityItemAction.emailChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityEmailEntry",
-                    focus: .field($focusedField, equals: .email),
-                )
-                .textFieldConfiguration(.email)
-                .onSubmit { focusNextField($focusedField) }
+        Section {
+            PassYFormField(
+                Localizations.email,
+                text: store.binding(
+                    get: \.email,
+                    send: AddEditIdentityItemAction.emailChanged,
+                ),
+                identifier: "IdentityEmailEntry",
+                focus: .field($focusedField, equals: .email),
+            )
+            .textFieldConfiguration(.email)
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.phone,
-                    text: store.binding(
-                        get: \.phone,
-                        send: AddEditIdentityItemAction.phoneNumberChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityPhoneEntry",
-                    focus: .field($focusedField, equals: .phone),
-                )
-                .textFieldConfiguration(.numeric(.telephoneNumber))
-                .onSubmit { focusNextField($focusedField) }
-            }
+            PassYFormField(
+                Localizations.phone,
+                text: store.binding(
+                    get: \.phone,
+                    send: AddEditIdentityItemAction.phoneNumberChanged,
+                ),
+                identifier: "IdentityPhoneEntry",
+                focus: .field($focusedField, equals: .phone),
+            )
+            .textFieldConfiguration(.numeric(.telephoneNumber))
+            .onSubmit { focusNextField($focusedField) }
         }
     }
 
     /// The identification section.
     var identificationSection: some View {
-        SectionView(Localizations.identification, contentSpacing: 8) {
-            ContentBlock {
-                BitwardenTextField(
-                    title: Localizations.ssn,
-                    text: store.binding(
-                        get: \.socialSecurityNumber,
-                        send: AddEditIdentityItemAction.socialSecurityNumberChanged,
-                    ),
-                    accessibilityIdentifier: "IdentitySsnEntry",
-                    passwordVisibilityAccessibilityId: "IdentitySsnVisibilityButton",
-                    canViewPassword: true,
-                    focus: .field($focusedField, equals: .ssn),
-                    isPasswordVisible: store.binding(
-                        get: \.showSocialSecurityNumber,
-                        send: AddEditIdentityItemAction.ssnVisibilityChanged,
-                    ),
-                )
-                .onSubmit { focusNextField($focusedField) }
+        Section {
+            PassYSecureField(
+                Localizations.ssn,
+                text: store.binding(
+                    get: \.socialSecurityNumber,
+                    send: AddEditIdentityItemAction.socialSecurityNumberChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.showSocialSecurityNumber,
+                    send: AddEditIdentityItemAction.ssnVisibilityChanged,
+                ),
+                canReveal: true,
+                identifier: "IdentitySsnEntry",
+                revealIdentifier: "IdentitySsnVisibilityButton",
+                focus: .field($focusedField, equals: .ssn),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.passportNumber,
-                    text: store.binding(
-                        get: \.passportNumber,
-                        send: AddEditIdentityItemAction.passportNumberChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityPassportNumberEntry",
-                    focus: .field($focusedField, equals: .passport),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.passportNumber,
+                text: store.binding(
+                    get: \.passportNumber,
+                    send: AddEditIdentityItemAction.passportNumberChanged,
+                ),
+                identifier: "IdentityPassportNumberEntry",
+                focus: .field($focusedField, equals: .passport),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.licenseNumber,
-                    text: store.binding(
-                        get: \.licenseNumber,
-                        send: AddEditIdentityItemAction.licenseNumberChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityLicenseNumberEntry",
-                    focus: .field($focusedField, equals: .license),
-                )
-                .onSubmit { focusNextField($focusedField) }
-            }
+            PassYFormField(
+                Localizations.licenseNumber,
+                text: store.binding(
+                    get: \.licenseNumber,
+                    send: AddEditIdentityItemAction.licenseNumberChanged,
+                ),
+                identifier: "IdentityLicenseNumberEntry",
+                focus: .field($focusedField, equals: .license),
+            )
+            .onSubmit { focusNextField($focusedField) }
         }
     }
 
     /// The personal details section.
     var personalDetailsSection: some View {
-        SectionView(Localizations.personalDetails, contentSpacing: 8) {
-            ContentBlock {
-                BitwardenMenuField(
-                    title: Localizations.title,
-                    accessibilityIdentifier: "IdentityTitlePicker",
-                    options: DefaultableType<TitleType>.allCases,
-                    selection: store.binding(
-                        get: \.title,
-                        send: AddEditIdentityItemAction.titleChanged,
-                    ),
-                )
+        Section {
+            PassYPickerRow(
+                Localizations.title,
+                options: DefaultableType<TitleType>.allCases,
+                selection: store.binding(
+                    get: \.title,
+                    send: AddEditIdentityItemAction.titleChanged,
+                ),
+                identifier: "IdentityTitlePicker",
+            )
 
-                BitwardenTextField(
-                    title: Localizations.firstName,
-                    text: store.binding(
-                        get: \.firstName,
-                        send: AddEditIdentityItemAction.firstNameChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityFirstNameEntry",
-                    focus: .field($focusedField, equals: .firstName),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.firstName,
+                text: store.binding(
+                    get: \.firstName,
+                    send: AddEditIdentityItemAction.firstNameChanged,
+                ),
+                identifier: "IdentityFirstNameEntry",
+                focus: .field($focusedField, equals: .firstName),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.middleName,
-                    text: store.binding(
-                        get: \.middleName,
-                        send: AddEditIdentityItemAction.middleNameChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityMiddleNameEntry",
-                    focus: .field($focusedField, equals: .middleName),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.middleName,
+                text: store.binding(
+                    get: \.middleName,
+                    send: AddEditIdentityItemAction.middleNameChanged,
+                ),
+                identifier: "IdentityMiddleNameEntry",
+                focus: .field($focusedField, equals: .middleName),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.lastName,
-                    text: store.binding(
-                        get: \.lastName,
-                        send: AddEditIdentityItemAction.lastNameChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityLastNameEntry",
-                    focus: .field($focusedField, equals: .lastName),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.lastName,
+                text: store.binding(
+                    get: \.lastName,
+                    send: AddEditIdentityItemAction.lastNameChanged,
+                ),
+                identifier: "IdentityLastNameEntry",
+                focus: .field($focusedField, equals: .lastName),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.username,
-                    text: store.binding(
-                        get: \.userName,
-                        send: AddEditIdentityItemAction.userNameChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityUsernameEntry",
-                    focus: .field($focusedField, equals: .username),
-                )
-                .textFieldConfiguration(.username)
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.username,
+                text: store.binding(
+                    get: \.userName,
+                    send: AddEditIdentityItemAction.userNameChanged,
+                ),
+                identifier: "IdentityUsernameEntry",
+                focus: .field($focusedField, equals: .username),
+            )
+            .textFieldConfiguration(.username)
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.company,
-                    text: store.binding(
-                        get: \.company,
-                        send: AddEditIdentityItemAction.companyChanged,
-                    ),
-                    accessibilityIdentifier: "IdentityCompanyEntry",
-                    focus: .field($focusedField, equals: .company),
-                )
-                .onSubmit { focusNextField($focusedField) }
-            }
+            PassYFormField(
+                Localizations.company,
+                text: store.binding(
+                    get: \.company,
+                    send: AddEditIdentityItemAction.companyChanged,
+                ),
+                identifier: "IdentityCompanyEntry",
+                focus: .field($focusedField, equals: .company),
+            )
+            .onSubmit { focusNextField($focusedField) }
         }
     }
 }
@@ -287,8 +279,8 @@ struct AddEditIdentityItemView: View {
 #if DEBUG
 #Preview("Empty Add Edit Identity State") {
     NavigationView {
-        ScrollView {
-            LazyVStack(spacing: 20) {
+        Form {
+            Group {
                 AddEditIdentityItemView(
                     store: Store(
                         processor: StateProcessor(
@@ -297,10 +289,7 @@ struct AddEditIdentityItemView: View {
                     ),
                 )
             }
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .ignoresSafeArea()
     }
 }
 #endif

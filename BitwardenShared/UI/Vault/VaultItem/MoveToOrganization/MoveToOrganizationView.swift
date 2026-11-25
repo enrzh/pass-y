@@ -17,11 +17,8 @@ struct MoveToOrganizationView: View {
 
     var body: some View {
         content
-            .navigationBar(
-                title: Localizations.move,
-                titleDisplayMode: .inline,
-            )
-            .scrollView()
+            .navigationTitle(Localizations.move)
+            .navigationBarTitleDisplayMode(.inline)
             .task { await store.perform(.fetchCipherOptions) }
             .toolbar {
                 cancelToolbarItem {
@@ -38,60 +35,59 @@ struct MoveToOrganizationView: View {
 
     // MARK: Private Views
 
-    /// The section containing the collections for the organizations.
-    private var collectionsSections: some View {
-        SectionView(
-            Localizations.sharedFolders,
-            contentSpacing: 8,
-        ) {
-            ContentBlock {
+    /// The collections of the chosen organization as switches.
+    @ViewBuilder private var collectionsSections: some View {
+        if !store.state.collectionsForOwner.isEmpty {
+            Section {
                 ForEach(store.state.collectionsForOwner, id: \.id) { collection in
                     if let collectionId = collection.id {
-                        BitwardenToggle(
+                        PassYToggleRow(
                             collection.name,
                             isOn: store.binding(
                                 get: { _ in store.state.collectionIds.contains(collectionId) },
                                 send: { .collectionToggleChanged($0, collectionId: collectionId) },
                             ),
-                            accessibilityIdentifier: "CollectionItemSwitch",
+                            identifier: "CollectionItemSwitch",
                         )
                     }
                 }
+            } header: {
+                PassYSectionHeader(Localizations.sharedFolders)
             }
         }
     }
 
-    /// The content displayed in the view.
+    /// The organization picker and its collections, or an empty state.
     @ViewBuilder private var content: some View {
         if store.state.ownershipOptions.isEmpty {
-            Text(Localizations.noVaultsToList)
-                .styleGuide(.body)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .multilineTextAlignment(.center)
-                .padding(16)
-                .frame(maxWidth: .infinity)
+            PassYEmptyState(Localizations.noVaultsToList, systemImage: "building.2")
+                .passYEmptyListState()
         } else {
-            VStack(spacing: 16) {
+            Form {
                 organizationSection
 
                 collectionsSections
             }
+            .passYReadableWidth()
         }
     }
 
-    /// The section containing the organization selection menu.
+    /// The organization picker with its explanation.
     @ViewBuilder private var organizationSection: some View {
         if let owner = store.state.owner {
-            BitwardenMenuField(
-                title: Localizations.vault,
-                footer: Localizations.chooseAVaultThatYouWishToMoveThisItemToDescriptionLong,
-                accessibilityIdentifier: "OrganizationListDropdown",
-                options: store.state.ownershipOptions,
-                selection: store.binding(
-                    get: { _ in owner },
-                    send: MoveToOrganizationAction.ownerChanged,
-                ),
-            )
+            Section {
+                PassYPickerRow(
+                    Localizations.vault,
+                    options: store.state.ownershipOptions,
+                    selection: store.binding(
+                        get: { _ in owner },
+                        send: MoveToOrganizationAction.ownerChanged,
+                    ),
+                    identifier: "OrganizationListDropdown",
+                )
+            } footer: {
+                PassYSectionFooter(Localizations.chooseAVaultThatYouWishToMoveThisItemToDescriptionLong)
+            }
         }
     }
 }
