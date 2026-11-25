@@ -64,60 +64,48 @@ private struct MainSendListView: View {
             }
     }
 
-    /// The empty state for this view, displayed when there are no items (native unavailable-content style).
+    /// The empty state for this view, displayed when there are no items (`PassYEmptyState`).
     @ViewBuilder private var empty: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: PassYDesign.Spacing.large) {
             if store.state.isSendDisabled {
-                InfoContainer(Localizations.sendDisabledWarning)
+                Label(Localizations.sendDisabledWarning, systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, PassYDesign.Spacing.xLarge)
                     .accessibilityIdentifier("SendPolicyLabel")
             }
 
-            Spacer()
-
-            Image(systemName: "paperplane")
-                .font(.largeTitle.weight(.light))
-                .imageScale(.large)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-
-            Text(Localizations.sendSensitiveInformationSafely)
-                .font(.title2.weight(.bold))
-                .multilineTextAlignment(.center)
-
-            Text(Localizations
-                .shareFilesAndDataSecurelyWithAnyoneOnAnyPlatformYourInformationWillRemainEndToEndEncrypted)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Group {
-                let newSendLabel = Label(Localizations.newSend, systemImage: "plus")
-                if let sendType = store.state.type ?? store.state.restrictedSendType {
-                    AsyncButton {
-                        await store.perform(.addItemPressed(sendType))
-                    } label: {
-                        newSendLabel
-                    }
-                } else {
-                    Menu {
-                        ForEach(SendType.allCases.reversed()) { sendType in
-                            AsyncButton(sendType.localizedName) {
-                                await store.perform(.addItemPressed(sendType))
-                            }
+            PassYEmptyState(
+                Localizations.sendSensitiveInformationSafely,
+                systemImage: "paperplane",
+                message: Localizations
+                    .shareFilesAndDataSecurelyWithAnyoneOnAnyPlatformYourInformationWillRemainEndToEndEncrypted,
+            ) {
+                Group {
+                    let newSendLabel = Label(Localizations.newSend, systemImage: "plus")
+                    if let sendType = store.state.type ?? store.state.restrictedSendType {
+                        AsyncButton {
+                            await store.perform(.addItemPressed(sendType))
+                        } label: {
+                            newSendLabel
                         }
-                    } label: {
-                        newSendLabel
+                    } else {
+                        Menu {
+                            ForEach(SendType.allCases.reversed()) { sendType in
+                                AsyncButton(sendType.localizedName) {
+                                    await store.perform(.addItemPressed(sendType))
+                                }
+                            }
+                        } label: {
+                            newSendLabel
+                        }
                     }
                 }
+                .passYButtonStyle(.primary)
+                // The bottom bar offers the same action.
+                .accessibilityHidden(true)
             }
-            .buttonStyle(.borderedProminent)
-            .padding(.top, 8)
-            // The bottom bar offers the same action.
-            .accessibilityHidden(true)
-
-            Spacer()
         }
-        .padding(.horizontal, 24)
         .frame(maxWidth: .infinity)
     }
 

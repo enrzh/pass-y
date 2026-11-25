@@ -44,11 +44,7 @@ struct FoldersView: View {
 
     /// The empty state for when the user doesn't have any folders yet.
     private var empty: some View {
-        Text(Localizations.noFoldersToList)
-            .styleGuide(.callout)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .accessibilityIdentifier("NoFoldersLabel")
+        PassYEmptyState(Localizations.noFoldersToList, systemImage: "folder", identifier: "NoFoldersLabel")
     }
 
     /// The section listing all the user's folders.
@@ -64,27 +60,15 @@ struct FoldersView: View {
                 },
                 id: \.id,
             ) { folder in
-                Button {
+                PassYRow(title: .init(text: folder.name, identifier: "FolderName"), showsDisclosure: true) {
+                    PassYIconTile(systemImage: "folder.fill", tint: .blue)
+                }
+                .passYRowButton(identifier: "FolderCell") {
                     guard let id = folder.id else { return }
                     store.send(.folderTapped(id: id))
-                } label: {
-                    HStack {
-                        Label {
-                            Text(folder.name)
-                                .foregroundStyle(.primary)
-                                .accessibilityIdentifier("FolderName")
-                        } icon: {
-                            Image(systemName: "folder")
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("FolderCell")
+                .padding(.horizontal, PassYDesign.Spacing.large)
+                .listRowInsets(EdgeInsets())
             }
         }
         .passYCardList(reservesBottomBarSpace: false)
