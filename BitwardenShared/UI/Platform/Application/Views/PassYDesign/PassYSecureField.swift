@@ -211,7 +211,8 @@ struct PassYRevealButton: View {
         Button(action: action) {
             Image(systemName: isRevealed ? "eye.slash" : "eye")
                 .font(.body)
-                .foregroundStyle(.secondary)
+                // Explicit colour: a borderless button would tint `.secondary`.
+                .foregroundStyle(Color.secondary)
                 .frame(minWidth: 28, minHeight: 28)
                 .contentShape(Rectangle())
         }

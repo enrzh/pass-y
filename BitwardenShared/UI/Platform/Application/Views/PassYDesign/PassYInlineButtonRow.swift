@@ -146,7 +146,7 @@ struct PassYInlineButtonRow: View {
         if role == .destructive { return AnyShapeStyle(Color.red) }
         switch style {
         case .tinted: return AnyShapeStyle(.tint)
-        case .plain: return AnyShapeStyle(.primary)
+        case .plain: return AnyShapeStyle(Color.primary)
         }
     }
 }
