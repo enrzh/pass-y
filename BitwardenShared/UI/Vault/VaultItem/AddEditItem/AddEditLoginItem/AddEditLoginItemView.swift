@@ -64,7 +64,7 @@ struct AddEditLoginItemView: View {
 
     /// "Check for data breaches" below the password.
     @ViewBuilder private var checkPasswordRow: some View {
-        if store.state.canViewPassword, !store.state.password.isEmpty {
+        if store.state.canViewPassword {
             PassYInlineButtonRow(
                 Localizations.checkPasswordForDataBreaches,
                 systemImage: "checkmark.shield",
@@ -85,11 +85,9 @@ struct AddEditLoginItemView: View {
                 identifier: "LoginPasskeyEntry",
                 accessory: {
                 if store.state.canViewPassword, store.state.editView {
-                    Button(Localizations.removePasskey, systemImage: "minus.circle.fill") {
+                    PassYIconButton(Localizations.removePasskey, systemImage: "minus.circle.fill", role: .destructive) {
                         store.send(.removePasskeyPressed)
                     }
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(.red)
                     .accessibilityIdentifier("LoginRemovePasskeyButton")
                 }
                 },
@@ -116,7 +114,7 @@ struct AddEditLoginItemView: View {
             focus: .field($focusedField, equals: .password),
         ) {
             if store.state.canViewPassword {
-                Button(Localizations.generatePassword, systemImage: "arrow.trianglehead.2.clockwise") {
+                PassYIconButton(Localizations.generatePassword, systemImage: "arrow.trianglehead.2.clockwise") {
                     store.send(.generatePasswordPressed)
                 }
                 .guidedTourStep(.step1) { frame in
@@ -148,7 +146,7 @@ struct AddEditLoginItemView: View {
                 focus: .field($focusedField, equals: .totp),
             ) {
                 if !store.state.authenticatorKey.isEmpty {
-                    Button(Localizations.copyTotp, systemImage: "doc.on.doc") {
+                    PassYIconButton(Localizations.copyTotp, systemImage: "doc.on.doc") {
                         Task { await store.perform(.copyTotpPressed) }
                     }
                     .accessibilityIdentifier("CopyTotpButton")
@@ -230,7 +228,7 @@ struct AddEditLoginItemView: View {
             identifier: "LoginUsernameEntry",
             focus: .field($focusedField, equals: .userName),
         ) {
-            Button(Localizations.generateUsername, systemImage: "wand.and.stars") {
+            PassYIconButton(Localizations.generateUsername, systemImage: "wand.and.stars") {
                 store.send(.generateUsernamePressed)
             }
             .accessibilityIdentifier("GenerateUsernameButton")

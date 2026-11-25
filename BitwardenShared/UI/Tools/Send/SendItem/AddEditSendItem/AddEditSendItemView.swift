@@ -383,13 +383,13 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                     ),
                     identifier: "SendPasswordEntry",
                 ) {
-                    Button(Localizations.generatePassword, systemImage: "arrow.trianglehead.2.clockwise") {
+                    PassYIconButton(Localizations.generatePassword, systemImage: "arrow.trianglehead.2.clockwise") {
                         store.send(.generatePasswordPressed)
                     }
                     .accessibilityIdentifier("GenerateSendPasswordButton")
 
                     if !store.state.password.isEmpty {
-                        Button(Localizations.copyPassword, systemImage: "doc.on.doc") {
+                        PassYIconButton(Localizations.copyPassword, systemImage: "doc.on.doc") {
                             Task { await store.perform(.copyPasswordPressed) }
                         }
                         .accessibilityIdentifier("CopySendPasswordButton")
@@ -417,10 +417,9 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                 focus: .field($focusedRecipientEmailIndex, equals: index),
             ) {
                 if store.state.shouldShowTrashIcon(for: index) {
-                    Button(Localizations.delete, systemImage: "minus.circle.fill") {
+                    PassYIconButton(Localizations.delete, systemImage: "minus.circle.fill", role: .destructive) {
                         store.send(.removeRecipientEmail(index: index))
                     }
-                    .foregroundStyle(.red)
                     .accessibilityIdentifier("RemoveRecipientEmailButton")
                 }
             }

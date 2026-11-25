@@ -54,15 +54,12 @@ class ViewSSHKeyItemViewTests: BitwardenTestCase {
         )
     }
 
-    /// The SSHKeyCopyPrivateKeyButton is not found when can't view private key.
+    /// The private key cannot be copied when the user can't view it (tapping the row does nothing).
     @MainActor
-    func test_copyPrivateKeyButton_notFoundIfCantViewPrivateKey() throws {
+    func test_copyPrivateKey_disabledIfCantViewPrivateKey() throws {
         initSubject(canViewPrivateKey: false, showCopyButtons: true)
-        XCTAssertThrowsError(
-            try subject.inspect().find(
-                viewWithAccessibilityIdentifier: "PrivateKeyEntry",
-            ).button(),
-        )
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PrivateKeyEntry")
+        XCTAssertTrue(processor.dispatchedActions.isEmpty)
     }
 
     /// The processor gets the action when copying the public key.
@@ -79,20 +76,15 @@ class ViewSSHKeyItemViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "fingerprint", field: .sshKeyFingerprint))
     }
 
-    /// Copy buttons are not shown when `showCopyButtons` is `false`.
+    /// The rows don't copy when `showCopyButtons` is `false` (edit form).
     @MainActor
     func test_copy_notShown() throws {
         initSubject(canViewPrivateKey: true, showCopyButtons: false)
 
-        XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "PrivateKeyEntry"),
-        )
-        XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyPublicKeyEntry"),
-        )
-        XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "FingerprintEntry"),
-        )
+        for identifier in ["PrivateKeyEntry", "SSHKeyPublicKeyEntry", "FingerprintEntry"] {
+            try subject.inspect().tapPassYCopyRow(valueIdentifier: identifier)
+        }
+        XCTAssertTrue(processor.dispatchedActions.isEmpty)
     }
 
     // MARK: Private

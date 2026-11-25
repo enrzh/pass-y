@@ -297,11 +297,9 @@ struct ViewItemDetailsView: View {
                         identifier: "LoginUriEntry",
                     ) {
                         if let url = URL(string: uri.uri)?.sanitized, url.hasValidURLComponents {
-                            Button(Localizations.launch, systemImage: "arrow.up.forward.app") {
+                            PassYIconButton(Localizations.launch, systemImage: "arrow.up.forward.app") {
                                 openURL(url)
                             }
-                            .labelStyle(.iconOnly)
-                            .foregroundStyle(.tint)
                             .accessibilityIdentifier("LaunchUriButton")
                         }
                     } copy: {

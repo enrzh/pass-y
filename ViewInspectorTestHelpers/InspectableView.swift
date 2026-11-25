@@ -137,6 +137,13 @@ public struct PassYMultilineFieldType: BaseViewType {
 }
 
 /// See `PassYFormFieldType`.
+public struct PassYDateRowType: BaseViewType {
+    public static var typePrefix: String = "PassYDateRow"
+
+    public static var namespacedPrefixes: [String] = ["BitwardenShared.PassYDateRow"]
+}
+
+/// See `PassYFormFieldType`.
 public struct PassYCopyRowType: BaseViewType {
     public static var typePrefix: String = "PassYCopyRow"
 
@@ -285,6 +292,14 @@ public extension InspectableView {
     /// Attempts to locate a Pass-Y multi-line field (`PassYMultilineField`) with the provided title.
     func find(passYMultilineField title: String) throws -> InspectableView<PassYMultilineFieldType> {
         try find(PassYMultilineFieldType.self) { view in
+            let mirror = Mirror(reflecting: view)
+            return mirror.descendant("content", "view", "title") as? String == title
+        }
+    }
+
+    /// Attempts to locate a Pass-Y date row (`PassYDateRow`) with the provided title.
+    func find(passYDateRow title: String) throws -> InspectableView<PassYDateRowType> {
+        try find(PassYDateRowType.self) { view in
             let mirror = Mirror(reflecting: view)
             return mirror.descendant("content", "view", "title") as? String == title
         }
@@ -600,6 +615,17 @@ public extension InspectableView where View == PassYMultilineFieldType {
     /// Locates the raw binding on this field's text value. Can be used to simulate updating the field.
     func inputBinding() throws -> Binding<String> {
         try passYTextBinding(self, type: "PassYMultilineField")
+    }
+}
+
+public extension InspectableView where View == PassYDateRowType {
+    /// Locates the raw binding on this row's date. Can be used to simulate picking a date.
+    func inputBinding() throws -> Binding<Date?> {
+        let mirror = Mirror(reflecting: self)
+        if let binding = mirror.descendant("content", "view", "_date") as? Binding<Date?> {
+            return binding
+        }
+        throw InspectionError.attributeNotFound(label: "_date", type: "PassYDateRow")
     }
 }
 

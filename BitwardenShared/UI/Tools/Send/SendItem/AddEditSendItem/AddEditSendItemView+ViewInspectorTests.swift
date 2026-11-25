@@ -225,18 +225,16 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     @MainActor
     func test_passwordTextField_disabled_existingPassword() throws {
         processor.state.accessType = .anyoneWithPassword
-        var textField = try subject.inspect().find(passYSecureField: Localizations.password)
+        let textField = try subject.inspect().find(passYSecureField: Localizations.password)
         XCTAssertFalse(textField.isDisabled())
         XCTAssertNoThrow(try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.generatePassword))
 
         processor.state.mode = .edit
         processor.state.originalSendView = .fixture(hasPassword: true)
-        textField = try subject.inspect().find(passYSecureField: Localizations.password)
-        XCTAssertTrue(textField.isDisabled())
-        XCTAssertEqual(
-            try textField.inputBinding().wrappedValue,
-            String(repeating: "•", count: Constants.hiddenPasswordLength),
-        )
+        // An existing password can't be viewed or changed: a masked, read-only row instead of the field.
+        XCTAssertThrowsError(try subject.inspect().find(passYSecureField: Localizations.password))
+        XCTAssertNoThrow(try subject.inspect().find(passYCopyRow: Localizations.password))
+        XCTAssertNoThrow(try subject.inspect().find(text: PassYValueText.mask))
         XCTAssertThrowsError(
             try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.generatePassword),
         )

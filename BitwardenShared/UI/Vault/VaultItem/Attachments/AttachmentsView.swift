@@ -110,12 +110,9 @@ struct AttachmentsView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            Button(Localizations.delete, systemImage: "trash") {
+            PassYIconButton(Localizations.delete, systemImage: "trash", role: .destructive) {
                 store.send(.deletePressed(attachment))
             }
-            .labelStyle(.iconOnly)
-            .foregroundStyle(.red)
-            .buttonStyle(.borderless)
         }
         .frame(minHeight: 44)
         .accessibilityElement(children: .contain)

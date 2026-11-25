@@ -93,10 +93,9 @@ struct ViewLoginItemView: View {
             value: Localizations.premiumSubscriptionRequired,
             identifier: "PremiumSubscriptionRequiredButton",
         ) {
-            Button(Localizations.learnMore, systemImage: "questionmark.circle") {
+            PassYIconButton(Localizations.learnMore, systemImage: "questionmark.circle") {
                 openURL(ExternalLinksConstants.authenticatorHelp)
             }
-            .labelStyle(.iconOnly)
             .accessibilityIdentifier("AuthenticatorHelpButton")
         } copy: {
             store.send(.premiumSubscriptionRequiredTapped)

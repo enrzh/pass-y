@@ -75,7 +75,8 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
         processor.state.loadingState = .data(loginState)
         XCTAssertThrowsError(try subject.inspect().find(viewWithAccessibilityIdentifier: "LoginCopyUsernameButton"))
         XCTAssertThrowsError(try subject.inspect().find(viewWithAccessibilityIdentifier: "LoginCopyPasswordButton"))
-        XCTAssertThrowsError(try subject.inspect().find(viewWithAccessibilityIdentifier: "ShowLoginPasswordButton"))
+        // PassYDesign forms: the password has an eye button (no copy icons).
+        XCTAssertNoThrow(try subject.inspect().find(viewWithAccessibilityIdentifier: "ShowLoginPasswordButton"))
     }
 
     /// Tapping the username row itself (not only the copy icon) copies the username.
@@ -140,8 +141,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
             hasPremium: true,
         )!
         processor.state.loadingState = .data(loginState)
-        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copy)
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "LoginUriEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(value: "www.example.com", field: .uri)))
     }
 
@@ -157,8 +157,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
             hasPremium: true,
         )!
         processor.state.loadingState = .data(loginState)
-        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copy)
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "CipherNotesLabel")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(value: "Notes", field: CopyableField.notes)))
     }
 
@@ -178,7 +177,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
             hasPremium: true,
         ))
         processor.state.loadingState = .data(state)
-        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.download)
+        let button = try subject.inspect().find(buttonWithAccessibilityIdentifier: "CipherAttachment")
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .downloadAttachment(.fixture(id: "2")))
     }
@@ -206,7 +205,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_passwordHistoryButton_tap() throws {
         processor.state.loadingState = .data(loginState())
-        let button = try subject.inspect().find(buttonWithId: "passwordHistoryButton")
+        let button = try subject.inspect().find(buttonWithAccessibilityIdentifier: "PasswordHistoryButton")
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .passwordHistoryPressed)
     }
@@ -331,10 +330,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_premiumSubscriptionRequiredButton_tap() throws {
         processor.state.loadingState = .data(loginState(hasPremium: false))
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "PremiumSubscriptionRequiredButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PremiumSubscriptionRequiredButton")
         XCTAssertEqual(processor.dispatchedActions.last, .premiumSubscriptionRequiredTapped)
     }
 

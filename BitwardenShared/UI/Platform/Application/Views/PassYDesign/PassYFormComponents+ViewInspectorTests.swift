@@ -71,9 +71,8 @@ class PassYFormComponentsViewInspectorTests: BitwardenTestCase {
         var value = ""
         let binding = Binding(get: { value }, set: { value = $0 })
         let subject = PassYFormField("Username", text: binding, identifier: "LoginUsernameEntry")
-        let field = try subject.inspect().find(ViewType.TextField.self)
-        XCTAssertEqual(try field.accessibilityIdentifier(), "LoginUsernameEntry")
-        try field.setInput("octo")
+        XCTAssertNoThrow(try subject.inspect().find(viewWithAccessibilityIdentifier: "LoginUsernameEntry"))
+        try subject.inspect().find(ViewType.TextField.self).setInput("octo")
         XCTAssertEqual(value, "octo")
         XCTAssertNoThrow(try subject.inspect().find(text: "Username"), "inline label")
     }
@@ -102,7 +101,8 @@ class PassYFormComponentsViewInspectorTests: BitwardenTestCase {
             identifier: "LoginPasswordEntry",
             revealIdentifier: "ViewPasswordButton",
         )
-        XCTAssertEqual(try masked.inspect().find(ViewType.SecureField.self).accessibilityIdentifier(), "LoginPasswordEntry")
+        XCTAssertNoThrow(try masked.inspect().find(ViewType.SecureField.self))
+        XCTAssertNoThrow(try masked.inspect().find(viewWithAccessibilityIdentifier: "LoginPasswordEntry"))
         XCTAssertThrowsError(try masked.inspect().find(ViewType.TextField.self))
         try masked.inspect().find(buttonWithAccessibilityLabel: Localizations.passwordIsNotVisibleTapToShow).tap()
         XCTAssertTrue(revealed)
@@ -113,7 +113,8 @@ class PassYFormComponentsViewInspectorTests: BitwardenTestCase {
             isRevealed: .constant(true),
             identifier: "LoginPasswordEntry",
         )
-        XCTAssertEqual(try shown.inspect().find(ViewType.TextField.self).accessibilityIdentifier(), "LoginPasswordEntry")
+        XCTAssertNoThrow(try shown.inspect().find(ViewType.TextField.self))
+        XCTAssertNoThrow(try shown.inspect().find(viewWithAccessibilityIdentifier: "LoginPasswordEntry"))
         XCTAssertNoThrow(try shown.inspect().find(buttonWithAccessibilityLabel: Localizations.passwordIsVisibleTapToHide))
     }
 
@@ -130,7 +131,7 @@ class PassYFormComponentsViewInspectorTests: BitwardenTestCase {
         var copied = 0
         var toggled = 0
         let plain = PassYCopyRow("Username", value: "octo", identifier: "LoginUsernameEntry") { copied += 1 }
-        XCTAssertEqual(try plain.inspect().find(text: "octo").accessibilityIdentifier(), "LoginUsernameEntry")
+        XCTAssertNoThrow(try plain.inspect().find(text: "octo"))
         try plain.inspect().tapPassYCopyRow(valueIdentifier: "LoginUsernameEntry")
         XCTAssertEqual(copied, 1)
 

@@ -66,8 +66,8 @@ class AddEditFolderViewTests: BitwardenTestCase {
     /// Updating the text field dispatches the `.folderNameTextChanged()` action.
     @MainActor
     func test_nameField_updateValue() throws {
-        let textfield = try subject.inspect().find(viewWithId: Localizations.name).textField()
-        try textfield.setInput("text")
+        let textfield = try subject.inspect().find(passYFormField: Localizations.name)
+        try textfield.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .folderNameTextChanged("text"))
     }
 

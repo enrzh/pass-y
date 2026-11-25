@@ -165,9 +165,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_masterPasswordRePromptToggle_infoButton_accessibility() throws {
         processor.state.isAdditionalOptionsExpanded = true
-        XCTAssertNoThrow(try subject.inspect().find(ViewType.Image.self) { image in
-            try image.accessibilityLabel().string() == Localizations.masterPasswordRePromptHelp
-        })
+        XCTAssertNoThrow(try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.masterPasswordRePromptHelp))
     }
 
     /// Updating the name text field dispatches the `.nameChanged()` action.
@@ -538,7 +536,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_licenseNumberTextField_updateValue() throws {
         processor.state.type = .driversLicense
-        let textField = try subject.inspect().find(passYFormField: Localizations.licenseNumber)
+        let textField = try subject.inspect().find(passYSecureField: Localizations.licenseNumber)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.licenseNumberChanged("text")))
     }
@@ -593,7 +591,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .driversLicense
         processor.state.driversLicenseItemState.isLicenseNumberVisible = false
         let button = try subject.inspect()
-            .find(passYFormField: Localizations.licenseNumber)
+            .find(passYSecureField: Localizations.licenseNumber)
             .find(buttonWithAccessibilityLabel: Localizations.fieldValueIsNotVisibleTapToShow(
                 Localizations.licenseNumber,
             ))
@@ -611,7 +609,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .driversLicense
         processor.state.driversLicenseItemState.isLicenseNumberVisible = true
         let button = try subject.inspect()
-            .find(passYFormField: Localizations.licenseNumber)
+            .find(passYSecureField: Localizations.licenseNumber)
             .find(buttonWithAccessibilityLabel: Localizations.fieldValueIsVisibleTapToHide(
                 Localizations.licenseNumber,
             ))
@@ -628,7 +626,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .driversLicense
         processor.state.driversLicenseItemState.dateOfBirth = Date(year: 1989, month: 8, day: 1)
 
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.dateOfBirth)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.dateOfBirth)
         XCTAssertEqual(try picker.inputBinding().wrappedValue, Date(year: 1989, month: 8, day: 1))
     }
 
@@ -636,7 +634,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_dateOfBirthField_updateValue() throws {
         processor.state.type = .driversLicense
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.dateOfBirth)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.dateOfBirth)
         let newDate = Date(year: 1989, month: 8, day: 1)
         try picker.inputBinding().wrappedValue = newDate
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.dateOfBirthChanged(newDate)))
@@ -648,7 +646,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .driversLicense
         processor.state.driversLicenseItemState.issueDate = Date(year: 2019, month: 8, day: 1)
 
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.issueDate)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.issueDate)
         XCTAssertEqual(try picker.inputBinding().wrappedValue, Date(year: 2019, month: 8, day: 1))
     }
 
@@ -656,7 +654,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_issueDateField_updateValue() throws {
         processor.state.type = .driversLicense
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.issueDate)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.issueDate)
         let newDate = Date(year: 2019, month: 8, day: 1)
         try picker.inputBinding().wrappedValue = newDate
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.issueDateChanged(newDate)))
@@ -668,7 +666,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .driversLicense
         processor.state.driversLicenseItemState.expirationDate = Date(year: 2029, month: 8, day: 1)
 
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.expirationDate)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.expirationDate)
         XCTAssertEqual(try picker.inputBinding().wrappedValue, Date(year: 2029, month: 8, day: 1))
     }
 
@@ -676,7 +674,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_driversLicense_expirationDateField_updateValue() throws {
         processor.state.type = .driversLicense
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.expirationDate)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.expirationDate)
         let newDate = Date(year: 2029, month: 8, day: 1)
         try picker.inputBinding().wrappedValue = newDate
         XCTAssertEqual(processor.dispatchedActions.last, .driversLicenseFieldChanged(.expirationDateChanged(newDate)))
@@ -733,7 +731,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_passportNumberTextField_updateValue() throws {
         processor.state.type = .passport
-        let textField = try subject.inspect().find(passYFormField: Localizations.passportNumber)
+        let textField = try subject.inspect().find(passYSecureField: Localizations.passportNumber)
         try textField.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.passportNumberChanged("text")))
     }
@@ -786,7 +784,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.isPassportNumberVisible = false
         let button = try subject.inspect()
-            .find(passYFormField: Localizations.passportNumber)
+            .find(passYSecureField: Localizations.passportNumber)
             .find(buttonWithAccessibilityLabel: Localizations.passwordIsNotVisibleTapToShow)
         try button.tap()
         XCTAssertEqual(
@@ -802,7 +800,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.isPassportNumberVisible = true
         let button = try subject.inspect()
-            .find(passYFormField: Localizations.passportNumber)
+            .find(passYSecureField: Localizations.passportNumber)
             .find(buttonWithAccessibilityLabel: Localizations.passwordIsVisibleTapToHide)
         try button.tap()
         XCTAssertEqual(
@@ -849,7 +847,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.dateOfBirth = Date(year: 2025, month: 4, day: 20)
 
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.dateOfBirth)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.dateOfBirth)
         XCTAssertEqual(try picker.inputBinding().wrappedValue, Date(year: 2025, month: 4, day: 20))
     }
 
@@ -857,7 +855,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_dateOfBirthField_updateValue() throws {
         processor.state.type = .passport
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.dateOfBirth)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.dateOfBirth)
         let newDate = Date(year: 2025, month: 4, day: 20)
         try picker.inputBinding().wrappedValue = newDate
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.dateOfBirthChanged(newDate)))
@@ -869,7 +867,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.issueDate = Date(year: 2021, month: 8, day: 10)
 
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.issueDate)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.issueDate)
         XCTAssertEqual(try picker.inputBinding().wrappedValue, Date(year: 2021, month: 8, day: 10))
     }
 
@@ -877,7 +875,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_issueDateField_updateValue() throws {
         processor.state.type = .passport
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.issueDate)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.issueDate)
         let newDate = Date(year: 2021, month: 8, day: 10)
         try picker.inputBinding().wrappedValue = newDate
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.issueDateChanged(newDate)))
@@ -889,7 +887,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
         processor.state.type = .passport
         processor.state.passportItemState.expirationDate = Date(year: 2026, month: 8, day: 10)
 
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.expirationDate)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.expirationDate)
         XCTAssertEqual(try picker.inputBinding().wrappedValue, Date(year: 2026, month: 8, day: 10))
     }
 
@@ -897,7 +895,7 @@ class AddEditItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_b
     @MainActor
     func test_passport_expirationDateField_updateValue() throws {
         processor.state.type = .passport
-        let picker = try subject.inspect().find(dateFieldPicker: Localizations.expirationDate)
+        let picker = try subject.inspect().find(passYDateRow: Localizations.expirationDate)
         let newDate = Date(year: 2026, month: 8, day: 10)
         try picker.inputBinding().wrappedValue = newDate
         XCTAssertEqual(processor.dispatchedActions.last, .passportFieldChanged(.expirationDateChanged(newDate)))
