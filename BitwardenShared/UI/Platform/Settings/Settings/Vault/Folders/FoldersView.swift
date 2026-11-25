@@ -23,7 +23,8 @@ struct FoldersView: View {
                         .passYEmptyListState()
                 }
             }
-        .navigationBar(title: Localizations.myFolders, titleDisplayMode: .inline)
+        .navigationTitle(Localizations.myFolders)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             addToolbarItem {
                 store.send(.add)
@@ -72,6 +73,7 @@ struct FoldersView: View {
             }
         }
         .passYCardList(reservesBottomBarSpace: false)
+        .passYReadableWidth()
     }
 }
 
