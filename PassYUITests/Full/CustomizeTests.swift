@@ -17,18 +17,20 @@ final class CustomizeTests: PassYUITestCase {
         // Open Customize from the avatar menu ("Customize home…").
         XCTAssertTrue(openAvatarMenu(app), "avatar menu opens")
         menuButton(app, id: "ProfileMenuCustomizeButton", label: "Customize home…").tap()
-        let tileSwitch = app.switches["CustomizeTileToggle_\(hiddenTile)"]
-        XCTAssertTrue(waitFor(tileSwitch, timeout: 10), "Customize screen with the tile switches")
+        XCTAssertTrue(waitFor(control(app, "CustomizeTileLayoutPicker"), timeout: 10), "Customize screen opens")
         attach(app, "customize-screen")
 
-        // Hide the SSH key tile.
+        // Hide the SSH key tile (the tile list is below the preview).
+        let tileSwitch = control(app, "CustomizeTileToggle_\(hiddenTile)")
         scrollTo(tileSwitch, in: app)
+        if !tileSwitch.exists { print("CUSTOMIZE-TREE\n\(app.debugDescription)") }
+        XCTAssertTrue(tileSwitch.exists, "SSH key switch")
         toggle(tileSwitch)
         XCTAssertEqual(tileSwitch.value as? String, "0", "SSH key switch is off")
 
         // Reorder: drag Verification codes below Login.
-        let codes = app.switches["CustomizeTileToggle_totp"]
-        let login = app.switches["CustomizeTileToggle_login"]
+        let codes = control(app, "CustomizeTileToggle_totp")
+        let login = control(app, "CustomizeTileToggle_login")
         scrollTo(codes, in: app)
         app.buttons["CustomizeReorderButton"].firstMatch.tap()
         let handle = reorderHandle(in: app, near: codes)
@@ -82,6 +84,11 @@ final class CustomizeTests: PassYUITestCase {
 
     // MARK: Helpers
 
+    /// A Customize control by identifier, whatever element type the system gives the toggle row.
+    private func control(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
+        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+    }
+
     /// The SSH key group row under More.
     private func sshKeyRow(_ app: XCUIApplication) -> XCUIElement {
         app.buttons.matching(NSPredicate(format: "identifier == 'VaultListItemRowButton' AND label BEGINSWITH 'SSH key'"))
@@ -102,6 +109,7 @@ final class CustomizeTests: PassYUITestCase {
     private func toggle(_ element: XCUIElement) {
         let before = element.value as? String
         element.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        sleep(1)
         if element.value as? String == before {
             element.switches.firstMatch.exists ? element.switches.firstMatch.tap() : element.tap()
         }
@@ -134,7 +142,7 @@ final class CustomizeTests: PassYUITestCase {
         guard row.exists else { return }
         row.tap()
         let reset = app.buttons["CustomizeResetButton"]
-        guard waitFor(app.switches["CustomizeTileToggle_login"], timeout: 10) else { return }
+        guard waitFor(control(app, "CustomizeTileLayoutPicker"), timeout: 10) else { return }
         scrollTo(reset, in: app)
         if reset.exists, reset.isEnabled { reset.tap() }
         goTo(app, "My vault")

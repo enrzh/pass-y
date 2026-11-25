@@ -18,7 +18,7 @@ final class ShotsCustomizeTests: PassYUITestCase {
                 if preset == "default" {
                     XCTAssertTrue(openAvatarMenu(app))
                     menuButton(app, id: "ProfileMenuCustomizeButton", label: "Customize home…").tap()
-                    XCTAssertTrue(app.switches["CustomizeTileToggle_login"].waitForExistence(timeout: 10))
+                    XCTAssertTrue(app.descendants(matching: .any)["CustomizeTileLayoutPicker"].waitForExistence(timeout: 10))
                     shot(app, mode, 79, "customize")
                     app.swipeUp(velocity: .slow)
                     shot(app, mode, 78, "customize-rows")

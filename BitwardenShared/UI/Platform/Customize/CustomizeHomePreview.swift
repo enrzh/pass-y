@@ -78,6 +78,8 @@ struct CustomizeHomePreview: View {
         .passYLayoutEnvironment(layout)
         .animation(.snappy, value: preferences)
         .allowsHitTesting(false)
+        // One ignored element, then hidden: inside a list cell a plain `accessibilityHidden` left the children exposed.
+        .accessibilityElement(children: .ignore)
         .accessibilityHidden(true)
     }
 
