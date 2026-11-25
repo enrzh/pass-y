@@ -56,8 +56,8 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
             hasPremium: true,
         )!
         processor.state.loadingState = .data(loginState)
-        let button = try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.checkPassword)
-        try await button.tap()
+        let button = try subject.inspect().find(passYInlineButtonRow: Localizations.checkPasswordForDataBreaches)
+        await button.perform()
         XCTAssertEqual(processor.effects.last, .checkPasswordPressed)
     }
 
@@ -215,10 +215,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copyNameButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopyNameButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "ItemNameEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "Dr First Middle Last",
             field: .identityName,
@@ -229,10 +226,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copyIdentityUsernameButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopyUsernameButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "IdentityUsernameEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "userName",
             field: .username,
@@ -243,10 +237,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copyCompanyButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopyCompanyButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "IdentityCompanyEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "Company name",
             field: .company,
@@ -257,10 +248,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copySsnButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopySsnButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "IdentitySsnEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "12-345-6789",
             field: .socialSecurityNumber,
@@ -271,10 +259,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copyPassportButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopyPassportNumberButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "IdentityPassportNumberEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "passport #",
             field: .passportNumber,
@@ -285,10 +270,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copyLicenseNumberButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopyLicenseNumberButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "IdentityLicenseNumberEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "license #",
             field: .licenseNumber,
@@ -299,10 +281,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copyPhoneButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopyPhoneButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "IdentityPhoneEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "(123) 456-7890",
             field: .phone,
@@ -313,10 +292,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copyEmailButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopyEmailButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "IdentityEmailEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "hello@email.com",
             field: .email,
@@ -327,10 +303,7 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
     @MainActor
     func test_copyAddressButton_tap() throws {
         processor.state.loadingState = .data(identityState())
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "IdentityCopyFullAddressButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "IdentityAddressOneEntry")
         XCTAssertTrue(processor.dispatchedActions.contains(.copyPressed(
             value: "123 street\naddress2\naddress3\nCity, State, 1234\ncountry",
             field: .fullAddress,
@@ -348,10 +321,9 @@ class ViewItemViewTests: BitwardenTestCase { // swiftlint:disable:this type_body
         ]
         cipherState.isShowingMultipleCollections = true
         processor.state.loadingState = .data(cipherState)
-        let button = try subject.inspect().find(
-            asyncButton: Localizations.showLess,
-        )
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.showLess)
+        try button.tap()
+        try await waitForAsync { self.processor.effects.contains(.toggleDisplayMultipleCollections) }
         XCTAssertTrue(processor.effects.contains(.toggleDisplayMultipleCollections))
     }
 

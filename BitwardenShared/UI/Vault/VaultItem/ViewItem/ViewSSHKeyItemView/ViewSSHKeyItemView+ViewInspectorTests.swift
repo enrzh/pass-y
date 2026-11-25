@@ -39,8 +39,7 @@ class ViewSSHKeyItemViewTests: BitwardenTestCase {
     /// The processor gets the action when copying the private key.
     @MainActor
     func test_copyPrivateKeyButton_pressed() throws {
-        let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyPrivateKeyButton").button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PrivateKeyEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "privateKey", field: .sshPrivateKey))
     }
 
@@ -61,7 +60,7 @@ class ViewSSHKeyItemViewTests: BitwardenTestCase {
         initSubject(canViewPrivateKey: false, showCopyButtons: true)
         XCTAssertThrowsError(
             try subject.inspect().find(
-                viewWithAccessibilityIdentifier: "SSHKeyCopyPrivateKeyButton",
+                viewWithAccessibilityIdentifier: "PrivateKeyEntry",
             ).button(),
         )
     }
@@ -69,16 +68,14 @@ class ViewSSHKeyItemViewTests: BitwardenTestCase {
     /// The processor gets the action when copying the public key.
     @MainActor
     func test_copyPublicKeyButton_pressed() throws {
-        let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyPublicKeyButton").button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "SSHKeyPublicKeyEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "publicKey", field: .sshPublicKey))
     }
 
     /// The processor gets the action when copying the key fingerprint.
     @MainActor
     func test_copyKeyFingerprintButton_pressed() throws {
-        let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyFingerprintButton").button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "FingerprintEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "fingerprint", field: .sshKeyFingerprint))
     }
 
@@ -88,13 +85,13 @@ class ViewSSHKeyItemViewTests: BitwardenTestCase {
         initSubject(canViewPrivateKey: true, showCopyButtons: false)
 
         XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyPrivateKeyButton"),
+            try subject.inspect().find(viewWithAccessibilityIdentifier: "PrivateKeyEntry"),
         )
         XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyPublicKeyButton"),
+            try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyPublicKeyEntry"),
         )
         XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyFingerprintButton"),
+            try subject.inspect().find(viewWithAccessibilityIdentifier: "FingerprintEntry"),
         )
     }
 

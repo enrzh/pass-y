@@ -32,40 +32,28 @@ class ViewDriversLicenseItemViewTests: BitwardenTestCase {
     /// Tapping the copy first name button dispatches the copy action.
     @MainActor
     func test_copyFirstNameButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "DriversLicenseCopyFirstNameButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "DriversLicenseFirstNameEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "Bit", field: .firstName))
     }
 
     /// Tapping the copy middle name button dispatches the copy action.
     @MainActor
     func test_copyMiddleNameButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "DriversLicenseCopyMiddleNameButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "DriversLicenseMiddleNameEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "W", field: .middleName))
     }
 
     /// Tapping the copy last name button dispatches the copy action.
     @MainActor
     func test_copyLastNameButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "DriversLicenseCopyLastNameButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "DriversLicenseLastNameEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "Warden", field: .lastName))
     }
 
     /// Tapping the copy license number button dispatches the copy action.
     @MainActor
     func test_copyLicenseNumberButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "DriversLicenseCopyNumberButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "DriversLicenseNumberEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "D1234567", field: .licenseNumber))
     }
 
@@ -111,10 +99,10 @@ class ViewDriversLicenseItemViewTests: BitwardenTestCase {
         var state = populatedState()
         state.isLicenseNumberVisible = true
         initSubject(state: state)
-        let passwordText = try subject.inspect().find(PasswordText.self) { view in
-            try view.actualView().password == "D1234567"
+        let passwordText = try subject.inspect().find(PassYValueText.self) { view in
+            try view.actualView().value == "D1234567"
         }.actualView()
-        XCTAssertTrue(passwordText.spellOutAccessibilityValue)
+        XCTAssertTrue(passwordText.spellsOut)
     }
 
     /// An empty state renders no fields, so the copy buttons are absent.
@@ -122,7 +110,7 @@ class ViewDriversLicenseItemViewTests: BitwardenTestCase {
     func test_emptyState_hidesFields() throws {
         initSubject(state: DriversLicenseItemState())
         XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "DriversLicenseCopyFirstNameButton").button(),
+            try subject.inspect().find(viewWithAccessibilityIdentifier: "DriversLicenseFirstNameEntry").button(),
         )
         XCTAssertThrowsError(
             try subject.inspect().find(viewWithAccessibilityIdentifier: "ShowDriversLicenseNumberButton").button(),

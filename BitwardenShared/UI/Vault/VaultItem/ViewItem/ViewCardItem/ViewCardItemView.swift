@@ -4,6 +4,8 @@ import SwiftUI
 
 // MARK: - ViewCardItemView
 
+/// The card details of a card item: cardholder, number and security code (masked, eye button, tap copies), brand
+/// and expiry. No section title.
 struct ViewCardItemView: View {
     // MARK: Properties
 
@@ -12,30 +14,28 @@ struct ViewCardItemView: View {
 
     var body: some View {
         if !store.state.isCardDetailsSectionEmpty {
-            SectionView(Localizations.cardDetails, contentSpacing: 8) {
-                ContentBlock {
-                    cardholderNameItem
+            Section {
+                cardholderNameItem
 
-                    cardNumberItem
+                cardNumberItem
 
-                    brandItem
+                brandItem
 
-                    expirationItems
+                expirationItems
 
-                    securityCodeItem
-                }
+                securityCodeItem
             }
         }
     }
 
     @ViewBuilder private var cardholderNameItem: some View {
         if !store.state.cardholderName.isEmpty {
-            BitwardenTextValueField(
-                title: Localizations.cardholderName,
+            PassYCopyRow(
+                Localizations.cardholderName,
                 value: store.state.cardholderName,
-                valueAccessibilityIdentifier: "CardholderNameEntry",
+                identifier: "CardholderNameEntry",
+                copy: nil,
             )
-            .accessibilityElement(children: .contain)
         }
     }
 
@@ -43,56 +43,35 @@ struct ViewCardItemView: View {
         let number = store.state.cardNumber
         let isVisible: Bool = store.state.isNumberVisible
         if !number.isEmpty {
-            BitwardenField(title: Localizations.number) {
-                PasswordText(password: store.state.formattedCardNumber, isPasswordVisible: isVisible)
-                    .styleGuide(.body)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .accessibilityIdentifier("CardNumberEntry")
-            } accessoryContent: {
-                PasswordVisibilityButton(
-                    accessibilityIdentifier: "ShowCardNumberButton",
-                    isPasswordVisible: isVisible,
-                ) {
-                    store.send(
-                        .cardItemAction(
-                            .toggleNumberVisibilityChanged(!isVisible),
-                        ),
-                    )
-                }
-
-                Button {
-                    store.send(.copyPressed(value: number, field: .cardNumber))
-                } label: {
-                    SharedAsset.Icons.copy24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-                .accessibilityLabel(Localizations.copy)
-                .accessibilityIdentifier("CardCopyNumberButton")
+            PassYCopyRow(
+                Localizations.number,
+                value: store.state.formattedCardNumber,
+                secret: .init(isRevealed: isVisible, revealIdentifier: "ShowCardNumberButton", tintsCharacters: false) {
+                    store.send(.cardItemAction(.toggleNumberVisibilityChanged(!isVisible)))
+                },
+                identifier: "CardNumberEntry",
+            ) {
+                store.send(.copyPressed(value: number, field: .cardNumber))
             }
-            .accessibilityElement(children: .contain)
         }
     }
 
     @ViewBuilder private var brandItem: some View {
         if case .custom = store.state.brand {
-            BitwardenTextValueField(
-                title: Localizations.brand,
-                value: store.state.brandName,
-            )
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("ItemRow")
+            PassYCopyRow(Localizations.brand, value: store.state.brandName, identifier: "CardBrandEntry", copy: nil)
+                .accessibilityIdentifier("ItemRow")
         }
     }
 
     @ViewBuilder private var expirationItems: some View {
         let expirationString = store.state.expirationString
         if !expirationString.isEmpty {
-            BitwardenTextValueField(
-                title: Localizations.expiration,
+            PassYCopyRow(
+                Localizations.expiration,
                 value: expirationString,
-                valueAccessibilityIdentifier: "CardExpirationYearEntry",
+                identifier: "CardExpirationYearEntry",
+                copy: nil,
             )
-            .accessibilityElement(children: .contain)
         }
     }
 
@@ -100,158 +79,44 @@ struct ViewCardItemView: View {
         let code = store.state.cardSecurityCode
         let isVisible: Bool = store.state.isCodeVisible
         if !code.isEmpty {
-            BitwardenField(title: Localizations.securityCode) {
-                PasswordText(password: code, isPasswordVisible: isVisible)
-                    .styleGuide(.body)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .accessibilityIdentifier("CardSecurityCodeEntry")
-            } accessoryContent: {
-                PasswordVisibilityButton(
-                    accessibilityIdentifier: "CardShowSecurityCodeButton",
-                    isPasswordVisible: isVisible,
+            PassYCopyRow(
+                Localizations.securityCode,
+                value: code,
+                secret: .init(
+                    isRevealed: isVisible,
+                    revealIdentifier: "CardShowSecurityCodeButton",
+                    tintsCharacters: false,
                 ) {
-                    store.send(
-                        .cardItemAction(
-                            .toggleCodeVisibilityChanged(!isVisible),
-                        ),
-                    )
-                }
-
-                Button {
-                    store.send(.copyPressed(value: code, field: .securityCode))
-                } label: {
-                    SharedAsset.Icons.copy24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-                .accessibilityLabel(Localizations.copy)
-                .accessibilityIdentifier("CardCopySecurityNumberButton")
+                    store.send(.cardItemAction(.toggleCodeVisibilityChanged(!isVisible)))
+                },
+                identifier: "CardSecurityCodeEntry",
+            ) {
+                store.send(.copyPressed(value: code, field: .securityCode))
             }
-            .accessibilityElement(children: .contain)
         }
     }
 }
 
 #if DEBUG
-#Preview("Empty View State") {
-    NavigationView {
-        ScrollView {
-            ViewCardItemView(
-                store: Store(
-                    processor: StateProcessor(
-                        state: CardItemState() as (any ViewCardItemState),
-                    ),
+#Preview("Card") {
+    Form {
+        ViewCardItemView(
+            store: Store(
+                processor: StateProcessor(
+                    state: {
+                        var state = CardItemState()
+                        state.brand = .custom(.visa)
+                        state.cardNumber = "4400123456789"
+                        state.cardSecurityCode = "123"
+                        state.cardholderName = "Bitwarden User"
+                        state.expirationMonth = .custom(.aug)
+                        state.expirationYear = "1989"
+                        state.isNumberVisible = true
+                        return state
+                    }() as (any ViewCardItemState),
                 ),
-            )
-            .padding(16)
-        }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Empty View State", titleDisplayMode: .inline)
-    }
-}
-
-#Preview("Visible Add Edit State") {
-    NavigationView {
-        ScrollView {
-            ViewCardItemView(
-                store: Store(
-                    processor: StateProcessor(
-                        state: {
-                            var state = CardItemState()
-                            state.brand = .custom(.visa)
-                            state.cardNumber = "4400123456789"
-                            state.cardSecurityCode = "123"
-                            state.cardholderName = "Bitwarden User"
-                            state.expirationMonth = .custom(.aug)
-                            state.expirationYear = "1989"
-                            state.isCodeVisible = true
-                            state.isNumberVisible = true
-                            return state
-                        }() as (any ViewCardItemState),
-                    ),
-                ),
-            )
-            .padding(16)
-        }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Visible View State", titleDisplayMode: .inline)
-    }
-}
-
-#Preview("Hidden View State") {
-    NavigationView {
-        ScrollView {
-            ViewCardItemView(
-                store: Store(
-                    processor: StateProcessor(
-                        state: {
-                            var state = CardItemState()
-                            state.brand = .custom(.visa)
-                            state.cardNumber = "4400123456789"
-                            state.cardSecurityCode = "123"
-                            state.cardholderName = "Bitwarden User"
-                            state.expirationMonth = .custom(.aug)
-                            state.expirationYear = "1989"
-                            return state
-                        }() as (any ViewCardItemState),
-                    ),
-                ),
-            )
-            .padding(16)
-        }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Hidden View State", titleDisplayMode: .inline)
-    }
-}
-
-#Preview("No Expiration") {
-    NavigationView {
-        ScrollView {
-            ViewCardItemView(
-                store: Store(
-                    processor: StateProcessor(
-                        state: {
-                            var state = CardItemState()
-                            state.brand = .custom(.visa)
-                            state.cardNumber = "4400123456789"
-                            state.cardSecurityCode = "123"
-                            state.cardholderName = "Bitwarden User"
-                            state.expirationMonth = .default
-                            state.expirationYear = ""
-                            return state
-                        }() as (any ViewCardItemState),
-                    ),
-                ),
-            )
-            .padding(16)
-        }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Hidden View State", titleDisplayMode: .inline)
-    }
-}
-
-#Preview("Year But Not Month") {
-    NavigationView {
-        ScrollView {
-            ViewCardItemView(
-                store: Store(
-                    processor: StateProcessor(
-                        state: {
-                            var state = CardItemState()
-                            state.brand = .custom(.visa)
-                            state.cardNumber = "4400123456789"
-                            state.cardSecurityCode = "123"
-                            state.cardholderName = "Bitwarden User"
-                            state.expirationMonth = .default
-                            state.expirationYear = "1989"
-                            return state
-                        }() as (any ViewCardItemState),
-                    ),
-                ),
-            )
-            .padding(16)
-        }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Hidden View State", titleDisplayMode: .inline)
+            ),
+        )
     }
 }
 #endif

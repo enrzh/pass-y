@@ -5,7 +5,8 @@ import SwiftUI
 
 // MARK: - ViewBankAccountItemView
 
-/// A view for displaying the contents of a bank account item.
+/// The account details of a bank account item: tap-to-copy rows; account number, PIN and IBAN masked with eye
+/// buttons; numbers are read character by character by VoiceOver. No section title.
 struct ViewBankAccountItemView: View {
     // MARK: Properties
 
@@ -14,266 +15,177 @@ struct ViewBankAccountItemView: View {
 
     var body: some View {
         if !store.state.isBankAccountDetailsSectionEmpty {
-            SectionView(Localizations.accountDetails, contentSpacing: 8) {
-                ContentBlock {
-                    textField(
-                        title: Localizations.bankName,
-                        value: store.state.bankName,
-                        valueAccessibilityIdentifier: "BankAccountBankNameEntry",
-                    )
+            Section {
+                textField(
+                    title: Localizations.bankName,
+                    value: store.state.bankName,
+                    valueAccessibilityIdentifier: "BankAccountBankNameEntry",
+                )
 
-                    copyableTextField(
-                        title: Localizations.nameOnAccount,
-                        value: store.state.nameOnAccount,
-                        valueAccessibilityIdentifier: "BankAccountNameOnAccountEntry",
-                        copyButtonAccessibilityIdentifier: "BankAccountCopyNameOnAccountButton",
-                        copyField: .nameOnAccount,
-                    )
+                copyableTextField(
+                    title: Localizations.nameOnAccount,
+                    value: store.state.nameOnAccount,
+                    valueAccessibilityIdentifier: "BankAccountNameOnAccountEntry",
+                    copyField: .nameOnAccount,
+                )
 
-                    accountTypeItem
+                accountTypeItem
 
-                    accountNumberItem
+                secretField(
+                    title: Localizations.accountNumber,
+                    value: store.state.accountNumber,
+                    isVisible: store.state.isAccountNumberVisible,
+                    valueAccessibilityIdentifier: "BankAccountNumberEntry",
+                    revealIdentifier: "ShowBankAccountNumberButton",
+                    copyField: .accountNumber,
+                ) { .toggleAccountNumberVisibilityChanged($0) }
 
-                    copyableTextField(
-                        title: Localizations.routingNumber,
-                        value: store.state.routingNumber,
-                        valueAccessibilityIdentifier: "BankAccountRoutingNumberEntry",
-                        copyButtonAccessibilityIdentifier: "BankAccountCopyRoutingNumberButton",
-                        copyField: .routingNumber,
-                        spellOutAccessibilityValue: true,
-                    )
+                copyableTextField(
+                    title: Localizations.routingNumber,
+                    value: store.state.routingNumber,
+                    valueAccessibilityIdentifier: "BankAccountRoutingNumberEntry",
+                    copyField: .routingNumber,
+                    spellOutAccessibilityValue: true,
+                )
 
-                    copyableTextField(
-                        title: Localizations.branchNumber,
-                        value: store.state.branchNumber,
-                        valueAccessibilityIdentifier: "BankAccountBranchNumberEntry",
-                        copyButtonAccessibilityIdentifier: "BankAccountCopyBranchNumberButton",
-                        copyField: .branchNumber,
-                        spellOutAccessibilityValue: true,
-                    )
+                copyableTextField(
+                    title: Localizations.branchNumber,
+                    value: store.state.branchNumber,
+                    valueAccessibilityIdentifier: "BankAccountBranchNumberEntry",
+                    copyField: .branchNumber,
+                    spellOutAccessibilityValue: true,
+                )
 
-                    pinItem
+                secretField(
+                    title: Localizations.pin,
+                    value: store.state.pin,
+                    isVisible: store.state.isPinVisible,
+                    valueAccessibilityIdentifier: "BankAccountPinEntry",
+                    revealIdentifier: "ShowBankAccountPinButton",
+                    copyField: .pin,
+                ) { .togglePinVisibilityChanged($0) }
 
-                    copyableTextField(
-                        title: Localizations.swiftCode,
-                        value: store.state.swiftCode,
-                        valueAccessibilityIdentifier: "BankAccountSwiftCodeEntry",
-                        copyButtonAccessibilityIdentifier: "BankAccountCopySwiftCodeButton",
-                        copyField: .swiftCode,
-                        spellOutAccessibilityValue: true,
-                    )
+                copyableTextField(
+                    title: Localizations.swiftCode,
+                    value: store.state.swiftCode,
+                    valueAccessibilityIdentifier: "BankAccountSwiftCodeEntry",
+                    copyField: .swiftCode,
+                    spellOutAccessibilityValue: true,
+                )
 
-                    ibanItem
+                secretField(
+                    title: Localizations.iban,
+                    value: store.state.iban,
+                    isVisible: store.state.isIbanVisible,
+                    valueAccessibilityIdentifier: "BankAccountIbanEntry",
+                    revealIdentifier: "ShowBankAccountIbanButton",
+                    copyField: .iban,
+                ) { .toggleIbanVisibilityChanged($0) }
 
-                    copyableTextField(
-                        title: Localizations.bankContactPhone,
-                        value: store.state.bankContactPhone,
-                        valueAccessibilityIdentifier: "BankAccountContactPhoneEntry",
-                        copyButtonAccessibilityIdentifier: "BankAccountCopyContactPhoneButton",
-                        copyField: .bankContactPhone,
-                    )
-                }
+                copyableTextField(
+                    title: Localizations.bankContactPhone,
+                    value: store.state.bankContactPhone,
+                    valueAccessibilityIdentifier: "BankAccountContactPhoneEntry",
+                    copyField: .bankContactPhone,
+                )
             }
         }
     }
 
     // MARK: Private Views
 
-    /// The account type field, displaying the selected type's localized name, hidden when no type is selected.
+    /// The account type, hidden when no type is selected.
     @ViewBuilder private var accountTypeItem: some View {
         if let type = store.state.accountType.customValue {
-            BitwardenTextValueField(
-                title: Localizations.accountType,
+            PassYCopyRow(
+                Localizations.accountType,
                 value: type.localizedName,
-                valueAccessibilityIdentifier: "BankAccountTypeEntry",
+                identifier: "BankAccountTypeEntry",
+                copy: nil,
             )
-            .accessibilityElement(children: .contain)
         }
     }
 
-    /// The account number field, masked with a reveal toggle and a copy button, hidden when empty.
-    @ViewBuilder private var accountNumberItem: some View {
-        let accountNumber = store.state.accountNumber
-        let isVisible = store.state.isAccountNumberVisible
-        if !accountNumber.isEmpty {
-            BitwardenField(title: Localizations.accountNumber) {
-                PasswordText(password: accountNumber, isPasswordVisible: isVisible, spellOutAccessibilityValue: true)
-                    .styleGuide(.body)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .accessibilityIdentifier("BankAccountNumberEntry")
-            } accessoryContent: {
-                PasswordVisibilityButton(
-                    accessibilityIdentifier: "ShowBankAccountNumberButton",
-                    accessibilityLabel: isVisible
-                        ? Localizations.fieldValueIsVisibleTapToHide(Localizations.accountNumber)
-                        : Localizations.fieldValueIsNotVisibleTapToShow(Localizations.accountNumber),
-                    isPasswordVisible: isVisible,
+    /// A masked value with an eye button (spoken with its field name) that copies on tap, hidden when empty.
+    @ViewBuilder
+    private func secretField(
+        title: String,
+        value: String,
+        isVisible: Bool,
+        valueAccessibilityIdentifier: String,
+        revealIdentifier: String,
+        copyField: CopyableField,
+        toggle: @escaping (Bool) -> ViewBankAccountItemAction,
+    ) -> some View {
+        if !value.isEmpty {
+            PassYCopyRow(
+                title,
+                value: value,
+                secret: .init(
+                    isRevealed: isVisible,
+                    revealIdentifier: revealIdentifier,
+                    tintsCharacters: false,
+                    spokenName: title,
                 ) {
-                    store.send(.bankAccountItemAction(.toggleAccountNumberVisibilityChanged(!isVisible)))
-                }
-
-                Button {
-                    store.send(.copyPressed(value: accountNumber, field: .accountNumber))
-                } label: {
-                    SharedAsset.Icons.copy24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-                .accessibilityLabel(Localizations.copy)
-                .accessibilityIdentifier("BankAccountCopyNumberButton")
+                    store.send(.bankAccountItemAction(toggle(!isVisible)))
+                },
+                identifier: valueAccessibilityIdentifier,
+                spellsOut: true,
+            ) {
+                store.send(.copyPressed(value: value, field: copyField))
             }
-            .accessibilityElement(children: .contain)
         }
     }
 
-    /// The IBAN field, masked with a reveal toggle and a copy button, hidden when empty.
-    @ViewBuilder private var ibanItem: some View {
-        let iban = store.state.iban
-        let isVisible = store.state.isIbanVisible
-        if !iban.isEmpty {
-            BitwardenField(title: Localizations.iban) {
-                PasswordText(password: iban, isPasswordVisible: isVisible, spellOutAccessibilityValue: true)
-                    .styleGuide(.body)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .accessibilityIdentifier("BankAccountIbanEntry")
-            } accessoryContent: {
-                PasswordVisibilityButton(
-                    accessibilityIdentifier: "ShowBankAccountIbanButton",
-                    accessibilityLabel: isVisible
-                        ? Localizations.fieldValueIsVisibleTapToHide(Localizations.iban)
-                        : Localizations.fieldValueIsNotVisibleTapToShow(Localizations.iban),
-                    isPasswordVisible: isVisible,
-                ) {
-                    store.send(.bankAccountItemAction(.toggleIbanVisibilityChanged(!isVisible)))
-                }
-
-                Button {
-                    store.send(.copyPressed(value: iban, field: .iban))
-                } label: {
-                    SharedAsset.Icons.copy24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-                .accessibilityLabel(Localizations.copy)
-                .accessibilityIdentifier("BankAccountCopyIbanButton")
-            }
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    /// The PIN field, masked with a reveal toggle and a copy button, hidden when empty.
-    @ViewBuilder private var pinItem: some View {
-        let pin = store.state.pin
-        let isVisible = store.state.isPinVisible
-        if !pin.isEmpty {
-            BitwardenField(title: Localizations.pin) {
-                PasswordText(password: pin, isPasswordVisible: isVisible, spellOutAccessibilityValue: true)
-                    .styleGuide(.body)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .accessibilityIdentifier("BankAccountPinEntry")
-            } accessoryContent: {
-                PasswordVisibilityButton(
-                    accessibilityIdentifier: "ShowBankAccountPinButton",
-                    accessibilityLabel: isVisible
-                        ? Localizations.fieldValueIsVisibleTapToHide(Localizations.pin)
-                        : Localizations.fieldValueIsNotVisibleTapToShow(Localizations.pin),
-                    isPasswordVisible: isVisible,
-                ) {
-                    store.send(.bankAccountItemAction(.togglePinVisibilityChanged(!isVisible)))
-                }
-
-                Button {
-                    store.send(.copyPressed(value: pin, field: .pin))
-                } label: {
-                    SharedAsset.Icons.copy24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-                .accessibilityLabel(Localizations.copy)
-                .accessibilityIdentifier("BankAccountCopyPinButton")
-            }
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    /// A read-only text field with a copy button, hidden when the value is empty.
-    ///
-    /// - Parameters:
-    ///   - title: The localized title of the field.
-    ///   - value: The value to display and copy.
-    ///   - valueAccessibilityIdentifier: The accessibility identifier for the value.
-    ///   - copyButtonAccessibilityIdentifier: The accessibility identifier for the copy button.
-    ///   - copyField: The field identifying the value being copied.
-    ///   - spellOutAccessibilityValue: Whether VoiceOver should announce the value's characters
-    ///     individually rather than using its default heuristics for the rendered text.
-    ///
+    /// A value that copies on tap, hidden when empty.
     @ViewBuilder
     private func copyableTextField(
         title: String,
         value: String,
         valueAccessibilityIdentifier: String,
-        copyButtonAccessibilityIdentifier: String,
         copyField: CopyableField,
         spellOutAccessibilityValue: Bool = false,
     ) -> some View {
         if !value.isEmpty {
-            BitwardenTextValueField(
-                title: title,
+            PassYCopyRow(
+                title,
                 value: value,
-                valueAccessibilityIdentifier: valueAccessibilityIdentifier,
-                spellOutAccessibilityValue: spellOutAccessibilityValue,
-                copyButtonAccessibilityIdentifier: copyButtonAccessibilityIdentifier,
-                copyButtonAction: { store.send(.copyPressed(value: value, field: copyField)) },
-            )
-            .accessibilityElement(children: .contain)
+                identifier: valueAccessibilityIdentifier,
+                spellsOut: spellOutAccessibilityValue,
+            ) {
+                store.send(.copyPressed(value: value, field: copyField))
+            }
         }
     }
 
-    /// A read-only text field, hidden when the value is empty.
-    ///
-    /// - Parameters:
-    ///   - title: The localized title of the field.
-    ///   - value: The value to display.
-    ///   - valueAccessibilityIdentifier: The accessibility identifier for the value.
-    ///
+    /// A read-only value, hidden when empty.
     @ViewBuilder
-    private func textField(
-        title: String,
-        value: String,
-        valueAccessibilityIdentifier: String,
-    ) -> some View {
+    private func textField(title: String, value: String, valueAccessibilityIdentifier: String) -> some View {
         if !value.isEmpty {
-            BitwardenTextValueField(
-                title: title,
-                value: value,
-                valueAccessibilityIdentifier: valueAccessibilityIdentifier,
-            )
-            .accessibilityElement(children: .contain)
+            PassYCopyRow(title, value: value, identifier: valueAccessibilityIdentifier, copy: nil)
         }
     }
 }
 
-// MARK: - Previews
-
 #if DEBUG
 #Preview("Empty View State") {
     NavigationView {
-        ScrollView {
-            LazyVStack(spacing: 20) {
+        Form {
+            Group {
                 ViewBankAccountItemView(
                     store: Store(
                         processor: StateProcessor(state: BankAccountItemState()),
                     ),
                 )
             }
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .ignoresSafeArea()
     }
 }
 
 #Preview("Populated View State") {
     NavigationView {
-        ScrollView {
-            LazyVStack(spacing: 20) {
+        Form {
+            Group {
                 ViewBankAccountItemView(
                     store: Store(
                         processor: StateProcessor(
@@ -295,10 +207,7 @@ struct ViewBankAccountItemView: View {
                     ),
                 )
             }
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .ignoresSafeArea()
     }
 }
 #endif

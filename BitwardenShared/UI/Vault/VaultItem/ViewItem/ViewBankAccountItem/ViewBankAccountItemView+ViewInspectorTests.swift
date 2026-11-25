@@ -34,10 +34,7 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
     /// Tapping the copy account number button dispatches the copy action.
     @MainActor
     func test_copyAccountNumberButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "BankAccountCopyNumberButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "BankAccountNumberEntry")
         XCTAssertEqual(
             processor.dispatchedActions.last,
             .copyPressed(value: "1234567890123456", field: .accountNumber),
@@ -47,60 +44,42 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
     /// Tapping the copy routing number button dispatches the copy action.
     @MainActor
     func test_copyRoutingNumberButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "BankAccountCopyRoutingNumberButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "BankAccountRoutingNumberEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "1234567890", field: .routingNumber))
     }
 
     /// Tapping the copy PIN button dispatches the copy action.
     @MainActor
     func test_copyPinButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "BankAccountCopyPinButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "BankAccountPinEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "1234", field: .pin))
     }
 
     /// Tapping the copy SWIFT code button dispatches the copy action.
     @MainActor
     func test_copySwiftCodeButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "BankAccountCopySwiftCodeButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "BankAccountSwiftCodeEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "BOFAUS3N", field: .swiftCode))
     }
 
     /// Tapping the copy branch number button dispatches the copy action.
     @MainActor
     func test_copyBranchNumberButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "BankAccountCopyBranchNumberButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "BankAccountBranchNumberEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "100", field: .branchNumber))
     }
 
     /// Tapping the copy bank contact phone button dispatches the copy action.
     @MainActor
     func test_copyContactPhoneButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "BankAccountCopyContactPhoneButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "BankAccountContactPhoneEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "123-456-7890", field: .bankContactPhone))
     }
 
     /// Tapping the copy name on account button dispatches the copy action.
     @MainActor
     func test_copyNameOnAccountButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "BankAccountCopyNameOnAccountButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "BankAccountNameOnAccountEntry")
         XCTAssertEqual(
             processor.dispatchedActions.last,
             .copyPressed(value: "Personal Checking", field: .nameOnAccount),
@@ -110,10 +89,7 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
     /// Tapping the copy IBAN button dispatches the copy action.
     @MainActor
     func test_copyIbanButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "BankAccountCopyIbanButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "BankAccountIbanEntry")
         XCTAssertEqual(
             processor.dispatchedActions.last,
             .copyPressed(value: "GB33BUKB20201555555555", field: .iban),
@@ -221,10 +197,10 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
         var state = populatedState()
         state.isAccountNumberVisible = true
         initSubject(state: state)
-        let passwordText = try subject.inspect().find(PasswordText.self) { view in
-            try view.actualView().password == "1234567890123456"
+        let passwordText = try subject.inspect().find(PassYValueText.self) { view in
+            try view.actualView().value == "1234567890123456"
         }.actualView()
-        XCTAssertTrue(passwordText.spellOutAccessibilityValue)
+        XCTAssertTrue(passwordText.spellsOut)
     }
 
     /// The PIN field asks VoiceOver to spell out its characters individually when visible.
@@ -237,10 +213,10 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
         var state = populatedState()
         state.isPinVisible = true
         initSubject(state: state)
-        let passwordText = try subject.inspect().find(PasswordText.self) { view in
-            try view.actualView().password == "1234"
+        let passwordText = try subject.inspect().find(PassYValueText.self) { view in
+            try view.actualView().value == "1234"
         }.actualView()
-        XCTAssertTrue(passwordText.spellOutAccessibilityValue)
+        XCTAssertTrue(passwordText.spellsOut)
     }
 
     /// The IBAN field asks VoiceOver to spell out its characters individually when visible.
@@ -253,10 +229,10 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
         var state = populatedState()
         state.isIbanVisible = true
         initSubject(state: state)
-        let passwordText = try subject.inspect().find(PasswordText.self) { view in
-            try view.actualView().password == "GB33BUKB20201555555555"
+        let passwordText = try subject.inspect().find(PassYValueText.self) { view in
+            try view.actualView().value == "GB33BUKB20201555555555"
         }.actualView()
-        XCTAssertTrue(passwordText.spellOutAccessibilityValue)
+        XCTAssertTrue(passwordText.spellsOut)
     }
 
     /// The routing number field asks VoiceOver to spell out its characters individually.
@@ -267,11 +243,11 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
     @MainActor
     func test_routingNumber_spellsOutCharacters() throws {
         let field = try subject.inspect().find(
-            BitwardenTextValueField<AccessoryButton>.self,
+            PassYValueText.self,
         ) { view in
             try view.actualView().value == "1234567890"
         }.actualView()
-        XCTAssertTrue(field.spellOutAccessibilityValue)
+        XCTAssertTrue(field.spellsOut)
     }
 
     /// The branch number field asks VoiceOver to spell out its characters individually.
@@ -282,11 +258,11 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
     @MainActor
     func test_branchNumber_spellsOutCharacters() throws {
         let field = try subject.inspect().find(
-            BitwardenTextValueField<AccessoryButton>.self,
+            PassYValueText.self,
         ) { view in
             try view.actualView().value == "100"
         }.actualView()
-        XCTAssertTrue(field.spellOutAccessibilityValue)
+        XCTAssertTrue(field.spellsOut)
     }
 
     /// The SWIFT code field asks VoiceOver to spell out its characters individually.
@@ -297,11 +273,11 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
     @MainActor
     func test_swiftCode_spellsOutCharacters() throws {
         let field = try subject.inspect().find(
-            BitwardenTextValueField<AccessoryButton>.self,
+            PassYValueText.self,
         ) { view in
             try view.actualView().value == "BOFAUS3N"
         }.actualView()
-        XCTAssertTrue(field.spellOutAccessibilityValue)
+        XCTAssertTrue(field.spellsOut)
     }
 
     /// An empty state renders no fields, so the copy and reveal buttons are absent.
@@ -309,7 +285,7 @@ class ViewBankAccountItemViewTests: BitwardenTestCase {
     func test_emptyState_hidesFields() throws {
         initSubject(state: BankAccountItemState())
         XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "BankAccountCopyNumberButton").button(),
+            try subject.inspect().find(viewWithAccessibilityIdentifier: "BankAccountNumberEntry").button(),
         )
         XCTAssertThrowsError(
             try subject.inspect().find(viewWithAccessibilityIdentifier: "ShowBankAccountNumberButton").button(),

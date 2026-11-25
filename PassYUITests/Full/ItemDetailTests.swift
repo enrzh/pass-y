@@ -33,8 +33,9 @@ final class ItemDetailTests: PassYUITestCase {
         deleteCurrentItem(app)
     }
 
-    /// Real taps in the item view (Apple style, no eye or copy icons): long press offers Reveal and Copy, tapping a row
-    /// copies (toast "copied"), the breach check is a plain row, the favorite star is in the toolbar and toggles.
+    /// Real taps in the item view (Apple style, no copy icons; PassYDesign forms: the password has an eye button): long
+    /// press offers Reveal and Copy, the eye hides and shows the password, tapping a row copies (toast "copied"), the
+    /// breach check is a plain row, the favorite star is in the toolbar and toggles.
     /// Formerly `PassYFlowTests.test12_itemViewRevealAndCopyTaps`.
     func test_revealCopyAndFavoriteTaps() {
         let app = launchApp()
@@ -42,7 +43,7 @@ final class ItemDetailTests: PassYUITestCase {
         openGitHubViaSearch(app)
         let password = app.descendants(matching: .any)["LoginPasswordEntry"]
         XCTAssertTrue(password.waitForExistence(timeout: 5), "password row exists")
-        XCTAssertFalse(app.buttons["ShowLoginPasswordButton"].exists, "no eye button")
+        XCTAssertTrue(app.buttons["ShowLoginPasswordButton"].exists, "the password has an eye button (PassYDesign forms)")
         XCTAssertFalse(app.buttons["LoginCopyUsernameButton"].exists, "no copy icon")
         XCTAssertFalse(app.buttons["LoginCopyPasswordButton"].exists, "no copy icon")
         let hiddenLabel = password.label
@@ -54,6 +55,12 @@ final class ItemDetailTests: PassYUITestCase {
         reveal.tap(); sleep(1)
         attach(app, "12-item-revealed")
         XCTAssertNotEqual(app.descendants(matching: .any)["LoginPasswordEntry"].label, hiddenLabel, "Reveal shows the password")
+        app.buttons["ShowLoginPasswordButton"].tap()
+        waitUntil(5) { app.descendants(matching: .any)["LoginPasswordEntry"].label == hiddenLabel }
+        XCTAssertEqual(app.descendants(matching: .any)["LoginPasswordEntry"].label, hiddenLabel, "the eye hides the password again")
+        app.buttons["ShowLoginPasswordButton"].tap()
+        waitUntil(5) { app.descendants(matching: .any)["LoginPasswordEntry"].label != hiddenLabel }
+        XCTAssertNotEqual(app.descendants(matching: .any)["LoginPasswordEntry"].label, hiddenLabel, "the eye shows it")
         let copied = NSPredicate(format: "label CONTAINS[c] 'copied'")
         let user = app.descendants(matching: .any)["LoginUsernameEntry"]
         user.press(forDuration: 1.2); sleep(1)

@@ -55,9 +55,17 @@ struct ViewItemView: View {
     // MARK: View
 
     var body: some View {
-        LoadingView(state: store.state.loadingState) { state in
-            if let viewState = state.viewState {
-                details(for: viewState)
+        Group {
+            switch store.state.loadingState {
+            case let .data(state):
+                if let viewState = state.viewState {
+                    details(for: viewState)
+                }
+            case .loading:
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case let .error(errorMessage):
+                PassYEmptyState(errorMessage, systemImage: "exclamationmark.triangle")
             }
         }
         .navigationTitle("")  // Apple Passwords: no title in the item view
@@ -143,7 +151,7 @@ struct ViewItemView: View {
     /// added to all of them at once.
     @ViewBuilder
     private func details(for state: ViewVaultItemState) -> some View {
-        // Native `Form`: sections, rows and separators come from the system (Apple Passwords look).
+        // Native `Form` of PassYDesign rows (Apple Passwords look): sections, rows and separators come from the system.
         Form {
             ViewItemDetailsView(
                 store: store.child(
@@ -154,8 +162,8 @@ struct ViewItemView: View {
                 timeProvider: timeProvider,
             )
         }
-        .nativeFormRows()
-        .readOnlyFieldStyle()
+        .passYReadableWidth()
+        .passYGroupedBackground()
     }
 }
 

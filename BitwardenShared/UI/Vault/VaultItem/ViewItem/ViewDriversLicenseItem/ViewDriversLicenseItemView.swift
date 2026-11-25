@@ -5,7 +5,8 @@ import SwiftUI
 
 // MARK: - ViewDriversLicenseItemView
 
-/// A view for displaying the contents of a driver's license item.
+/// The license details: tap-to-copy rows; the license number masked with an eye button and read character by
+/// character by VoiceOver. No section title.
 struct ViewDriversLicenseItemView: View {
     // MARK: Properties
 
@@ -14,182 +15,67 @@ struct ViewDriversLicenseItemView: View {
 
     var body: some View {
         if !store.state.isLicenseDetailsSectionEmpty {
-            SectionView(Localizations.licenseDetails, contentSpacing: 8) {
-                ContentBlock {
-                    firstNameItem
-
-                    middleNameItem
-
-                    lastNameItem
-
-                    licenseNumberItem
-
-                    dateField(title: Localizations.dateOfBirth, value: store.state.dateOfBirth)
-
-                    issuingCountryItem
-
-                    issuingStateItem
-
-                    issuingAuthorityItem
-
-                    dateField(title: Localizations.issueDate, value: store.state.issueDate)
-
-                    dateField(title: Localizations.expirationDate, value: store.state.expirationDate)
-
-                    licenseClassItem
-                }
+            Section {
+                row(Localizations.firstName, store.state.firstName, "DriversLicenseFirstNameEntry", .firstName)
+                row(Localizations.middleName, store.state.middleName, "DriversLicenseMiddleNameEntry", .middleName)
+                row(Localizations.lastName, store.state.lastName, "DriversLicenseLastNameEntry", .lastName)
+                licenseNumberItem
+                dateRow(Localizations.dateOfBirth, store.state.dateOfBirth)
+                row(Localizations.issuingCountry, store.state.issuingCountry, "DriversLicenseIssuingCountryEntry", nil)
+                row(Localizations.issuingStateProvince, store.state.issuingState, "DriversLicenseIssuingStateEntry", nil)
+                row(Localizations.issuingAuthority, store.state.issuingAuthority, "DriversLicenseIssuingAuthorityEntry", nil)
+                dateRow(Localizations.issueDate, store.state.issueDate)
+                dateRow(Localizations.expirationDate, store.state.expirationDate)
+                row(Localizations.licenseClass, store.state.licenseClass, "DriversLicenseClassEntry", nil)
             }
         }
     }
 
     // MARK: Private Views
 
-    /// The first name field.
-    ///
-    @ViewBuilder private var firstNameItem: some View {
-        if !store.state.firstName.isEmpty {
-            let firstName = store.state.firstName
-            BitwardenTextValueField(
-                title: Localizations.firstName,
-                value: firstName,
-                valueAccessibilityIdentifier: "DriversLicenseFirstNameEntry",
-                copyButtonAccessibilityIdentifier: "DriversLicenseCopyFirstNameButton",
-                copyButtonAction: { store.send(.copyPressed(value: firstName, field: .firstName)) },
-            )
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    /// The middle name field.
-    ///
-    @ViewBuilder private var middleNameItem: some View {
-        if !store.state.middleName.isEmpty {
-            let middleName = store.state.middleName
-            BitwardenTextValueField(
-                title: Localizations.middleName,
-                value: middleName,
-                valueAccessibilityIdentifier: "DriversLicenseMiddleNameEntry",
-                copyButtonAccessibilityIdentifier: "DriversLicenseCopyMiddleNameButton",
-                copyButtonAction: { store.send(.copyPressed(value: middleName, field: .middleName)) },
-            )
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    /// The last name field.
-    ///
-    @ViewBuilder private var lastNameItem: some View {
-        if !store.state.lastName.isEmpty {
-            let lastName = store.state.lastName
-            BitwardenTextValueField(
-                title: Localizations.lastName,
-                value: lastName,
-                valueAccessibilityIdentifier: "DriversLicenseLastNameEntry",
-                copyButtonAccessibilityIdentifier: "DriversLicenseCopyLastNameButton",
-                copyButtonAction: { store.send(.copyPressed(value: lastName, field: .lastName)) },
-            )
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    /// The license number field, masked behind a visibility toggle with a copy button.
-    ///
+    /// The license number, masked with an eye button, copies on tap.
     @ViewBuilder private var licenseNumberItem: some View {
         let licenseNumber = store.state.licenseNumber
-        let isVisible = store.state.isLicenseNumberVisible
         if !licenseNumber.isEmpty {
-            BitwardenField(title: Localizations.licenseNumber) {
-                PasswordText(password: licenseNumber, isPasswordVisible: isVisible, spellOutAccessibilityValue: true)
-                    .styleGuide(.body)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .accessibilityIdentifier("DriversLicenseNumberEntry")
-            } accessoryContent: {
-                PasswordVisibilityButton(
-                    accessibilityIdentifier: "ShowDriversLicenseNumberButton",
-                    accessibilityLabel: isVisible
-                        ? Localizations.fieldValueIsVisibleTapToHide(Localizations.licenseNumber)
-                        : Localizations.fieldValueIsNotVisibleTapToShow(Localizations.licenseNumber),
-                    isPasswordVisible: isVisible,
+            PassYCopyRow(
+                Localizations.licenseNumber,
+                value: licenseNumber,
+                secret: .init(
+                    isRevealed: store.state.isLicenseNumberVisible,
+                    revealIdentifier: "ShowDriversLicenseNumberButton",
+                    tintsCharacters: false,
+                    spokenName: Localizations.licenseNumber,
                 ) {
                     store.send(.driversLicenseItemAction(.toggleLicenseNumberVisibilityChanged))
-                }
-
-                Button {
-                    store.send(.copyPressed(value: licenseNumber, field: .licenseNumber))
-                } label: {
-                    SharedAsset.Icons.copy24.swiftUIImage
-                        .imageStyle(.accessoryIcon24)
-                }
-                .accessibilityLabel(Localizations.copy)
-                .accessibilityIdentifier("DriversLicenseCopyNumberButton")
+                },
+                identifier: "DriversLicenseNumberEntry",
+                spellsOut: true,
+            ) {
+                store.send(.copyPressed(value: licenseNumber, field: .licenseNumber))
             }
-            .accessibilityElement(children: .contain)
         }
     }
 
-    /// The issuing country field.
-    ///
-    @ViewBuilder private var issuingCountryItem: some View {
-        if !store.state.issuingCountry.isEmpty {
-            BitwardenTextValueField(
-                title: Localizations.issuingCountry,
-                value: store.state.issuingCountry,
-                valueAccessibilityIdentifier: "DriversLicenseIssuingCountryEntry",
-            )
-            .accessibilityElement(children: .contain)
-        }
-    }
+    // MARK: Private Methods
 
-    /// The issuing state or province field.
-    ///
-    @ViewBuilder private var issuingStateItem: some View {
-        if !store.state.issuingState.isEmpty {
-            BitwardenTextValueField(
-                title: Localizations.issuingStateProvince,
-                value: store.state.issuingState,
-                valueAccessibilityIdentifier: "DriversLicenseIssuingStateEntry",
-            )
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    /// The issuing authority field.
-    ///
-    @ViewBuilder private var issuingAuthorityItem: some View {
-        if !store.state.issuingAuthority.isEmpty {
-            BitwardenTextValueField(
-                title: Localizations.issuingAuthority,
-                value: store.state.issuingAuthority,
-                valueAccessibilityIdentifier: "DriversLicenseIssuingAuthorityEntry",
-            )
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    /// The license class field.
-    ///
-    @ViewBuilder private var licenseClassItem: some View {
-        if !store.state.licenseClass.isEmpty {
-            BitwardenTextValueField(
-                title: Localizations.licenseClass,
-                value: store.state.licenseClass,
-                valueAccessibilityIdentifier: "DriversLicenseClassEntry",
-            )
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    /// A read-only field displaying a long localized date, hidden when unset.
-    ///
-    /// - Parameters:
-    ///   - title: The localized title of the field.
-    ///   - value: The date to display.
-    ///
+    /// A value row (copies on tap when `field` is set), nothing for an empty value.
     @ViewBuilder
-    private func dateField(title: String, value: Date?) -> some View {
+    private func row(_ title: String, _ value: String, _ identifier: String, _ field: CopyableField?) -> some View {
+        if !value.isEmpty {
+            PassYCopyRow(
+                title,
+                value: value,
+                identifier: identifier,
+                copy: field.map { field in { store.send(.copyPressed(value: value, field: field)) } },
+            )
+        }
+    }
+
+    /// A long date, nothing when unset.
+    @ViewBuilder
+    private func dateRow(_ title: String, _ value: Date?) -> some View {
         if let value {
-            BitwardenTextValueField(title: title, value: value.longCalendarDateDisplay)
-                .accessibilityElement(children: .contain)
+            PassYCopyRow(title, value: value.longCalendarDateDisplay, copy: nil)
         }
     }
 }
@@ -220,25 +106,22 @@ extension DriversLicenseItemState {
 #if DEBUG
 #Preview("Empty View State") {
     NavigationView {
-        ScrollView {
-            LazyVStack(spacing: 20) {
+        Form {
+            Group {
                 ViewDriversLicenseItemView(
                     store: Store(
                         processor: StateProcessor(state: DriversLicenseItemState()),
                     ),
                 )
             }
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .ignoresSafeArea()
     }
 }
 
 #Preview("Populated View State") {
     NavigationView {
-        ScrollView {
-            LazyVStack(spacing: 20) {
+        Form {
+            Group {
                 ViewDriversLicenseItemView(
                     store: Store(
                         processor: StateProcessor(
@@ -259,10 +142,7 @@ extension DriversLicenseItemState {
                     ),
                 )
             }
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .ignoresSafeArea()
     }
 }
 #endif
