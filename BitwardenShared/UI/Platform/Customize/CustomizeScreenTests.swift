@@ -10,11 +10,11 @@ import XCTest
 @testable import BitwardenShared
 @testable import BitwardenSharedMocks
 
-// MARK: - CustomizeViewSnapshotTests
+// MARK: - CustomizeScreenSnapshotTests
 
 /// Customize: the screen itself and the vault home in three configurations (defaults, wide cards with monochrome
 /// tiles and hidden Archive/Trash, compact list with hidden sections). Light and dark, rendered in a key window.
-class CustomizeViewSnapshotTests: BitwardenTestCase {
+class CustomizeScreenSnapshotTests: BitwardenTestCase {
     // MARK: Helpers
 
     @MainActor

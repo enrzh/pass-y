@@ -233,6 +233,24 @@ component, each with a `#Preview`, in
 Vault rows adapt their items onto these components in `VaultListItemRowView` (equatable `VaultListRowCell` stays
 the performance boundary) and `VaultItemIconTile`; Send and folder rows use `PassYRow` directly.
 
+#### Customize (on-device layout preferences)
+
+[Customize/](../BitwardenShared/UI/Platform/Customize) holds the user's layout choices of this device:
+`PassYLayoutPreferences` (Codable, `version`, lenient field-by-field decoding; tiles keyed by
+`VaultListGroup.tileIdentifier`, sections by vault list section id; no vault data) stored in `AppSettingsStore`
+(`passYLayoutPreferences`, app group defaults, never synced). The defaults are "no override", so they draw today's look.
+`PassYLayoutStore` (`@Observable`, `shared`) exposes three slices (home, rows, codes) that invalidate independently.
+Every page is its own hosting controller, so list pages apply them with `passYLayoutEnvironment()` (vault home, group
+pages, their search results); rows read only small environment values: `passYRowOptions` (`PassYRow`, `PassYCodeRow`:
+density, subtitle, icon), `passYBadgeOptions` (vault row badges), `passYTileColors` (`PassYIconTile`, home tiles),
+`passYCodeOptions` (digit grouping, countdown ring / seconds), `passYHomeLayout` (the home only, part of its
+`EquatableContent` key). `PassYHomeArrangement` applies order and visibility; hidden tiles and the rows of hidden
+Folders / Shared folders sections move to a collapsible "More" section, so nothing becomes unreachable. Sections marked
+"collapsed when opened" are added to the persisted chevron state when the home stream starts. `CustomizeView` (plain
+grouped `List`, live preview, `onMove` in `EditMode`, Reset) is pushed in the Settings stack from Settings and from the
+avatar menu ("Customize home…"); its website icons switch is the existing `StateService` setting. DEBUG only:
+`-PassYLayoutPreset default|wide|list|minimal` seeds a configuration for screenshots.
+
 #### Pass-Y diagnostics (DEBUG only)
 
 Signposts, counters and startup / navigation marks (`PassYPerf`, `PassYNavigationProbe`) and the XCUITest idle-stall
