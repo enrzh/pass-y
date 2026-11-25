@@ -251,7 +251,7 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
             headerText: "Upcoming Maintenance",
         )
         let actionCard = try subject.inspect().find(actionCard: "Upcoming Maintenance")
-        XCTAssertNoThrow(try actionCard.find(asyncButton: "I understand"))
+        XCTAssertNoThrow(try actionCard.find(ViewType.Button.self) { (try? $0.find(text: "I understand")) != nil })
         XCTAssertThrowsError(try actionCard.find(asyncButton: Localizations.dismiss))
     }
 
@@ -321,11 +321,12 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
 
     /// Tapping the search result dispatches the `.itemPressed` effect.
     @MainActor
-    func test_searchResult_tap() async throws {
+    func test_searchResult_tap() throws {
         let result = VaultListItem.fixture()
         processor.state.searchResults = [result]
-        let button = try subject.inspect().find(asyncButton: "Bitwarden")
-        try await button.tap()
+        let button = try subject.inspect().find(text: "Bitwarden").find(ViewType.Button.self, relation: .parent)
+        try button.tap()
+        waitFor(processor.effects.last == .itemPressed(result))
         XCTAssertEqual(processor.effects.last, .itemPressed(result))
     }
 
@@ -355,12 +356,13 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
 
     /// Tapping the vault item dispatches the `.itemPressed` effect.
     @MainActor
-    func test_vaultItem_tap() async throws {
+    func test_vaultItem_tap() throws {
         // Folder groups are shown as list rows (type groups such as logins are category tiles, see below).
         let item = VaultListItem(id: "1", itemType: .group(.folder(id: "f1", name: "Folder"), 123))
         processor.state.loadingState = .data([VaultListSection(id: "1", items: [item], name: "Group")])
-        let button = try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
-        try await button.tap()
+        let button = try subject.inspect().find(buttonWithAccessibilityIdentifier: "VaultListItemRowButton")
+        try button.tap()
+        waitFor(processor.effects.last == .itemPressed(item))
         XCTAssertEqual(processor.effects.last, .itemPressed(item))
     }
 
@@ -380,7 +382,8 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     func test_vaultItem_copyTOTPButton_tap() throws {
         let item = VaultListItem.fixtureTOTP(totp: .fixture())
         processor.state.loadingState = .data([VaultListSection(id: "1", items: [item], name: "Group")])
-        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copyTotp)
+        // PassYDesign: a tap on a code row copies (no separate copy button).
+        let button = try subject.inspect().find(buttonWithAccessibilityIdentifier: "VaultListItemRowButton")
         try button.tap()
         waitFor(!processor.dispatchedActions.isEmpty)
         XCTAssertEqual(processor.dispatchedActions.last, .copyTOTPCode("123456"))

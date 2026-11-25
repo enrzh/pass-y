@@ -191,6 +191,21 @@ public extension InspectableView {
         }
     }
 
+    /// Attempts to locate a (plain SwiftUI) button with the provided accessibility identifier, e.g. a Pass-Y row
+    /// button (`passYRowButton`).
+    ///
+    /// - Parameter accessibilityIdentifier: The accessibility identifier to use while searching for a button.
+    /// - Returns: A button, if one can be located.
+    /// - Throws: Throws an error if a view was unable to be located.
+    ///
+    func find(
+        buttonWithAccessibilityIdentifier accessibilityIdentifier: String,
+    ) throws -> InspectableView<ViewType.Button> {
+        try find(ViewType.Button.self) { view in
+            try view.accessibilityIdentifier() == accessibilityIdentifier
+        }
+    }
+
     /// Attempts to locate a bitwarden menu field with the provided title.
     ///
     /// - Parameters:
