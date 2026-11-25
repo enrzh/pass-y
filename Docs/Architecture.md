@@ -229,6 +229,16 @@ component, each with a `#Preview`, in
 | `PassYButtonStyles` | `passYButtonStyle(.primary / .secondary / .destructive)` on the system glass styles. |
 | `PassYCodeRow` | Verification code row: large two-group code, `PassYCountdownRing`, accessibility-size layout; `PassYOneTimeCode` (grouping, spoken digits, label). |
 | `PassYCountdown` | Countdown maths and tone (orange at 5 s, red at 2 s), `PassYCountdownClock` (one 1 Hz clock per page via `passYCountdownClock`), `PassYCountdownRing`. |
+| `PassYFormField` | Edit-form text row: label left, value right (stacked at accessibility sizes) or `.free` (title as placeholder, the item name); trailing buttons; `PassYTextBuffer` keeps typing apart from store echoes (AutoFill); `PassYFieldFocus` for focus. |
+| `PassYSecureField` | Edit-form secret: `SecureField`, eye button (`PassYRevealButton`) swaps to a plain monospaced field with the same identifier, keeps focus. |
+| `PassYMultilineField` | Notes, Send text: `TextEditor` (a text view for UI tests) with the title as placeholder. |
+| `PassYCopyRow` | Detail row: label + value, tap copies (success haptic; the page shows the toast), long press Copy / Reveal / extras, eye button for secrets, `.stacked` for long values; `PassYValueText` (mask, tinted digits/symbols). |
+| `PassYToggleRow`, `PassYPickerRow`, `PassYStepperRow`, `PassYSliderRow`, `PassYDateRow` | System `Toggle` (+ help link), menu choice (tint value, checkmark, extra actions such as Add folder), `Stepper` (optional number field), `Slider` with value, optional calendar day (Add / compact `DatePicker` / clear). |
+| `PassYInlineButtonRow`, `PassYDisclosureSection`, `PassYSectionFooter` | Form action row (tinted / plain / destructive, sync or async), "Additional options" disclosure, footnote footer with optional link. |
+| `PassYCodeExpiry`, `PassYFieldNavigation`, `passYReadableWidth` | One-time code ring on the page clock that reports the period end; Return/keyboard-bar previous/next order; safe-area side insets that keep cards at 680 pt on wide pages. |
+
+Item view/edit, Send add/edit/view, attachments, collections, move, folders, the generator and the password history
+are built from the form components above (no Bitwarden field, toggle, menu, section or card views).
 
 Vault rows adapt their items onto these components in `VaultListItemRowView` (equatable `VaultListRowCell` stays
 the performance boundary) and `VaultItemIconTile`; Send and folder rows use `PassYRow` directly.

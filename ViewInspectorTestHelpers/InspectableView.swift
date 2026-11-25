@@ -106,6 +106,43 @@ public struct BitwardenUITextViewType: BaseViewType {
     ]
 }
 
+/// Generic type wrappers around the Pass-Y form components (`PassYFormField`, `PassYSecureField`, `PassYPickerRow`,
+/// `PassYMultilineField`, `PassYCopyRow`) so tests find them by title without knowing their implementation.
+///
+public struct PassYFormFieldType: BaseViewType {
+    public static var typePrefix: String = "PassYFormField"
+
+    public static var namespacedPrefixes: [String] = ["BitwardenShared.PassYFormField"]
+}
+
+/// See `PassYFormFieldType`.
+public struct PassYSecureFieldType: BaseViewType {
+    public static var typePrefix: String = "PassYSecureField"
+
+    public static var namespacedPrefixes: [String] = ["BitwardenShared.PassYSecureField"]
+}
+
+/// See `PassYFormFieldType`.
+public struct PassYPickerRowType: BaseViewType {
+    public static var typePrefix: String = "PassYPickerRow"
+
+    public static var namespacedPrefixes: [String] = ["BitwardenShared.PassYPickerRow"]
+}
+
+/// See `PassYFormFieldType`.
+public struct PassYMultilineFieldType: BaseViewType {
+    public static var typePrefix: String = "PassYMultilineField"
+
+    public static var namespacedPrefixes: [String] = ["BitwardenShared.PassYMultilineField"]
+}
+
+/// See `PassYFormFieldType`.
+public struct PassYCopyRowType: BaseViewType {
+    public static var typePrefix: String = "PassYCopyRow"
+
+    public static var namespacedPrefixes: [String] = ["BitwardenShared.PassYCopyRow"]
+}
+
 /// A generic type wrapper around `FloatingActionButton` to allow `ViewInspector` to find instances
 /// of `FloatingActionButton` without needing to know the details of its implementation.
 ///
@@ -219,6 +256,46 @@ public extension InspectableView {
         locale: Locale = .testsDefault,
     ) throws -> InspectableView<BitwardenMenuFieldType> {
         try find(BitwardenMenuFieldType.self, containing: title, locale: locale)
+    }
+
+    /// Attempts to locate a Pass-Y form field (`PassYFormField`) with the provided title.
+    func find(passYFormField title: String, locale: Locale = .testsDefault) throws -> InspectableView<PassYFormFieldType> {
+        try find(PassYFormFieldType.self) { view in
+            let mirror = Mirror(reflecting: view)
+            return mirror.descendant("content", "view", "title") as? String == title
+        }
+    }
+
+    /// Attempts to locate a Pass-Y secure field (`PassYSecureField`) with the provided title.
+    func find(passYSecureField title: String, locale: Locale = .testsDefault) throws -> InspectableView<PassYSecureFieldType> {
+        try find(PassYSecureFieldType.self) { view in
+            let mirror = Mirror(reflecting: view)
+            return mirror.descendant("content", "view", "title") as? String == title
+        }
+    }
+
+    /// Attempts to locate a Pass-Y picker row (`PassYPickerRow`) with the provided title.
+    func find(passYPickerRow title: String, locale: Locale = .testsDefault) throws -> InspectableView<PassYPickerRowType> {
+        try find(PassYPickerRowType.self) { view in
+            let mirror = Mirror(reflecting: view)
+            return mirror.descendant("content", "view", "title") as? String == title
+        }
+    }
+
+    /// Attempts to locate a Pass-Y multi-line field (`PassYMultilineField`) with the provided title.
+    func find(passYMultilineField title: String) throws -> InspectableView<PassYMultilineFieldType> {
+        try find(PassYMultilineFieldType.self) { view in
+            let mirror = Mirror(reflecting: view)
+            return mirror.descendant("content", "view", "title") as? String == title
+        }
+    }
+
+    /// Attempts to locate a Pass-Y copy row (`PassYCopyRow`) with the provided title.
+    func find(passYCopyRow title: String) throws -> InspectableView<PassYCopyRowType> {
+        try find(PassYCopyRowType.self) { view in
+            let mirror = Mirror(reflecting: view)
+            return mirror.descendant("content", "view", "title") as? String == title
+        }
     }
 
     /// Attempts to locate a bitwarden text field with the provided title.
@@ -493,6 +570,43 @@ public extension InspectableView where View == BitwardenUITextViewType {
                 type: String(describing: BitwardenUITextViewType.self),
             )
         }
+    }
+}
+
+/// The raw text binding of a Pass-Y text component, to simulate typing.
+private func passYTextBinding<T>(_ view: InspectableView<T>, type: String) throws -> Binding<String> {
+    let mirror = Mirror(reflecting: view)
+    if let binding = mirror.descendant("content", "view", "_text") as? Binding<String> {
+        return binding
+    }
+    throw InspectionError.attributeNotFound(label: "_text", type: type)
+}
+
+public extension InspectableView where View == PassYFormFieldType {
+    /// Locates the raw binding on this field's text value. Can be used to simulate updating the field.
+    func inputBinding() throws -> Binding<String> {
+        try passYTextBinding(self, type: "PassYFormField")
+    }
+}
+
+public extension InspectableView where View == PassYSecureFieldType {
+    /// Locates the raw binding on this field's text value. Can be used to simulate updating the field.
+    func inputBinding() throws -> Binding<String> {
+        try passYTextBinding(self, type: "PassYSecureField")
+    }
+}
+
+public extension InspectableView where View == PassYMultilineFieldType {
+    /// Locates the raw binding on this field's text value. Can be used to simulate updating the field.
+    func inputBinding() throws -> Binding<String> {
+        try passYTextBinding(self, type: "PassYMultilineField")
+    }
+}
+
+public extension InspectableView where View == PassYPickerRowType {
+    /// Selects a new value in the picker row.
+    func select(newValue: any Hashable) throws {
+        try find(ViewType.Picker.self).select(value: newValue)
     }
 }
 
