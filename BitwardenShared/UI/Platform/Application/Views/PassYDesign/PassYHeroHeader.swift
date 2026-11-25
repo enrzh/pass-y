@@ -74,10 +74,11 @@ struct PassYHeroHeader: View {
                     .accessibilityHidden(true)
             case let .symbol(name, color):
                 Image(systemName: name)
-                    .font(.system(size: markSize * 0.8, weight: .regular))
+                    .resizable()
+                    .scaledToFit()
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(color)
-                    .frame(height: markSize)
+                    .frame(width: markSize, height: markSize * 0.85)
                     .accessibilityHidden(true)
             case .none:
                 EmptyView()

@@ -28,8 +28,8 @@ struct UpdateMasterPasswordView: View {
                 }
             }
 
-            Section {
-                if store.state.requireCurrentPassword {
+            if store.state.requireCurrentPassword {
+                Section {
                     PassYSecureField(
                         Localizations.currentMasterPasswordRequired,
                         text: store.binding(
