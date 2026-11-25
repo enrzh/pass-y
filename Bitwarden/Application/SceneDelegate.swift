@@ -245,6 +245,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         )
         tapGesture.numberOfTapsRequired = 3
         tapGesture.numberOfTouchesRequired = 1
+        // A multi-tap recognizer on the window holds back every touch-up (`delaysTouchesEnded`, default true) until it
+        // fails after the multi-tap interval: every UIKit control (navigation bar Back, Cancel, Close) fired ~360 ms
+        // after the finger lifted (measured with PassYTouchProbe; SwiftUI buttons were not affected). Never delay or
+        // swallow app touches for a debug gesture.
+        tapGesture.delaysTouchesEnded = false
+        tapGesture.cancelsTouchesInView = false
         window.addGestureRecognizer(tapGesture)
     }
     #endif

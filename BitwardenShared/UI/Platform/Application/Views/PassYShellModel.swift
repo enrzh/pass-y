@@ -176,6 +176,9 @@ final class PassYShellModel: ObservableObject {
 
     /// Ends editing and clears the text.
     func cancelSearch() {
+        #if DEBUG
+        PassYPerf.mark("bar.cancelSearch")
+        #endif
         text = ""
         isEditing = false
         NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
@@ -318,7 +321,7 @@ struct PassYShellBar: View {
             Spacer(minLength: 0)
             HStack(spacing: 10) {
                 if !model.isAtVaultHome {
-                    PassYVaultButton { model.goToVault?() }
+                    PassYBarButton.vault { model.goToVault?() }
                         .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
                 }
@@ -329,12 +332,12 @@ struct PassYShellBar: View {
                     .reportsBarFrame()
 
                 if model.isSearching {
-                    SearchCancelButton { model.cancelSearch() }
+                    PassYBarButton.searchCancel { model.cancelSearch() }
                         .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
                 } else if let entries = model.activeTarget?.entries, !entries.isEmpty {
                     PassYAddMenu(entries: entries)
-                        .frame(width: 44, height: 44)
+                        .frame(width: PassYButtonMetrics.minTarget, height: PassYButtonMetrics.minTarget)
                         .background { PassYGlassBackground(shape: Circle()) }
                         .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
@@ -378,26 +381,6 @@ extension View {
     }
 }
 
-// MARK: - PassYVaultButton
-
-/// The Vault button left of the search field: returns to the vault home from every other page.
-struct PassYVaultButton: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: "lock.shield")
-                .font(.body.weight(.semibold))
-                .frame(width: 44, height: 44)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .modifier(BarBackground(shape: Circle()))
-        .accessibilityLabel(Localizations.myVault)
-        .accessibilityIdentifier("BottomBarVaultButton")
-    }
-}
-
 // MARK: - PassYAddMenu
 
 /// The "+" control: a menu for several entries or a plain button for a single one.
@@ -409,7 +392,7 @@ private struct PassYAddMenu: View {
         Image(systemName: "plus")
             .font(.body.weight(.semibold))
             .foregroundStyle(.tint)
-            .frame(width: 44, height: 44)
+            .frame(width: PassYButtonMetrics.minTarget, height: PassYButtonMetrics.minTarget)
             .contentShape(Circle())
     }
 

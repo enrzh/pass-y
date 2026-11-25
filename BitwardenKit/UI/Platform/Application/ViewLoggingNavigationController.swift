@@ -86,7 +86,17 @@ public class ViewLoggingNavigationController: UINavigationController,
     }
 
     override public func dismiss(animated: Bool, completion: (() -> Void)? = nil) {
+        #if DEBUG
+        PassYNavigationProbe.mark("dismiss")
+        if animated { PassYNavigationProbe.shared.startTransition() }
+        super.dismiss(animated: animated) {
+            PassYNavigationProbe.mark("dismissed")
+            PassYNavigationProbe.shared.endTransition()
+            completion?()
+        }
+        #else
         super.dismiss(animated: animated, completion: completion)
+        #endif
         logger.log("[Navigation] View dismissed: \(resolveLoggingViewName(for: self))")
     }
 

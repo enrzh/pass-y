@@ -119,7 +119,9 @@ final class PerfUnlockAndBackTests: PassYUITestCase {
         print("PASSY-MARK backTap t=\(String(format: "%.3f", start.timeIntervalSinceReferenceDate))")
         back.tap()
         var shown: Double?
-        let deadline = start.addingTimeInterval(15)
+        // 15 s from the end of the tap call: under load XCUITest's own idle wait inside `tap()` can take longer than
+        // that, which failed the run without any app delay (gate run, load ~100).
+        let deadline = Date().addingTimeInterval(15)
         while Date() < deadline {
             if shown == nil, home.exists { shown = Date().timeIntervalSince(start) }
             if shown != nil, gone(), home.isHittable { break }

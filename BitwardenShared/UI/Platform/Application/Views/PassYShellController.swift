@@ -370,6 +370,9 @@ class PassYShellController: UIViewController, TabNavigator {
 
     /// The Vault button: switch to the vault, pop to its root and clear the search.
     private func showVaultHome() {
+        #if DEBUG
+        PassYPerf.mark("bar.vault")
+        #endif
         show(routeIndex: PassYDestination.vault.rawValue, resetSearch: true)
         model.cancelSearch()
         popToRoot()

@@ -28,28 +28,6 @@ struct PassYGlassBackground<S: Shape>: View {
     }
 }
 
-// MARK: - SearchCancelButton
-
-/// The cancel control of the bottom bars: clears the search and closes the keyboard. It is a real SwiftUI button
-/// because the `UISearchBar` cancel button did not clear the search after the keyboard had been closed with the
-/// Search key (it only re-activated the field).
-struct SearchCancelButton: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: "xmark")
-                .font(.body.weight(.semibold))
-                .frame(width: 44, height: 44)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .modifier(BarBackground(shape: Circle()))
-        .accessibilityLabel(Localizations.cancel)
-        .accessibilityIdentifier("VaultSearchCancel")
-    }
-}
-
 // MARK: - VaultSearchBarRepresentable
 
 /// A native `UISearchBar` (minimal style, no cancel button until editing) bound to the search text.

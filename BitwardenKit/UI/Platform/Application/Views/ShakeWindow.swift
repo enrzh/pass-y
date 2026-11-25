@@ -37,6 +37,14 @@ public class ShakeWindow: UIWindow {
         fatalError("init(coder:) has not been implemented")
     }
 
+    #if DEBUG
+    /// DEBUG only: logs touch-down/up times (`PassYTouchProbe`) before UIKit delivers the event.
+    override public func sendEvent(_ event: UIEvent) {
+        PassYTouchProbe.record(event)
+        super.sendEvent(event)
+    }
+    #endif
+
     /// Overrides the default motionEnded function to detect shake motions.
     /// If a shake motion is detected and we are in DEBUG_MENU mode,
     /// the onShakeDetected closure is called.
