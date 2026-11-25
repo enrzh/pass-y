@@ -54,6 +54,36 @@ class SceneDelegateTests: BitwardenTestCase {
         XCTAssertTrue(appModule.appCoordinator.isStarted)
     }
 
+    /// No multi-tap recognizer of the app on its window delays or swallows touches: one with
+    /// `delaysTouchesEnded` (the UIKit default) held back every touch-up of Back, Cancel and Close by ~360 ms.
+    @MainActor
+    func test_sceneWillConnectTo_windowRecognizersDoNotDelayTouches() throws {
+        let appProcessor = AppProcessor(
+            appModule: appModule,
+            services: ServiceContainer(errorReporter: MockErrorReporter()),
+        )
+        (UIApplication.shared.delegate as? TestingAppDelegate)?.appProcessor = appProcessor
+
+        let session = TestInstanceFactory.create(UISceneSession.self)
+        let scene = TestInstanceFactory.create(UIWindowScene.self, properties: [
+            "session": session,
+        ])
+        let options = TestInstanceFactory.create(UIScene.ConnectionOptions.self)
+        subject.scene(scene, willConnectTo: session, options: options)
+        waitFor(!subject.isStartingUp)
+
+        // The app's own multi-tap recognizers (the system adds single-tap and gate recognizers of its own).
+        let window = try XCTUnwrap(subject.window)
+        let multiTap = (window.gestureRecognizers ?? [])
+            .compactMap { $0 as? UITapGestureRecognizer }
+            .filter { $0.numberOfTapsRequired > 1 }
+        for recognizer in multiTap {
+            XCTAssertFalse(recognizer.delaysTouchesBegan, "\(recognizer) delays touch-down")
+            XCTAssertFalse(recognizer.delaysTouchesEnded, "\(recognizer) delays touch-up")
+            XCTAssertFalse(recognizer.cancelsTouchesInView, "\(recognizer) swallows touches")
+        }
+    }
+
     /// `scene(_:willConnectTo:options:)` without a `UIWindowScene` fails to create the app's UI.
     @MainActor
     func test_sceneWillConnectTo_withNonWindowScene() throws {
