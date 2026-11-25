@@ -1308,3 +1308,69 @@
 /* Primary button on the generator screen that opens the add login screen, prefilled with the generated value. */
 "CreateLogin" = "Zugangsdaten erstellen";
 "ServerNotSet" = "Nicht festgelegt – zum Eintragen tippen";
+/* Title of the Pass-Y Customize screen (on-device layout preferences). */
+"Customize" = "Anpassen";
+/* Avatar menu entry that opens the Customize screen. */
+"CustomizeHome" = "Startseite anpassen…";
+/* Footer of the Customize preview. */
+"CustomizeDescription" = "Änderungen gelten nur für dieses Gerät und werden nicht synchronisiert.";
+/* Customize: section title for the vault home. */
+"HomeScreen" = "Startseite";
+/* Customize: the category tiles of the home screen. */
+"Tiles" = "Kacheln";
+/* Customize: footer of the tile list. */
+"TilesFooter" = "Ausgeblendete Kacheln bleiben unter „Mehr“ am Ende der Startseite erreichbar. Es wird nichts gelöscht.";
+/* Customize: button that turns on drag reordering. */
+"Reorder" = "Anordnen";
+/* Customize: picker for the tile layout. */
+"TileLayout" = "Kachel-Layout";
+/* Customize: tile layout, cards in two columns. */
+"TileLayoutCards" = "Karten";
+/* Customize: tile layout, one column of wide cards. */
+"TileLayoutWideCards" = "Breite Karten";
+/* Customize: tile layout, rows. */
+"TileLayoutList" = "Kompakte Liste";
+/* Customize: the list sections of the home screen (Favorites, folders ...). */
+"HomeSections" = "Bereiche";
+/* Customize: footer of the sections list. */
+"HomeSectionsFooter" = "Ziehen ändert die Reihenfolge. Eingeklappte Bereiche sind beim Öffnen des Tresors geschlossen.";
+/* Customize: section title for the sections collapsed when the vault opens. */
+"CollapsedWhenOpened" = "Beim Öffnen eingeklappt";
+/* Customize: section title for list rows. */
+"ListsAndRows" = "Listen & Zeilen";
+/* Customize: picker for row height. */
+"RowDensity" = "Zeilendichte";
+/* Customize: row density. */
+"DensityComfortable" = "Komfortabel";
+/* Customize: row density. */
+"DensityCompact" = "Kompakt";
+/* Customize: toggle for the row subtitle. */
+"ShowUserNames" = "Benutzernamen anzeigen";
+/* Customize: toggle for the leading row icon tile. */
+"ShowIconTiles" = "Symbole anzeigen";
+/* Customize: toggle for the favorite badge. */
+"ShowFavoriteStar" = "Favoriten-Stern";
+/* Customize: toggle for the shared badge. */
+"ShowSharedMark" = "Geteilt-Markierung";
+/* Customize: toggle for the attachments badge. */
+"ShowAttachmentMark" = "Anhang-Markierung";
+/* Customize: picker for the icon tile colours. */
+"TileColors" = "Kachelfarben";
+/* Customize: tile colours. */
+"TileColorsColorful" = "Farbig";
+/* Customize: tile colours. */
+"TileColorsMonochrome" = "Einfarbig";
+/* Customize: footer of the rows section. */
+"ListsAndRowsFooter" = "Die Textgröße folgt der Systemeinstellung (Einstellungen › Anzeige & Helligkeit › Textgröße).";
+/* Customize: toggle that shows codes as 123 456. */
+"GroupDigits" = "Ziffern gruppieren";
+/* Customize: toggle for the code countdown ring. */
+"CountdownRing" = "Countdown-Ring";
+/* Customize: toggle for the seconds inside the countdown. */
+"CountdownSeconds" = "Verbleibende Sekunden";
+/* Customize: button that restores the default layout. */
+"ResetToDefaults" = "Auf Standard zurücksetzen";
+/* Customize: title of the live preview. */
+"LayoutPreview" = "Vorschau";
+/* Home section with the tiles and folders hidden from the home screen. */
+"PassYMore" = "Mehr";

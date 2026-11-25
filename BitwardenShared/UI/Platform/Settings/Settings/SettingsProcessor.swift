@@ -149,6 +149,8 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
             coordinator.navigate(to: .addAccount)
         case .appearancePressed:
             coordinator.navigate(to: .appearance)
+        case .customizePressed:
+            coordinator.navigate(to: .customize)
         case .autoFillPressed:
             coordinator.navigate(to: .autoFill)
         case .clearUrl:

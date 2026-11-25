@@ -1290,3 +1290,69 @@
 "SomeItemsCouldNotBeDeleted" = "%1$d of %2$d items could not be deleted. They stay selected so you can try again.";
 /* Error shown when some of the selected items could not be moved; %1$d failed of %2$d. They stay selected. */
 "SomeItemsCouldNotBeMoved" = "%1$d of %2$d items could not be moved. They stay selected so you can try again.";
+/* Title of the Pass-Y Customize screen (on-device layout preferences). */
+"Customize" = "Customize";
+/* Avatar menu entry that opens the Customize screen. */
+"CustomizeHome" = "Customize home…";
+/* Footer of the Customize preview. */
+"CustomizeDescription" = "Changes apply to this device only and are not synced.";
+/* Customize: section title for the vault home. */
+"HomeScreen" = "Home screen";
+/* Customize: the category tiles of the home screen. */
+"Tiles" = "Tiles";
+/* Customize: footer of the tile list. */
+"TilesFooter" = "Hidden tiles stay available under “More” at the end of the home screen. Nothing is deleted.";
+/* Customize: button that turns on drag reordering. */
+"Reorder" = "Reorder";
+/* Customize: picker for the tile layout. */
+"TileLayout" = "Tile layout";
+/* Customize: tile layout, cards in two columns. */
+"TileLayoutCards" = "Cards";
+/* Customize: tile layout, one column of wide cards. */
+"TileLayoutWideCards" = "Wide cards";
+/* Customize: tile layout, rows. */
+"TileLayoutList" = "Compact list";
+/* Customize: the list sections of the home screen (Favorites, folders ...). */
+"HomeSections" = "Sections";
+/* Customize: footer of the sections list. */
+"HomeSectionsFooter" = "Drag to change the order. Collapsed sections start closed whenever the vault opens.";
+/* Customize: section title for the sections collapsed when the vault opens. */
+"CollapsedWhenOpened" = "Collapsed when opened";
+/* Customize: section title for list rows. */
+"ListsAndRows" = "Lists & rows";
+/* Customize: picker for row height. */
+"RowDensity" = "Row density";
+/* Customize: row density. */
+"DensityComfortable" = "Comfortable";
+/* Customize: row density. */
+"DensityCompact" = "Compact";
+/* Customize: toggle for the row subtitle. */
+"ShowUserNames" = "Show user names";
+/* Customize: toggle for the leading row icon tile. */
+"ShowIconTiles" = "Show icons";
+/* Customize: toggle for the favorite badge. */
+"ShowFavoriteStar" = "Favorite star";
+/* Customize: toggle for the shared badge. */
+"ShowSharedMark" = "Shared mark";
+/* Customize: toggle for the attachments badge. */
+"ShowAttachmentMark" = "Attachment mark";
+/* Customize: picker for the icon tile colours. */
+"TileColors" = "Tile colors";
+/* Customize: tile colours. */
+"TileColorsColorful" = "Colorful";
+/* Customize: tile colours. */
+"TileColorsMonochrome" = "Monochrome";
+/* Customize: footer of the rows section. */
+"ListsAndRowsFooter" = "Text size follows the system text size (Settings › Display & Brightness › Text Size).";
+/* Customize: toggle that shows codes as 123 456. */
+"GroupDigits" = "Group digits";
+/* Customize: toggle for the code countdown ring. */
+"CountdownRing" = "Countdown ring";
+/* Customize: toggle for the seconds inside the countdown. */
+"CountdownSeconds" = "Seconds left";
+/* Customize: button that restores the default layout. */
+"ResetToDefaults" = "Reset to defaults";
+/* Customize: title of the live preview. */
+"LayoutPreview" = "Preview";
+/* Home section with the tiles and folders hidden from the home screen. */
+"PassYMore" = "More";

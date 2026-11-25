@@ -101,6 +101,12 @@ struct SettingsView: View {
                     store.send(.aboutPressed)
                 }
             }
+            // Pass-Y Customize (on-device layout): its own section, kept separate from the settings rows above.
+            Section {
+                row(Localizations.customize, symbol: "slider.horizontal.3", id: "CustomizeSettingsButton") {
+                    store.send(.customizePressed)
+                }
+            }
         }
     }
 
