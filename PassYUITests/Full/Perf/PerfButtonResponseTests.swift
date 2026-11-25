@@ -168,7 +168,8 @@ final class PerfButtonResponseTests: PassYUITestCase {
         print("PASSY-MARK buttonTap \(name) t=\(String(format: "%.3f", start.timeIntervalSinceReferenceDate))")
         edgeTap(button, edge)
         var shownAt: Double?
-        let deadline = start.addingTimeInterval(15)
+        // 15 s from the end of the tap call (XCUITest's idle wait inside the tap can be long on a loaded machine).
+        let deadline = Date().addingTimeInterval(15)
         while Date() < deadline {
             if shownAt == nil, shown() { shownAt = Date().timeIntervalSince(start) }
             if shownAt != nil, settled() { break }
