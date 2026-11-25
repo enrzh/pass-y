@@ -58,73 +58,84 @@ struct AccountSecurityView: View {
     /// The action card for setting up vault unlock methods.
     @ViewBuilder private var setUpUnlockActionCard: some View {
         if let progress = store.state.badgeState?.vaultUnlockSetupProgress, progress != .complete {
-            NativeSetupSection(
+            PassYSetupSection(
                 title: Localizations.setUpUnlock,
-                systemImage: "lock.open",
-                action: NativeSetupSection.Row(title: Localizations.getStarted) {
+                systemImage: "lock.open.fill",
+                tint: .blue,
+                action: .init(title: Localizations.getStarted) {
                     store.send(.showSetUpUnlock)
                 },
-                dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
+                dismiss: .init(title: Localizations.dismiss) {
                     await store.perform(.dismissSetUpUnlockActionCard)
                 },
             )
         }
     }
 
-    /// The other section.
-    private var otherSection: some View {
+    /// The account rows (fingerprint phrase, devices), then the session actions (lock, log out) and, on its own,
+    /// the account deletion.
+    @ViewBuilder private var otherSection: some View {
         Section(Localizations.other) {
-            NativeSettingsRow(
-                action: {
-                    Task {
-                        await store.perform(.accountFingerprintPhrasePressed)
-                    }
-                },
-                accessibilityIdentifier: "AccountFingerprintPhraseLabel",
-                symbol: "touchid",
-                title: Localizations.accountFingerprintPhrase,
-            )
+            PassYSettingsRow(
+                Localizations.accountFingerprintPhrase,
+                systemImage: "touchid",
+                tint: .pink,
+                accessory: .external,
+                identifier: "AccountFingerprintPhraseLabel",
+            ) {
+                Task {
+                    await store.perform(.accountFingerprintPhrasePressed)
+                }
+            }
 
             if store.state.isManageDevicesEnabled {
-                NativeSettingsRow(
-                    action: { store.send(.manageDevicesTapped) },
-                    accessibilityIdentifier: "ManageDevicesLabel",
-                    symbol: "iphone.and.ipad",
-                    title: Localizations.devices,
-                )
+                PassYSettingsRow(
+                    Localizations.devices,
+                    systemImage: "laptopcomputer.and.iphone",
+                    tint: .blue,
+                    identifier: "ManageDevicesLabel",
+                ) {
+                    store.send(.manageDevicesTapped)
+                }
             }
+        }
 
+        Section {
             if store.state.isLockNowVisible {
-                NativeSettingsRow(
+                PassYSettingsRow(
+                    Localizations.lockNow,
+                    systemImage: "lock.fill",
+                    tint: .gray,
                     accessory: .none,
-                    action: {
-                        Task {
-                            await store.perform(.lockVault)
-                        }
-                    },
-                    accessibilityIdentifier: "LockNowLabel",
-                    symbol: "lock",
-                    title: Localizations.lockNow,
-                )
+                    identifier: "LockNowLabel",
+                ) {
+                    Task {
+                        await store.perform(.lockVault)
+                    }
+                }
             }
 
-            NativeSettingsRow(
+            PassYSettingsRow(
+                Localizations.logOut,
+                systemImage: "rectangle.portrait.and.arrow.right",
+                role: .destructive,
                 accessory: .none,
-                action: { store.send(.logout) },
-                accessibilityIdentifier: "LogOutLabel",
-                symbol: "rectangle.portrait.and.arrow.right",
-                titleStyle: .red,
-                title: Localizations.logOut,
-            )
+                identifier: "LogOutLabel",
+            ) {
+                store.send(.logout)
+            }
+        }
 
-            NativeSettingsRow(
+        Section {
+            PassYSettingsRow(
+                Localizations.deleteAccount,
+                systemImage: "trash.fill",
+                role: .destructive,
                 accessory: .none,
-                action: { store.send(.deleteAccountPressed) },
-                accessibilityIdentifier: "DeleteAccountLabel",
-                symbol: "trash",
-                titleStyle: .red,
-                title: Localizations.deleteAccount,
-            )
+                identifier: "DeleteAccountLabel",
+            ) {
+                store.send(.deleteAccountPressed)
+            }
         }
     }
 
@@ -132,7 +143,6 @@ struct AccountSecurityView: View {
     @ViewBuilder private var sessionTimeoutSection: some View {
         Section {
             Picker(
-                Localizations.sessionTimeout,
                 selection: store.binding(
                     get: \.sessionTimeoutValue,
                     send: AccountSecurityAction.sessionTimeoutValueChanged,
@@ -141,6 +151,8 @@ struct AccountSecurityView: View {
                 ForEach(store.state.availableTimeoutOptions, id: \.self) { option in
                     Text(option.localizedName).tag(option)
                 }
+            } label: {
+                PassYSettingsRowLabel(title: Localizations.sessionTimeout, systemImage: "timer", tint: .orange)
             }
             .pickerStyle(.menu)
             .accessibilityIdentifier("VaultTimeoutChooser")
@@ -162,13 +174,12 @@ struct AccountSecurityView: View {
             Text(Localizations.sessionTimeout)
         } footer: {
             if let message = store.state.policyTimeoutMessage {
-                Text(message)
+                PassYFooterText(message)
             }
         }
 
         Section {
             Picker(
-                Localizations.sessionTimeoutAction,
                 selection: store.binding(
                     get: \.sessionTimeoutAction,
                     send: AccountSecurityAction.sessionTimeoutActionChanged,
@@ -177,13 +188,19 @@ struct AccountSecurityView: View {
                 ForEach(store.state.availableTimeoutActions, id: \.self) { action in
                     Text(action.localizedName).tag(action)
                 }
+            } label: {
+                PassYSettingsRowLabel(
+                    title: Localizations.sessionTimeoutAction,
+                    systemImage: "rectangle.portrait.and.arrow.right",
+                    tint: .orange,
+                )
             }
             .pickerStyle(.menu)
             .accessibilityIdentifier("VaultTimeoutActionChooser")
             .disabled(store.state.isSessionTimeoutActionDisabled)
         } footer: {
             if let message = store.state.policyTimeoutActionMessage {
-                Text(message)
+                PassYFooterText(message)
             }
         }
     }
@@ -194,15 +211,16 @@ struct AccountSecurityView: View {
             biometricsSetting
 
             if store.state.unlockWithPinFeatureAvailable {
-                Toggle(
+                PassYToggleRow(
                     Localizations.unlockWithPIN,
+                    systemImage: "circle.grid.3x3.fill",
+                    tint: .blue,
                     isOn: store.bindingAsync(
                         get: \.isUnlockWithPINCodeOn,
                         perform: AccountSecurityEffect.toggleUnlockWithPINCode,
                     ),
+                    identifier: "UnlockWithPinSwitch",
                 )
-                .accessibilityIdentifier("UnlockWithPinSwitch")
-                .accessibilityLabel(Localizations.unlockWithPIN)
             }
         }
     }
@@ -210,15 +228,16 @@ struct AccountSecurityView: View {
     /// The authenticator sync section.
     @ViewBuilder private var authenticatorSyncSection: some View {
         Section(Localizations.authenticatorSync) {
-            Toggle(
+            PassYToggleRow(
                 Localizations.allowAuthenticatorSyncing,
+                systemImage: "arrow.triangle.2.circlepath",
+                tint: .teal,
                 isOn: store.bindingAsync(
                     get: \.isAuthenticatorSyncEnabled,
                     perform: AccountSecurityEffect.toggleSyncWithAuthenticator,
                 ),
+                identifier: Localizations.allowAuthenticatorSyncing,
             )
-            .accessibilityIdentifier(Localizations.allowAuthenticatorSyncing)
-            .accessibilityLabel(Localizations.allowAuthenticatorSyncing)
         }
     }
 
@@ -238,15 +257,16 @@ struct AccountSecurityView: View {
     @ViewBuilder
     private func biometricUnlockToggle(enabled: Bool, type: BiometricAuthenticationType) -> some View {
         let toggleText = biometricsToggleText(type)
-        Toggle(
+        PassYToggleRow(
             toggleText,
+            systemImage: type == .touchID ? "touchid" : (type == .opticID ? "opticid" : "faceid"),
+            tint: .green,
             isOn: store.bindingAsync(
                 get: { _ in enabled },
                 perform: AccountSecurityEffect.toggleUnlockWithBiometrics,
             ),
+            identifier: "UnlockWithBiometricsSwitch",
         )
-        .accessibilityIdentifier("UnlockWithBiometricsSwitch")
-        .accessibilityLabel(toggleText)
     }
 
     private func biometricsToggleText(_ biometryType: BiometricAuthenticationType) -> String {

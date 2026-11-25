@@ -29,46 +29,41 @@ struct DeleteAccountView: View {
         }
     }
 
-    /// The content is presented to the user depending on their state.
+    /// The warning (or why the account cannot be deleted), then the destructive action and a plain cancel button.
     @ViewBuilder var viewContent: some View {
-        HStack(spacing: 12) {
-            Image(decorative: store.state.mainIcon)
-                .foregroundColor(Color(asset: SharedAsset.Colors.error))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(store.state.title)
-                    .foregroundColor(Color(asset: SharedAsset.Colors.error))
-                    .styleGuide(
-                        .headline,
-                        weight: .semibold,
-                        includeLinePadding: false,
-                        includeLineSpacing: false,
-                    )
-
-                Text(store.state.description)
-                    .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-                    .styleGuide(.subheadline)
-            }
+        Section {
+            PassYHeroHeader(
+                mark: .symbol(
+                    store.state.shouldPreventUserFromDeletingAccount ? "xmark.octagon.fill" : "exclamationmark.triangle.fill",
+                    .red,
+                ),
+                title: store.state.title,
+                message: store.state.description,
+            )
         }
+        .passYPlainListRow()
 
         if store.state.showDeleteAccountButtons {
             Section {
-                AsyncButton(role: .destructive) {
-                    await store.perform(.deleteAccount)
-                } label: {
-                    Text(Localizations.deleteAccount)
-                        .frame(maxWidth: .infinity)
-                }
-                .accessibilityIdentifier("DELETE ACCOUNT")
+                VStack(spacing: PassYDesign.Spacing.medium) {
+                    Button(role: .destructive) {
+                        Task { await store.perform(.deleteAccount) }
+                    } label: {
+                        Text(Localizations.deleteAccount)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .passYButtonStyle(.destructive, fillsWidth: true)
+                    .accessibilityIdentifier("DELETE ACCOUNT")
 
-                Button {
-                    store.send(.dismiss)
-                } label: {
-                    Text(Localizations.cancel)
-                        .frame(maxWidth: .infinity)
+                    Button(Localizations.cancel) {
+                        store.send(.dismiss)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityIdentifier("CancelDeletionButton")
                 }
-                .accessibilityIdentifier("CancelDeletionButton")
+                .padding(.horizontal, PassYDesign.Spacing.large)
             }
+            .passYPlainListRow()
         }
     }
 }

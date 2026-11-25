@@ -40,54 +40,36 @@ struct VaultSettingsView: View {
     /// The action card for setting up vault unlock methods.
     @ViewBuilder private var importLoginsActionCard: some View {
         if store.state.shouldShowImportLoginsActionCard {
-            NativeSetupSection(
+            PassYSetupSection(
                 title: Localizations.importSavedLogins,
                 message: Localizations.importSavedLoginsDescriptionLong,
-                systemImage: "square.and.arrow.down",
-                action: NativeSetupSection.Row(title: Localizations.getStarted) {
+                systemImage: "square.and.arrow.down.fill",
+                tint: .blue,
+                action: .init(title: Localizations.getStarted) {
                     store.send(.showImportLogins)
                 },
-                dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
+                dismiss: .init(title: Localizations.dismiss) {
                     await store.perform(.dismissImportLoginsActionCard)
                 },
             )
         }
     }
 
-    /// A native navigation row.
-    private func row(
-        _ title: String,
-        systemImage: String,
-        trailing: String = "chevron.right",
-        action: @escaping () -> Void,
-    ) -> some View {
-        Button(action: action) {
-            HStack {
-                Label(title, systemImage: systemImage)
-                    .foregroundStyle(.primary)
-                Spacer()
-                Image(systemName: trailing)
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-                    .accessibilityHidden(true)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
     /// The vault settings section.
     private var vaultSettings: some View {
         Section {
-            row(Localizations.myFolders, systemImage: "folder") {
+            PassYSettingsRow(Localizations.myFolders, systemImage: "folder.fill", tint: .blue, identifier: "FoldersLabel") {
                 store.send(.foldersTapped)
             }
-            .accessibilityIdentifier("FoldersLabel")
 
-            row(Localizations.exportVault, systemImage: "square.and.arrow.up") {
+            PassYSettingsRow(
+                Localizations.exportVault,
+                systemImage: "square.and.arrow.up.fill",
+                tint: .orange,
+                identifier: "ExportVaultLabel",
+            ) {
                 store.send(.exportVaultTapped)
             }
-            .accessibilityIdentifier("ExportVaultLabel")
         }
     }
 }

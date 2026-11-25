@@ -15,6 +15,9 @@ struct SettingsView: View {
     /// The `Store` for this view.
     @ObservedObject var store: Store<SettingsState, SettingsAction, SettingsEffect>
 
+    /// The side of the account avatar, scaled with Dynamic Type (at most 1.6 times).
+    @ScaledMetric(relativeTo: .title2) private var avatarSize: CGFloat = 56
+
     // MARK: View
 
     var body: some View {
@@ -50,14 +53,15 @@ struct SettingsView: View {
 
     // MARK: Private views
 
-    /// The settings items.
+    /// The settings items, in clearly separated sections (iOS Settings style): account, security and data, then
+    /// the app itself.
     @ViewBuilder private var settingsItems: some View {
         if store.state.presentationMode == .preLogin {
             Section {
-                row(Localizations.appearance, symbol: "paintbrush", id: "AppearanceSettingsButton") {
+                row(Localizations.appearance, symbol: "paintbrush.fill", tint: .indigo, id: "AppearanceSettingsButton") {
                     store.send(.appearancePressed)
                 }
-                row(Localizations.about, symbol: "info.circle", id: "AboutSettingsButton") {
+                row(Localizations.about, symbol: "info.circle.fill", tint: .gray, id: "AboutSettingsButton") {
                     store.send(.aboutPressed)
                 }
             }
@@ -68,36 +72,41 @@ struct SettingsView: View {
             Section {
                 row(
                     Localizations.accountSecurity,
-                    symbol: "lock",
+                    symbol: "lock.fill",
+                    tint: .blue,
                     badge: store.state.accountSecurityBadgeValue,
                     id: "AccountSecuritySettingsButton",
                 ) { store.send(.accountSecurityPressed) }
                 row(
                     Localizations.autofill,
-                    symbol: "checkmark.circle",
+                    symbol: "key.fill",
+                    tint: .green,
                     badge: store.state.autofillBadgeValue,
                     id: "AutofillSettingsButton",
                 ) { store.send(.autoFillPressed) }
                 row(
                     Localizations.vault,
-                    symbol: "key",
+                    symbol: "archivebox.fill",
+                    tint: .orange,
                     badge: store.state.vaultBadgeValue,
                     id: "VaultSettingsButton",
                 ) { store.send(.vaultPressed) }
                 if store.state.showPlanRow {
-                    row(Localizations.plan, symbol: "creditcard", id: "PlanSettingsButton") {
+                    row(Localizations.plan, symbol: "creditcard.fill", tint: .teal, id: "PlanSettingsButton") {
                         Task { await store.perform(.planPressed) }
                     }
                 }
             }
             Section {
-                row(Localizations.appearance, symbol: "paintbrush", id: "AppearanceSettingsButton") {
+                row(Localizations.appearance, symbol: "paintbrush.fill", tint: .indigo, id: "AppearanceSettingsButton") {
                     store.send(.appearancePressed)
                 }
-                row(Localizations.other, symbol: "ellipsis.circle", id: "OtherSettingsButton") {
+                row(Localizations.other, symbol: "gearshape.fill", tint: .gray, id: "OtherSettingsButton") {
                     store.send(.otherPressed)
                 }
-                row(Localizations.about, symbol: "info.circle", id: "AboutSettingsButton") {
+            }
+            Section {
+                row(Localizations.about, symbol: "info.circle.fill", tint: .gray, id: "AboutSettingsButton") {
                     store.send(.aboutPressed)
                 }
             }
@@ -129,12 +138,16 @@ struct SettingsView: View {
                         .font(.system(.title2, design: .rounded).weight(.semibold))
                         .foregroundStyle(active.profileIconTextColor)
                 }
-                .frame(width: 56, height: 56)
+                .frame(
+                    width: min(avatarSize, PassYDesign.IconSize.large * 1.6),
+                    height: min(avatarSize, PassYDesign.IconSize.large * 1.6),
+                )
                 VStack(alignment: .leading, spacing: 2) {
                     Text(active.email)
                         .font(.headline)
                         .foregroundStyle(.primary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
                     Text(store.state.serverURL)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -150,35 +163,16 @@ struct SettingsView: View {
         .accessibilityIdentifier("SettingsAccountRow")
     }
 
-    /// A native settings row: SF Symbol, title, optional badge, disclosure chevron.
+    /// A settings row: tinted SF Symbol tile, title, optional badge, disclosure chevron (`PassYSettingsRow`).
     private func row(
         _ title: String,
         symbol: String,
+        tint: Color = .accentColor,
         badge: String? = nil,
         id: String,
         action: @escaping () -> Void,
     ) -> some View {
-        Button(action: action) {
-            HStack {
-                Label(title, systemImage: symbol)
-                    .foregroundStyle(.primary)
-                Spacer()
-                if let badge {
-                    Text(badge)
-                        .font(.caption.bold())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.red))
-                }
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(id)
+        PassYSettingsRow(title, systemImage: symbol, tint: tint, badge: badge, identifier: id, action: action)
     }
 }
 

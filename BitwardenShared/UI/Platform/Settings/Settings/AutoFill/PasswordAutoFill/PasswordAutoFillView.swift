@@ -50,55 +50,66 @@ struct PasswordAutoFillView: View {
 
     /// The content view.
     private var contentView: some View {
-        VStack(spacing: 24) {
-            dynamicStackView {
-                ZStack {
-                    gifViewPlaceholder
+        ScrollView {
+            VStack(spacing: PassYDesign.Spacing.xLarge) {
+                dynamicStackView {
+                    ZStack {
+                        gifViewPlaceholder
 
-                    gifView
-                }
-                .frame(width: 230, height: 278)
-
-                VStack(spacing: 12) {
-                    Text(store.state.title)
-                        .styleGuide(.title2, weight: .bold)
-
-                    Text(store.state.subtitle)
-                        .styleGuide(.body)
-                        .multilineTextAlignment(.center)
-                }
-            }
-            .padding(.top, 12)
-            .padding(.horizontal, 12)
-
-            Text(
-                LocalizedStringKey(
-                    Localizations.needHelpCheckOutAutofillHelp(
-                        ExternalLinksConstants.autofillHelp,
-                    ),
-                ),
-            )
-            .styleGuide(.subheadline)
-            .tint(SharedAsset.Colors.textInteraction.swiftUIColor)
-
-            VStack(spacing: 12) {
-                AsyncButton(Localizations.continue) {
-                    await store.perform(.continueTapped)
-                }
-                .buttonStyle(.primary())
-
-                if store.state.mode == .onboarding {
-                    AsyncButton(Localizations.turnOnLater) {
-                        await store.perform(.turnAutoFillOnLaterButtonTapped)
+                        gifView
                     }
-                    .buttonStyle(.secondary())
+                    .frame(width: 230, height: 278)
+                    .accessibilityHidden(true)
+
+                    VStack(spacing: PassYDesign.Spacing.medium) {
+                        Text(store.state.title)
+                            .font(.title2.weight(.bold))
+                            .accessibilityAddTraits(.isHeader)
+
+                        Text(store.state.subtitle)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.top, PassYDesign.Spacing.medium)
+
+                Text(
+                    LocalizedStringKey(
+                        Localizations.needHelpCheckOutAutofillHelp(
+                            ExternalLinksConstants.autofillHelp,
+                        ),
+                    ),
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+                VStack(spacing: PassYDesign.Spacing.medium) {
+                    Button {
+                        Task { await store.perform(.continueTapped) }
+                    } label: {
+                        Text(Localizations.continue).frame(maxWidth: .infinity)
+                    }
+                    .passYButtonStyle(.primary, fillsWidth: true)
+
+                    if store.state.mode == .onboarding {
+                        Button(Localizations.turnOnLater) {
+                            Task { await store.perform(.turnAutoFillOnLaterButtonTapped) }
+                        }
+                        .buttonStyle(.borderless)
+                    }
                 }
             }
+            .padding(.horizontal, PassYDesign.Spacing.large)
+            .padding(.bottom, PassYDesign.Spacing.xLarge)
+            .frame(maxWidth: 560)
+            .frame(maxWidth: .infinity)
         }
-        .scrollView(addVerticalPadding: false)
+        .passYGroupedBackground()
     }
 
-    /// The view used for displaying the gif content.
     @ViewBuilder private var gifView: some View {
         switch colorScheme {
         case .light:
@@ -126,61 +137,6 @@ struct PasswordAutoFillView: View {
                 .resizable()
                 .scaledToFit()
         }
-    }
-
-    /// The preview image of what the extension will look like.
-    private var imageView: some View {
-        Image(asset: Asset.Images.passwordAutofillPreview)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(height: 276)
-            .accessibilityHidden(true)
-    }
-
-    /// The detailed instructions.
-    private var instructions: some View {
-        Text(Localizations.autofillTurnOn)
-            .styleGuide(.body)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-    }
-
-    /// The list of step by step instructions.
-    private var instructionsList: some View {
-        let instructionsList = [
-            Localizations.autofillTurnOn1,
-            Localizations.autofillTurnOn2,
-            Localizations.autofillTurnOn3,
-            Localizations.autofillTurnOn4,
-            Localizations.autofillTurnOn5,
-        ].joined(separator: "\n")
-
-        return Text(instructionsList)
-            .styleGuide(.body)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// The instructions text content.
-    private var instructionsContent: some View {
-        VStack(spacing: 20) {
-            title
-
-            instructions
-
-            instructionsList
-        }
-    }
-
-    /// The title of the instructions.
-    private var title: some View {
-        Text(Localizations.extensionInstantAccess)
-            .styleGuide(.title)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
     }
 
     /// A dynamic stack view that lays out content vertically when in a regular vertical size class

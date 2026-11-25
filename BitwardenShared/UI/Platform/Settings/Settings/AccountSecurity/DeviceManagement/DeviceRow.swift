@@ -74,7 +74,8 @@ struct DeviceRow: View {
             } label: {
                 rowContent
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.automatic)
+            .foregroundStyle(.primary)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isButton)
             .accessibilityIdentifier("DeviceRowCell")
@@ -87,50 +88,60 @@ struct DeviceRow: View {
 
     // MARK: Private Views
 
-    /// The row content shared between actionable and non-actionable states.
+    /// The row content shared between actionable and non-actionable states: a device tile, the name with a status
+    /// badge, the trust and activity lines, and a chevron for a device with a pending request.
     @ViewBuilder private var rowContent: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 0) {
-                if store.state.device.isCurrentSession {
-                    PillBadgeView(text: Localizations.currentSession, style: .info)
-                        .padding(.bottom, 14)
-                } else if store.state.device.hasPendingRequest {
-                    PillBadgeView(text: Localizations.pendingRequest, style: .warning)
-                        .padding(.bottom, 14)
-                }
+        HStack(alignment: .center, spacing: PassYDesign.Spacing.medium) {
+            PassYIconTile(systemImage: deviceSymbol, tint: .blue, size: PassYDesign.IconSize.small)
 
+            VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
                 Text(store.state.device.displayName)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .styleGuide(.bodySemibold)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
                     .accessibilityIdentifier("DeviceNameLabel")
+
+                if store.state.device.isCurrentSession {
+                    PassYBadge(text: Localizations.currentSession, tint: .blue)
+                } else if store.state.device.hasPendingRequest {
+                    PassYBadge(text: Localizations.pendingRequest, tint: .orange)
+                }
 
                 if store.state.device.isTrusted {
                     Text(Localizations.trusted)
-                        .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                        .styleGuide(.subheadline)
-                        .padding(.top, 2)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("TrustedLabel")
                 }
 
-                VStack(alignment: .leading, spacing: 0) {
-                    if shouldShowRecentlyActiveRow {
-                        recentlyActiveRow
-                    }
-
-                    firstLoginRow
+                if shouldShowRecentlyActiveRow {
+                    recentlyActiveRow
                 }
-                .padding(.top, 2)
+
+                firstLoginRow
             }
+            .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .passYListSeparatorLeading()
 
             if store.state.device.hasPendingRequest {
-                Image(asset: SharedAsset.Icons.chevronRight16)
-                    .imageStyle(.accessoryIcon16)
-                    .accessibilityHidden(true)
+                PassYDisclosureChevron()
             }
         }
-        .padding(16)
+        .padding(.vertical, PassYDesign.Spacing.xSmall)
         .contentShape(Rectangle())
+    }
+
+    /// The SF Symbol of the device type (phone, tablet, computer, browser).
+    private var deviceSymbol: String {
+        switch store.state.device.deviceType.category {
+        case .mobile: "iphone"
+        case .extension: "puzzlepiece.extension.fill"
+        case .webApp: "globe"
+        case .desktop: "laptopcomputer"
+        case .cli, .sdk: "terminal.fill"
+        case .server: "server.rack"
+        case .unknown: "questionmark.circle.fill"
+        }
     }
 
     /// Whether the recently active row should be shown. It's hidden for the current session and
@@ -144,15 +155,14 @@ struct DeviceRow: View {
 
     /// The recently active row with bold label and regular status.
     private var recentlyActiveRow: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: PassYDesign.Spacing.xSmall) {
             Text(Localizations.recentlyActiveLabel)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .styleGuide(.subheadlineSemibold)
+                .fontWeight(.semibold)
 
             Text(store.state.device.activityStatus.localizedString)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .styleGuide(.subheadline)
         }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
         .accessibilityIdentifier("RecentlyActiveRow")
     }
 
@@ -160,13 +170,12 @@ struct DeviceRow: View {
     private var firstLoginRow: some View {
         HStack(spacing: 4) {
             Text(Localizations.firstLoginLabel)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .styleGuide(.subheadlineSemibold)
+                .fontWeight(.semibold)
 
             Text(store.state.formattedFirstLogin)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .styleGuide(.subheadline)
         }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
         .accessibilityIdentifier("FirstLoginRow")
     }
 }
@@ -190,9 +199,7 @@ struct DeviceRow: View {
             pendingRequest: nil,
         )))),
     )
-    .contentBlock()
     .padding()
-    .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
 }
 
 #Preview("Device Row - Pending Request") {
@@ -211,9 +218,7 @@ struct DeviceRow: View {
             pendingRequest: .fixture(),
         )))),
     )
-    .contentBlock()
     .padding()
-    .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
 }
 
 #Preview("Device Row - Trusted Not Current") {
@@ -232,8 +237,6 @@ struct DeviceRow: View {
             pendingRequest: nil,
         )))),
     )
-    .contentBlock()
     .padding()
-    .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
 }
 #endif
