@@ -103,38 +103,27 @@ struct TwoFactorAuthView: View {
 
     /// The continue button.
     private var continueButton: some View {
-        AsyncButton {
-            await store.perform(.continueTapped)
+        Button {
+            Task { await store.perform(.continueTapped) }
         } label: {
             Text(Localizations.continue)
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
+        .passYButtonStyle(.primary, fillsWidth: true)
         .disabled(!store.state.continueEnabled)
         .accessibilityIdentifier("ContinueButton")
     }
 
-    /// The header: method icon (SF Symbol) and instructions.
+    /// The header: the method's SF Symbol, the title and the instructions.
     @ViewBuilder private var header: some View {
         Section {
-            VStack(spacing: 12) {
-                Image(systemName: headerSymbol)
-                    .font(.largeTitle)
-                        .imageScale(.large)
-                    .foregroundStyle(.tint)
-                    .accessibilityHidden(true)
-                Text(store.state.detailsText)
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .listRowBackground(Color.clear)
-            .accessibilityElement(children: .combine)
+            PassYHeroHeader(
+                mark: .symbol(headerSymbol, .accentColor),
+                title: store.state.titleText,
+                message: store.state.detailsText,
+            )
         }
+        .passYPlainListRow()
     }
 
     /// The SF Symbol representing the current method.
@@ -167,6 +156,11 @@ struct TwoFactorAuthView: View {
                 ))
                 .textContentType(.oneTimeCode)
                 .keyboardType(verificationKeyboardType)
+                .submitLabel(.continue)
+                .onSubmit {
+                    guard store.state.continueEnabled else { return }
+                    Task { await store.perform(.continueTapped) }
+                }
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled(true)
                 .accessibilityIdentifier("VerificationCodeEntry")
@@ -178,14 +172,13 @@ struct TwoFactorAuthView: View {
             }
 
             Section {
-                VStack(spacing: 12) {
+                VStack(spacing: PassYDesign.Spacing.medium) {
                     continueButton
                     resendEmailButton
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, PassYDesign.Spacing.large)
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
+            .passYPlainListRow()
         }
     }
 
@@ -206,8 +199,7 @@ struct TwoFactorAuthView: View {
                     await store.perform(.beginDuoAuth)
                 }
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
+            .passYPlainListRow()
         }
     }
 
@@ -221,56 +213,53 @@ struct TwoFactorAuthView: View {
                     await store.perform(.beginWebAuthn)
                 }
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
+            .passYPlainListRow()
         }
     }
 
     /// A prominent full-width launch button.
     private func launchButton(title: String, id: String, action: @escaping () async -> Void) -> some View {
-        AsyncButton {
-            await action()
+        Button {
+            Task { await action() }
         } label: {
             Text(title).frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
+        .passYButtonStyle(.primary, fillsWidth: true)
+        .padding(.horizontal, PassYDesign.Spacing.large)
         .accessibilityIdentifier(id)
     }
 
     /// The remember me toggle.
     private var rememberMeToggle: some View {
-        Toggle(
+        PassYToggleRow(
             Localizations.rememberMe,
             isOn: store.binding(
                 get: { $0.isRememberMeOn },
                 send: { .rememberMeToggleChanged($0) },
             ),
+            identifier: "RememberMeSwitch",
         )
-        .accessibilityIdentifier("RememberMeSwitch")
     }
 
     /// The resend email button for the email authentication option.
     @ViewBuilder private var resendEmailButton: some View {
         if store.state.authMethod == .email {
-            AsyncButton {
-                await store.perform(.resendEmailTapped)
+            Button {
+                Task { await store.perform(.resendEmailTapped) }
             } label: {
                 Label(Localizations.resendCode, systemImage: "arrow.clockwise")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .passYButtonStyle(.secondary, fillsWidth: true)
             .accessibilityIdentifier("ResendCodeButton")
         } else if store.state.authMethod == .yubiKey {
-            AsyncButton {
-                await store.perform(.tryAgainTapped)
+            Button {
+                Task { await store.perform(.tryAgainTapped) }
             } label: {
                 Label(Localizations.tryAgain, systemImage: "arrow.clockwise")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .passYButtonStyle(.secondary, fillsWidth: true)
             .accessibilityIdentifier("TryAgainButton")
         }
     }

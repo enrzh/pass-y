@@ -15,48 +15,47 @@ struct VaultUnlockSetupView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.biometricsPhone,
-                title: Localizations.setUpUnlock,
-                message: Localizations.setUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins,
-            )
-            .padding(.top, 12)
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("faceid", .accentColor),
+                    title: Localizations.setUpUnlock,
+                    message: Localizations.setUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins,
+                )
+            }
+            .passYPlainListRow()
 
-            ContentBlock(dividerLeadingPadding: 12) {
+            Section {
                 ForEach(store.state.unlockMethods) { unlockMethod in
-                    Toggle(isOn: store.bindingAsync(
-                        get: { $0[keyPath: unlockMethod.keyPath] },
-                        perform: { VaultUnlockSetupEffect.toggleUnlockMethod(unlockMethod, newValue: $0) },
-                    )) {
-                        Text(unlockMethod.title)
-                            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    }
-                    .accessibilityIdentifier(unlockMethod.accessibilityIdentifier)
-                    .toggleStyle(.bitwarden)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
+                    PassYToggleRow(
+                        unlockMethod.title,
+                        isOn: store.bindingAsync(
+                            get: { $0[keyPath: unlockMethod.keyPath] },
+                            perform: { VaultUnlockSetupEffect.toggleUnlockMethod(unlockMethod, newValue: $0) },
+                        ),
+                        identifier: unlockMethod.accessibilityIdentifier,
+                    )
                 }
             }
 
-            VStack(spacing: 12) {
-                AsyncButton(Localizations.continue) {
-                    await store.perform(.continueFlow)
+            PassYActionStack {
+                Button {
+                    Task { await store.perform(.continueFlow) }
+                } label: {
+                    Text(Localizations.continue).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.primary())
+                .passYButtonStyle(.primary, fillsWidth: true)
                 .disabled(!store.state.isContinueButtonEnabled)
 
                 if store.state.shouldDisplaySetUpLaterButton {
                     Button(Localizations.setUpLater) {
                         store.send(.setUpLater)
                     }
-                    .buttonStyle(.secondary())
+                    .buttonStyle(.borderless)
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationBar(title: store.state.navigationBarTitle, titleDisplayMode: .inline)
-        .scrollView()
         .task {
             await store.perform(.loadData)
         }

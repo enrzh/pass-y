@@ -61,8 +61,9 @@ class LandingViewTests: BitwardenTestCase {
     @MainActor
     func test_continueButton_tap() async throws {
         processor.state.email = "email@example.com"
-        let button = try subject.inspect().find(asyncButton: Localizations.continue)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.continue)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .continuePressed)
     }
 

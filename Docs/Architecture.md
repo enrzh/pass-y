@@ -229,6 +229,21 @@ component, each with a `#Preview`, in
 | `PassYButtonStyles` | `passYButtonStyle(.primary / .secondary / .destructive)` on the system glass styles. |
 | `PassYCodeRow` | Verification code row: large two-group code, `PassYCountdownRing`, accessibility-size layout; `PassYOneTimeCode` (grouping, spoken digits, label). |
 | `PassYCountdown` | Countdown maths and tone (orange at 5 s, red at 2 s), `PassYCountdownClock` (one 1 Hz clock per page via `passYCountdownClock`), `PassYCountdownRing`. |
+| `PassYSettingsRow` | The settings row (iOS Settings style): small tinted symbol tile, title, value, red count badge, accessory (disclosure, external, checkmark, none), destructive role; one button with the system row highlight, value under the title at accessibility sizes. `PassYSettingsRowLabel` is the same content for `Picker`/`Menu` labels. Navigation stays with the coordinators (the row sends the processor action). |
+| `PassYToggleRow` | Settings switch: optional tile, title, explanation, system `Toggle` (identifier on the toggle). |
+| `PassYValueRow` | Read-only `LabeledContent` row (optional tile, selectable value). |
+| `PassYFooterText` | Section footer text with an optional inline link button ("Learn more"). |
+| `PassYSetupSection` | "Set up" prompt as a `Form` section: headline tile and text, action, secondary and dismiss rows. |
+| `PassYHeroHeader` | Centred header of auth and one-off pages: `PassYShieldMark` (the Pass-Y shield drawn on the logo grid) or an SF Symbol, title, message; `passYPlainListRow()` puts it on the page background. |
+| `PassYActionStack` | Borderless `Form` section for the page actions: one primary button, secondary/plain buttons below. |
+| `PassYSecureField` | Password/PIN field: `SecureField` swapped for a `TextField` while revealed, eye button, no autocorrection; caller adds focus, submit label and content type. |
+| `PassYFingerprintPhrase` | Fingerprint phrase row (caption, monospaced pink phrase, selectable). |
+| `PassYLoadingContent` | Shows a `LoadingState`: data, error (`PassYEmptyState`) or a delayed system spinner (`PassYDelayedSpinner`). |
+
+Settings (main page and sub-pages) and the auth pages (landing, login, unlock, two-step login, device login, SSO
+decryption options, registration and master password pages, login requests) are built from these components: settings
+pages are grouped `Form`s of `PassYSettingsRow` / `PassYToggleRow` / `Picker` rows with `PassYFooterText` footers,
+auth pages a `PassYHeroHeader`, system fields and one primary action in a `PassYActionStack`.
 
 Vault rows adapt their items onto these components in `VaultListItemRowView` (equatable `VaultListRowCell` stays
 the performance boundary) and `VaultItemIconTile`; Send and folder rows use `PassYRow` directly.

@@ -15,21 +15,9 @@ struct SetMasterPasswordView: View {
     var body: some View {
         Form {
             Section {
-                VStack(spacing: 8) {
-                    Image(systemName: "lock.shield")
-                        .font(.largeTitle)
-                        .imageScale(.large)
-                        .foregroundStyle(.tint)
-                    Text(Localizations.chooseYourMasterPassword)
-                        .font(.title3.weight(.semibold))
-                    Text(store.state.explanationText)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-                .listRowBackground(Color.clear)
+                PassYHeroHeader(title: Localizations.chooseYourMasterPassword, message: store.state.explanationText)
             }
+            .passYPlainListRow()
 
             if store.state.resetPasswordAutoEnroll {
                 Section {
@@ -48,63 +36,51 @@ struct SetMasterPasswordView: View {
             }
 
             Section {
-                BitwardenTextField(
-                    title: Localizations.masterPasswordRequired,
+                PassYSecureField(
+                    Localizations.masterPasswordRequired,
                     text: store.binding(
                         get: \.masterPassword,
                         send: SetMasterPasswordAction.masterPasswordChanged,
                     ),
-                    footer: Localizations.theMasterPasswordIsThePasswordYouUseToAccessYourVault,
-                    accessibilityIdentifier: "NewPasswordField",
-                    passwordVisibilityAccessibilityId: "NewPasswordVisibilityToggle",
-                    isPasswordVisible: store.binding(
-                        get: \.isMasterPasswordRevealed,
-                        send: SetMasterPasswordAction.revealMasterPasswordFieldPressed,
-                    ),
-                )
-                .textFieldConfiguration(.password)
+                    isRevealed: store.state.isMasterPasswordRevealed,
+                    contentType: .newPassword,
+                    fieldIdentifier: "NewPasswordField",
+                    toggleIdentifier: "NewPasswordVisibilityToggle",
+                ) { store.send(.revealMasterPasswordFieldPressed($0)) }
 
-                BitwardenTextField(
-                    title: Localizations.retypeMasterPasswordRequired,
+                PassYSecureField(
+                    Localizations.retypeMasterPasswordRequired,
                     text: store.binding(
                         get: \.masterPasswordRetype,
                         send: SetMasterPasswordAction.masterPasswordRetypeChanged,
                     ),
-                    accessibilityIdentifier: "RetypePasswordField",
-                    passwordVisibilityAccessibilityId: "RetypePasswordVisibilityToggle",
-                    isPasswordVisible: store.binding(
-                        get: \.isMasterPasswordRevealed,
-                        send: SetMasterPasswordAction.revealMasterPasswordFieldPressed,
-                    ),
-                )
-                .textFieldConfiguration(.password)
+                    isRevealed: store.state.isMasterPasswordRevealed,
+                    contentType: .newPassword,
+                    fieldIdentifier: "RetypePasswordField",
+                    toggleIdentifier: "RetypePasswordVisibilityToggle",
+                ) { store.send(.revealMasterPasswordFieldPressed($0)) }
+            } footer: {
+                PassYFooterText(Localizations.theMasterPasswordIsThePasswordYouUseToAccessYourVault)
+            }
 
-                BitwardenTextField(
-                    title: Localizations.masterPasswordHint,
+            Section {
+                TextField(
+                    Localizations.masterPasswordHint,
                     text: store.binding(
                         get: \.masterPasswordHint,
                         send: SetMasterPasswordAction.masterPasswordHintChanged,
                     ),
-                    accessibilityIdentifier: "MasterPasswordHintLabel",
-                    footerContent: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(Localizations.bitwardenCannotResetALostOrForgottenMasterPassword)
-                                .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-                                .styleGuide(.footnote)
-
-                            Button {
-                                store.send(.preventAccountLockTapped)
-                            } label: {
-                                Text(Localizations.learnAboutWaysToPreventAccountLockout)
-                            }
-                            .buttonStyle(.bitwardenBorderless)
-                        }
-                        .padding(.vertical, 12)
-                    },
                 )
+                .accessibilityIdentifier("MasterPasswordHintLabel")
+            } footer: {
+                PassYFooterText(
+                    Localizations.bitwardenCannotResetALostOrForgottenMasterPassword,
+                    link: Localizations.learnAboutWaysToPreventAccountLockout,
+                ) {
+                    store.send(.preventAccountLockTapped)
+                }
             }
         }
-        .nativeFormRows()
         .passYGroupedBackground()
         .navigationTitle(Localizations.setMasterPassword)
         .navigationBarTitleDisplayMode(.inline)

@@ -54,29 +54,30 @@ struct ProfileSwitcherRow: View {
                     .padding(.trailing, 16)
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
-                        VStack(alignment: .leading, spacing: -4) {
+                        VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
                             Text(title)
-                                .styleGuide(.body)
+                                .font(.body)
                                 .accessibilityIdentifier("AccountEmailLabel")
-                                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+                                .foregroundStyle(.primary)
                             if let hostSubtitle {
                                 Text(hostSubtitle)
-                                    .styleGuide(.subheadline)
+                                    .font(.subheadline)
                                     .accessibilityIdentifier("AccountHostUrlLabel")
-                                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
+                                    .foregroundStyle(.secondary)
                             }
                             if let statusSubtitle {
                                 Text(statusSubtitle)
-                                    .styleGuide(.subheadline, isItalic: true)
+                                    .font(.subheadline)
                                     .accessibilityIdentifier("AccountStatusLabel")
-                                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         .lineLimit(1)
                         .truncationMode(.tail)
                         Spacer()
                         trailingIcon?
-                            .imageStyle(.rowIcon(color: trailingIconColor))
+                            .font(.title3)
+                            .foregroundStyle(trailingIconColor)
                             .accessibilityIdentifier(store.state.trailingIconAccessibilityID)
                     }
                     .padding([.top, .bottom], (statusSubtitle != nil || hostSubtitle != nil) ? 9 : 19)
@@ -87,16 +88,13 @@ struct ProfileSwitcherRow: View {
             }
             .padding([.leading], 16)
         }
-        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
+        .background(Color(.secondarySystemGroupedBackground))
     }
 
     /// A row divider view
     @ViewBuilder private var divider: some View {
         if store.state.showDivider {
-            Rectangle()
-                .frame(height: 1.0)
-                .frame(maxWidth: .infinity)
-                .foregroundColor(SharedAsset.Colors.strokeDivider.swiftUIColor)
+            Divider()
         } else {
             EmptyView()
         }
@@ -114,9 +112,7 @@ struct ProfileSwitcherRow: View {
             )
             .accessibilityLabel(Localizations.account)
         case .addAccount:
-            SharedAsset.Icons.plus16.swiftUIImage
-                .imageStyle(.accessoryIcon16(color: SharedAsset.Colors.iconSecondary.swiftUIColor))
-                .padding(4)
+            PassYIconTile(systemImage: "plus", tint: .accentColor, size: PassYDesign.IconSize.small)
         }
     }
 
@@ -169,12 +165,12 @@ struct ProfileSwitcherRow: View {
     private var trailingIcon: Image? {
         switch store.state.rowType {
         case .active:
-            SharedAsset.Icons.checkCircle24.swiftUIImage
+            Image(systemName: "checkmark.circle.fill")
         case let .alternate(account):
             if account.isUnlocked {
-                SharedAsset.Icons.unlocked24.swiftUIImage
+                Image(systemName: "lock.open")
             } else {
-                SharedAsset.Icons.locked24.swiftUIImage
+                Image(systemName: "lock.fill")
             }
         case .addAccount:
             nil
@@ -185,11 +181,11 @@ struct ProfileSwitcherRow: View {
     private var trailingIconColor: Color {
         switch store.state.rowType {
         case .active:
-            SharedAsset.Colors.iconPrimary.swiftUIColor
+            .accentColor
         case .alternate:
-            SharedAsset.Colors.textSecondary.swiftUIColor
+            .secondary
         case .addAccount:
-            SharedAsset.Colors.backgroundSecondary.swiftUIColor
+            .clear
         }
     }
 

@@ -17,16 +17,37 @@ struct LoginDecryptionOptionsView: View {
         LoginDecryptionOptionsEffect,
     >
     var body: some View {
-        VStack(alignment: .center, spacing: 24) {
-            rememberThisDeviceToggle
+        Form {
+            Section {
+                PassYHeroHeader(title: Localizations.loggingIn)
+            }
+            .passYPlainListRow()
 
-            VStack(spacing: 12) {
-                decryptMethodButtons
+            Section {
+                PassYToggleRow(
+                    Localizations.rememberThisDevice,
+                    subtitle: Localizations.turnOffUsingPublicDevice,
+                    isOn: store.binding(
+                        get: \.isRememberDeviceToggleOn,
+                        send: LoginDecryptionOptionsAction.toggleRememberDevice,
+                    ),
+                    identifier: "RememberThisDeviceToggle",
+                )
             }
 
-            loggedInAs
+            Section {
+                VStack(spacing: PassYDesign.Spacing.medium) {
+                    decryptMethodButtons
+                }
+                .padding(.horizontal, PassYDesign.Spacing.large)
+            }
+            .passYPlainListRow()
+
+            Section {
+                loggedInAs
+            }
+            .passYPlainListRow()
         }
-        .scrollView()
         .navigationBar(title: Localizations.loggingIn, titleDisplayMode: .inline)
         .navigationBarBackButtonHidden(true)
         .task {
@@ -36,95 +57,74 @@ struct LoginDecryptionOptionsView: View {
 
     // MARK: Private Views
 
-    /// Toggle to remember the device
-    private var rememberThisDeviceToggle: some View {
-        BitwardenToggle(
-            Localizations.rememberThisDevice,
-            isOn: store.binding(
-                get: \.isRememberDeviceToggleOn,
-                send: LoginDecryptionOptionsAction.toggleRememberDevice,
-            ),
-        ) {
-            Text(Localizations.turnOffUsingPublicDevice)
-                .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-                .styleGuide(.footnote)
+    /// A full-width action button that performs an effect.
+    private func actionButton(
+        _ title: String,
+        kind: PassYButtonKind,
+        identifier: String,
+        effect: LoginDecryptionOptionsEffect,
+    ) -> some View {
+        Button {
+            Task { await store.perform(effect) }
+        } label: {
+            Text(title).frame(maxWidth: .infinity)
         }
-        .accessibilityIdentifier("RememberThisDeviceToggle")
-        .contentBlock()
+        .passYButtonStyle(kind, fillsWidth: true)
+        .accessibilityIdentifier(identifier)
     }
 
-    /// Continue button that will create a JIT user
-    private var continueButton: some View {
-        AsyncButton(Localizations.continue) {
-            await store.perform(.continuePressed)
-        }
-        .buttonStyle(.primary())
-        .accessibilityIdentifier("ContinueButton")
-    }
-
-    /// Button to approve with other device
-    private var approveWithOtherDeviceButton: some View {
-        AsyncButton(Localizations.approveWithMyOtherDevice) {
-            await store.perform(.approveWithOtherDevicePressed)
-        }
-        .buttonStyle(.primary())
-        .accessibilityIdentifier("ApproveWithOtherDeviceButton")
-    }
-
-    /// Button to request admin approval
-    private var requestAdminApprovalButton: some View {
-        AsyncButton(Localizations.requestAdminApproval) {
-            await store.perform(.requestAdminApprovalPressed)
-        }
-        .buttonStyle(.secondary())
-        .accessibilityIdentifier("RequestAdminApprovalButton")
-    }
-
-    /// Button to approve with master password
-    private var approveWithMasterPasswordButton: some View {
-        AsyncButton(Localizations.approveWithMasterPassword) {
-            await store.perform(.approveWithMasterPasswordPressed)
-        }
-        .buttonStyle(.secondary())
-        .accessibilityIdentifier("ApproveWithMasterPasswordButton")
-    }
-
-    /// Show decryption method buttons based on user configurations
+    /// The decrypt method buttons: the first available one is the primary action.
     @ViewBuilder var decryptMethodButtons: some View {
         if store.state.shouldShowContinueButton {
-            continueButton
+            actionButton(Localizations.continue, kind: .primary, identifier: "ContinueButton", effect: .continuePressed)
         }
 
         if store.state.shouldShowApproveWithOtherDeviceButton {
-            approveWithOtherDeviceButton
+            actionButton(
+                Localizations.approveWithMyOtherDevice,
+                kind: store.state.shouldShowContinueButton ? .secondary : .primary,
+                identifier: "ApproveWithOtherDeviceButton",
+                effect: .approveWithOtherDevicePressed,
+            )
         }
 
         if store.state.shouldShowAdminApprovalButton {
-            requestAdminApprovalButton
+            actionButton(
+                Localizations.requestAdminApproval,
+                kind: .secondary,
+                identifier: "RequestAdminApprovalButton",
+                effect: .requestAdminApprovalPressed,
+            )
         }
 
         if store.state.shouldShowApproveMasterPasswordButton {
-            approveWithMasterPasswordButton
+            actionButton(
+                Localizations.approveWithMasterPassword,
+                kind: .secondary,
+                identifier: "ApproveWithMasterPasswordButton",
+                effect: .approveWithMasterPasswordPressed,
+            )
         }
     }
 
-    /// The "logged in as..." text along with the not you button.
+    /// The account being logged in, with a "Not you?" button.
     @ViewBuilder var loggedInAs: some View {
-        VStack(alignment: .center, spacing: 2) {
-            Text(Localizations.loggingInAsX(
-                store.state.email,
-            ))
-            .accessibilityIdentifier("LoggingInAsLabel")
-            .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-            .multilineTextAlignment(.center)
+        VStack(alignment: .center, spacing: PassYDesign.Spacing.xSmall) {
+            Text(Localizations.loggingInAsX(store.state.email))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .accessibilityIdentifier("LoggingInAsLabel")
 
-            AsyncButton(Localizations.notYou) {
-                await store.perform(.notYouPressed)
+            Button(Localizations.notYou) {
+                Task { await store.perform(.notYouPressed) }
             }
+            .fontWeight(.semibold)
+            .buttonStyle(.borderless)
             .accessibilityIdentifier("NotYouButton")
-            .foregroundColor(SharedAsset.Colors.textInteraction.swiftUIColor)
         }
-        .styleGuide(.footnote)
+        .font(.footnote)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, PassYDesign.Spacing.small)
     }
 }
 

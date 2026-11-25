@@ -17,72 +17,63 @@ struct RemoveMasterPasswordView: View {
     var body: some View {
         Form {
             Section {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(Localizations.removeMasterPasswordConfirmDomain)
-                        .foregroundStyle(.primary)
-                    Text(Localizations.keyConnectorOrganization)
-                        .foregroundStyle(.primary)
-                    Text(store.state.organizationName)
-                        .foregroundStyle(.secondary)
-                    Text(Localizations.keyConnectorDomain)
-                        .foregroundStyle(.primary)
-                    Text(store.state.keyConnectorUrl)
-                        .foregroundStyle(.secondary)
-                }
-                .multilineTextAlignment(.leading)
+                PassYHeroHeader(
+                    mark: .symbol("key.horizontal.fill", .accentColor),
+                    title: Localizations.removeMasterPassword,
+                    message: Localizations.removeMasterPasswordConfirmDomain,
+                )
+            }
+            .passYPlainListRow()
+
+            Section {
+                PassYValueRow(Localizations.keyConnectorOrganization, value: store.state.organizationName)
+                PassYValueRow(Localizations.keyConnectorDomain, value: store.state.keyConnectorUrl, isSelectable: true)
             }
 
             Section {
-                BitwardenTextField(
-                    title: Localizations.masterPassword,
+                PassYSecureField(
+                    Localizations.masterPassword,
                     text: store.binding(
                         get: \.masterPassword,
                         send: RemoveMasterPasswordAction.masterPasswordChanged,
                     ),
-                    footer: nil,
-                    accessibilityIdentifier: "MasterPasswordEntry",
-                    passwordVisibilityAccessibilityId: "PasswordVisibilityToggle",
-                    isPasswordAutoFocused: true,
-                    isPasswordVisible: store.binding(
-                        get: \.isMasterPasswordRevealed,
-                        send: RemoveMasterPasswordAction.revealMasterPasswordFieldPressed,
-                    ),
-                )
-                .textFieldConfiguration(.password)
-                .submitLabel(.go)
-                .onSubmit {
-                    Task {
-                        await store.perform(.continueFlow)
+                    isRevealed: store.state.isMasterPasswordRevealed,
+                    fieldIdentifier: "MasterPasswordEntry",
+                ) { store.send(.revealMasterPasswordFieldPressed($0)) }
+                    .focused($isPasswordFocused)
+                    .submitLabel(.go)
+                    .onSubmit {
+                        Task {
+                            await store.perform(.continueFlow)
+                        }
                     }
-                }
             }
 
-            Section {
-                AsyncButton {
-                    await store.perform(.continueFlow)
+            PassYActionStack {
+                Button {
+                    Task { await store.perform(.continueFlow) }
                 } label: {
                     Text(Localizations.continue).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
+                .passYButtonStyle(.primary, fillsWidth: true)
 
-                AsyncButton {
-                    await store.perform(.leaveOrganizationFlow)
+                Button(role: .destructive) {
+                    Task { await store.perform(.leaveOrganizationFlow) }
                 } label: {
-                    Text(Localizations.leaveOrganization).frame(maxWidth: .infinity)
+                    Text(Localizations.leaveOrganization)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
+                .buttonStyle(.borderless)
             }
         }
-        .nativeFormRows()
         .passYGroupedBackground()
         .navigationBar(title: Localizations.removeMasterPassword, titleDisplayMode: .inline)
+        .task {
+            isPasswordFocused = true
+        }
     }
+
+    /// Whether the master password field has focus (focused when the page appears).
+    @FocusState private var isPasswordFocused: Bool
 }
 
 // MARK: - Previews

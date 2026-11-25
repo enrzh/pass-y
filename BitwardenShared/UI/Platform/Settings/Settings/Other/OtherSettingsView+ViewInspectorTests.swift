@@ -42,8 +42,9 @@ class OtherSettingsViewTests: BitwardenTestCase {
     /// Tapping the sync now button performs the `.syncNow` effect.
     @MainActor
     func test_syncNow_tapped() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.syncNow)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.syncNow)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .syncNow)
     }
 

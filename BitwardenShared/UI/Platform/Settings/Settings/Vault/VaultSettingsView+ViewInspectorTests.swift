@@ -64,8 +64,8 @@ class VaultSettingsViewTests: BitwardenTestCase {
         processor.state.badgeState = .fixture(importLoginsSetupProgress: .setUpLater)
         let section = try subject.inspect().find(setupSection: Localizations.importSavedLogins)
         _ = try section.find(text: Localizations.importSavedLoginsDescriptionLong)
-        _ = try section.find(asyncButton: Localizations.getStarted)
-        _ = try section.find(asyncButton: Localizations.dismiss)
+        _ = try section.find(button: Localizations.getStarted)
+        _ = try section.find(button: Localizations.dismiss)
     }
 
     /// Tapping the dismiss button in the import logins action card sends the
@@ -75,8 +75,9 @@ class VaultSettingsViewTests: BitwardenTestCase {
         processor.state.badgeState = .fixture(importLoginsSetupProgress: .setUpLater)
         let actionCard = try subject.inspect().find(setupSection: Localizations.importSavedLogins)
 
-        let button = try actionCard.find(asyncButton: Localizations.dismiss)
-        try await button.tap()
+        let button = try actionCard.find(button: Localizations.dismiss)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects, [.dismissImportLoginsActionCard])
     }
 
@@ -87,8 +88,9 @@ class VaultSettingsViewTests: BitwardenTestCase {
         processor.state.badgeState = .fixture(importLoginsSetupProgress: .setUpLater)
         let actionCard = try subject.inspect().find(setupSection: Localizations.importSavedLogins)
 
-        let button = try actionCard.find(asyncButton: Localizations.getStarted)
-        try await button.tap()
+        let button = try actionCard.find(button: Localizations.getStarted)
+        try button.tap()
+        try await waitForAsync { !self.processor.dispatchedActions.isEmpty }
         XCTAssertEqual(processor.dispatchedActions, [.showImportLogins])
     }
 }

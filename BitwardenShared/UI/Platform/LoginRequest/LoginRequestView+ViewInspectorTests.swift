@@ -47,16 +47,18 @@ class LoginRequestViewTests: BitwardenTestCase {
     /// Tapping the confirm button performs the `.answerRequest(approve:)` effect.
     @MainActor
     func test_confirmButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.confirmLogIn)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.confirmLogIn)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .answerRequest(approve: true))
     }
 
     /// Tapping the deny button performs the `.answerRequest(approve:)` effect.
     @MainActor
     func test_denyButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.denyLogIn)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.denyLogIn)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .answerRequest(approve: false))
     }
 }

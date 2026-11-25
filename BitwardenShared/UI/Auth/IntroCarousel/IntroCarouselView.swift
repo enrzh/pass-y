@@ -34,15 +34,13 @@ struct IntroCarouselView: View {
             .animation(.default, value: store.state.currentPageIndex)
 
             VStack(spacing: 12) {
-                AsyncButton {
-                    await store.perform(.createAccount)
+                Button {
+                    Task { await store.perform(.createAccount) }
                 } label: {
                     Text(Localizations.createAccount)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.capsule)
-                .controlSize(.large)
+                .passYButtonStyle(.primary, fillsWidth: true)
 
                 Button {
                     store.send(.logIn)

@@ -19,14 +19,24 @@ struct MasterPasswordGeneratorView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            passwordText
-
-            generateButton
-
-            instructionsPreventAccountLockView
+        Form {
+            Section {
+                passwordText
+                Button {
+                    Task { await store.perform(.generate) }
+                } label: {
+                    Label(Localizations.generate, systemImage: "arrow.clockwise")
+                }
+                .accessibilityIdentifier("GenerateButton")
+            } footer: {
+                PassYFooterText(
+                    Localizations.writeThisPasswordDownAndKeepItSomewhereSafe,
+                    link: Localizations.learnAboutOtherWaysToPreventAccountLockout,
+                ) {
+                    store.send(.preventAccountLock)
+                }
+            }
         }
-        .scrollView()
         .navigationBar(
             title: Localizations.generateMasterPassword,
             titleDisplayMode: .inline,
@@ -43,50 +53,15 @@ struct MasterPasswordGeneratorView: View {
 
     // MARK: Private views
 
-    /// The generated password view.
+    /// The generated password (monospaced, coloured digits and symbols), selectable.
     private var passwordText: some View {
         PasswordText(
             password: store.state.generatedPassword,
             isPasswordVisible: true,
         )
         .frame(maxWidth: .infinity, minHeight: 28, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-    }
-
-    /// The generate button.
-    private var generateButton: some View {
-        AsyncButton {
-            await store.perform(.generate)
-        } label: {
-            HStack(spacing: 8) {
-                Image(decorative: SharedAsset.Icons.generate16)
-
-                Text(Localizations.generate)
-            }
-        }
-        .buttonStyle(.primary(shouldFillWidth: true))
-    }
-
-    /// The password instructions and prevent account lockout button.
-    private var instructionsPreventAccountLockView: some View {
-        VStack(alignment: .center, spacing: 0) {
-            Text(Localizations.writeThisPasswordDownAndKeepItSomewhereSafe)
-                .styleGuide(.footnote)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .multilineTextAlignment(.center)
-
-            Button {
-                store.send(.preventAccountLock)
-            } label: {
-                Text(Localizations.learnAboutOtherWaysToPreventAccountLockout)
-                    .styleGuide(.footnote, weight: .semibold)
-                    .foregroundStyle(SharedAsset.Colors.textInteraction.swiftUIColor)
-                    .multilineTextAlignment(.leading)
-            }
-        }
+        .padding(.vertical, PassYDesign.Spacing.xSmall)
+        .textSelection(.enabled)
     }
 }
 

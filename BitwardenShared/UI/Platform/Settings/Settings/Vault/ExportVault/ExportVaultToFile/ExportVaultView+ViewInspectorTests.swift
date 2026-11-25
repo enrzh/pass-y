@@ -137,8 +137,9 @@ class ExportVaultViewTests: BitwardenTestCase {
     @MainActor
     func test_sendCode_tap() async throws {
         processor.state.hasMasterPassword = false
-        let sendCodeButton = try subject.inspect().find(asyncButton: Localizations.sendCode)
-        try await sendCodeButton.tap()
+        let sendCodeButton = try subject.inspect().find(button: Localizations.sendCode)
+        try sendCodeButton.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .sendCodeTapped)
     }
 }
