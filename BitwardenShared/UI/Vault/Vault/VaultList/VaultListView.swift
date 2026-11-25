@@ -29,8 +29,12 @@ private struct SearchableVaultListView: View {
     /// Whether the search results list is in edit mode (follows `isSelecting`, delayed when leaving).
     @SwiftUI.State private var listIsEditing = false
 
+    /// The layout preferences (Customize). Applied inside the equatable boundaries (home list, search list), so a
+    /// change of unrelated state never re-applies them; the home slice is part of the home list key.
+    let layoutStore: PassYLayoutStore
+
     /// The home slice of the Customize preferences (tiles, sections, tile layout).
-    @Environment(\.passYHomeLayout) private var homeLayout
+    private var homeLayout: PassYLayoutPreferences.Home { layoutStore.home }
 
     var body: some View {
         // A ZStack with hidden children is used here so that opening and closing the
@@ -53,6 +57,7 @@ private struct SearchableVaultListView: View {
             // choice of the content scroll view for the large title, and the hidden one still diffed every change.
             if isSearching {
                 search
+                    .passYLayoutEnvironment(layoutStore)
             }
         }
         .animation(.easeInOut, value: store.state.organizationUserNotificationBannerData)
@@ -176,6 +181,7 @@ private struct SearchableVaultListView: View {
                 } else {
                     vaultContents(with: sections)
                         .readableContentWidth(760)
+                        .passYLayoutEnvironment(layoutStore)
                 }
             } errorView: { errorMessage in
                 errorViewWithRetry(errorMessage: errorMessage)
@@ -655,9 +661,8 @@ struct VaultListView: View {
                 isSearching: shell.isEditing || !store.state.searchText.isEmpty,
                 store: store,
                 timeProvider: timeProvider,
+                layoutStore: layoutStore,
             )
-            // Customize: the device's layout preferences for the home, its rows and the search results.
-            .passYLayoutEnvironment(layoutStore)
             .passYSearchTarget(
                 id: ObjectIdentifier(store),
                 isPushed: false,

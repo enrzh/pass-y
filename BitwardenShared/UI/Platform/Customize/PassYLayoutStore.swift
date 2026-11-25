@@ -10,7 +10,7 @@ import SwiftUI
 ///
 /// Pages are separate hosting controllers (there is no single SwiftUI root), so every list page applies the
 /// preferences with `passYLayoutEnvironment()`; rows then read only the small value they need from the environment
-/// (`passYRowOptions`, `passYTileColors`, `passYCodeOptions`, `passYHomeLayout`).
+/// (`passYRowOptions`, `passYTileColors`, `passYCodeOptions`); the vault home reads the home slice from the store itself.
 ///
 @MainActor
 @Observable
@@ -181,9 +181,6 @@ extension EnvironmentValues {
 
     /// The code options of the page.
     @Entry var passYCodeOptions = PassYCodeOptions()
-
-    /// The vault home slice (read by the home only).
-    @Entry var passYHomeLayout = PassYLayoutPreferences.Home()
 }
 
 extension View {
@@ -220,6 +217,5 @@ private struct PassYLayoutEnvironmentModifier: ViewModifier {
                 showsRing: codes.showsCountdownRing,
                 showsSeconds: codes.showsCountdownSeconds,
             ))
-            .environment(\.passYHomeLayout, store.home)
     }
 }
