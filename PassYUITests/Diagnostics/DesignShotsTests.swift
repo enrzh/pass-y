@@ -24,7 +24,9 @@ final class DesignShotsTests: PassYUITestCase {
                 sleep(3); capture(app, mode, 4, "codes"); back(app)
             }
             let search = app.searchFields.firstMatch
-            if tapIfPresent(search) {
+            // The search shot is skipped when the field does not take keyboard focus (seen once on the iPad).
+            if tapIfPresent(search), (search.value(forKey: "hasKeyboardFocus") as? Bool) ?? false
+                || { sleep(2); return (search.value(forKey: "hasKeyboardFocus") as? Bool) ?? false }() {
                 sleep(1); typeSearch(app, "e"); sleep(2)
                 capture(app, mode, 5, "search")
                 let cancel = app.buttons["VaultSearchCancel"]
