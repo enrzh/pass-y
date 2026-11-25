@@ -152,6 +152,11 @@ struct AddEditLoginItemView: View {
                     .accessibilityIdentifier("CopyTotpButton")
                 }
             }
+            // Not a password: without a content type iOS took the masked key for a new password and offered
+            // "Save Password?" when the sheet closed (seen in ItemDetailTests.test_totpCodeShown).
+            .textContentType(.oneTimeCode)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
             .onSubmit {
                 store.send(.totpFieldLeftFocus)
                 focusNextField($focusedField)

@@ -43,7 +43,7 @@ struct ManualEntryView: View {
                     identifier: "AddTOTPManuallyField",
                     isMonospaced: true,
                 )
-                .textInputAutocapitalization(.characters)
+                .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
             } header: {
                 PassYSectionHeader(Localizations.enterKeyManually)

@@ -346,11 +346,16 @@ struct ViewItemDetailsView: View {
 
     /// A line of where the item belongs: symbol and name.
     private func belongingView(systemImage: String, name: String) -> some View {
-        Label(name, systemImage: systemImage)
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
-            .accessibilityElement(children: .combine)
+        HStack(alignment: .firstTextBaseline, spacing: PassYDesign.Spacing.xSmall + 2) {
+            Image(systemName: systemImage)
+                .accessibilityHidden(true)
+            Text(name)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .combine)
     }
 
     /// A custom field row.
