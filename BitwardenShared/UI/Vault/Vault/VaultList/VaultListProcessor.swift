@@ -250,6 +250,8 @@ final class VaultListProcessor: StateProcessor<
             setSectionExpanded(sectionId: sectionId, isExpanded: isExpanded)
         case .settingsPressed:
             coordinator.navigate(to: .settings)
+        case .customizePressed:
+            coordinator.navigate(to: .customize)
         case .showImportLogins:
             coordinator.navigate(to: .importLogins)
         case let .toastShown(newValue):
@@ -974,7 +976,10 @@ extension VaultListProcessor {
                 #endif
                 let collapsedSectionIds = await (try? services.stateService.getCollapsedVaultListSectionIds()) ?? []
                 guard !Task.isCancelled else { return }
+                // Customize: the sections chosen as "collapsed when opened" start collapsed; the header chevrons
+                // stay the one source of the collapsed state from here on (persisted per account as before).
                 self?.state.collapsedSectionIds = Set(collapsedSectionIds)
+                    .union(PassYLayoutStore.shared.home.collapsedSections)
                 // Right after an unlock the first list is being built already (PassYVaultListWarmup, started with the
                 // unlock): show it as soon as it is ready instead of decrypting the vault a second time first.
                 if case .loading = self?.state.loadingState,

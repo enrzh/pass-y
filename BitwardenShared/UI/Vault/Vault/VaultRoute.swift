@@ -38,6 +38,9 @@ public enum VaultRoute: Equatable, Hashable {
     ///
     case dismiss(_ action: DismissAction? = nil)
 
+    /// A route to the Customize screen (shown in the Settings stack).
+    case customize
+
     /// A route to edit an item.
     ///
     /// - Parameter cipher: The `CipherView` to edit.

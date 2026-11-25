@@ -151,24 +151,11 @@ struct VaultListItemRowView: View {
         ) {
             tile(state)
         } titleAccessory: {
-            if cipherItem.favorite {
-                PassYBadge(
-                    systemImage: "star.fill",
-                    tint: .yellow,
-                    label: Localizations.favorite,
-                    identifier: "CipherFavoriteIcon",
-                )
-            }
-            if cipherItem.organizationId != nil {
-                PassYBadge(systemImage: "person.2.fill", label: Localizations.shared, identifier: "CipherInCollectionIcon")
-            }
-            if cipherItem.attachments > 0 {
-                PassYBadge(
-                    systemImage: "paperclip",
-                    label: Localizations.attachments,
-                    identifier: "CipherWithAttachmentsIcon",
-                )
-            }
+            CipherRowBadges(
+                favorite: cipherItem.favorite,
+                shared: cipherItem.organizationId != nil,
+                attachments: cipherItem.attachments > 0,
+            )
         }
         .passYRowButton(identifier: "VaultListItemRowButton", action: press)
         .accessibilityActions {
@@ -271,6 +258,39 @@ struct VaultListItemRowView: View {
     /// The more-options action kinds of this row (VoiceOver actions and the context menu), empty in an extension.
     private func moreOptionsKinds(_ state: VaultListItemRowState) -> [MoreOptionsActionKind] {
         state.isFromExtension ? [] : state.item.moreOptionsActionKinds(hasPremium: state.hasPremium)
+    }
+}
+
+// MARK: - CipherRowBadges
+
+/// The quiet badges after a cipher name (favourite, shared, attachments), each shown unless switched off in Customize
+/// (`passYBadgeOptions`). Only this view reads the option, so the row itself is not evaluated again for it.
+private struct CipherRowBadges: View {
+    let favorite: Bool
+    let shared: Bool
+    let attachments: Bool
+
+    @Environment(\.passYBadgeOptions) private var options
+
+    var body: some View {
+        if favorite, options.favorite {
+            PassYBadge(
+                systemImage: "star.fill",
+                tint: .yellow,
+                label: Localizations.favorite,
+                identifier: "CipherFavoriteIcon",
+            )
+        }
+        if shared, options.shared {
+            PassYBadge(systemImage: "person.2.fill", label: Localizations.shared, identifier: "CipherInCollectionIcon")
+        }
+        if attachments, options.attachments {
+            PassYBadge(
+                systemImage: "paperclip",
+                label: Localizations.attachments,
+                identifier: "CipherWithAttachmentsIcon",
+            )
+        }
     }
 }
 

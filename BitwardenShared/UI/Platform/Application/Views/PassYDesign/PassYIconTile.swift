@@ -36,6 +36,9 @@ struct PassYIconTile<Content: View>: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
+    /// The page's tile colours (Customize: colourful or monochrome).
+    @Environment(\.passYTileColors) private var tileColors
+
     /// Dynamic Type scale of the tile, relative to the row title.
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
 
@@ -74,7 +77,7 @@ struct PassYIconTile<Content: View>: View {
     /// The tile fill.
     private var background: Color {
         switch style {
-        case let .tinted(tint): tint.opacity(colorScheme == .dark ? 0.24 : 0.14)
+        case let .tinted(tint): tileColors.tint(tint).opacity(colorScheme == .dark ? 0.24 : 0.14)
         case .plain: Color(.systemBackground)
         }
     }
@@ -137,10 +140,14 @@ struct PassYTileGlyph: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
+    /// The page's tile colours.
+    @Environment(\.passYTileColors) private var tileColors
+
     /// Dynamic Type scale, the same as the tile's.
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
 
     var body: some View {
+        let tint = tileColors.tint(tint)
         let color = colorScheme == .dark ? tint : tint.mix(with: .black, by: 0.25)
         let side = PassYDesign.IconSize.scaled(size, by: scale)
         Group {
@@ -161,6 +168,15 @@ struct PassYTileGlyph: View {
         }
         .frame(width: side, height: side)
         .foregroundStyle(color)
+    }
+}
+
+// MARK: - Tile colours
+
+extension PassYLayoutPreferences.TileColors {
+    /// The tint drawn for a tile of colour `tint`: the colour itself, or one neutral gray when monochrome.
+    func tint(_ tint: Color) -> Color {
+        self == .monochrome ? .gray : tint
     }
 }
 
