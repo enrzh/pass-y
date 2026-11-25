@@ -50,40 +50,45 @@ class LoginDecryptionOptionsViewTests: BitwardenTestCase {
     /// Tapping the approve with master password button dispatches the `.approveWithMasterPasswordPressed` action.
     @MainActor
     func test_approveMasterPasswordButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.approveWithMasterPassword)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.approveWithMasterPassword)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .approveWithMasterPasswordPressed)
     }
 
     /// Tapping the approve with my other device button dispatches the `.approveWithOtherDevicePressed` action.
     @MainActor
     func test_approveWithOtherDeviceButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.approveWithMyOtherDevice)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.approveWithMyOtherDevice)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .approveWithOtherDevicePressed)
     }
 
     /// Tapping the request admin approval  button dispatches the `.requestAdminApprovalPressed` action.
     @MainActor
     func test_approveAdminApprovalButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.requestAdminApproval)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.requestAdminApproval)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .requestAdminApprovalPressed)
     }
 
     /// Tapping the continue button dispatches the `.continuePressed` action.
     @MainActor
     func test_continueButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.continue)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.continue)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .continuePressed)
     }
 
     /// Tapping the not you button performs the `.notYouPressed` effect.
     @MainActor
     func test_notYouButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.notYou)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.notYou)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .notYouPressed)
     }
 

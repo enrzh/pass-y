@@ -75,45 +75,20 @@ struct LandingView: View {
     private var mainContent: some View {
         Form {
             Section {
-                VStack(spacing: 12) {
-                    Image(decorative: Asset.Images.logo)
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(.tint)
-                        .frame(maxWidth: 220, maxHeight: 34)
-                    Text(Localizations.logInToBitwarden)
-                        .font(.title2.weight(.semibold))
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .listRowBackground(Color.clear)
-                .accessibilityElement(children: .combine)
+                PassYHeroHeader(title: Localizations.logInToBitwarden)
             }
+            .passYPlainListRow()
 
             Section {
-                Button {
+                PassYSettingsRow(
+                    Localizations.server,
+                    systemImage: "server.rack",
+                    tint: .gray,
+                    value: store.state.serverHost ?? Localizations.serverNotSet,
+                    identifier: "RegionSelectorDropdown",
+                ) {
                     Task { await store.perform(.regionPressed) }
-                } label: {
-                    HStack {
-                        Label(Localizations.server, systemImage: "server.rack")
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Text(store.state.serverHost ?? Localizations.serverNotSet)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.trailing)
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                            .accessibilityHidden(true)
-                    }
-                    // Whole row tappable: a plain-style button hit-tests only its content, not the Spacer
-                    // (on the wide iPad row a tap in the middle did nothing).
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("RegionSelectorDropdown")
-                .accessibilityLabel("\(Localizations.server): \(store.state.serverHost ?? Localizations.serverNotSet)")
 
                 TextField(
                     Localizations.emailAddress,
@@ -130,43 +105,48 @@ struct LandingView: View {
                     Task { await store.perform(.continuePressed) }
                 }
 
-                Toggle(Localizations.rememberMe, isOn: store.binding(
-                    get: { $0.isRememberMeOn },
-                    send: { .rememberMeChanged($0) },
-                ))
-                .accessibilityIdentifier("RememberMeSwitch")
+                PassYToggleRow(
+                    Localizations.rememberMe,
+                    isOn: store.binding(
+                        get: { $0.isRememberMeOn },
+                        send: { .rememberMeChanged($0) },
+                    ),
+                    identifier: "RememberMeSwitch",
+                )
             }
 
             Section {
-                AsyncButton {
-                    await store.perform(.continuePressed)
-                } label: {
-                    Text(Localizations.continue)
-                        .frame(maxWidth: .infinity)
-                }
-                .accessibilityIdentifier("ContinueButton")
-                .disabled(!store.state.isContinueButtonEnabled)
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
-            }
-
-            Section {
-                if !store.state.isCreateAccountButtonHidden {
-                    Button(Localizations.createAccount) {
-                        store.send(.createAccountPressed)
+                VStack(spacing: PassYDesign.Spacing.medium) {
+                    Button {
+                        Task { await store.perform(.continuePressed) }
+                    } label: {
+                        Text(Localizations.continue)
+                            .frame(maxWidth: .infinity)
                     }
-                    .accessibilityIdentifier("CreateAccountButton")
-                }
+                    .passYButtonStyle(.primary, fillsWidth: true)
+                    .accessibilityIdentifier("ContinueButton")
+                    .disabled(!store.state.isContinueButtonEnabled)
 
-                Button {
-                    store.send(.showPreLoginSettings)
-                } label: {
-                    Label(Localizations.appSettings, systemImage: "gearshape")
+                    if !store.state.isCreateAccountButtonHidden {
+                        Button(Localizations.createAccount) {
+                            store.send(.createAccountPressed)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityIdentifier("CreateAccountButton")
+                    }
+
+                    Button {
+                        store.send(.showPreLoginSettings)
+                    } label: {
+                        Label(Localizations.appSettings, systemImage: "gearshape")
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("AppSettingsButton")
                 }
-                .accessibilityIdentifier("AppSettingsButton")
+                .padding(.horizontal, PassYDesign.Spacing.large)
             }
+            .passYPlainListRow()
         }
         // Without an explicit container, a disabled Continue button prevents Full Keyboard Access
         // from navigating to the buttons below it.

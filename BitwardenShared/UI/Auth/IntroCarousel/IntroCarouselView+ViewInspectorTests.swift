@@ -35,8 +35,9 @@ class IntroCarouselViewTests: BitwardenTestCase {
     /// Tapping the create account button performs the create account effect.
     @MainActor
     func test_createAccount_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.createAccount)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.createAccount)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .createAccount)
     }
 

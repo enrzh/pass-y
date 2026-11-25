@@ -45,8 +45,9 @@ class SyncWithBrowserViewTests: BitwardenTestCase {
     /// Tapping the "Launch browser" button dispatches the `.launchBrowserTapped` effect.
     @MainActor
     func test_launchBrowserButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.launchBrowser)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.launchBrowser)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .launchBrowserTapped)
     }
 }

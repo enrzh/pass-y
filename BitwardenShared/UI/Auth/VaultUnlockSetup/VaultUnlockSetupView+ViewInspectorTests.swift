@@ -52,8 +52,9 @@ class VaultUnlockSetupViewTests: BitwardenTestCase {
     @MainActor
     func test_continue_tap() async throws {
         processor.state.biometricsStatus = .available(.faceID, enabled: true)
-        let button = try subject.inspect().find(asyncButton: Localizations.continue)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.continue)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .continueFlow)
     }
 

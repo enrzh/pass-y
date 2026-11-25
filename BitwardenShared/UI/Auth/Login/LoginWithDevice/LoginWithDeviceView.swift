@@ -17,20 +17,13 @@ struct LoginWithDeviceView: View {
     var body: some View {
         Form {
             Section {
-                VStack(alignment: .center, spacing: 8) {
-                    Image(systemName: "iphone.and.arrow.forward")
-                        .font(.largeTitle)
-                        .imageScale(.large)
-                        .foregroundStyle(.tint)
-
-                    titleText
-
-                    explanationText
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .multilineTextAlignment(.center)
-                .listRowBackground(Color.clear)
+                PassYHeroHeader(
+                    mark: .symbol("iphone.and.arrow.forward", .accentColor),
+                    title: store.state.titleText,
+                    message: store.state.explanationText,
+                )
             }
+            .passYPlainListRow()
 
             fingerprintView
 
@@ -41,8 +34,9 @@ struct LoginWithDeviceView: View {
             Section {
                 allLoginOptionsView
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .listRowBackground(Color.clear)
+                    .padding(.vertical, PassYDesign.Spacing.small)
             }
+            .passYPlainListRow()
         }
         .passYGroupedBackground()
         .navigationBar(title: store.state.navBarText, titleDisplayMode: .inline)
@@ -60,58 +54,47 @@ struct LoginWithDeviceView: View {
 
     /// The text and button for viewing all login options.
     private var allLoginOptionsView: some View {
-        HStack(spacing: 8) {
-            Text(Localizations.needAnotherOption)
-                .styleGuide(.subheadline)
-                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-
-            Button(Localizations.viewAllLoginOptions) {
-                store.send(.dismiss)
-            }
-            .styleGuide(.subheadlineSemibold)
-            .foregroundStyle(SharedAsset.Colors.textInteraction.swiftUIColor)
-            .accessibilityIdentifier("ViewAllLoginOptionsButton")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: PassYDesign.Spacing.small) { allLoginOptionsContent }
+            VStack(spacing: PassYDesign.Spacing.xSmall) { allLoginOptionsContent }
         }
+        .font(.subheadline)
     }
 
-    /// The explanation text.
-    private var explanationText: some View {
-        Text(store.state.explanationText)
-            .styleGuide(.body)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+    /// The parts of the "need another option" line.
+    @ViewBuilder private var allLoginOptionsContent: some View {
+        Text(Localizations.needAnotherOption)
+            .foregroundStyle(.secondary)
+
+        Button(Localizations.viewAllLoginOptions) {
+            store.send(.dismiss)
+        }
+        .fontWeight(.semibold)
+        .buttonStyle(.borderless)
+        .accessibilityIdentifier("ViewAllLoginOptionsButton")
     }
 
     /// The fingerprint phrase title and display.
     private var fingerprintView: some View {
         Section {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(Localizations.fingerprintPhrase)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("FingerprintValueLabel")
-
-                Text(store.state.fingerprintPhrase ?? "")
-                    .styleGuide(.bodyMonospaced)
-                    .foregroundStyle(SharedAsset.Colors.textCodePink.swiftUIColor)
-                    .multilineTextAlignment(.leading)
-                    .accessibilityIdentifier("FingerprintPhraseValue")
-            }
+            PassYFingerprintPhrase(
+                title: Localizations.fingerprintPhrase,
+                phrase: store.state.fingerprintPhrase ?? "",
+            )
         }
     }
 
     /// The button to resend the login notification.
     @ViewBuilder private var resendNotificationButton: some View {
-        AsyncButton(Localizations.resendNotification) {
-            await store.perform(.resendNotification)
+        PassYSettingsRow(
+            Localizations.resendNotification,
+            systemImage: "bell.badge.fill",
+            tint: .blue,
+            accessory: .none,
+            identifier: "ResendNotificationButton",
+        ) {
+            Task { await store.perform(.resendNotification) }
         }
-        .accessibilityIdentifier("ResendNotificationButton")
-    }
-
-    /// The title text.
-    private var titleText: some View {
-        Text(store.state.titleText)
-            .styleGuide(.title2, weight: .semibold)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
     }
 }
 

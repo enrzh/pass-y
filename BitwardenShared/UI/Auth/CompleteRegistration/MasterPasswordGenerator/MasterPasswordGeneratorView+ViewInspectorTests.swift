@@ -39,8 +39,8 @@ class MasterPasswordGeneratorViewTests: BitwardenTestCase {
     /// Tapping the generate button performs the `.generate` effect.
     @MainActor
     func test_generateButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.generate)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.generate)
+        try button.tap()
         waitFor(!processor.effects.isEmpty)
         XCTAssertEqual(processor.effects.last, .generate)
     }
