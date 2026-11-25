@@ -170,6 +170,8 @@ struct VaultGroupView: View {
             }
         }
             .readableContentWidth(760)
+            // One countdown clock for all code rows of the page (verification codes and their search results).
+            .passYCountdownClock(timeProvider: timeProvider, isActive: store.state.group == .totp)
             .onChange(of: store.state.url) { newValue in
                 guard let url = newValue else { return }
                 openURL(url)
@@ -189,17 +191,16 @@ struct VaultGroupView: View {
 
     /// A view that displays an empty state for this vault group.
     @ViewBuilder private var emptyView: some View {
-        IllustratedMessageView(
-            image: Asset.Images.Illustrations.noItems.swiftUIImage,
-            title: store.state.noItemsTitle,
+        let group = store.state.group
+        let title = store.state.noItemsTitle ?? (group == .totp ? "No \(Localizations.verificationCodes.lowercased())" : group.name)
+        PassYEmptyState(
+            title,
+            systemImage: group.tileSymbol,
             message: store.state.noItemsString,
+            identifier: "EmptyGroupTitle",
         ) {
             if let newItemButtonType = store.state.newItemButtonType {
-                let newItemLabel = Label(
-                    store.state.addItemButtonTitle,
-                    image: SharedAsset.Icons.plus16.swiftUIImage,
-                )
-
+                let newItemLabel = Label(store.state.addItemButtonTitle, systemImage: "plus")
                 Group {
                     switch newItemButtonType {
                     case .button:
@@ -208,11 +209,10 @@ struct VaultGroupView: View {
                         } label: {
                             newItemLabel
                         }
-                        .buttonStyle(.primary(shouldFillWidth: false))
                     case .menu:
                         Menu {
                             ForEach(store.state.itemTypesUserCanCreate, id: \.hashValue) { type in
-                                Button(type.localizedName) {
+                                Button(type.localizedName, systemImage: type.passYAddMenuSymbol) {
                                     store.send(.addItemPressed(type))
                                 }
                             }
@@ -221,11 +221,10 @@ struct VaultGroupView: View {
                         }
                     }
                 }
+                .passYButtonStyle(.primary)
                 .accessibilityIdentifier("AddItemButton")
-                .buttonStyle(.primary(shouldFillWidth: false))
             }
         }
-        .padding(.horizontal, 16)
     }
 
     /// A view that displays the search interface, including search results, an empty search
@@ -297,8 +296,8 @@ struct VaultGroupView: View {
                             swipeableRow(for: item)
                         }
                     } header: {
-                        if itemCountSubtitle == nil {
-                            Text(section.name)
+                        if itemCountSubtitle == nil, !section.name.isEmpty {
+                            PassYSectionHeader(section.name)
                         }
                     }
                 }

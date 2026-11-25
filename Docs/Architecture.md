@@ -196,15 +196,42 @@ A view renders the UI based on its state. The state within a view is managed by 
 
 #### Pass-Y list pages
 
-The vault home, group pages, search results, Send and folders share one construction, in
-[View+PassYList.swift](../BitwardenShared/UI/Platform/Application/Extensions/View+PassYList.swift):
+The vault home, group pages, search results, Send and folders share one construction from the design system (below):
 `passYCardList()` (inset-grouped cards; room and a soft scroll edge for the floating bottom bar),
 `passYEmptyListState()` (the empty message over an empty list, on the grouped page colour), `passYGroupedBackground()`
-(native forms), `passYVaultRow` (row insets and the
+(native forms), in [PassYCardList.swift](../BitwardenShared/UI/Platform/Application/Views/PassYDesign/PassYCardList.swift);
+the vault-only parts are in [View+PassYVaultList.swift](../BitwardenShared/UI/Vault/Views/View+PassYVaultList.swift):
+`passYVaultRow` (row insets and the
 Delete / More swipe actions), `passYSelectEditMode` and `PassYSelectModeButtons` (Select mode). Row options are native
 menus (`VaultItemOptionsMenuContent`), shared by the context menu and the More swipe action. The minimum is iOS 26: the
 UI and app layers have no `#available` checks or fallbacks for earlier versions (left: the Core layer, the 26.2 / 27
 checks, `ReviewModifier` and a multi-platform test).
+
+#### Design system (PassYDesign)
+
+**Rule: new and reworked UI uses PassYDesign and SwiftUI/system elements only** (`List`, `Section`, `Form`,
+`LabeledContent`, `Menu`, `ContentUnavailableView`, system button styles), never the Bitwarden UI kit
+(`ContentBlock`, `SectionView`, `BitwardenTextField`/`Toggle`/`MenuField`, `IllustratedMessageView`, `LoadingView`,
+`AsyncButton`, `.styleGuide`, `SharedAsset` colours and icons, `.primary`/`.secondary` button styles, custom
+row/divider/card views). Text uses Dynamic Type text styles only; shapes use continuous corners. One file per
+component, each with a `#Preview`, in
+[PassYDesign/](../BitwardenShared/UI/Platform/Application/Views/PassYDesign):
+
+| Component | Purpose |
+|---|---|
+| `PassYDesign` | Tokens: radii, 4 pt spacing scale, icon tile sizes (28/40/56, scaled up to 1.6x), row measures (56 pt minimum), text roles (`passYFont(.rowTitle)` ...). |
+| `PassYIconTile` | Rounded-square tile: tinted SF Symbol, tinted first letter (stable colour per name, `PassYTilePalette`) or a web icon on a neutral tile. |
+| `PassYRow` | The one list row: tile, title, up to two subtitles, inline badges, trailing accessory, chevron; `passYRowButton` (press highlight, hover, identifier on the button), `passYRowContextMenu`, `passYRowSwipeActions`. Works in a `List` and in stacks (`divider:`). |
+| `PassYCardList` | `passYCardList()`, `PassYCardSection`, `passYEmptyListState()`, `passYGroupedBackground()`, separator alignment. |
+| `PassYSectionHeader` | Section title, count, optional collapse chevron (one toggle button). |
+| `PassYEmptyState` | `ContentUnavailableView` with symbol, title, description and actions. |
+| `PassYBadge` | Quiet SF Symbol status mark or tinted text capsule. |
+| `PassYButtonStyles` | `passYButtonStyle(.primary / .secondary / .destructive)` on the system glass styles. |
+| `PassYCodeRow` | Verification code row: large two-group code, `PassYCountdownRing`, accessibility-size layout; `PassYOneTimeCode` (grouping, spoken digits, label). |
+| `PassYCountdown` | Countdown maths and tone (orange at 5 s, red at 2 s), `PassYCountdownClock` (one 1 Hz clock per page via `passYCountdownClock`), `PassYCountdownRing`. |
+
+Vault rows adapt their items onto these components in `VaultListItemRowView` (equatable `VaultListRowCell` stays
+the performance boundary) and `VaultItemIconTile`; Send and folder rows use `PassYRow` directly.
 
 #### Pass-Y diagnostics (DEBUG only)
 

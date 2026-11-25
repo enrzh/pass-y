@@ -92,24 +92,16 @@ private struct SearchableVaultListView: View {
 
             Spacer()
 
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.items,
-                title: Localizations.saveAndProtectYourData,
+            PassYEmptyState(
+                Localizations.saveAndProtectYourData,
+                systemImage: "lock.shield",
                 message: Localizations
                     .theVaultProtectsMoreThanJustPasswordsStoreSecureLoginsIdsCardsAndNotesSecurelyHere,
             ) {
-                Button {
+                Button(Localizations.addLogin, systemImage: "plus") {
                     store.send(.addItemPressed(.login))
-                } label: {
-                    HStack {
-                        Image(decorative: SharedAsset.Icons.plus16)
-                            .resizable()
-                            .frame(width: 16, height: 16)
-                        Text(Localizations.addLogin)
-                    }
                 }
-                .buttonStyle(.primary(shouldFillWidth: false))
-                .padding(.top, 8)
+                .passYButtonStyle(.primary)
             }
 
             Spacer()
@@ -144,6 +136,8 @@ private struct SearchableVaultListView: View {
             .id(store.state.searchResults.map(\.id))
             .passYSelectEditMode(isSelecting: store.state.isSelecting, listIsEditing: $listIsEditing)
             .passYCardList()
+            // Code rows among the results count down from one clock (only while the search list exists).
+            .passYCountdownClock(timeProvider: timeProvider)
         } else {
             SearchNoResultsView {
                 searchVaultFilterRow
@@ -278,24 +272,15 @@ private struct SearchableVaultListView: View {
                         }
                     }
                 } header: {
-                    Button {
+                    PassYSectionHeader(
+                        section.name,
+                        count: section.items.count,
+                        countLabel: Localizations.xItems(section.items.count),
+                        isExpanded: isExpanded,
+                        identifier: "SectionExpandButton_\(section.id)",
+                    ) {
                         store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
-                    } label: {
-                        HStack {
-                            Text(section.name)
-                            Spacer()
-                            Text("\(section.items.count)")
-                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                .font(.footnote.weight(.semibold))
-                        }
-                        .textCase(nil)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("SectionExpandButton_\(section.id)")
-                    .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
                 }
             }
 
@@ -382,7 +367,8 @@ extension VaultListRowCell {
             perform: { effect in
                 switch effect {
                 case let .accessibilityMoreOptionsActionPressed(kind):
-                    await moreOptions(item, kind)
+                    // A code row's options (Edit) act on its cipher.
+                    await moreOptions(item.totpCipherItem ?? item, kind)
                 case .pressed:
                     await itemPressed(item)
                 }
