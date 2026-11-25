@@ -7,6 +7,12 @@ import XCTest
 final class SettingsAuthShotsTests: PassYUITestCase {
     private var set: String { ProcessInfo.processInfo.environment["PASSY_DESIGN_TAG"] ?? "shots" }
 
+    /// `PASSY_SHOTS_PARTS`: which parts run (`settings`, `auth`, `ax`; default all). The whole set can exceed the
+    /// 900 s test allowance on a loaded host.
+    private func runs(_ part: String) -> Bool {
+        ProcessInfo.processInfo.environment["PASSY_SHOTS_PARTS"].map { $0.split(separator: ",").contains(Substring(part)) } ?? true
+    }
+
     /// The settings sub-pages: row identifier and shot name.
     private let subPages = [
         ("AccountSecuritySettingsButton", "account-security"),
@@ -22,7 +28,8 @@ final class SettingsAuthShotsTests: PassYUITestCase {
             setPassYAppearance(mode == "dark" ? .dark : .light)
             let app = launchApp()
             ensureUnlockedVault(app)
-            settingsPages(app, mode)
+            if runs("settings") { settingsPages(app, mode) }
+            guard runs("auth") else { app.terminate(); continue }
             // A cold start locks the vault: the unlock screen.
             app.terminate()
             let relaunched = launchApp()
@@ -40,6 +47,7 @@ final class SettingsAuthShotsTests: PassYUITestCase {
             relaunched.terminate()
         }
         setPassYAppearance(.light)
+        guard runs("ax") else { return }
         let app = launchApp(extraArguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
         ensureUnlockedVault(app)
         goTo(app, "Settings"); sleep(2)
