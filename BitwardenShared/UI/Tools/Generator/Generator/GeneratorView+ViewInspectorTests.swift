@@ -107,7 +107,7 @@ class GeneratorViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     @MainActor
     func test_createLoginButton_disabledWithoutValue() throws {
         processor.state.generatedValue = ""
-        let button = try subject.inspect().find(asyncButton: Localizations.createLogin)
+        let button = try subject.inspect().find(button: Localizations.createLogin)
         XCTAssertTrue(button.isDisabled())
     }
 
@@ -116,7 +116,7 @@ class GeneratorViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     func test_createLoginButton_disabledWithPlaceholderUsername() throws {
         processor.state.generatorType = .username
         processor.state.generatedValue = Constants.defaultGeneratedUsername
-        let button = try subject.inspect().find(asyncButton: Localizations.createLogin)
+        let button = try subject.inspect().find(button: Localizations.createLogin)
         XCTAssertTrue(button.isDisabled())
     }
 
@@ -124,15 +124,16 @@ class GeneratorViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     @MainActor
     func test_createLoginButton_notPresentInPlace() throws {
         processor.state.presentationMode = .inPlace
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.createLogin))
+        XCTAssertThrowsError(try subject.inspect().find(button: Localizations.createLogin))
     }
 
     /// Tapping the create login button performs the `.createLoginPressed` effect.
     @MainActor
     func test_createLoginButton_tap() async throws {
         processor.state.generatedValue = "password"
-        let button = try subject.inspect().find(asyncButton: Localizations.createLogin)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.createLogin)
+        try button.tap()
+        try await waitForAsync { self.processor.effects.last == .createLoginPressed }
         XCTAssertEqual(processor.effects.last, .createLoginPressed)
     }
 
