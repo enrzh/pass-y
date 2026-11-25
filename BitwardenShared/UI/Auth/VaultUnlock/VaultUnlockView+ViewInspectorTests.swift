@@ -100,7 +100,7 @@ class VaultUnlockViewTests: BitwardenTestCase {
     func test_vaultUnlockButton_tap() async throws {
         let button = try subject.inspect().find(button: Localizations.unlock)
         try button.tap()
-        waitFor(!processor.effects.isEmpty)
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .unlockVault)
     }
 
