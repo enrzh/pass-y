@@ -51,7 +51,7 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     @MainActor
     func test_deletionDateMenu_updated() throws {
         processor.state.isOptionsExpanded = true
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.deletionDate)
+        let menuField = try subject.inspect().find(passYPickerRow: Localizations.deletionDate)
         try menuField.select(newValue: SendDeletionDateType.thirtyDays)
         XCTAssertEqual(processor.dispatchedActions.last, .deletionDateChanged(.thirtyDays))
     }
@@ -61,11 +61,11 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     @MainActor
     func test_deletionDateMenu_disabledWhenEnforcedByPolicy() throws {
         processor.state.isOptionsExpanded = true
-        var menuField = try subject.inspect().find(bitwardenMenuField: Localizations.deletionDate)
+        var menuField = try subject.inspect().find(passYPickerRow: Localizations.deletionDate)
         XCTAssertFalse(menuField.isDisabled())
 
         processor.state.sendPolicyOptions.enforcedDeletionDateHours = 168
-        menuField = try subject.inspect().find(bitwardenMenuField: Localizations.deletionDate)
+        menuField = try subject.inspect().find(passYPickerRow: Localizations.deletionDate)
         XCTAssertTrue(menuField.isDisabled())
     }
 
@@ -85,10 +85,7 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     func test_maximumAccessCountStepper_updated() throws {
         processor.state.isOptionsExpanded = true
         processor.state.maximumAccessCount = 42
-        let stepper = try subject.inspect().find(
-            BitwardenStepperType.self,
-            containing: Localizations.maximumAccessCount,
-        )
+        let stepper = try subject.inspect().find(ViewType.Stepper.self)
 
         try stepper.increment()
         XCTAssertEqual(processor.dispatchedActions.last, .maximumAccessCountStepperChanged(43))
@@ -100,7 +97,7 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     /// Updating the name textfield sends the `.nameChanged` action.
     @MainActor
     func test_nameTextField_updated() throws {
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.sendNameRequired)
+        let textField = try subject.inspect().find(passYFormField: Localizations.sendNameRequired)
         try textField.inputBinding().wrappedValue = "Name"
         XCTAssertEqual(processor.dispatchedActions.last, .nameChanged("Name"))
     }
@@ -109,10 +106,7 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     @MainActor
     func test_notesTextField_updated() throws {
         processor.state.isOptionsExpanded = true
-        let textField = try subject.inspect().find(
-            type: BitwardenUITextViewType.self,
-            accessibilityLabel: Localizations.privateNote,
-        )
+        let textField = try subject.inspect().find(passYMultilineField: Localizations.privateNote)
         try textField.inputBinding().wrappedValue = "Notes"
         XCTAssertEqual(processor.dispatchedActions.last, .notesChanged("Notes"))
     }
@@ -170,8 +164,7 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     func test_sendDisabled() async throws {
         processor.state.sendPolicyOptions.isSendDisabled = true
 
-        let infoContainer = try subject.inspect().find(InfoContainer<Text>.self)
-        try XCTAssertEqual(infoContainer.text().string(), Localizations.sendDisabledWarning)
+        XCTAssertNoThrow(try subject.inspect().find(text: Localizations.sendDisabledWarning))
 
         let saveButton = try subject.inspect().findSaveToolbarButton()
         XCTAssertTrue(saveButton.isDisabled())
@@ -186,17 +179,13 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     func test_sendHideEmailDisabled() async throws {
         processor.state.sendPolicyOptions.isHideEmailDisabled = true
 
-        let infoContainer = try subject.inspect().find(InfoContainer<Text>.self)
-        try XCTAssertEqual(infoContainer.text().string(), Localizations.sendOptionsPolicyInEffect)
+        XCTAssertNoThrow(try subject.inspect().find(text: Localizations.sendOptionsPolicyInEffect))
     }
 
     /// Updating the text textfield sends the `.textChanged` action.
     @MainActor
     func test_textTextField_updated() throws {
-        let textField = try subject.inspect().find(
-            type: BitwardenUITextViewType.self,
-            accessibilityLabel: Localizations.textToShareRequired,
-        )
+        let textField = try subject.inspect().find(passYMultilineField: Localizations.textToShareRequired)
         try textField.inputBinding().wrappedValue = "Text"
         XCTAssertEqual(processor.dispatchedActions.last, .textChanged("Text"))
     }
@@ -206,7 +195,7 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     /// Updating the access type menu sends the `.accessTypeChanged` action.
     @MainActor
     func test_accessTypeMenu_updated() throws {
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.whoCanView)
+        let menuField = try subject.inspect().find(passYPickerRow: Localizations.whoCanView)
         try menuField.select(newValue: SendAccessType.anyoneWithPassword)
         XCTAssertEqual(processor.dispatchedActions.last, .accessTypeChanged(.anyoneWithPassword))
     }
@@ -214,11 +203,11 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     /// The access type menu remains visible but is disabled when the access type is enforced by policy.
     @MainActor
     func test_accessTypeMenu_disabledWhenEnforcedByPolicy() throws {
-        var menuField = try subject.inspect().find(bitwardenMenuField: Localizations.whoCanView)
+        var menuField = try subject.inspect().find(passYPickerRow: Localizations.whoCanView)
         XCTAssertFalse(menuField.isDisabled())
 
         processor.state.sendPolicyOptions.enforcedAccessType = .anyoneWithPassword
-        menuField = try subject.inspect().find(bitwardenMenuField: Localizations.whoCanView)
+        menuField = try subject.inspect().find(passYPickerRow: Localizations.whoCanView)
         XCTAssertTrue(menuField.isDisabled())
     }
 
@@ -226,7 +215,7 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     @MainActor
     func test_passwordTextField_updated() throws {
         processor.state.accessType = .anyoneWithPassword
-        let textField = try subject.inspect().find(bitwardenTextField: Localizations.password)
+        let textField = try subject.inspect().find(passYSecureField: Localizations.password)
         try textField.inputBinding().wrappedValue = "password123"
         XCTAssertEqual(processor.dispatchedActions.last, .passwordChanged("password123"))
     }
@@ -236,13 +225,13 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     @MainActor
     func test_passwordTextField_disabled_existingPassword() throws {
         processor.state.accessType = .anyoneWithPassword
-        var textField = try subject.inspect().find(bitwardenTextField: Localizations.password)
+        var textField = try subject.inspect().find(passYSecureField: Localizations.password)
         XCTAssertFalse(textField.isDisabled())
         XCTAssertNoThrow(try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.generatePassword))
 
         processor.state.mode = .edit
         processor.state.originalSendView = .fixture(hasPassword: true)
-        textField = try subject.inspect().find(bitwardenTextField: Localizations.password)
+        textField = try subject.inspect().find(passYSecureField: Localizations.password)
         XCTAssertTrue(textField.isDisabled())
         XCTAssertEqual(
             try textField.inputBinding().wrappedValue,
@@ -269,11 +258,9 @@ class AddEditSendItemViewTests: BitwardenTestCase {
     func test_copyPasswordButton_tap() async throws {
         processor.state.accessType = .anyoneWithPassword
         processor.state.password = "testPassword123"
-        let button = try subject.inspect().find(
-            asyncButtonWithAccessibilityLabel: Localizations.copyPassword,
-        )
-        try await button.tap()
-        XCTAssertEqual(processor.effects.last, .copyPasswordPressed)
+        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copyPassword)
+        try button.tap()
+        try await waitForAsync { self.processor.effects.last == .copyPasswordPressed }
     }
 
     /// The copy password button is not visible when the password is empty.
@@ -282,7 +269,7 @@ class AddEditSendItemViewTests: BitwardenTestCase {
         processor.state.accessType = .anyoneWithPassword
         processor.state.password = ""
         XCTAssertThrowsError(
-            try subject.inspect().find(asyncButtonWithAccessibilityLabel: Localizations.copyPassword),
+            try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copyPassword),
         )
     }
 
