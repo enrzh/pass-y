@@ -4,11 +4,11 @@ import SwiftUI
 
 // MARK: - CustomizeView
 
-/// The Customize screen ("Anpassen"): the device's layout preferences of the vault home (tiles: show, order, layout;
-/// sections: show, order, collapsed when opened), the list rows (density, user names, icons, website icons, badges,
-/// tile colours) and the verification codes (digit grouping, countdown), with a live preview at the top and "Reset to
-/// defaults" at the end. A plain grouped list of system controls; it edits `PassYLayoutStore` directly (local
-/// preferences only, no processor). Reached from Settings and from the avatar menu ("Customize home…").
+/// The Customize screen ("Anpassen"): the device's layout preferences of the vault home (card colours; every type and
+/// folder as a card or a folder row, the order of the cards; sections: show, order, collapsed when opened), the list
+/// rows (user names, icons, website icons, badges) and the verification codes (digit grouping), with a live preview at
+/// the top and "Reset to defaults" at the end. A plain grouped list of system controls; it edits `PassYLayoutStore`
+/// directly (local preferences only, no processor). Reached from Settings and from the long-press menus of the home.
 ///
 struct CustomizeView: View {
     // MARK: Properties
@@ -19,7 +19,10 @@ struct CustomizeView: View {
     /// The existing "Show website icons" setting (reused, not duplicated).
     let webIcons: PassYWebIconsSetting
 
-    /// Reordering of tiles and sections (drag handles).
+    /// The folders of the vault (in memory while the screen is shown).
+    var folders = PassYCustomizeFolders()
+
+    /// Reordering of elements and sections (drag handles).
     @SwiftUI.State private var editMode: EditMode = .inactive
 
     // MARK: View
@@ -27,8 +30,8 @@ struct CustomizeView: View {
     var body: some View {
         List {
             previewSection
-            homeLayoutSection
-            tilesSection
+            cardColorsSection
+            elementsSection
             sectionsSection
             collapsedSection
             rowsSection
@@ -40,6 +43,7 @@ struct CustomizeView: View {
         .navigationTitle(Localizations.customize)
         .navigationBarTitleDisplayMode(.inline)
         .task { await webIcons.load() }
+        .task { await folders.load() }
     }
 
     // MARK: Sections
@@ -47,7 +51,7 @@ struct CustomizeView: View {
     /// The live miniature of the home and a sample row with the current choices.
     private var previewSection: some View {
         Section {
-            CustomizeHomePreview(layout: layout)
+            CustomizeHomePreview(layout: layout, folders: folders.elements)
                 .listRowInsets(EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12))
         } header: {
             Text(Localizations.layoutPreview)
@@ -56,45 +60,55 @@ struct CustomizeView: View {
         }
     }
 
-    /// The tile layout.
-    private var homeLayoutSection: some View {
+    /// The card colours.
+    private var cardColorsSection: some View {
         Section {
-            Picker(Localizations.tileLayout, selection: binding(\.home.tileLayout)) {
-                Text(Localizations.tileLayoutCards).tag(PassYLayoutPreferences.TileLayout.grid)
-                Text(Localizations.tileLayoutWideCards).tag(PassYLayoutPreferences.TileLayout.wide)
-                Text(Localizations.tileLayoutList).tag(PassYLayoutPreferences.TileLayout.list)
+            Picker(Localizations.tileColors, selection: binding(\.home.cardColors)) {
+                Text(Localizations.tileColorsColorful).tag(PassYLayoutPreferences.CardColors.colorful)
+                Text(Localizations.tileColorsFilled).tag(PassYLayoutPreferences.CardColors.filled)
             }
-            .accessibilityIdentifier("CustomizeTileLayoutPicker")
+            .accessibilityIdentifier("CustomizeCardColorsPicker")
         } header: {
             Text(Localizations.homeScreen)
+        } footer: {
+            Text(Localizations.tileColorsFooter)
         }
     }
 
-    /// Show / hide and order of the tiles.
-    private var tilesSection: some View {
+    /// Every type and folder: card or folder row, and the order of the cards.
+    private var elementsSection: some View {
         Section {
-            ForEach(layout.preferences.orderedTiles, id: \.self) { id in
-                let group = VaultListGroup(passYTileIdentifier: id)
-                Toggle(isOn: tileBinding(id)) {
-                    Label {
-                        Text(group?.name ?? id)
-                    } icon: {
-                        PassYIconTile(
-                            systemImage: group?.tileSymbol ?? "square",
-                            tint: group?.tileColor ?? .gray,
-                            size: PassYDesign.IconSize.small,
-                        )
-                    }
+            ForEach(layout.preferences.orderedElements(folders: folders.ids), id: \.self) { id in
+                Toggle(isOn: cardBinding(id)) {
+                    elementLabel(id)
                 }
                 .accessibilityIdentifier("CustomizeTileToggle_\(id)")
             }
             .onMove { source, destination in
-                layout.preferences.moveTiles(fromOffsets: source, toOffset: destination)
+                layout.preferences.moveElements(folders: folders.ids, fromOffsets: source, toOffset: destination)
             }
         } header: {
-            reorderHeader(Localizations.tiles)
+            reorderHeader(Localizations.showAsCards)
         } footer: {
             Text(Localizations.tilesFooter)
+        }
+    }
+
+    /// The name and icon of a home element.
+    @ViewBuilder
+    private func elementLabel(_ id: String) -> some View {
+        if let group = VaultListGroup(passYTileIdentifier: id) {
+            Label {
+                Text(group.name)
+            } icon: {
+                PassYIconTile(systemImage: group.tileSymbol, tint: group.tileColor, size: PassYDesign.IconSize.small)
+            }
+        } else {
+            Label {
+                Text(folders.name(of: id) ?? id)
+            } icon: {
+                PassYIconTile(systemImage: "folder.fill", tint: .blue, size: PassYDesign.IconSize.small)
+            }
         }
     }
 
@@ -130,11 +144,6 @@ struct CustomizeView: View {
     /// The look of list rows.
     private var rowsSection: some View {
         Section {
-            Picker(Localizations.rowDensity, selection: binding(\.rows.density)) {
-                Text(Localizations.densityComfortable).tag(PassYLayoutPreferences.Density.comfortable)
-                Text(Localizations.densityCompact).tag(PassYLayoutPreferences.Density.compact)
-            }
-            .accessibilityIdentifier("CustomizeDensityPicker")
             Toggle(Localizations.showUserNames, isOn: binding(\.rows.showsSubtitle))
                 .accessibilityIdentifier("CustomizeShowSubtitleToggle")
             Toggle(Localizations.showIconTiles, isOn: binding(\.rows.showsIcon))
@@ -151,11 +160,6 @@ struct CustomizeView: View {
                 .accessibilityIdentifier("CustomizeSharedBadgeToggle")
             Toggle(Localizations.showAttachmentMark, isOn: binding(\.rows.showsAttachmentBadge))
                 .accessibilityIdentifier("CustomizeAttachmentBadgeToggle")
-            Picker(Localizations.tileColors, selection: binding(\.rows.tileColors)) {
-                Text(Localizations.tileColorsColorful).tag(PassYLayoutPreferences.TileColors.colorful)
-                Text(Localizations.tileColorsMonochrome).tag(PassYLayoutPreferences.TileColors.monochrome)
-            }
-            .accessibilityIdentifier("CustomizeTileColorsPicker")
         } header: {
             Text(Localizations.listsAndRows)
         } footer: {
@@ -168,12 +172,10 @@ struct CustomizeView: View {
         Section {
             Toggle(Localizations.groupDigits, isOn: binding(\.codes.groupsDigits))
                 .accessibilityIdentifier("CustomizeGroupDigitsToggle")
-            Toggle(Localizations.countdownRing, isOn: binding(\.codes.showsCountdownRing))
-                .accessibilityIdentifier("CustomizeCountdownRingToggle")
-            Toggle(Localizations.countdownSeconds, isOn: binding(\.codes.showsCountdownSeconds))
-                .accessibilityIdentifier("CustomizeCountdownSecondsToggle")
         } header: {
             Text(Localizations.verificationCodes)
+        } footer: {
+            Text(Localizations.groupDigitsFooter)
         }
     }
 
@@ -217,11 +219,11 @@ struct CustomizeView: View {
         )
     }
 
-    /// Whether a tile is shown on the home.
-    private func tileBinding(_ id: String) -> Binding<Bool> {
+    /// Whether a home element is a card (off: a folder row).
+    private func cardBinding(_ id: String) -> Binding<Bool> {
         Binding(
-            get: { layout.preferences.isTileVisible(id) },
-            set: { layout.preferences.setTile(id, visible: $0) },
+            get: { layout.preferences.isCard(id) },
+            set: { layout.preferences.setCard(id, $0) },
         )
     }
 
@@ -244,12 +246,63 @@ struct CustomizeView: View {
     /// The display name of a home section.
     static func sectionName(_ id: String) -> String {
         switch id {
+        case PassYLayoutPreferences.typeRowsSectionId: Localizations.types
         case "Favorites": Localizations.favorites
         case "Folders": Localizations.myFolders
         case "NoFolder": Localizations.folderNone
         case "Collections": Localizations.sharedFolders
         default: id
         }
+    }
+}
+
+// MARK: - PassYCustomizeFolders
+
+/// The top-level folders of the vault for Customize (identifier `folder:<id>` and name), read when the screen
+/// appears and kept in memory only while it is shown. Nested folders are opened from their parent, so only top-level
+/// folders can be cards (like the folder rows of the home).
+@MainActor
+@Observable
+final class PassYCustomizeFolders {
+    /// One folder.
+    struct Element: Equatable, Sendable {
+        let id: String
+        let name: String
+    }
+
+    /// The folders, by name.
+    private(set) var elements: [Element] = []
+
+    /// The element identifiers of the folders.
+    var ids: [String] { elements.map(\.id) }
+
+    @ObservationIgnored private let read: () async -> [Element]
+
+    /// Creates the folders of the app's vault repository.
+    convenience init(vaultRepository: VaultRepository) {
+        self.init {
+            let folders = (try? await vaultRepository.fetchFolders()) ?? []
+            return folders.asNestedNodes().rootNodes.compactMap { node in
+                node.node.id.map { Element(id: VaultListGroup.folderElementPrefix + $0, name: node.name) }
+            }
+        }
+    }
+
+    /// Creates folders from a reader (previews and tests; default: none).
+    init(elements: [Element] = [], read: @escaping () async -> [Element] = { [] }) {
+        self.elements = elements
+        self.read = read
+    }
+
+    /// Reads the folders.
+    func load() async {
+        let loaded = await read()
+        if !loaded.isEmpty || elements.isEmpty { elements = loaded }
+    }
+
+    /// The name of a folder element.
+    func name(of id: String) -> String? {
+        elements.first { $0.id == id }?.name
     }
 }
 

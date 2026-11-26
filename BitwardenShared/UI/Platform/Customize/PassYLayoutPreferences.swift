@@ -2,20 +2,27 @@ import Foundation
 
 // MARK: - PassYLayoutPreferences
 
-/// The on-device layout preferences of Pass-Y ("Customize"): what the vault home shows and in which order, how list
-/// rows look and how verification codes are drawn. Stored per device in the app settings (`AppSettingsStore`), never
-/// synced to the server and never containing vault data: only fixed tile and section identifiers, enums and flags.
+/// The on-device layout preferences of Pass-Y ("Customize"): what the vault home shows as cards and as folder rows and
+/// in which order, how list rows look and how verification codes are drawn. Stored per device in the app settings
+/// (`AppSettingsStore`), never synced to the server and never containing vault data: only fixed element and section
+/// identifiers (folders by their id), enums and flags.
 ///
-/// The defaults are "no override" (empty orders, nothing hidden), so the default preferences draw exactly the look of
-/// the app without them. Orders and sets are keyed by stable identifiers (`VaultListGroup.tileIdentifier`, the vault
-/// list section ids); identifiers the app does not know yet (a type added later) keep their natural position.
+/// The defaults are "no override" (empty orders, type tiles as cards, folders as rows), so the default preferences
+/// draw exactly the look of the app without them. Orders and sets are keyed by stable identifiers
+/// (`passYHomeElementId`, the vault list section ids); identifiers the vault does not have (a deleted folder, a type
+/// added later) are ignored or keep their natural position.
 ///
 struct PassYLayoutPreferences: Codable, Equatable, Sendable {
     // MARK: Constants
 
     /// The version written by this app. Older payloads decode field by field (missing fields take their defaults),
     /// newer ones keep every field this version understands.
-    static let currentVersion = 1
+    ///
+    /// - 1: tiles could be hidden (moved to "More"), tile layout, row density, monochrome tiles.
+    /// - 2: every home element is a card or a folder row (old hidden tiles become rows), folders can be cards, cards
+    ///   only, comfortable rows only, card colours colourful or filled; the countdown switches left Customize (they are
+    ///   switched back on).
+    static let currentVersion = 2
 
     /// The defaults: today's look.
     static let `default` = PassYLayoutPreferences()
@@ -62,22 +69,33 @@ struct PassYLayoutPreferences: Codable, Equatable, Sendable {
         var result = self
         result.home.tileOrder = home.tileOrder.uniqued()
         result.home.sectionOrder = home.sectionOrder.uniqued()
+        if version < 2 {
+            // Version 2 has no switches for the countdown ring and seconds any more: nobody keeps a hidden countdown
+            // without a way back.
+            result.codes.showsCountdownRing = true
+            result.codes.showsCountdownSeconds = true
+        }
         result.version = Self.currentVersion
         return result
     }
 
     // MARK: Home
 
-    /// What the vault home shows.
+    /// What the vault home shows. Every element of the home is either a card (the grid at the top) or a folder row
+    /// (a list row below): type tiles are cards unless switched to rows, folders are rows unless switched to cards.
+    /// Nothing is ever removed from the home.
     struct Home: Codable, Equatable, Sendable {
-        /// The tile identifiers in the user's order (empty: the natural order).
+        /// The element identifiers (`passYHomeElementId`) in the user's order (empty: the natural order).
         var tileOrder: [String] = []
 
-        /// The tiles that are not shown on the home (they stay reachable in the "More" section).
-        var hiddenTiles: Set<String> = []
+        /// The type tiles shown as folder rows instead of cards (version 1: the hidden tiles).
+        var tileRows: Set<String> = []
 
-        /// How the tiles are laid out.
-        var tileLayout: TileLayout = .grid
+        /// The folders (`folder:<id>`, `noFolder`) shown as cards instead of folder rows.
+        var folderCards: Set<String> = []
+
+        /// The colours of the home cards.
+        var cardColors: CardColors = .colorful
 
         /// The section identifiers in the user's order (empty: the natural order).
         var sectionOrder: [String] = []
@@ -92,38 +110,41 @@ struct PassYLayoutPreferences: Codable, Equatable, Sendable {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
+            let legacy = try decoder.container(keyedBy: LegacyKeys.self)
             tileOrder = container.lenient([String].self, .tileOrder) ?? []
-            hiddenTiles = container.lenient(Set<String>.self, .hiddenTiles) ?? []
-            tileLayout = container.lenient(TileLayout.self, .tileLayout) ?? .grid
+            tileRows = container.lenient(Set<String>.self, .tileRows)
+                ?? legacy.lenient(Set<String>.self, .hiddenTiles)
+                ?? []
+            folderCards = container.lenient(Set<String>.self, .folderCards) ?? []
+            cardColors = container.lenient(CardColors.self, .cardColors) ?? .colorful
             sectionOrder = container.lenient([String].self, .sectionOrder) ?? []
             hiddenSections = container.lenient(Set<String>.self, .hiddenSections) ?? []
             collapsedSections = container.lenient(Set<String>.self, .collapsedSections) ?? []
         }
 
         private enum CodingKeys: String, CodingKey {
-            case tileOrder, hiddenTiles, tileLayout, sectionOrder, hiddenSections, collapsedSections
+            case tileOrder, tileRows, folderCards, cardColors, sectionOrder, hiddenSections, collapsedSections
+        }
+
+        /// Fields of version 1 that are read once and then written under their new name.
+        private enum LegacyKeys: String, CodingKey {
+            case hiddenTiles
         }
     }
 
-    /// The layout of the home tiles.
-    enum TileLayout: String, Codable, CaseIterable, Sendable {
-        /// Cards in columns (two on an iPhone, more on wide screens): today's look.
-        case grid
+    /// The colours of the home cards.
+    enum CardColors: String, Codable, CaseIterable, Sendable {
+        /// A white card with a tinted symbol tile: today's look ("Bunt").
+        case colorful
 
-        /// One column of wide cards.
-        case wide
-
-        /// A compact list of rows.
-        case list
+        /// The whole card filled with the type colour, white content ("Vollfarbig").
+        case filled
     }
 
     // MARK: Rows
 
     /// How list rows look.
     struct Rows: Codable, Equatable, Sendable {
-        /// The row density.
-        var density: Density = .comfortable
-
         /// Whether rows show their subtitle (the user name of a login).
         var showsSubtitle = true
 
@@ -139,44 +160,20 @@ struct PassYLayoutPreferences: Codable, Equatable, Sendable {
         /// Whether the attachments mark is shown.
         var showsAttachmentBadge = true
 
-        /// The colours of the icon tiles.
-        var tileColors: TileColors = .colorful
-
         init() {}
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            density = container.lenient(Density.self, .density) ?? .comfortable
             showsSubtitle = container.lenient(Bool.self, .showsSubtitle) ?? true
             showsIcon = container.lenient(Bool.self, .showsIcon) ?? true
             showsFavoriteBadge = container.lenient(Bool.self, .showsFavoriteBadge) ?? true
             showsSharedBadge = container.lenient(Bool.self, .showsSharedBadge) ?? true
             showsAttachmentBadge = container.lenient(Bool.self, .showsAttachmentBadge) ?? true
-            tileColors = container.lenient(TileColors.self, .tileColors) ?? .colorful
         }
 
         private enum CodingKeys: String, CodingKey {
-            case density, showsSubtitle, showsIcon, showsFavoriteBadge, showsSharedBadge, showsAttachmentBadge
-            case tileColors
+            case showsSubtitle, showsIcon, showsFavoriteBadge, showsSharedBadge, showsAttachmentBadge
         }
-    }
-
-    /// The density of list rows.
-    enum Density: String, Codable, CaseIterable, Sendable {
-        /// 56 pt rows: today's look.
-        case comfortable
-
-        /// 44 pt rows.
-        case compact
-    }
-
-    /// The colours of icon tiles.
-    enum TileColors: String, Codable, CaseIterable, Sendable {
-        /// Each category / name in its own tint: today's look.
-        case colorful
-
-        /// One neutral tint for every tile.
-        case monochrome
     }
 
     // MARK: Codes
@@ -186,10 +183,10 @@ struct PassYLayoutPreferences: Codable, Equatable, Sendable {
         /// Whether codes are split into two groups ("123 456").
         var groupsDigits = true
 
-        /// Whether the countdown ring is shown.
+        /// Whether the countdown ring is shown (no switch in Customize since version 2; the code rows still read it).
         var showsCountdownRing = true
 
-        /// Whether the seconds left are shown.
+        /// Whether the seconds left are shown (no switch in Customize since version 2; the code rows still read it).
         var showsCountdownSeconds = true
 
         init() {}
@@ -207,21 +204,34 @@ struct PassYLayoutPreferences: Codable, Equatable, Sendable {
     }
 }
 
-// MARK: - Home tiles and sections
+// MARK: - Home elements and sections
 
 extension PassYLayoutPreferences {
-    /// The tiles of the vault home in their natural order (their `VaultListGroup.tileIdentifier`).
+    /// The type tiles of the vault home in their natural order (their `VaultListGroup.tileIdentifier`).
     static let knownTiles: [String] = [
         "totp", "login", "card", "bankAccount", "identity", "driversLicense", "passport", "secureNote", "sshKey",
         "archive", "trash",
     ]
 
-    /// The reorderable sections of the vault home in their natural order (their vault list section ids).
-    static let knownSections: [String] = ["Favorites", "Folders", "NoFolder", "Collections"]
+    /// The id of the home section with the type tiles shown as folder rows.
+    static let typeRowsSectionId = "PassYTypes"
 
-    /// The known tiles in the user's order.
+    /// The reorderable sections of the vault home in their natural order (their vault list section ids).
+    static let knownSections: [String] = [typeRowsSectionId, "Favorites", "Folders", "NoFolder", "Collections"]
+
+    /// Whether an element identifier is a folder (`folder:<id>` or `noFolder`): a row unless switched to a card.
+    static func isFolderElement(_ id: String) -> Bool {
+        id.hasPrefix(VaultListGroup.folderElementPrefix) || id == "noFolder"
+    }
+
+    /// The known type tiles in the user's order.
     var orderedTiles: [String] {
         Self.ordered(Self.knownTiles, by: home.tileOrder, id: { $0 })
+    }
+
+    /// The type tiles and the given folder elements in the user's order (folders after the types by default).
+    func orderedElements(folders: [String]) -> [String] {
+        Self.ordered(Self.knownTiles + folders, by: home.tileOrder, id: { $0 })
     }
 
     /// The known sections in the user's order.
@@ -229,19 +239,23 @@ extension PassYLayoutPreferences {
         Self.ordered(Self.knownSections, by: home.sectionOrder, id: { $0 })
     }
 
-    /// Whether a tile is shown on the home.
-    func isTileVisible(_ id: String) -> Bool {
-        !home.hiddenTiles.contains(id)
+    /// Whether a home element is shown as a card (otherwise as a folder row).
+    func isCard(_ id: String) -> Bool {
+        Self.isFolderElement(id) ? home.folderCards.contains(id) : !home.tileRows.contains(id)
+    }
+
+    /// Shows a home element as a card or as a folder row.
+    mutating func setCard(_ id: String, _ isCard: Bool) {
+        if Self.isFolderElement(id) {
+            if isCard { home.folderCards.insert(id) } else { home.folderCards.remove(id) }
+        } else {
+            if isCard { home.tileRows.remove(id) } else { home.tileRows.insert(id) }
+        }
     }
 
     /// Whether a section is shown on the home.
     func isSectionVisible(_ id: String) -> Bool {
         !home.hiddenSections.contains(id)
-    }
-
-    /// Shows or hides a tile.
-    mutating func setTile(_ id: String, visible: Bool) {
-        if visible { home.hiddenTiles.remove(id) } else { home.hiddenTiles.insert(id) }
     }
 
     /// Shows or hides a section.
@@ -254,11 +268,11 @@ extension PassYLayoutPreferences {
         if collapsed { home.collapsedSections.insert(id) } else { home.collapsedSections.remove(id) }
     }
 
-    /// Moves tiles like `List.onMove` (offsets in `orderedTiles`).
-    mutating func moveTiles(fromOffsets source: IndexSet, toOffset destination: Int) {
-        var tiles = orderedTiles
-        tiles.passYMove(fromOffsets: source, toOffset: destination)
-        home.tileOrder = tiles
+    /// Moves elements like `List.onMove` (offsets in `orderedElements(folders:)`).
+    mutating func moveElements(folders: [String], fromOffsets source: IndexSet, toOffset destination: Int) {
+        var elements = orderedElements(folders: folders)
+        elements.passYMove(fromOffsets: source, toOffset: destination)
+        home.tileOrder = elements + home.tileOrder.filter { !elements.contains($0) }
     }
 
     /// Moves sections like `List.onMove` (offsets in `orderedSections`).
@@ -268,21 +282,52 @@ extension PassYLayoutPreferences {
         home.sectionOrder = sections
     }
 
-    /// Splits items into those shown on the home and those only in the "More" section. Both keep the user's order and
-    /// together they are exactly the input: hiding never makes anything unreachable.
+    /// A move of one card on the home (the long-press menu).
+    enum CardMove: CaseIterable, Sendable {
+        case toFront, earlier, later, toEnd
+    }
+
+    /// Whether `move` changes anything for the card `id` among the cards shown (`cards`, in home order).
+    static func canMove(_ id: String, _ move: CardMove, among cards: [String]) -> Bool {
+        guard let index = cards.firstIndex(of: id) else { return false }
+        switch move {
+        case .toFront, .earlier: return index > 0
+        case .later, .toEnd: return index < cards.count - 1
+        }
+    }
+
+    /// Moves the card `id` among the cards shown on the home (`cards`, in home order). The cards shown get their new
+    /// order; the identifiers of elements not shown right now (rows, folders of another account) keep theirs after
+    /// them.
+    mutating func moveCard(_ id: String, _ move: CardMove, among cards: [String]) {
+        guard let index = cards.firstIndex(of: id), Self.canMove(id, move, among: cards) else { return }
+        var order = cards
+        order.remove(at: index)
+        let target = switch move {
+        case .toFront: 0
+        case .earlier: index - 1
+        case .later: index + 1
+        case .toEnd: order.count
+        }
+        order.insert(id, at: target)
+        home.tileOrder = order + home.tileOrder.filter { !order.contains($0) }
+    }
+
+    /// Splits home elements into cards and folder rows. Both keep the user's order and together they are exactly the
+    /// input: nothing disappears from the home.
     ///
     /// - Parameters:
-    ///   - items: The items in their natural order.
-    ///   - id: The identifier of an item.
+    ///   - items: The elements in their natural order.
+    ///   - id: The element identifier of an item (`passYHomeElementId`).
     ///
-    func partitionTiles<Item>(_ items: [Item], id: (Item) -> String) -> (visible: [Item], hidden: [Item]) {
+    func partitionCards<Item>(_ items: [Item], id: (Item) -> String) -> (cards: [Item], rows: [Item]) {
         let ordered = Self.ordered(items, by: home.tileOrder, id: id)
-        var visible: [Item] = []
-        var hidden: [Item] = []
+        var cards: [Item] = []
+        var rows: [Item] = []
         for item in ordered {
-            if home.hiddenTiles.contains(id(item)) { hidden.append(item) } else { visible.append(item) }
+            if isCard(id(item)) { cards.append(item) } else { rows.append(item) }
         }
-        return (visible, hidden)
+        return (cards, rows)
     }
 
     /// Splits sections into those shown on the home and the hidden ones, both in the user's order.

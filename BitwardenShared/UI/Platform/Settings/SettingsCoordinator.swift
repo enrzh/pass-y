@@ -289,6 +289,7 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
         let view = CustomizeView(
             layout: .shared,
             webIcons: PassYWebIconsSetting(stateService: services.stateService),
+            folders: PassYCustomizeFolders(vaultRepository: services.vaultRepository),
         )
         let viewController = UIHostingController(rootView: view)
         viewController.navigationItem.largeTitleDisplayMode = .never

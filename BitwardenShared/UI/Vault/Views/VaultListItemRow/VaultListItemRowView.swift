@@ -89,6 +89,23 @@ struct VaultListItemRowView: View {
         let _ = { PassYPerf.rowBodyCount += 1 }()
         #endif
         let state = store.state
+        withContextMenu(rowContent(state), state: state)
+            .sensoryFeedback(.success, trigger: copyCount)
+    }
+
+    /// The row with its long-press menu. Group rows have none here (no item options): the vault home adds its own
+    /// (show as card, Customize…), and an empty inner menu would swallow it.
+    @ViewBuilder
+    private func withContextMenu(_ row: some View, state: VaultListItemRowState) -> some View {
+        if case .group = state.item.itemType {
+            row
+        } else {
+            row.contextMenu { contextMenuItems(state) }
+        }
+    }
+
+    /// The row content with its side margins and hairline.
+    private func rowContent(_ state: VaultListItemRowState) -> some View {
         content(state)
             // The side margin stays outside the row button (see `passYRowButton`).
             .padding(.horizontal, PassYDesign.Spacing.large)
@@ -105,8 +122,6 @@ struct VaultListItemRowView: View {
         #if DEBUG
             .onAppear { PassYPerf.rowAppeared(state.item.id) }
         #endif
-            .contextMenu { contextMenuItems(state) }
-            .sensoryFeedback(.success, trigger: copyCount)
     }
 
     // MARK: Private

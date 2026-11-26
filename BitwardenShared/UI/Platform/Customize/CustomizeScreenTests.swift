@@ -12,8 +12,8 @@ import XCTest
 
 // MARK: - CustomizeScreenSnapshotTests
 
-/// Customize: the screen itself and the vault home in three configurations (defaults, wide cards with monochrome
-/// tiles and hidden Archive/Trash, compact list with hidden sections). Light and dark, rendered in a key window.
+/// Customize: the screen itself and the vault home in three configurations (defaults, filled cards with a folder
+/// card, types as folder rows with a folder card and hidden sections). Light and dark, rendered in a key window.
 class CustomizeScreenSnapshotTests: BitwardenTestCase {
     // MARK: Helpers
 
@@ -87,12 +87,13 @@ class CustomizeScreenSnapshotTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// The Customize screen at the defaults (preview, tiles, layout).
+    /// The Customize screen at the defaults (preview, card colours, card switches with a folder).
     @MainActor
     func test_snapshot_customize() {
         let subject = CustomizeView(
             layout: PassYLayoutStore(appSettingsStore: nil),
             webIcons: PassYWebIconsSetting(read: { true }, write: { _ in }),
+            folders: PassYCustomizeFolders(elements: [.init(id: "folder:f1", name: "Work")]),
         )
         snap(NavigationView { subject })
     }
@@ -103,24 +104,26 @@ class CustomizeScreenSnapshotTests: BitwardenTestCase {
         snap(home(.default))
     }
 
-    /// The home with wide cards, monochrome tiles, Archive and Trash hidden (they show under "More").
+    /// The home with filled cards ("Vollfarbig"): the whole card in the type colour, white content; the folder
+    /// "Work" as a card.
     @MainActor
-    func test_snapshot_home_wideMonochrome() {
+    func test_snapshot_home_filled() {
         var preferences = PassYLayoutPreferences.default
-        preferences.home.tileLayout = .wide
-        preferences.home.hiddenTiles = ["archive", "trash"]
-        preferences.rows.tileColors = .monochrome
+        preferences.home.cardColors = .filled
+        preferences.home.folderCards = ["folder:f1"]
         snap(home(preferences))
     }
 
-    /// The home as a compact list without favourites, compact rows without user names.
+    /// The home with Archive and Trash as folder rows (Types section), the folder "Work" as a card in second place,
+    /// no favourites, No folder first, rows without user names.
     @MainActor
-    func test_snapshot_home_compactList() {
+    func test_snapshot_home_rowsAndFolderCards() {
         var preferences = PassYLayoutPreferences.default
-        preferences.home.tileLayout = .list
+        preferences.home.tileRows = ["archive", "trash"]
+        preferences.home.folderCards = ["folder:f1"]
+        preferences.home.tileOrder = ["totp", "folder:f1"]
         preferences.home.hiddenSections = ["Favorites"]
         preferences.home.sectionOrder = ["NoFolder", "Folders"]
-        preferences.rows.density = .compact
         preferences.rows.showsSubtitle = false
         snap(home(preferences))
     }

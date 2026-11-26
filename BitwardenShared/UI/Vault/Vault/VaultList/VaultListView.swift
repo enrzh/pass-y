@@ -33,7 +33,7 @@ private struct SearchableVaultListView: View {
     /// change of unrelated state never re-applies them; the home slice is part of the home list key.
     let layoutStore: PassYLayoutStore
 
-    /// The home slice of the Customize preferences (tiles, sections, tile layout).
+    /// The home slice of the Customize preferences (cards, rows, sections, card colours).
     private var homeLayout: PassYLayoutPreferences.Home { layoutStore.home }
 
     var body: some View {
@@ -263,21 +263,16 @@ private struct SearchableVaultListView: View {
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
 
-            if !home.tiles.isEmpty {
-                if homeLayout.tileLayout == .list {
-                    Section {
-                        ForEach(home.tiles) { item in
-                            swipeableRow(for: item)
-                        }
-                    }
-                } else {
-                    Section {
-                        CategoryTilesView(items: home.tiles, layout: homeLayout.tileLayout) { item in
-                            Task { await store.perform(.itemPressed(item)) }
-                        }
-                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                        .listRowBackground(Color.clear)
-                    }
+            if !home.cards.isEmpty {
+                Section {
+                    CategoryTilesView(
+                        items: home.cards,
+                        colors: homeLayout.cardColors,
+                        onSelect: { item in Task { await store.perform(.itemPressed(item)) } },
+                        menu: { item in cardMenu(for: item, cards: home.cardIds) },
+                    )
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowBackground(Color.clear)
                 }
             }
 
@@ -285,7 +280,7 @@ private struct SearchableVaultListView: View {
                 collapsibleSection(section)
             }
 
-            // Customize: what is hidden from the home stays one tap away (never a dead end).
+            // Customize: the rows of hidden sections stay one tap away (never a dead end).
             if let more = home.more {
                 collapsibleSection(more)
             }
@@ -300,7 +295,7 @@ private struct SearchableVaultListView: View {
         Section {
             if isExpanded {
                 ForEach(section.items) { item in
-                    swipeableRow(for: item)
+                    homeRow(for: item)
                 }
             }
         } header: {
@@ -313,6 +308,72 @@ private struct SearchableVaultListView: View {
             ) {
                 store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
             }
+        }
+    }
+
+    /// A row of the home: home elements (type rows, folders) get the long-press menu of the home (show as card,
+    /// Customize…); other rows are the plain list row.
+    @ViewBuilder
+    private func homeRow(for item: VaultListItem) -> some View {
+        if item.isPassYHomeElement {
+            swipeableRow(for: item)
+                .contextMenu { rowMenu(for: item) }
+        } else {
+            swipeableRow(for: item)
+        }
+    }
+
+    /// The long-press menu of a card: move it among the cards, show it as a folder row, open Customize.
+    @ViewBuilder
+    private func cardMenu(for item: VaultListItem, cards: [String]) -> some View {
+        let id = item.passYHomeElementId
+        Section {
+            ForEach(PassYLayoutPreferences.CardMove.allCases, id: \.self) { move in
+                if PassYLayoutPreferences.canMove(id, move, among: cards) {
+                    Button {
+                        withAnimation(.snappy) { layoutStore.preferences.moveCard(id, move, among: cards) }
+                    } label: {
+                        Label(move.passYTitle, systemImage: move.passYSymbol)
+                    }
+                    .accessibilityIdentifier("HomeCardMove_\(move)")
+                }
+            }
+        }
+        Section {
+            Button {
+                withAnimation(.snappy) { layoutStore.preferences.setCard(id, false) }
+            } label: {
+                Label(Localizations.showAsFolderRow, systemImage: "list.bullet")
+            }
+            .accessibilityIdentifier("HomeShowAsRowButton")
+        }
+        customizeMenuSection
+    }
+
+    /// The long-press menu of a type or folder row: show it as a card, open Customize.
+    @ViewBuilder
+    private func rowMenu(for item: VaultListItem) -> some View {
+        let id = item.passYHomeElementId
+        Section {
+            Button {
+                withAnimation(.snappy) { layoutStore.preferences.setCard(id, true) }
+            } label: {
+                Label(Localizations.showAsCard, systemImage: "square.grid.2x2")
+            }
+            .accessibilityIdentifier("HomeShowAsCardButton")
+        }
+        customizeMenuSection
+    }
+
+    /// The separated "Customize…" entry of the home menus.
+    private var customizeMenuSection: some View {
+        Section {
+            Button {
+                store.send(.customizePressed)
+            } label: {
+                Label(Localizations.customizeEllipsis, systemImage: "slider.horizontal.3")
+            }
+            .accessibilityIdentifier("HomeCustomizeButton")
         }
     }
 
@@ -485,19 +546,26 @@ struct HomeContentKey: Equatable {
 
 // MARK: - PassYHomeArrangement
 
-/// The vault home after the Customize preferences: the visible tiles and sections in the user's order and the "More"
-/// section with everything hidden from the home (hidden tiles, and the rows of hidden Folders / Shared folders
-/// sections). Hidden Favorites and No Folder items stay reachable through their type tiles and the search.
-/// Default preferences give the tiles and sections unchanged and no "More" section.
+/// The vault home after the Customize preferences: the cards (type tiles and the folders switched to cards) in the
+/// user's order, the list sections in the user's order with the type tiles switched to folder rows in their own
+/// section ("Types") and without the folders shown as cards, and the "More" section with the rows of hidden Types /
+/// Folders / Shared folders sections. Nothing disappears: every element is a card or a row. Folder identifiers the
+/// vault does not have (deleted, another account) are ignored. Default preferences give the tiles and sections
+/// unchanged and no "More" section.
 struct PassYHomeArrangement {
     /// The id of the "More" section (its collapsed state persists like the other sections').
     static let moreSectionId = "PassYMore"
 
-    /// The sections whose rows (folders, collections) move to "More" when the section is hidden.
-    static let sectionsKeptInMore: Set<String> = ["Folders", "Collections"]
+    /// The id of the folders section of the vault list.
+    static let foldersSectionId = "Folders"
 
-    /// The tiles shown on the home.
-    let tiles: [VaultListItem]
+    /// The sections whose rows (types, folders, collections) move to "More" when the section is hidden.
+    static let sectionsKeptInMore: Set<String> = [
+        PassYLayoutPreferences.typeRowsSectionId, foldersSectionId, "Collections",
+    ]
+
+    /// The cards shown on the home.
+    let cards: [VaultListItem]
 
     /// The list sections shown on the home.
     let sections: [VaultListSection]
@@ -505,14 +573,38 @@ struct PassYHomeArrangement {
     /// The "More" section, `nil` when nothing is hidden.
     let more: VaultListSection?
 
+    /// The element identifiers of the cards, in home order.
+    var cardIds: [String] { cards.map(\.passYHomeElementId) }
+
     init(tiles: [VaultListItem], sections: [VaultListSection], layout: PassYLayoutPreferences.Home) {
         let preferences = PassYLayoutPreferences(home: layout)
-        let tileSplit = preferences.partitionTiles(tiles, id: \.passYTileIdentifier)
-        let sectionSplit = preferences.partitionSections(sections, id: \.id)
-        self.tiles = tileSplit.visible
+        var listSections = sections
+        var folderCards: [VaultListItem] = []
+        if !layout.folderCards.isEmpty,
+           let index = listSections.firstIndex(where: { $0.id == Self.foldersSectionId }) {
+            let folders = listSections[index]
+            folderCards = folders.items.filter { $0.isPassYHomeElement && preferences.isCard($0.passYHomeElementId) }
+            if !folderCards.isEmpty {
+                let cardIds = Set(folderCards.map(\.id))
+                let rest = folders.items.filter { !cardIds.contains($0.id) }
+                if rest.isEmpty {
+                    listSections.remove(at: index)
+                } else {
+                    listSections[index] = VaultListSection(id: folders.id, items: rest, name: folders.name)
+                }
+            }
+        }
+        let split = preferences.partitionCards(tiles + folderCards, id: \.passYHomeElementId)
+        cards = split.cards
+        if !split.rows.isEmpty {
+            listSections.insert(
+                VaultListSection(id: PassYLayoutPreferences.typeRowsSectionId, items: split.rows, name: Localizations.types),
+                at: 0,
+            )
+        }
+        let sectionSplit = preferences.partitionSections(listSections, id: \.id)
         self.sections = sectionSplit.visible
-        let moreItems = tileSplit.hidden
-            + sectionSplit.hidden.filter { Self.sectionsKeptInMore.contains($0.id) }.flatMap(\.items)
+        let moreItems = sectionSplit.hidden.filter { Self.sectionsKeptInMore.contains($0.id) }.flatMap(\.items)
         more = moreItems.isEmpty
             ? nil
             : VaultListSection(id: Self.moreSectionId, items: moreItems, name: Localizations.passYMore)
@@ -520,10 +612,40 @@ struct PassYHomeArrangement {
 }
 
 extension VaultListItem {
-    /// The Customize identifier of a home tile (`VaultListGroup.tileIdentifier`), the item id for other rows.
-    var passYTileIdentifier: String {
-        if case let .group(group, _) = itemType { return group.tileIdentifier }
+    /// The Customize identifier of a home element (`VaultListGroup.passYHomeElementId`), the item id for other rows.
+    var passYHomeElementId: String {
+        if case let .group(group, _) = itemType, let id = group.passYHomeElementId { return id }
         return id
+    }
+
+    /// Whether the item is a home element (a type tile, a folder or "No folder"): a card or a folder row.
+    var isPassYHomeElement: Bool {
+        guard case let .group(group, _) = itemType else { return false }
+        return group.passYHomeElementId != nil
+    }
+}
+
+// MARK: - PassYLayoutPreferences.CardMove + menu
+
+extension PassYLayoutPreferences.CardMove {
+    /// The title of the move in the card menu.
+    var passYTitle: String {
+        switch self {
+        case .toFront: Localizations.moveToFront
+        case .earlier: Localizations.moveEarlier
+        case .later: Localizations.moveLater
+        case .toEnd: Localizations.moveToEnd
+        }
+    }
+
+    /// The SF Symbol of the move.
+    var passYSymbol: String {
+        switch self {
+        case .toFront: "arrow.up.to.line"
+        case .earlier: "arrow.up"
+        case .later: "arrow.down"
+        case .toEnd: "arrow.down.to.line"
+        }
     }
 }
 
@@ -800,7 +922,6 @@ struct VaultListView: View {
             serverURL: store.state.serverURL,
             showsPlaceholder: state.showPlaceholderToolbarIcon,
             sync: { Task { await store.perform(.refreshVault) } },
-            customize: { store.send(.customizePressed) },
         )
     }
 

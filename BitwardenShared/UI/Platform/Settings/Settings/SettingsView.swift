@@ -72,6 +72,12 @@ struct SettingsView: View {
             if let active = store.state.profileState.activeAccountProfile {
                 Section { accountRow(active) }
             }
+            // Pass-Y Customize (on-device layout): its own section on top, right below the account row.
+            Section {
+                row(Localizations.customize, symbol: "slider.horizontal.3", id: "CustomizeSettingsButton") {
+                    store.send(.customizePressed)
+                }
+            }
             Section {
                 row(
                     Localizations.accountSecurity,
@@ -111,12 +117,6 @@ struct SettingsView: View {
             Section {
                 row(Localizations.about, symbol: "info.circle.fill", tint: .gray, id: "AboutSettingsButton") {
                     store.send(.aboutPressed)
-                }
-            }
-            // Pass-Y Customize (on-device layout): its own section, kept separate from the settings rows above.
-            Section {
-                row(Localizations.customize, symbol: "slider.horizontal.3", id: "CustomizeSettingsButton") {
-                    store.send(.customizePressed)
                 }
             }
         }

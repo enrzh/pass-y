@@ -1310,26 +1310,14 @@
 "ServerNotSet" = "Nicht festgelegt – zum Eintragen tippen";
 /* Title of the Pass-Y Customize screen (on-device layout preferences). */
 "Customize" = "Anpassen";
-/* Avatar menu entry that opens the Customize screen. */
-"CustomizeHome" = "Startseite anpassen…";
 /* Footer of the Customize preview. */
 "CustomizeDescription" = "Änderungen gelten nur für dieses Gerät und werden nicht synchronisiert.";
 /* Customize: section title for the vault home. */
 "HomeScreen" = "Startseite";
-/* Customize: the category tiles of the home screen. */
-"Tiles" = "Kacheln";
-/* Customize: footer of the tile list. */
-"TilesFooter" = "Ausgeblendete Kacheln bleiben unter „Mehr“ am Ende der Startseite erreichbar. Es wird nichts gelöscht.";
+/* Customize: footer of the card / folder row switches. */
+"TilesFooter" = "Ein: Karte oben auf der Startseite. Aus: Ordnerzeile in der Liste darunter. Es verschwindet nichts. „Anordnen“ ändert die Reihenfolge der Karten.";
 /* Customize: button that turns on drag reordering. */
 "Reorder" = "Anordnen";
-/* Customize: picker for the tile layout. */
-"TileLayout" = "Kachel-Layout";
-/* Customize: tile layout, cards in two columns. */
-"TileLayoutCards" = "Karten";
-/* Customize: tile layout, one column of wide cards. */
-"TileLayoutWideCards" = "Breite Karten";
-/* Customize: tile layout, rows. */
-"TileLayoutList" = "Kompakte Liste";
 /* Customize: the list sections of the home screen (Favorites, folders ...). */
 "HomeSections" = "Bereiche";
 /* Customize: footer of the sections list. */
@@ -1338,12 +1326,6 @@
 "CollapsedWhenOpened" = "Beim Öffnen eingeklappt";
 /* Customize: section title for list rows. */
 "ListsAndRows" = "Listen & Zeilen";
-/* Customize: picker for row height. */
-"RowDensity" = "Zeilendichte";
-/* Customize: row density. */
-"DensityComfortable" = "Komfortabel";
-/* Customize: row density. */
-"DensityCompact" = "Kompakt";
 /* Customize: toggle for the row subtitle. */
 "ShowUserNames" = "Benutzernamen anzeigen";
 /* Customize: toggle for the leading row icon tile. */
@@ -1354,23 +1336,39 @@
 "ShowSharedMark" = "Geteilt-Markierung";
 /* Customize: toggle for the attachments badge. */
 "ShowAttachmentMark" = "Anhang-Markierung";
-/* Customize: picker for the icon tile colours. */
+/* Customize: picker for the colours of the home cards. */
 "TileColors" = "Kachelfarben";
 /* Customize: tile colours. */
-"TileColorsColorful" = "Farbig";
-/* Customize: tile colours. */
-"TileColorsMonochrome" = "Einfarbig";
+"TileColorsColorful" = "Bunt";
 /* Customize: footer of the rows section. */
 "ListsAndRowsFooter" = "Die Textgröße folgt der Systemeinstellung (Einstellungen › Anzeige & Helligkeit › Textgröße).";
 /* Customize: toggle that shows codes as 123 456. */
 "GroupDigits" = "Ziffern gruppieren";
-/* Customize: toggle for the code countdown ring. */
-"CountdownRing" = "Countdown-Ring";
-/* Customize: toggle for the seconds inside the countdown. */
-"CountdownSeconds" = "Verbleibende Sekunden";
+/* Customize: menu entry of the home cards and rows that opens the Customize screen. */
+"CustomizeEllipsis" = "Anpassen…";
+/* Customize: section title of the home elements switched between card and folder row. */
+"ShowAsCards" = "Als Karte anzeigen";
+/* Home long-press menu: show a folder row as a card. */
+"ShowAsCard" = "Als Karte anzeigen";
+/* Home long-press menu: show a card as a folder row. */
+"ShowAsFolderRow" = "Als Ordnerzeile anzeigen";
+/* Home long-press menu: move a card to the first position. */
+"MoveToFront" = "An den Anfang";
+/* Home long-press menu: move a card one position earlier. */
+"MoveEarlier" = "Nach vorne";
+/* Home long-press menu: move a card one position later. */
+"MoveLater" = "Nach hinten";
+/* Home long-press menu: move a card to the last position. */
+"MoveToEnd" = "Ans Ende";
+/* Customize: card colours, the whole card in the type colour. */
+"TileColorsFilled" = "Vollfarbig";
+/* Customize: footer of the card colours. */
+"TileColorsFooter" = "Bunt: weiße Karten mit farbigem Symbol. Vollfarbig: die ganze Karte in ihrer Farbe.";
+/* Customize: footer of the digit grouping toggle. */
+"GroupDigitsFooter" = "Ein: 123 456. Aus: 123456.";
 /* Customize: button that restores the default layout. */
 "ResetToDefaults" = "Auf Standard zurücksetzen";
 /* Customize: title of the live preview. */
 "LayoutPreview" = "Vorschau";
-/* Home section with the tiles and folders hidden from the home screen. */
+/* Home section with the rows of the sections hidden from the home screen. */
 "PassYMore" = "Mehr";
