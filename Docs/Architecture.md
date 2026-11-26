@@ -274,9 +274,11 @@ home: every element is a card or a folder row (`tileRows`: type tiles shown as r
 cards). `PassYHomeArrangement` builds the cards (types and folder cards in the user's order), a "Types" section
 (`PassYTypes`) for the type rows, the folder rows without the folder cards and a "More" section only for the rows of
 hidden Types / Folders / Shared folders sections; unknown folder ids are ignored. Cards are drawn by `CategoryTilesView`
-in "Bunt" (tinted symbol tile) or "Vollfarbig" (`filledCardColor`, white content at 4.5:1 or more, unit-tested). A long
-press on a card opens its native context menu (move to front / earlier / later / to end, Show as Folder Row,
-Customize…); type and folder rows have Show as Card and Customize… (group rows have no inner row menu). Sections marked
+in "Bunt" (tinted symbol tile) or "Vollfarbig" (`filledCardColor`, white content at 4.5:1 or more, unit-tested). A card is a
+`Menu` with a primary action: a tap opens it, a long press opens its native menu from the card (move to front /
+earlier / later / to end, Show as Folder Row, Customize…); a `contextMenu` per card does not work because all cards
+share one list row and a list row has one context menu. Type and folder rows have a context menu with Show as Card and
+Customize… (group rows have no inner row menu). Sections marked
 "collapsed when opened" are added to the persisted chevron state when the home stream starts. `CustomizeView` (plain
 grouped `List`, live preview, card switches for every type and top-level folder with `onMove` in `EditMode`, Reset;
 folders read through `PassYCustomizeFolders` while the screen is shown) is pushed in the Settings stack from Settings

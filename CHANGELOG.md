@@ -24,7 +24,7 @@ Not tagged and not version-bumped yet; no validator verdict yet.
   the home. Rows: density, user names, icons (website icons: the existing switch), favourite / shared / attachment
   marks, colourful or monochrome tiles. Verification codes: digit grouping, countdown ring and seconds. Live preview and
   Reset to defaults; the defaults are the previous look.
-- Customize, home round 2: long press on a home card opens the native menu over the lifted card (Move to Front /
+- Customize, home round 2: long press on a home card opens its native menu from the card (Move to Front /
   Earlier / Later / to End, Show as Folder Row, Customize…); type and folder rows offer Show as Card and Customize…;
   the avatar menu has no Customize entry any more and Settings lists "Anpassen" first, above Kontosicherheit. Nothing
   disappears: every type and folder is a card or a folder row (types switched off are rows of a "Types" section,
