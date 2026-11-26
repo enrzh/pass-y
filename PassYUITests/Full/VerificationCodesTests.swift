@@ -1,7 +1,8 @@
 import XCTest
 
-/// The verification codes page (PassYDesign): code rows with name, account, the code and a live countdown; a tap
-/// copies the code and shows the "copied" toast. Uses the seeded GitHub login (authenticator key).
+/// The verification codes page (PassYDesign): code rows with name, account and the code, one shared live countdown for
+/// the page; a tap copies the code and shows the "copied" toast. Uses the seeded GitHub login (authenticator key) and
+/// the seeded Perf Items with authenticator keys.
 final class VerificationCodesTests: PassYUITestCase {
     func test_tapCopiesCodeWithToastAndCountdownRuns() {
         let app = launchApp()
@@ -43,6 +44,55 @@ final class VerificationCodesTests: PassYUITestCase {
         attach(app, "codes-context-menu")
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.2)).tap()
         waitUntil(5) { !app.buttons["Copy"].exists && !app.menuItems["Copy"].exists }
+    }
+
+    /// One shared countdown ring instead of one per row: beside the large title while it is shown, at the trailing
+    /// end of the navigation bar once the title has collapsed, back beside the title after scrolling up. It reads the
+    /// seconds left to VoiceOver and counts down. Light and dark (screenshots for both title states). The seeded test
+    /// account has 13 codes (Perf Item 0011 with a 60 s period), so the page scrolls.
+    func test_sharedRingInBothTitleStates() {
+        for mode in passYModes() {
+            setPassYAppearance(mode == "dark" ? .dark : .light)
+            let app = launchApp()
+            ensureUnlockedVault(app)
+            let tile = app.buttons["CategoryTile_totp"]
+            for _ in 0 ..< 4 where !tile.isHittable { app.swipeDown() }
+            XCTAssertTrue(tile.waitForExistence(timeout: 10), "verification codes tile")
+            tile.tap()
+            let large = app.descendants(matching: .any)["SharedCountdownLarge"]
+            let bar = app.descendants(matching: .any)["SharedCountdownBar"]
+            XCTAssertTrue(large.waitForExistence(timeout: 10), "\(mode): the shared ring beside the large title")
+            XCTAssertFalse(bar.exists, "\(mode): no ring in the bar while the large title is shown")
+            let title = app.navigationBars.staticTexts["Verification codes"].firstMatch
+            XCTAssertTrue(title.exists, "\(mode): large title")
+            let width = app.windows.firstMatch.frame.width
+            XCTAssertGreaterThan(large.frame.midX, width * 0.75, "\(mode): ring at the trailing end (\(large.frame))")
+            XCTAssertGreaterThan(large.frame.minX, title.frame.maxX, "\(mode): ring right of the title (\(title.frame))")
+            XCTAssertLessThan(abs(large.frame.midY - title.frame.maxY), 34, "\(mode): ring beside the title (\(large.frame) / \(title.frame))")
+            let seconds = secondsLeft(large.label)
+            XCTAssertNotNil(seconds, "\(mode): the ring reads the seconds left ('\(large.label)')")
+            waitUntil(4) { self.secondsLeft(large.label) != seconds }
+            XCTAssertNotEqual(secondsLeft(large.label), seconds, "\(mode): the shared ring counts down")
+            attach(app, "codes-shared-ring-large-\(mode)")
+
+            // Collapse the title: the ring moves into the bar.
+            app.swipeUp()
+            XCTAssertTrue(bar.waitForExistence(timeout: 5), "\(mode): the ring in the bar once the title collapsed")
+            XCTAssertTrue(waitForDisappearance(of: large, timeout: 5), "\(mode): no ring beside the collapsed title")
+            let navBar = app.navigationBars.firstMatch.frame
+            XCTAssertTrue(navBar.contains(CGPoint(x: bar.frame.midX, y: bar.frame.midY)), "\(mode): ring inside the bar (\(bar.frame) / \(navBar))")
+            XCTAssertGreaterThan(bar.frame.midX, width * 0.75, "\(mode): ring at the trailing end of the bar")
+            XCTAssertNotNil(secondsLeft(bar.label), "\(mode): the bar ring reads the seconds left ('\(bar.label)')")
+            sleep(1)
+            attach(app, "codes-shared-ring-collapsed-\(mode)")
+
+            // Back to the top: the ring returns beside the large title.
+            app.swipeDown(); app.swipeDown()
+            XCTAssertTrue(large.waitForExistence(timeout: 5), "\(mode): the ring returns beside the large title")
+            XCTAssertTrue(waitForDisappearance(of: bar, timeout: 5), "\(mode): the bar ring goes away again")
+            app.terminate()
+        }
+        setPassYAppearance(.light)
     }
 
     /// The seconds left in a code row label ("..., 14 seconds left").

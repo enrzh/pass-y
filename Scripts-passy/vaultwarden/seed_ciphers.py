@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Adds N throwaway login ciphers to the local test account (performance testing) and the named fixtures the UI tests
 search for: GitHub (with an authenticator key, so the "Verification codes" tile exists), Netflix and Bank
-(skipped when an item with that name already exists). Account: PASSY_EMAIL (default passy-test@example.test). Usage: seed_ciphers.py [count] [server_url]
+(skipped when an item with that name already exists). With a count of at most 100 (the UI test account) the first 12
+Perf Items also get an authenticator key (Perf Item 0011 with a 60 s period). Account: PASSY_EMAIL (default passy-test@example.test). Usage: seed_ciphers.py [count] [server_url]
 `seed_ciphers.py --count [server_url]` prints the number of "Perf Item" ciphers on the server and exits."""
 import base64, hashlib, hmac, json, os, sys, urllib.parse, urllib.request
 from cryptography.hazmat.primitives import hashes, padding
@@ -83,9 +84,18 @@ for name, user, pw, totp in [("GitHub", "octo@example.test", "Gh-Pass-1234", "JB
           "login": login, "fields": None})
     print("fixture", name)
 
+# A small (UI test) account gets authenticator keys on its first 12 items, so the verification codes page scrolls
+# (shared countdown ring in both title states); Perf Item 0011 uses a 60 s period (keeps its own small ring).
+def perf_totp(i):
+    if COUNT > 100 or i >= 12:
+        return None
+    return "otpauth://totp/Perf%20Item?secret=JBSWY3DPEHPK3PXP&period=60" if i == 11 else "JBSWY3DPEHPK3PXP"
+
 for i in range(COUNT):
+    totp = perf_totp(i)
     body = {"encryptedFor": UID, "type": 1, "name": enc_string(sym, f"Perf Item {i:04d}".encode()), "notes": None, "favorite": i % 50 == 0,
             "login": {"username": enc_string(sym, f"user{i}@example.test".encode()), "password": enc_string(sym, b"pw-%d" % i),
+                      "totp": enc_string(sym, totp.encode()) if totp else None,
                       "uris": [{"uri": enc_string(sym, f"https://site{i}.example.test".encode()), "match": None}]}, "fields": None}
     try:
         urllib.request.urlopen(urllib.request.Request(SERVER + "/api/ciphers", json.dumps(body).encode(), H)).read()
