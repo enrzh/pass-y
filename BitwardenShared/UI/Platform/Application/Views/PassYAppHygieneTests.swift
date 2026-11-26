@@ -46,6 +46,7 @@ class PassYAppHygieneTests: BitwardenTestCase {
             .filter { $0.hasSuffix(".swift") }
         XCTAssertEqual(Set(files), [
             "PassYAnimationDump.swift", "PassYNavigationProbe.swift", "PassYPerf.swift", "PassYStartupTimeline.swift",
+            "PassYTouchProbe.swift",
         ])
         for file in files {
             let source = try read("\(folder)/\(file)").trimmingCharacters(in: .whitespacesAndNewlines)

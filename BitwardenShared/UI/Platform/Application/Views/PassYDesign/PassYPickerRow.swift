@@ -108,14 +108,14 @@ struct PassYPickerRow<Option: Hashable, Actions: View>: View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: PassYDesign.Spacing.xSmall) {
-                    Text(title).foregroundStyle(.primary)
+                    Text(title).foregroundStyle(Color.primary)
                     choice
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 HStack(spacing: PassYDesign.Spacing.medium) {
                     Text(title)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.primary)
                         .layoutPriority(1)
                     Spacer(minLength: PassYDesign.Spacing.small)
                     choice

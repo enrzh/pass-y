@@ -82,8 +82,10 @@ class VaultAutofillListViewTests: BitwardenTestCase {
     func test_vaultItem_tap() async throws {
         let item = VaultListItem.fixture(cipherListView: .fixture(name: "Item"))
         processor.state.loadingState = .data([VaultListSection(id: "Items", items: [item], name: Localizations.items)])
-        let button = try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
-        try await button.tap()
+        let button = try subject.inspect().find(buttonWithAccessibilityIdentifier: "VaultListItemRowButton")
+        try button.tap()
+        // The row is a plain system button; its effect runs in a task.
+        try await waitForAsync { self.processor.effects.last != nil }
         XCTAssertEqual(processor.effects.last, .vaultItemTapped(item))
     }
 }
