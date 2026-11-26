@@ -32,7 +32,7 @@ struct PassYBarButton: View {
     let action: () -> Void
 
     /// Counts presses; drives the haptic.
-    @State private var presses = 0
+    @SwiftUI.State private var presses = 0
 
     // MARK: View
 
