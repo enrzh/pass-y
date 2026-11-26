@@ -21,38 +21,26 @@ struct SendItemAccessCountStepper: View {
     // MARK: View
 
     var body: some View {
-        ContentBlock(dividerLeadingPadding: 16) {
-            BitwardenStepper(
+        Section {
+            PassYStepperRow(
+                Localizations.maximumAccessCount,
                 value: $maximumAccessCount,
                 in: 0 ... Int.max,
-                allowTextFieldInput: true,
-                textFieldAccessibilityIdentifier: "MaxAccessCountTextField",
-            ) {
-                Text(Localizations.maximumAccessCount)
-                    .styleGuide(.body)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-            } footer: {
-                VStack(alignment: .leading, spacing: 2) {
-                    if displayInfoText {
-                        Text(Localizations.maximumAccessCountInfo)
-                            .styleGuide(.footnote)
-                            .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    }
+                identifier: "SendMaxAccessCountEntry",
+                textFieldIdentifier: "MaxAccessCountTextField",
+            )
+        } footer: {
+            VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
+                if displayInfoText {
+                    Text(Localizations.maximumAccessCountInfo)
+                }
 
-                    if let currentAccessCount, maximumAccessCount > 0 {
-                        // Wrap these texts in a group so that the style guide can be set on
-                        // both of them at once.
-                        Group {
-                            Text("\(Localizations.currentAccessCount): ")
-                                + Text("\(currentAccessCount)")
-                                .fontWeight(.bold)
-                        }
-                        .styleGuide(.footnote)
-                        .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    }
+                if let currentAccessCount, maximumAccessCount > 0 {
+                    Text("\(Localizations.currentAccessCount): \(Text("\(currentAccessCount)").fontWeight(.semibold))")
                 }
             }
-            .accessibilityIdentifier("SendMaxAccessCountEntry")
+            .font(.footnote)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -78,8 +66,8 @@ struct SendItemAccessCountStepper: View {
 #Preview {
     @Previewable @SwiftUI.State var maximumAccessCount = 5
 
-    SendItemAccessCountStepper(currentAccessCount: 0, maximumAccessCount: $maximumAccessCount)
-        .padding()
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
+    Form {
+        SendItemAccessCountStepper(currentAccessCount: 0, maximumAccessCount: $maximumAccessCount)
+    }
 }
 #endif

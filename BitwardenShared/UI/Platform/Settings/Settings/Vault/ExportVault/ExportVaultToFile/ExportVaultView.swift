@@ -76,7 +76,7 @@ struct ExportVaultView: View {
         }
     }
 
-    /// A password row with a reveal button (`PassYSecureField`).
+    /// A password row with a reveal button (`PassYPasswordField`).
     private func secureRow(
         title: String,
         text: Binding<String>,
@@ -84,7 +84,7 @@ struct ExportVaultView: View {
         fieldId: String,
         toggleId: String,
     ) -> some View {
-        PassYSecureField(
+        PassYPasswordField(
             title,
             text: text,
             isRevealed: visible.wrappedValue,

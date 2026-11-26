@@ -10,7 +10,7 @@ public struct StepperField<State>: Equatable, Identifiable {
 
     /// The accessibility id for the stepper. The `id` will be used as the accessibility id
     /// if this is `nil`.
-    let accessibilityId: String?
+    public let accessibilityId: String?
 
     /// A key path for updating the backing value for the stepper field.
     public let keyPath: WritableKeyPath<State, Int>

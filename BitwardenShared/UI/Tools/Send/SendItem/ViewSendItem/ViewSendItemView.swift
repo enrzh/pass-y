@@ -16,7 +16,8 @@ struct ViewSendItemView: View {
 
     var body: some View {
         content
-            .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .inline)
+            .navigationTitle(store.state.navigationTitle)
+            .navigationBarTitleDisplayMode(.inline)
             .task { await store.perform(.loadData) }
             .task { await store.perform(.streamSend) }
             .toast(
@@ -44,19 +45,18 @@ struct ViewSendItemView: View {
 
     /// The button to delete the send.
     private var deleteSendButton: some View {
-        AsyncButton {
+        PassYInlineButtonRow(
+            Localizations.deleteSend,
+            systemImage: "trash",
+            role: .destructive,
+            identifier: "ViewSendDeleteButton",
+        ) {
             await store.perform(.deleteSend)
-        } label: {
-            Label(Localizations.deleteSend, image: SharedAsset.Icons.trash16.swiftUIImage, scaleImageDimension: 16)
         }
-        .foregroundStyle(SharedAsset.Colors.error.swiftUIColor)
-        .frame(maxWidth: .infinity)
-        .accessibilityIdentifier("ViewSendDeleteButton")
     }
 
-    /// The main content of the view.
+    /// The main content: link, details, options, delete (a native `Form`, Apple Passwords look).
     @ViewBuilder private var content: some View {
-        // Native `Form` (Apple Passwords look).
         Form {
             restrictionBanner
 
@@ -70,140 +70,117 @@ struct ViewSendItemView: View {
 
             Section { deleteSendButton }
         }
-        .nativeFormRows()
-        .readOnlyFieldStyle()
+        .passYReadableWidth()
         .animation(.default, value: store.state.isAdditionalOptionsExpanded)
     }
 
-    /// The expandable additional options section.
+    /// The access count and the private note behind "Additional options".
     @ViewBuilder private var additionalOptions: some View {
         if store.state.sendView.maxAccessCount != nil || store.state.sendView.notes?.isEmpty == false {
-            ExpandableContent(
-                title: Localizations.additionalOptions,
+            PassYDisclosureSection(
+                Localizations.additionalOptions,
                 isExpanded: store.binding(
                     get: \.isAdditionalOptionsExpanded,
                     send: { _ in ViewSendItemAction.toggleAdditionalOptions },
                 ),
-                buttonAccessibilityIdentifier: "SendShowHideOptionsButton",
+                identifier: "SendShowHideOptionsButton",
             ) {
-                if let maxAccessCount = store.state.sendView.maxAccessCount {
-                    Section {
-                        SendItemAccessCountStepper(
-                            currentAccessCount: Int(store.state.sendView.accessCount),
-                            displayInfoText: false,
-                            maximumAccessCount: .constant(Int(maxAccessCount)),
+                Section {
+                    if let maxAccessCount = store.state.sendView.maxAccessCount {
+                        PassYCopyRow(
+                            Localizations.maximumAccessCount,
+                            value: "\(maxAccessCount)",
+                            identifier: "SendMaxAccessCountEntry",
+                            copy: nil,
                         )
-                        .disabled(true)
+                        PassYCopyRow(
+                            Localizations.currentAccessCount,
+                            value: "\(store.state.sendView.accessCount)",
+                            identifier: "SendCurrentAccessCountEntry",
+                            copy: nil,
+                        )
                     }
-                }
 
-                if let notes = store.state.sendView.notes, !notes.isEmpty {
-                    Section {
-                    BitwardenTextValueField(
-                        title: Localizations.privateNote,
-                        value: notes,
-                        useUIKitTextView: true,
-                        copyButtonAccessibilityIdentifier: "CopyNotesButton",
-                        copyButtonAction: {
+                    if let notes = store.state.sendView.notes, !notes.isEmpty {
+                        PassYCopyRow(Localizations.privateNote, value: notes, identifier: "ViewSendNotes", layout: .stacked) {
                             store.send(.copyNotes)
-                        },
-                    )
-                    .accessibilityIdentifier("ViewSendNotes")
+                        }
                     }
                 }
             }
         }
     }
 
-    /// The banner shown when this Send is disabled due to a Send Controls policy violation.
+    /// Shown when this Send is disabled by a Send Controls policy: the reason and, if allowed, "Make a copy".
     @ViewBuilder private var restrictionBanner: some View {
         if store.state.isDisabled, let message = store.state.restrictionBannerMessage {
-            ActionCard(
-                title: Localizations.organizationPolicyRestriction,
-                message: message,
-                actionButtonState: store.state.canMakeCopy
-                    ? ActionCard.ButtonState(title: Localizations.makeACopy) {
+            Section {
+                VStack(alignment: .leading, spacing: PassYDesign.Spacing.xSmall) {
+                    Label(Localizations.organizationPolicyRestriction, systemImage: "info.circle")
+                        .font(.headline)
+                    Text(message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, PassYDesign.Spacing.xSmall)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("ViewSendRestrictionBanner")
+
+                if store.state.canMakeCopy {
+                    PassYInlineButtonRow(Localizations.makeACopy, systemImage: "plus.square.on.square") {
                         store.send(.makeCopy)
                     }
-                    : nil,
-            ) {
-                SharedAsset.Icons.informationCircle24.swiftUIImage
-                    .foregroundStyle(SharedAsset.Colors.iconSecondary.swiftUIColor)
+                }
             }
-            .accessibilityIdentifier("ViewSendRestrictionBanner")
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
         }
     }
 
-    /// The send link with copy and share rows.
+    /// The send link: tap copies; Copy and Share rows.
     @ViewBuilder private var sendLink: some View {
         Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(Localizations.sendLink)
-                    .font(.headline)
-
-                if let displayShareURL = store.state.displayShareURL {
-                    Text(displayShareURL)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .accessibilityIdentifier("ViewSendShareLinkText")
+            if let displayShareURL = store.state.displayShareURL {
+                PassYCopyRow(Localizations.sendLink, value: displayShareURL, identifier: "ViewSendShareLinkText", layout: .stacked) {
+                    store.send(.copyShareURL)
                 }
             }
 
-            Button {
+            PassYInlineButtonRow(Localizations.copy, systemImage: "doc.on.doc", identifier: "ViewSendCopyButton") {
                 store.send(.copyShareURL)
-            } label: {
-                Label(Localizations.copy, systemImage: "doc.on.doc")
             }
-            .accessibilityIdentifier("ViewSendCopyButton")
 
-            Button {
+            PassYInlineButtonRow(Localizations.share, systemImage: "square.and.arrow.up", identifier: "ViewSendShareButton") {
                 store.send(.shareSend)
-            } label: {
-                Label(Localizations.share, systemImage: "square.and.arrow.up")
             }
-            .accessibilityIdentifier("ViewSendShareButton")
         }
     }
 
-    /// The send details section, containing the send's name, content, and deletion date.
+    /// The name, the content (text or file) and the deletion date.
     @ViewBuilder private var sendDetailsSection: some View {
-        SectionView(Localizations.sendDetails, contentSpacing: 8) {
-            BitwardenTextValueField(
-                title: Localizations.sendNameRequired,
-                value: store.state.sendView.name,
-                valueAccessibilityIdentifier: "ViewSendNameField",
-            )
+        Section {
+            PassYCopyRow(Localizations.name, value: store.state.sendView.name, identifier: "ViewSendNameField", copy: nil)
 
             switch store.state.sendView.type {
             case .file:
                 if let file = store.state.sendView.file {
-                    BitwardenField {
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(file.fileName)
-                                .styleGuide(.body)
-                                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                                .accessibilityIdentifier("ViewSendFileNameText")
-
-                            if let fileSize = file.sizeName {
-                                Text(fileSize)
-                                    .styleGuide(.footnote)
-                                    .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                                    .frame(maxWidth: .infinity, alignment: .trailing)
-                                    .multilineTextAlignment(.trailing)
-                                    .accessibilityIdentifier("ViewSendFileSizeText")
-                            }
+                    LabeledContent {
+                        if let fileSize = file.sizeName {
+                            Text(fileSize)
+                                .accessibilityIdentifier("ViewSendFileSizeText")
                         }
+                    } label: {
+                        Label(file.fileName, systemImage: "doc")
+                            .accessibilityIdentifier("ViewSendFileNameText")
                     }
+                    .frame(minHeight: 44)
                 }
             case .text:
                 if let text = store.state.sendView.text?.text {
-                    BitwardenTextValueField(
-                        title: Localizations.textToShareRequired,
+                    PassYCopyRow(
+                        Localizations.text,
                         value: text,
-                        valueAccessibilityIdentifier: "ViewSendContentText",
+                        identifier: "ViewSendContentText",
+                        layout: .stacked,
+                        copy: nil,
                     )
                 }
             // TODO: PM-41094 - Share: Implement Share panel and vault item menu integration.
@@ -211,10 +188,11 @@ struct ViewSendItemView: View {
                 EmptyView()
             }
 
-            BitwardenTextValueField(
-                title: Localizations.deletionDate,
+            PassYCopyRow(
+                Localizations.deletionDate,
                 value: store.state.sendView.deletionDate.dateTimeDisplay,
-                valueAccessibilityIdentifier: "ViewSendDeletionDateField",
+                identifier: "ViewSendDeletionDateField",
+                copy: nil,
             )
         }
     }

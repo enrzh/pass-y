@@ -30,7 +30,7 @@ struct UpdateMasterPasswordView: View {
 
             if store.state.requireCurrentPassword {
                 Section {
-                    PassYSecureField(
+                    PassYPasswordField(
                         Localizations.currentMasterPasswordRequired,
                         text: store.binding(
                             get: \.currentMasterPassword,
@@ -44,7 +44,7 @@ struct UpdateMasterPasswordView: View {
             }
 
             Section {
-                PassYSecureField(
+                PassYPasswordField(
                     Localizations.newMasterPasswordRequired,
                     text: store.binding(
                         get: \.masterPassword,
@@ -62,7 +62,7 @@ struct UpdateMasterPasswordView: View {
                     requiredTextCount: store.state.requiredPasswordCount,
                 )
 
-                PassYSecureField(
+                PassYPasswordField(
                     Localizations.retypeNewMasterPasswordRequired,
                     text: store.binding(
                         get: \.masterPasswordRetype,

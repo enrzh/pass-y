@@ -28,23 +28,21 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
             Form {
                 if store.state.isSendDisabled {
                     Section {
-                        InfoContainer(Localizations.sendDisabledWarning)
+                        infoLabel(Localizations.sendDisabledWarning)
                             .accessibilityIdentifier("DisabledSendPolicyLabel")
-                            .listRowBackground(Color.clear)
                     }
                 } else if store.state.shouldShowHideEmailPolicyBanner {
                     Section {
-                        InfoContainer(Localizations.sendOptionsPolicyInEffect)
+                        infoLabel(Localizations.sendOptionsPolicyInEffect)
                             .accessibilityIdentifier("HideEmailAddressPolicyLabel")
-                            .listRowBackground(Color.clear)
                     }
                 }
 
                 sendDetails
 
-                Section { deletionDate }
+                deletionDate
 
-                Section { whoCanView }
+                whoCanView
 
                 additionalOptions
 
@@ -52,16 +50,14 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                     Section { deleteSendButton }
                 }
             }
-            .nativeFormRows()
             .disabled(store.state.isSendDisabled)
+            .passYReadableWidth()
 
             profileSwitcher
         }
         .scrollDismissesKeyboard(.interactively)
-        .navigationBar(
-            title: store.state.navigationTitle,
-            titleDisplayMode: .inline,
-        )
+        .navigationTitle(store.state.navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarLeading) {
                 cancelToolbarButton {
@@ -143,17 +139,24 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
         }
     }
 
-    /// Additional options.
+    /// A short policy note at the top of the form.
+    private func infoLabel(_ text: String) -> some View {
+        Label(text, systemImage: "info.circle")
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .listRowBackground(Color.clear)
+    }
+
+    /// The maximum access count, hide email and the private note behind "Additional options".
     @ViewBuilder private var additionalOptions: some View {
-        ExpandableContent(
-            title: Localizations.additionalOptions,
+        PassYDisclosureSection(
+            Localizations.additionalOptions,
             isExpanded: store.binding(
                 get: \.isOptionsExpanded,
                 send: { _ in AddEditSendItemAction.optionsPressed },
             ),
-            buttonAccessibilityIdentifier: "SendShowHideOptionsButton",
+            identifier: "SendShowHideOptionsButton",
         ) {
-            Section {
             SendItemAccessCountStepper(
                 currentAccessCount: store.state.currentAccessCount,
                 maximumAccessCount: store.binding(
@@ -161,26 +164,29 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
                     send: AddEditSendItemAction.maximumAccessCountStepperChanged,
                 ),
             )
-            }
 
             if store.state.shouldShowHideEmailField {
                 Section {
-                    BitwardenToggle(Localizations.hideEmail, isOn: store.binding(
-                        get: \.isHideMyEmailOn,
-                        send: AddEditSendItemAction.hideMyEmailChanged,
-                    ))
-                    .accessibilityIdentifier("SendHideEmailSwitch")
+                    PassYToggleRow(
+                        Localizations.hideEmail,
+                        isOn: store.binding(
+                            get: \.isHideMyEmailOn,
+                            send: AddEditSendItemAction.hideMyEmailChanged,
+                        ),
+                        identifier: "SendHideEmailSwitch",
+                    )
                     .disabled(!store.state.isHideMyEmailOn && store.state.isSendHideEmailDisabled)
                 }
             }
 
             Section {
-                BitwardenTextView(
-                    title: Localizations.privateNote,
+                PassYMultilineField(
+                    Localizations.privateNote,
                     text: store.binding(
                         get: \.notes,
                         send: AddEditSendItemAction.notesChanged,
                     ),
+                    identifier: "SendNotesEntry",
                 )
             }
         }
@@ -188,99 +194,89 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
 
     /// The button to delete the send.
     private var deleteSendButton: some View {
-        AsyncButton {
+        PassYInlineButtonRow(
+            Localizations.deleteSend,
+            systemImage: "trash",
+            role: .destructive,
+            identifier: "SendDeleteButton",
+        ) {
             await store.perform(.deletePressed)
-        } label: {
-            Label(Localizations.deleteSend, image: SharedAsset.Icons.trash16.swiftUIImage, scaleImageDimension: 16)
         }
-        .foregroundStyle(SharedAsset.Colors.error.swiftUIColor)
-        .frame(maxWidth: .infinity)
     }
 
-    /// The deletion date field.
+    /// The deletion date with its explanation.
     @ViewBuilder private var deletionDate: some View {
-        ContentBlock(dividerLeadingPadding: 16) {
-            BitwardenMenuField(
-                title: Localizations.deletionDate,
-                footer: store.state.isDeletionDateEnforcedByPolicy
-                    ? Localizations.thisDateIsEnforcedByYourOrganization
-                    : Localizations.deletionDateInfo,
-                accessibilityIdentifier: "SendDeletionOptionsPicker",
+        Section {
+            PassYPickerRow(
+                Localizations.deletionDate,
                 options: store.state.availableDeletionDateTypes,
                 selection: store.binding(
                     get: \.deletionDate,
                     send: AddEditSendItemAction.deletionDateChanged,
                 ),
+                identifier: "SendDeletionOptionsPicker",
             )
             .disabled(store.state.isDeletionDateEnforcedByPolicy)
+        } footer: {
+            PassYSectionFooter(
+                store.state.isDeletionDateEnforcedByPolicy
+                    ? Localizations.thisDateIsEnforcedByYourOrganization
+                    : Localizations.deletionDateInfo,
+            )
         }
     }
 
-    /// The attributes for a file type send.
+    /// The file of a file send: the chosen file and "Choose file" (add), name and size (edit).
     @ViewBuilder private var fileSendAttributes: some View {
-        Group {
-            switch store.state.mode {
-            case .add, .shareExtension:
-                if let fileName = store.state.fileName {
-                    BitwardenField {
-                        Text(fileName)
-                            .styleGuide(.body)
-                            .accessibilityIdentifier("SendCurrentFileNameLabel")
-                            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    }
-                }
+        switch store.state.mode {
+        case .add, .shareExtension:
+            if let fileName = store.state.fileName {
+                Label(fileName, systemImage: "doc")
+                    .frame(minHeight: 44, alignment: .leading)
+                    .accessibilityIdentifier("SendCurrentFileNameLabel")
+            }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    if store.state.mode == .add {
-                        Button(Localizations.chooseFile) {
-                            store.send(.chooseFilePressed)
-                        }
-                        .accessibilityIdentifier("SendChooseFileButton")
-                    }
-
-                    Text(Localizations.requiredMaximumFileSizeIsX(
-                        ByteCountFormatter.string(
-                            fromByteCount: Int64(Constants.maxFileSizeBytes),
-                            countStyle: .binary,
-                        ),
-                    ))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                }
-
-            case .edit:
-                BitwardenField {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        if let fileName = store.state.fileName {
-                            Text(fileName)
-                                .styleGuide(.body)
-                                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                        }
-
-                        Spacer(minLength: 0)
-
-                        if let fileSize = store.state.fileSize {
-                            Text(fileSize)
-                                .styleGuide(.footnote)
-                                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
+            if store.state.mode == .add {
+                PassYInlineButtonRow(
+                    Localizations.chooseFile,
+                    systemImage: "paperclip",
+                    identifier: "SendChooseFileButton",
+                ) {
+                    store.send(.chooseFilePressed)
                 }
             }
+
+        case .edit:
+            LabeledContent {
+                if let fileSize = store.state.fileSize {
+                    Text(fileSize)
+                }
+            } label: {
+                Label(store.state.fileName ?? "", systemImage: "doc")
+            }
+            .frame(minHeight: 44)
         }
+    }
+
+    /// The maximum file size note of a file send.
+    private var fileSizeFooter: String {
+        Localizations.requiredMaximumFileSizeIsX(
+            ByteCountFormatter.string(fromByteCount: Int64(Constants.maxFileSizeBytes), countStyle: .binary),
+        )
     }
 
     /// The name field.
     @ViewBuilder private var nameField: some View {
-        BitwardenTextField(
-            title: Localizations.sendNameRequired,
+        PassYFormField(
+            Localizations.sendNameRequired,
             text: store.binding(
                 get: \.name,
                 send: AddEditSendItemAction.nameChanged,
             ),
-            accessibilityIdentifier: "SendNameEntry",
+            style: .free,
+            identifier: "SendNameEntry",
         )
+        .textInputAutocapitalization(.sentences)
     }
 
     /// A view that displays the ability to add or switch between account profiles
@@ -304,48 +300,54 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
         }
     }
 
-    /// Additional details for the send.
+    /// The name and the content: the text (with "hide text by default") or the file.
     @ViewBuilder private var sendDetails: some View {
-        SectionView(Localizations.sendDetails, contentSpacing: 8) {
+        Section {
             nameField
 
             switch store.state.type {
             case .text:
                 textSendAttributes
+                PassYToggleRow(
+                    Localizations.hideTextByDefault,
+                    isOn: store.binding(
+                        get: \.isHideTextByDefaultOn,
+                        send: AddEditSendItemAction.hideTextByDefaultChanged,
+                    ),
+                    identifier: "SendHideTextByDefaultToggle",
+                )
             case .file:
                 fileSendAttributes
             case .unknown:
                 EmptyView()
             }
-
-            if store.state.type == .text {
-                BitwardenToggle(Localizations.hideTextByDefault, isOn: store.binding(
-                    get: \.isHideTextByDefaultOn,
-                    send: AddEditSendItemAction.hideTextByDefaultChanged,
-                ))
-                .accessibilityIdentifier("SendHideTextByDefaultToggle")
+        } footer: {
+            if store.state.type == .file, store.state.mode != .edit {
+                PassYSectionFooter(fileSizeFooter)
             }
         }
     }
 
-    /// The "Who can view" section for access type selection.
+    /// "Who can view": the access type and, by type, the recipients or the password.
     @ViewBuilder private var whoCanView: some View {
-        ContentBlock(dividerLeadingPadding: 0) {
-            // When the access type is enforced by policy, the menu shows the enforced selection but
-            // is disabled so the user can't change it.
-            BitwardenMenuField(
-                title: Localizations.whoCanView,
-                footer: store.state.whoCanViewFooter,
-                accessibilityIdentifier: "SendAccessTypePicker",
+        Section {
+            // When the access type is enforced by policy, the picker shows the enforced selection but is disabled.
+            PassYPickerRow(
+                Localizations.whoCanView,
                 options: SendAccessType.allCases,
                 selection: store.binding(
                     get: \.accessType,
                     send: AddEditSendItemAction.accessTypeChanged,
                 ),
+                identifier: "SendAccessTypePicker",
             )
             .disabled(store.state.isAccessTypeEnforcedByPolicy)
 
             whoCanViewContent
+        } footer: {
+            if let footer = store.state.whoCanViewFooter {
+                PassYSectionFooter(footer)
+            }
         }
         .animation(.default, value: store.state.accessType)
     }
@@ -359,42 +361,36 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
             recipientEmailsList
         case .anyoneWithPassword:
             if store.state.isPasswordFieldDisabled {
-                // An existing Send's password can't be viewed or changed, so show a masked
-                // placeholder to indicate that the Send is protected by a password.
-                BitwardenTextField(
-                    title: Localizations.password,
-                    text: .constant(String(repeating: "•", count: Constants.hiddenPasswordLength)),
-                    accessibilityIdentifier: "SendPasswordEntry",
-                    canViewPassword: false,
+                // An existing Send's password can't be viewed or changed: a masked placeholder shows that the Send
+                // is protected by a password.
+                PassYCopyRow(
+                    Localizations.password,
+                    value: "",
+                    secret: .init(isRevealed: false, canReveal: false) {},
+                    identifier: "SendPasswordEntry",
+                    copy: nil,
                 )
-                .disabled(true)
             } else {
-                BitwardenTextField(
-                    title: Localizations.password,
+                PassYSecureField(
+                    Localizations.password,
                     text: store.binding(
                         get: \.password,
                         send: AddEditSendItemAction.passwordChanged,
                     ),
-                    accessibilityIdentifier: "SendPasswordEntry",
-                    isPasswordVisible: store.binding(
+                    isRevealed: store.binding(
                         get: \.isPasswordVisible,
                         send: AddEditSendItemAction.passwordVisibleChanged,
                     ),
+                    identifier: "SendPasswordEntry",
                 ) {
-                    AccessoryButton(
-                        asset: SharedAsset.Icons.generate24,
-                        accessibilityLabel: Localizations.generatePassword,
-                    ) {
+                    PassYIconButton(Localizations.generatePassword, systemImage: "arrow.trianglehead.2.clockwise") {
                         store.send(.generatePasswordPressed)
                     }
                     .accessibilityIdentifier("GenerateSendPasswordButton")
 
                     if !store.state.password.isEmpty {
-                        AccessoryButton(
-                            asset: SharedAsset.Icons.copy24,
-                            accessibilityLabel: Localizations.copyPassword,
-                        ) {
-                            await store.perform(.copyPasswordPressed)
+                        PassYIconButton(Localizations.copyPassword, systemImage: "doc.on.doc") {
+                            Task { await store.perform(.copyPasswordPressed) }
                         }
                         .accessibilityIdentifier("CopySendPasswordButton")
                     }
@@ -404,59 +400,48 @@ struct AddEditSendItemView: View { // swiftlint:disable:this type_body_length
         }
     }
 
-    /// The list of recipient emails for "Specific people" access type.
+    /// The recipient e-mails of "Specific people", then "Add email".
     @ViewBuilder private var recipientEmailsList: some View {
-        Group {
-            ForEach(store.state.recipientEmails.indices, id: \.self) { index in
-                BitwardenTextField(
-                    title: Localizations.email,
-                    text: store.binding(
-                        get: { state in
-                            guard index < state.recipientEmails.count else { return "" }
-                            return state.recipientEmails[index]
-                        },
-                        send: { .recipientEmailChanged(index: index, value: $0) },
-                    ),
-                    accessibilityIdentifier: "SendRecipientEmailEntry",
-                    focus: .field($focusedRecipientEmailIndex, equals: index),
-                ) {
-                    if store.state.shouldShowTrashIcon(for: index) {
-                        Button {
-                            store.send(.removeRecipientEmail(index: index))
-                        } label: {
-                            SharedAsset.Icons.trash24.swiftUIImage
-                                .imageStyle(.rowIcon(color: SharedAsset.Colors.error.swiftUIColor))
-                        }
-                        .accessibilityLabel(Localizations.delete)
-                        .accessibilityIdentifier("RemoveRecipientEmailButton")
+        ForEach(store.state.recipientEmails.indices, id: \.self) { index in
+            PassYFormField(
+                Localizations.email,
+                text: store.binding(
+                    get: { state in
+                        guard index < state.recipientEmails.count else { return "" }
+                        return state.recipientEmails[index]
+                    },
+                    send: { .recipientEmailChanged(index: index, value: $0) },
+                ),
+                prompt: "name@example.com",
+                identifier: "SendRecipientEmailEntry",
+                focus: .field($focusedRecipientEmailIndex, equals: index),
+            ) {
+                if store.state.shouldShowTrashIcon(for: index) {
+                    PassYIconButton(Localizations.delete, systemImage: "minus.circle.fill", role: .destructive) {
+                        store.send(.removeRecipientEmail(index: index))
                     }
+                    .accessibilityIdentifier("RemoveRecipientEmailButton")
                 }
-                .textFieldConfiguration(.email)
-                .accessibilityIdentifier("EmailRecipientCell")
             }
+            .textFieldConfiguration(.email)
+            .accessibilityIdentifier("EmailRecipientCell")
+        }
 
-            Button {
-                store.send(.addRecipientEmail)
-            } label: {
-                Label(Localizations.addEmail, image: SharedAsset.Icons.plus16.swiftUIImage)
-            }
-            .buttonStyle(.bitwardenBorderless)
-            .accessibilityIdentifier("AddRecipientEmailButton")
-            .padding(.vertical, 14)
-            .padding(.horizontal, 16)
+        PassYInlineButtonRow(Localizations.addEmail, systemImage: "plus", identifier: "AddRecipientEmailButton") {
+            store.send(.addRecipientEmail)
         }
     }
 
-    /// The attributes for a text type send.
+    /// The text of a text send.
     @ViewBuilder private var textSendAttributes: some View {
-        BitwardenTextView(
-            title: Localizations.textToShareRequired,
+        PassYMultilineField(
+            Localizations.textToShareRequired,
             text: store.binding(
                 get: \.text,
                 send: AddEditSendItemAction.textChanged,
             ),
+            identifier: "SendTextContentEntry",
         )
-        .accessibilityIdentifier("SendTextContentEntry")
     }
 }
 

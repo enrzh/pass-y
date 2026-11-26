@@ -201,7 +201,7 @@ struct VaultUnlockView: View {
         toggleIdentifier: String,
         keyboard: UIKeyboardType,
     ) -> some View {
-        PassYSecureField(
+        PassYPasswordField(
             title,
             text: text,
             isRevealed: isRevealed,

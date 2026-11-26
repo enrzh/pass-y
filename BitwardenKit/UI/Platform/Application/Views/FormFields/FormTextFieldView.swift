@@ -20,7 +20,7 @@ public struct FormTextField<State>: Equatable, Identifiable {
         case words
 
         /// Returns the `TextInputAutocapitalization` behavior.
-        var textInputAutocapitalization: TextInputAutocapitalization {
+        public var textInputAutocapitalization: TextInputAutocapitalization {
             switch self {
             case .never:
                 .never
@@ -36,31 +36,31 @@ public struct FormTextField<State>: Equatable, Identifiable {
 
     /// The accessibility id for the text field. The `title` will be used as the accessibility id
     /// if this is `nil`.
-    let accessibilityId: String?
+    public let accessibilityId: String?
 
     /// The behavior for when the input should be automatically capitalized.
-    let autocapitalization: Autocapitalization
+    public let autocapitalization: Autocapitalization
 
     /// Whether autocorrect is disabled in the text field.
-    let isAutocorrectDisabled: Bool
+    public let isAutocorrectDisabled: Bool
 
     /// Whether a password displayed in the text field is visible.
-    let isPasswordVisible: Bool?
+    public let isPasswordVisible: Bool?
 
     /// A key path for updating whether a password displayed in the text field is visible.
     public let isPasswordVisibleKeyPath: WritableKeyPath<State, Bool>?
 
     /// The type of keyboard to display.
-    let keyboardType: UIKeyboardType
+    public let keyboardType: UIKeyboardType
 
     /// A key path for updating the backing value for the text field.
     public let keyPath: WritableKeyPath<State, String>
 
     /// The accessibility id for the button to toggle password visibility.
-    let passwordVisibilityAccessibilityId: String?
+    public let passwordVisibilityAccessibilityId: String?
 
     /// The expected type of content input in the text field.
-    let textContentType: UITextContentType?
+    public let textContentType: UITextContentType?
 
     /// The title of the field.
     public let title: String

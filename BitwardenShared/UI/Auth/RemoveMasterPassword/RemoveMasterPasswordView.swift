@@ -31,7 +31,7 @@ struct RemoveMasterPasswordView: View {
             }
 
             Section {
-                PassYSecureField(
+                PassYPasswordField(
                     Localizations.masterPassword,
                     text: store.binding(
                         get: \.masterPassword,

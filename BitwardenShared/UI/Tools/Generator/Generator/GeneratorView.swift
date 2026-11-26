@@ -18,31 +18,20 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
 
     var body: some View {
         Form {
-            if store.state.availableGeneratorTypes.count > 1 {
+            if selectableGeneratorTypes.count > 1 {
                 Section {
-                    // Native segmented control (readable in dark mode); the custom control is only kept when a
-                    // policy disables one of the types.
-                    Group {
-                    if store.state.availableGeneratorTypes.contains(where: { store.state.isGeneratorTypeDisabled($0) }) {
-                        BitwardenSegmentedControl(
-                            isSelectionDisabled: { store.state.isGeneratorTypeDisabled($0) },
-                            selection: store.binding(get: \.generatorType, send: GeneratorAction.generatorTypeChanged),
-                            selections: store.state.availableGeneratorTypes,
-                        )
-                    } else {
-                        Picker(
-                            Localizations.generator,
-                            selection: store.binding(get: \.generatorType, send: GeneratorAction.generatorTypeChanged),
-                        ) {
-                            ForEach(store.state.availableGeneratorTypes) { type in
-                                Text(type.localizedName).tag(type)
-                            }
+                    // Native segmented control; types a policy disables are left out (the policy note says why).
+                    Picker(
+                        Localizations.generator,
+                        selection: store.binding(get: \.generatorType, send: GeneratorAction.generatorTypeChanged),
+                    ) {
+                        ForEach(selectableGeneratorTypes) { type in
+                            Text(type.localizedName).tag(type)
                         }
-                        .pickerStyle(.segmented)
-                        .accessibilityIdentifier("GeneratorTypePicker")
                     }
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("GeneratorTypePicker")
+                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                     .listRowBackground(Color.clear)
                 }
             }
@@ -58,10 +47,9 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
                 sectionView(section)
             }
         }
-        .navigationBar(
-            title: Localizations.generator,
-            titleDisplayMode: store.state.presentationMode == .tab ? .large : .inline,
-        )
+        .passYReadableWidth()
+        .navigationTitle(Localizations.generator)
+        .navigationBarTitleDisplayMode(store.state.presentationMode == .tab ? .large : .inline)
         .task { await store.perform(.appeared) }
         .onChange(of: focusedFieldKeyPath) { newValue in
             store.send(.textFieldFocusChanged(keyPath: newValue))
@@ -100,14 +88,21 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
         }
     }
 
+    /// The generator types the user can choose (a policy can disable some).
+    private var selectableGeneratorTypes: [GeneratorType] {
+        store.state.availableGeneratorTypes.filter { !store.state.isGeneratorTypeDisabled($0) }
+    }
+
     /// The full-width button that fills the generated value
     /// into the field the user came from, when presented in place.
     @ViewBuilder var fillButton: some View {
         Button(store.state.generatorType.fillButtonTitle) {
             store.send(.fillGeneratedValue)
         }
-        .buttonStyle(.borderedProminent)
+        .passYButtonStyle(.primary)
         .frame(maxWidth: .infinity)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets())
         .accessibilityIdentifier("FillGeneratedValueButton")
     }
 
@@ -140,38 +135,102 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
             case let .generatedValue(generatedValueField):
                 generatedValueView(field: generatedValueField)
             case let .menuEmailType(menuField):
-                FormMenuFieldView(field: menuField) { newValue in
-                    store.send(.emailTypeChanged(newValue))
-                }
+                menuRow(menuField) { store.send(.emailTypeChanged($0)) }
             case let .menuUsernameForwardedEmailService(menuField):
-                FormMenuFieldView(field: menuField) { newValue in
-                    store.send(.usernameForwardedEmailServiceChanged(newValue))
-                }
+                menuRow(menuField) { store.send(.usernameForwardedEmailServiceChanged($0)) }
             case let .menuUsernameGeneratorType(menuField):
                 menuUsernameGeneratorTypeView(field: menuField)
             case let .slider(sliderField):
-                SliderFieldView(field: sliderField) { isEditing in
+                PassYSliderRow(
+                    sliderField.title,
+                    value: Binding(
+                        get: { sliderField.value },
+                        set: { store.send(.sliderValueChanged(field: sliderField, value: $0)) },
+                    ),
+                    in: sliderField.range,
+                    step: sliderField.step,
+                    identifier: sliderField.sliderAccessibilityId,
+                    valueIdentifier: sliderField.sliderValueAccessibilityId,
+                ) { isEditing in
                     store.send(.sliderEditingChanged(field: sliderField, isEditing: isEditing))
-                } onValueChanged: { newValue in
-                    store.send(.sliderValueChanged(field: sliderField, value: newValue))
                 }
             case let .stepper(stepperField):
-                StepperFieldView(field: stepperField) { newValue in
-                    store.send(.stepperValueChanged(field: stepperField, value: newValue))
-                }
+                PassYStepperRow(
+                    stepperField.title,
+                    value: Binding(
+                        get: { stepperField.value },
+                        set: { store.send(.stepperValueChanged(field: stepperField, value: $0)) },
+                    ),
+                    in: stepperField.range,
+                    identifier: stepperField.accessibilityId,
+                )
             case let .text(textField):
-                FormTextFieldView(field: textField) { newValue in
-                    store.send(.textValueChanged(field: textField, value: newValue))
-                } isPasswordVisibleChangedAction: { newValue in
-                    store.send(.textFieldIsPasswordVisibleChanged(field: textField, value: newValue))
-                }
-                .focused($focusedFieldKeyPath, equals: textField.keyPath)
+                textRow(textField)
             case let .toggle(toggleField):
-                ToggleFieldView(field: toggleField) { isOn in
-                    store.send(.toggleValueChanged(field: toggleField, isOn: isOn))
-                }
+                PassYToggleRow(
+                    toggleField.title,
+                    isOn: Binding(
+                        get: { toggleField.isOn },
+                        set: { store.send(.toggleValueChanged(field: toggleField, isOn: $0)) },
+                    ),
+                    identifier: toggleField.accessibilityId,
+                    accessibilityLabel: toggleField.accessibilityLabel,
+                )
+                .disabled(toggleField.isDisabled)
             }
         }
+    }
+
+    /// A choice row of the generator form with its footer note.
+    @ViewBuilder
+    func menuRow<T: Menuable>(
+        _ field: FormMenuField<GeneratorState, T>,
+        action: @escaping (T) -> Void,
+    ) -> some View {
+        VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
+            PassYPickerRow(
+                field.title,
+                options: field.options,
+                selection: Binding(get: { field.selection }, set: action),
+                identifier: field.accessibilityIdentifier,
+            )
+            if let footer = field.footer {
+                Text(footer)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.bottom, PassYDesign.Spacing.xSmall)
+            }
+        }
+    }
+
+    /// A text row of the generator form (e-mail, domain, API key ...), masked when it is a secret.
+    @ViewBuilder
+    func textRow(_ field: FormTextField<GeneratorState>) -> some View {
+        let text = Binding(
+            get: { field.value },
+            set: { store.send(.textValueChanged(field: field, value: $0)) },
+        )
+        Group {
+            if let isPasswordVisible = field.isPasswordVisible {
+                PassYSecureField(
+                    field.title,
+                    text: text,
+                    isRevealed: Binding(
+                        get: { isPasswordVisible },
+                        set: { store.send(.textFieldIsPasswordVisibleChanged(field: field, value: $0)) },
+                    ),
+                    identifier: field.accessibilityId,
+                    revealIdentifier: field.passwordVisibilityAccessibilityId,
+                )
+            } else {
+                PassYFormField(field.title, text: text, identifier: field.accessibilityId)
+            }
+        }
+        .keyboardType(field.keyboardType)
+        .textContentType(field.textContentType)
+        .textInputAutocapitalization(field.autocapitalization.textInputAutocapitalization)
+        .autocorrectionDisabled(field.isAutocorrectDisabled)
+        .focused($focusedFieldKeyPath, equals: field.keyPath)
     }
 
     /// Returns a view for displaying a static email website field.
@@ -193,19 +252,23 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
     ///
     @ViewBuilder
     func generatedValueView(field: GeneratorState.GeneratedValueField<GeneratorState>) -> some View {
-        HStack(spacing: 12) {
-            PasswordText(password: field.value, isPasswordVisible: true)
-                .accessibilityIdentifier("GeneratedPasswordLabel")
+        HStack(spacing: PassYDesign.Spacing.medium) {
+            Text(PassYValueText.tinted(field.value))
+                .font(.title3.monospaced())
+                .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
-            Spacer(minLength: 0)
+                .accessibilityLabel(field.value)
+                .accessibilityIdentifier("GeneratedPasswordLabel")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .onTapGesture { store.send(.copyGeneratedValue) }
             Button {
                 store.send(.refreshGeneratedValue)
             } label: {
                 Image(systemName: "arrow.clockwise")
-                    .frame(width: 44, height: 44)
+                    .frame(minWidth: 44, minHeight: 44)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.tint)
+            .buttonStyle(.borderless)
             .accessibilityLabel(store.state.generatorType.regenerateButtonAccessibilityLabel)
             .accessibilityIdentifier("RegenerateValueButton")
 
@@ -213,24 +276,26 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
                 store.send(.copyGeneratedValue)
             } label: {
                 Image(systemName: "doc.on.doc")
-                    .frame(width: 44, height: 44)
+                    .frame(minWidth: 44, minHeight: 44)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.tint)
+            .buttonStyle(.borderless)
             .accessibilityLabel(store.state.generatorType.copyButtonAccessibilityLabel)
             .accessibilityIdentifier("CopyValueIconButton")
         }
+        .padding(.vertical, PassYDesign.Spacing.xSmall)
 
         if store.state.presentationMode.isFillButtonVisible {
             fillButton
         }
 
         if store.state.presentationMode.isCreateLoginButtonVisible {
-            AsyncButton(Localizations.createLogin) {
-                await store.perform(.createLoginPressed)
+            Button(Localizations.createLogin) {
+                Task { await store.perform(.createLoginPressed) }
             }
-            .buttonStyle(.borderedProminent)
+            .passYButtonStyle(.primary)
             .frame(maxWidth: .infinity)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
             .disabled(!store.state.hasGeneratedValue)
             .accessibilityIdentifier("CreateLoginButton")
         }
@@ -243,16 +308,14 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
     func menuUsernameGeneratorTypeView(
         field: FormMenuField<GeneratorState, UsernameGeneratorType>,
     ) -> some View {
-        FormMenuFieldView(field: field) { newValue in
-            store.send(.usernameGeneratorTypeChanged(newValue))
-        } titleAccessoryContent: {
+        HStack(spacing: PassYDesign.Spacing.small) {
+            menuRow(field) { store.send(.usernameGeneratorTypeChanged($0)) }
             Button {
                 openURL(ExternalLinksConstants.generatorUsernameTypes)
             } label: {
                 Image(systemName: "questionmark.circle")
-                    .font(.footnote)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .accessibilityLabel(Localizations.learnMore)
         }
     }

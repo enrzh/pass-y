@@ -36,7 +36,7 @@ struct SetMasterPasswordView: View {
             }
 
             Section {
-                PassYSecureField(
+                PassYPasswordField(
                     Localizations.masterPasswordRequired,
                     text: store.binding(
                         get: \.masterPassword,
@@ -48,7 +48,7 @@ struct SetMasterPasswordView: View {
                     toggleIdentifier: "NewPasswordVisibilityToggle",
                 ) { store.send(.revealMasterPasswordFieldPressed($0)) }
 
-                PassYSecureField(
+                PassYPasswordField(
                     Localizations.retypeMasterPasswordRequired,
                     text: store.binding(
                         get: \.masterPasswordRetype,

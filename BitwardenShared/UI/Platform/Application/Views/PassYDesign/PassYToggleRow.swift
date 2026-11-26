@@ -1,13 +1,18 @@
+import BitwardenResources
 import SwiftUI
 
 // MARK: - PassYToggleRow
 
-/// A settings switch (iOS Settings style): an optional small tinted SF Symbol tile, the title, an optional explanation
-/// under it and the system `Toggle`. The accessibility identifier sits on the toggle (UI tests query it as a switch).
+/// A switch row of a Pass-Y form: a system `Toggle` with a title, an optional one-line explanation below it and an
+/// optional help button (opens a help page) instead of Bitwarden's custom toggle and tooltip.
 ///
 /// ```swift
-/// PassYToggleRow(Localizations.unlockWithPIN, systemImage: "circle.grid.3x3.fill", tint: .blue,
-///                isOn: $isOn, identifier: "UnlockWithPinSwitch")
+/// PassYToggleRow(
+///     Localizations.passwordPrompt,
+///     isOn: $reprompt,
+///     identifier: "MasterPasswordRepromptToggle",
+///     helpURL: ExternalLinksConstants.protectIndividualItems,
+/// )
 /// ```
 ///
 struct PassYToggleRow: View {
@@ -16,32 +21,46 @@ struct PassYToggleRow: View {
     /// The title.
     let title: String
 
-    /// An explanation under the title.
+    /// The explanation below the title.
     var subtitle: String?
 
-    /// The SF Symbol of the leading tile, `nil` for a row without a tile.
+    /// The SF Symbol of the leading tile (settings pages), `nil` for a row without a tile.
     var systemImage: String?
 
     /// The colour of the tile.
     var tint: Color = .accentColor
 
-    /// Whether the switch is on.
+    /// The value.
     @Binding var isOn: Bool
 
-    /// The accessibility identifier of the toggle.
+    /// The accessibility identifier of the switch.
     var identifier: String?
+
+    /// The spoken label (defaults to the title).
+    var accessibilityLabel: String?
+
+    /// A help page opened by the info button.
+    var helpURL: URL?
+
+    /// The spoken label of the info button.
+    var helpLabel: String?
+
+    @Environment(\.openURL) private var openURL
 
     // MARK: Initialization
 
-    /// Creates a toggle row.
+    /// Creates a switch row.
     ///
     /// - Parameters:
     ///   - title: The title.
-    ///   - subtitle: An explanation under the title.
+    ///   - subtitle: The explanation below the title.
     ///   - systemImage: The SF Symbol of the leading tile, `nil` for none.
     ///   - tint: The colour of the tile.
-    ///   - isOn: Whether the switch is on.
-    ///   - identifier: The accessibility identifier of the toggle.
+    ///   - isOn: The value.
+    ///   - identifier: The accessibility identifier of the switch.
+    ///   - accessibilityLabel: The spoken label.
+    ///   - helpURL: A help page opened by the info button.
+    ///   - helpLabel: The spoken label of the info button.
     ///
     init(
         _ title: String,
@@ -50,6 +69,9 @@ struct PassYToggleRow: View {
         tint: Color = .accentColor,
         isOn: Binding<Bool>,
         identifier: String? = nil,
+        accessibilityLabel: String? = nil,
+        helpURL: URL? = nil,
+        helpLabel: String? = nil,
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -57,33 +79,49 @@ struct PassYToggleRow: View {
         self.tint = tint
         _isOn = isOn
         self.identifier = identifier
+        self.accessibilityLabel = accessibilityLabel
+        self.helpURL = helpURL
+        self.helpLabel = helpLabel
     }
 
     // MARK: View
 
     var body: some View {
-        Toggle(isOn: $isOn) {
-            HStack(spacing: PassYDesign.Spacing.medium) {
-                if let systemImage {
-                    PassYIconTile(systemImage: systemImage, tint: tint, size: PassYDesign.IconSize.small)
-                }
-                VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
-                    Text(title)
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+        HStack(spacing: PassYDesign.Spacing.small) {
+            Toggle(isOn: $isOn) {
+                HStack(spacing: PassYDesign.Spacing.medium) {
+                    if let systemImage {
+                        PassYIconTile(systemImage: systemImage, tint: tint, size: PassYDesign.IconSize.small)
                     }
+                    VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
+                        Text(title)
+                            .font(.body)
+                        if let subtitle {
+                            Text(subtitle)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .passYListSeparatorLeading()
                 }
-                .multilineTextAlignment(.leading)
-                .passYListSeparatorLeading()
+            }
+            .accessibilityIdentifier(identifier ?? title)
+            .accessibilityLabel(accessibilityLabel ?? title)
+            .accessibilityHint(subtitle ?? "")
+
+            if let helpURL {
+                Button {
+                    openURL(helpURL)
+                } label: {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(.tint)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(helpLabel ?? Localizations.learnMore)
             }
         }
-        .accessibilityIdentifier(identifier ?? "")
-        .accessibilityLabel(title)
-        .accessibilityHint(subtitle ?? "")
+        .frame(minHeight: 44)
     }
 }
 
@@ -92,16 +130,11 @@ struct PassYToggleRow: View {
 #if DEBUG
 #Preview("Toggle rows") {
     @Previewable @SwiftUI.State var isOn = true
-    List {
-        PassYToggleRow("Unlock with Face ID", systemImage: "faceid", tint: .green, isOn: $isOn)
-        PassYToggleRow(
-            "Unlock with PIN",
-            subtitle: "Use a PIN instead of the master password.",
-            systemImage: "circle.grid.3x3.fill",
-            tint: .blue,
-            isOn: $isOn,
-        )
-        PassYToggleRow("Show website icons", isOn: $isOn)
+    Form {
+        Section {
+            PassYToggleRow("Master password re-prompt", isOn: $isOn, helpURL: URL(string: "https://example.test"))
+            PassYToggleRow("Hide email", subtitle: "Recipients do not see your email address.", isOn: $isOn)
+        }
     }
 }
 #endif

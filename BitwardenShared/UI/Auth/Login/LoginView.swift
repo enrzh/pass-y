@@ -24,7 +24,7 @@ struct LoginView: View {
             .passYPlainListRow()
 
             Section {
-                PassYSecureField(
+                PassYPasswordField(
                     Localizations.masterPassword,
                     text: passwordBinding,
                     isRevealed: store.state.isMasterPasswordRevealed,

@@ -16,11 +16,11 @@ public struct SliderField<State>: Equatable, Identifiable {
 
     /// The accessibility id for the slider. The `title` will be used as the accessibility id
     /// if this is `nil`.
-    let sliderAccessibilityId: String?
+    public let sliderAccessibilityId: String?
 
     /// The accessibility id for the slider value. The `id` will be used as the accessibility id
     /// if this is `nil`.
-    let sliderValueAccessibilityId: String?
+    public let sliderValueAccessibilityId: String?
 
     /// The distance between each valid value.
     public let step: Double

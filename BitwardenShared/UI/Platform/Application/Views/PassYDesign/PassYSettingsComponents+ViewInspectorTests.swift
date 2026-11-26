@@ -9,7 +9,7 @@ import XCTest
 // MARK: - PassYSettingsComponentsTests
 
 /// Tests of the settings and auth components of PassYDesign (`PassYSettingsRow`, `PassYToggleRow`, `PassYValueRow`,
-/// `PassYFooterText`, `PassYHeroHeader`, `PassYSecureField`, `PassYSetupSection`).
+/// `PassYFooterText`, `PassYHeroHeader`, `PassYPasswordField`, `PassYSetupSection`).
 class PassYSettingsComponentsTests: BitwardenTestCase {
     /// The actions run by the setup section rows.
     var performed: [String] = []
@@ -106,20 +106,20 @@ class PassYSettingsComponentsTests: BitwardenTestCase {
         XCTAssertTrue(bounds.contains(PassYShieldMark.yPath.boundingRect))
     }
 
-    // MARK: PassYSecureField
+    // MARK: PassYPasswordField
 
     /// Hidden: a secure field; revealed: a text field. The eye button asks for the opposite state.
     @MainActor
     func test_secureField_reveal() throws {
         var requested: Bool?
-        let hidden = PassYSecureField("Password", text: .constant("x"), isRevealed: false,
+        let hidden = PassYPasswordField("Password", text: .constant("x"), isRevealed: false,
                                       fieldIdentifier: "Field") { requested = $0 }
         XCTAssertNoThrow(try hidden.inspect().find(ViewType.SecureField.self))
         XCTAssertThrowsError(try hidden.inspect().find(ViewType.TextField.self))
         try hidden.inspect().find(viewWithAccessibilityIdentifier: "PasswordVisibilityToggle").button().tap()
         XCTAssertEqual(requested, true)
 
-        let revealed = PassYSecureField("Password", text: .constant("x"), isRevealed: true) { requested = $0 }
+        let revealed = PassYPasswordField("Password", text: .constant("x"), isRevealed: true) { requested = $0 }
         XCTAssertNoThrow(try revealed.inspect().find(ViewType.TextField.self))
         try revealed.inspect().find(viewWithAccessibilityIdentifier: "PasswordVisibilityToggle").button().tap()
         XCTAssertEqual(requested, false)

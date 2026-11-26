@@ -236,7 +236,7 @@ component, each with a `#Preview`, in
 | `PassYSetupSection` | "Set up" prompt as a `Form` section: headline tile and text, action, secondary and dismiss rows. |
 | `PassYHeroHeader` | Centred header of auth and one-off pages: `PassYShieldMark` (the Pass-Y shield drawn on the logo grid) or an SF Symbol, title, message; `passYPlainListRow()` puts it on the page background. |
 | `PassYActionStack` | Borderless `Form` section for the page actions: one primary button, secondary/plain buttons below. |
-| `PassYSecureField` | Password/PIN field: `SecureField` swapped for a `TextField` while revealed, eye button, no autocorrection; caller adds focus, submit label and content type. |
+| `PassYPasswordField` | Password/PIN field: `SecureField` swapped for a `TextField` while revealed, eye button, no autocorrection; caller adds focus, submit label and content type. |
 | `PassYFingerprintPhrase` | Fingerprint phrase row (caption, monospaced pink phrase, selectable). |
 | `PassYLoadingContent` | Shows a `LoadingState`: data, error (`PassYEmptyState`) or a delayed system spinner (`PassYDelayedSpinner`). |
 
@@ -244,6 +244,16 @@ Settings (main page and sub-pages) and the auth pages (landing, login, unlock, t
 decryption options, registration and master password pages, login requests) are built from these components: settings
 pages are grouped `Form`s of `PassYSettingsRow` / `PassYToggleRow` / `Picker` rows with `PassYFooterText` footers,
 auth pages a `PassYHeroHeader`, system fields and one primary action in a `PassYActionStack`.
+| `PassYFormField` | Edit-form text row: label left, value right (stacked at accessibility sizes) or `.free` (title as placeholder, the item name); trailing buttons; `PassYTextBuffer` keeps typing apart from store echoes (AutoFill); `PassYFieldFocus` for focus. |
+| `PassYSecureField` | Edit-form secret: `SecureField`, eye button (`PassYRevealButton`) swaps to a plain monospaced field with the same identifier, keeps focus. |
+| `PassYMultilineField` | Notes, Send text: `TextEditor` (a text view for UI tests) with the title as placeholder. |
+| `PassYCopyRow` | Detail row: label + value, tap copies (success haptic; the page shows the toast), long press Copy / Reveal / extras, eye button for secrets, `.stacked` for long values; `PassYValueText` (mask, tinted digits/symbols). |
+| `PassYToggleRow`, `PassYPickerRow`, `PassYStepperRow`, `PassYSliderRow`, `PassYDateRow` | System `Toggle` (+ help link), menu choice (tint value, checkmark, extra actions such as Add folder), `Stepper` (optional number field), `Slider` with value, optional calendar day (Add / compact `DatePicker` / clear). |
+| `PassYInlineButtonRow`, `PassYDisclosureSection`, `PassYSectionFooter` | Form action row (tinted / plain / destructive, sync or async), "Additional options" disclosure, footnote footer with optional link. |
+| `PassYCodeExpiry`, `PassYFieldNavigation`, `passYReadableWidth` | One-time code ring on the page clock that reports the period end; Return/keyboard-bar previous/next order; safe-area side insets that keep cards at 680 pt on wide pages. |
+
+Item view/edit, Send add/edit/view, attachments, collections, move, folders, the generator and the password history
+are built from the form components above (no Bitwarden field, toggle, menu, section or card views).
 
 Vault rows adapt their items onto these components in `VaultListItemRowView` (equatable `VaultListRowCell` stays
 the performance boundary) and `VaultItemIconTile`; Send and folder rows use `PassYRow` directly.

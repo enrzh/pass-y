@@ -14,10 +14,8 @@ struct ManualEntryView: View {
 
     var body: some View {
         content
-            .navigationBar(
-                title: Localizations.authenticatorKey,
-                titleDisplayMode: .inline,
-            )
+            .navigationTitle(Localizations.authenticatorKey)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 cancelToolbarItem {
                     store.send(.dismissPressed)
@@ -31,59 +29,43 @@ struct ManualEntryView: View {
             }
     }
 
-    /// The main content of the view.
-    ///
+    /// The key field with its explanation and, on devices with a camera, "Scan QR code".
     private var content: some View {
-        VStack(alignment: .center, spacing: 24) {
-            VStack(alignment: .center, spacing: 12) {
-                Text(Localizations.enterKeyManually)
-                    .styleGuide(.title2, weight: .semibold)
-
-                Text(Localizations.onceTheKeyIsSuccessfullyEntered)
-                    .styleGuide(.body)
+        Form {
+            Section {
+                PassYFormField(
+                    Localizations.authenticatorKey,
+                    text: store.binding(
+                        get: \.authenticatorKey,
+                        send: ManualEntryAction.authenticatorKeyChanged,
+                    ),
+                    style: .free,
+                    identifier: "AddTOTPManuallyField",
+                    isMonospaced: true,
+                )
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            } header: {
+                PassYSectionHeader(Localizations.enterKeyManually)
+            } footer: {
+                PassYSectionFooter(Localizations.onceTheKeyIsSuccessfullyEntered)
             }
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 12)
 
-            BitwardenTextField(
-                title: Localizations.authenticatorKey,
-                text: store.binding(
-                    get: \.authenticatorKey,
-                    send: ManualEntryAction.authenticatorKeyChanged,
-                ),
-                accessibilityIdentifier: "AddTOTPManuallyField",
-            )
-
-            footerButtonContainer
-        }
-        .background(
-            SharedAsset.Colors.backgroundPrimary.swiftUIColor
-                .ignoresSafeArea(),
-        )
-        .padding(.top, 12)
-        .scrollView()
-    }
-
-    /// A view to wrap the button for triggering `.scanCodePressed`.
-    ///
-    @ViewBuilder private var footerButtonContainer: some View {
-        if store.state.deviceSupportsCamera {
-            VStack(alignment: .center, spacing: 0.0, content: {
-                Text(Localizations.cannotAddAuthenticatorKey)
-                    .styleGuide(.subheadline)
-                    .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-
-                AsyncButton {
-                    await store.perform(.scanCodePressed)
-                } label: {
-                    Text(Localizations.scanQRCode)
-                        .foregroundColor(SharedAsset.Colors.textInteraction.swiftUIColor)
-                        .styleGuide(.callout)
+            if store.state.deviceSupportsCamera {
+                Section {
+                    PassYInlineButtonRow(
+                        Localizations.scanQRCode,
+                        systemImage: "qrcode.viewfinder",
+                        identifier: "ScanQRCodeButton",
+                    ) {
+                        await store.perform(.scanCodePressed)
+                    }
+                } footer: {
+                    PassYSectionFooter(Localizations.cannotAddAuthenticatorKey)
                 }
-                .buttonStyle(InlineButtonStyle())
-            })
+            }
         }
+        .passYReadableWidth()
     }
 }
 

@@ -43,8 +43,8 @@ class ViewSendItemViewTests: BitwardenTestCase {
     /// Tapping the delete button performs the `.delete` effect.
     @MainActor
     func test_delete_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.deleteSend)
-        try await button.tap()
+        let button = try subject.inspect().find(passYInlineButtonRow: Localizations.deleteSend)
+        await button.perform()
         XCTAssertEqual(processor.effects.last, .deleteSend)
     }
 
@@ -77,7 +77,7 @@ class ViewSendItemViewTests: BitwardenTestCase {
 
         let banner = try subject.inspect().find(viewWithAccessibilityIdentifier: "ViewSendRestrictionBanner")
         XCTAssertNotNil(banner)
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.makeACopy))
+        XCTAssertThrowsError(try subject.inspect().find(passYInlineButtonRow: Localizations.makeACopy))
     }
 
     /// The restriction banner is shown with the "Make a copy" action for a disabled Text Send whose
@@ -86,8 +86,8 @@ class ViewSendItemViewTests: BitwardenTestCase {
     func test_restrictionBanner_makeACopy_tap() async throws {
         processor.state = ViewSendItemState(sendView: .fixture(type: .text, disabled: true))
 
-        let button = try subject.inspect().find(asyncButton: Localizations.makeACopy)
-        try await button.tap()
+        let button = try subject.inspect().find(passYInlineButtonRow: Localizations.makeACopy)
+        await button.perform()
 
         XCTAssertEqual(processor.dispatchedActions.last, .makeCopy)
     }
@@ -101,6 +101,6 @@ class ViewSendItemViewTests: BitwardenTestCase {
 
         let banner = try subject.inspect().find(viewWithAccessibilityIdentifier: "ViewSendRestrictionBanner")
         XCTAssertNotNil(banner)
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.makeACopy))
+        XCTAssertThrowsError(try subject.inspect().find(passYInlineButtonRow: Localizations.makeACopy))
     }
 }

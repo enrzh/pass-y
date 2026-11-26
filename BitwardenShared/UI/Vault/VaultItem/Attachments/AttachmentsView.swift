@@ -24,8 +24,9 @@ struct AttachmentsView: View {
 
             addAttachmentView
         }
-        .nativeFormRows()
-        .navigationBar(title: Localizations.attachments, titleDisplayMode: .inline)
+        .passYReadableWidth()
+        .navigationTitle(Localizations.attachments)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             cancelToolbarItem {
                 store.send(.dismissPressed)
@@ -51,97 +52,76 @@ struct AttachmentsView: View {
 
     // MARK: Private Views
 
-    /// The add attachment view.
+    /// The file to add: the chosen file name and the "Choose file" row, the size limit as the footer.
     private var addAttachmentView: some View {
-        SectionView(Localizations.addNewAttachment, contentSpacing: 8) {
-            chosenFile
+        Section {
+            if let fileName = store.state.fileName {
+                Label(fileName, systemImage: "doc")
+                    .foregroundStyle(.primary)
+                    .frame(minHeight: 44, alignment: .leading)
+                    .accessibilityIdentifier("ChosenFileLabel")
+            }
 
-            chooseFileButton
-        }
-    }
-
-    /// The choose file button and the maximum size text beneath it.
-    private var chooseFileButton: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Button(Localizations.chooseFile) {
+            PassYInlineButtonRow(
+                Localizations.chooseFile,
+                systemImage: "paperclip",
+                identifier: "ChooseFileButton",
+            ) {
                 store.send(.chooseFilePressed)
             }
-
-            Text(Localizations.maxFileSize)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+        } header: {
+            PassYSectionHeader(Localizations.addNewAttachment)
+        } footer: {
+            PassYSectionFooter(Localizations.maxFileSize)
         }
     }
 
-    /// The currently chosen file to add.
-    @ViewBuilder private var chosenFile: some View {
-        if let fileName = store.state.fileName {
-            BitwardenField {
-                Text(fileName)
-                    .styleGuide(.body)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-            }
-        }
-    }
-
-    /// The view of current attachments.
+    /// The current attachments, or a note that there are none.
     @ViewBuilder private var currentAttachments: some View {
-        SectionView(Localizations.attachments, contentSpacing: 8) {
-            ContentBlock {
-                if let attachments = store.state.cipher?.attachments, !attachments.isEmpty {
-                    ForEach(attachments) { attachment in
-                        attachmentRow(attachment, hasDivider: attachment != attachments.last)
-                    }
-                } else {
-                    noAttachmentsView
+        if let attachments = store.state.cipher?.attachments, !attachments.isEmpty {
+            Section {
+                ForEach(attachments) { attachment in
+                    attachmentRow(attachment)
                 }
+            } header: {
+                PassYSectionHeader(Localizations.attachments, count: attachments.count)
+            }
+        } else {
+            Section {
+                Text(Localizations.noAttachments)
+                    .foregroundStyle(.secondary)
+                    .frame(minHeight: 44, alignment: .leading)
+                    .accessibilityIdentifier("NoAttachmentsLabel")
             }
         }
     }
 
-    /// The empty state for the currentAttachments view.
-    private var noAttachmentsView: some View {
-        BitwardenField {
-            Text(Localizations.noAttachments)
-                .accessibilityIdentifier("NoAttachmentsLabel")
-                .styleGuide(.body)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-        }
-    }
-
-    /// A row to display an existing attachment.
-    ///
-    /// - Parameters:
-    ///   - attachment: The attachment to display.
-    ///   - hasDivider: Whether the row should display a divider.
-    ///
-    private func attachmentRow(_ attachment: AttachmentView, hasDivider: Bool) -> some View {
-        BitwardenField {
-            HStack {
-                Text(attachment.fileName ?? "")
-                    .styleGuide(.body)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+    /// An existing attachment: name, size and a delete button (also on swipe).
+    private func attachmentRow(_ attachment: AttachmentView) -> some View {
+        HStack(spacing: PassYDesign.Spacing.medium) {
+            Image(systemName: "doc")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text(attachment.fileName ?? "")
+                .lineLimit(2)
+            Spacer(minLength: PassYDesign.Spacing.small)
+            if let sizeName = attachment.sizeName {
+                Text(sizeName)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
-
-                Spacer()
-
-                if let sizeName = attachment.sizeName {
-                    Text(sizeName)
-                        .styleGuide(.body)
-                        .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                        .lineLimit(1)
-                }
-
-                Button {
-                    store.send(.deletePressed(attachment))
-                } label: {
-                    Image(asset: SharedAsset.Icons.trash24)
-                        .imageStyle(.rowIcon(color: SharedAsset.Colors.iconSecondary.swiftUIColor))
-                }
-                .accessibilityLabel(Localizations.delete)
+            }
+            PassYIconButton(Localizations.delete, systemImage: "trash", role: .destructive) {
+                store.send(.deletePressed(attachment))
             }
         }
+        .frame(minHeight: 44)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("AttachmentRow")
+        .swipeActions {
+            Button(Localizations.delete, systemImage: "trash", role: .destructive) {
+                store.send(.deletePressed(attachment))
+            }
+        }
     }
 }
 
