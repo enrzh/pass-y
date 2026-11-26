@@ -24,6 +24,15 @@ Not tagged and not version-bumped yet; no validator verdict yet.
   the home. Rows: density, user names, icons (website icons: the existing switch), favourite / shared / attachment
   marks, colourful or monochrome tiles. Verification codes: digit grouping, countdown ring and seconds. Live preview and
   Reset to defaults; the defaults are the previous look.
+- Customize, home round 2: long press on a home card opens the native menu over the lifted card (Move to Front /
+  Earlier / Later / to End, Show as Folder Row, Customize…); type and folder rows offer Show as Card and Customize…;
+  the avatar menu has no Customize entry any more and Settings lists "Anpassen" first, above Kontosicherheit. Nothing
+  disappears: every type and folder is a card or a folder row (types switched off are rows of a "Types" section,
+  folders switched on are cards that open the folder, ordered with the other cards). Cards only (tile layouts
+  removed), comfortable rows only (density removed), card colours "Bunt" or "Vollfarbig" (the whole card in a deep
+  type colour, white content at 4.5:1 or more; monochrome removed). The countdown ring / seconds switches left
+  Customize; digit grouping explains itself (123 456 / 123456). Preferences version 2: hidden tiles of version 1
+  become rows, removed options are ignored, the countdown is switched back on.
 - New logo (solid shield with a Y knocked out) and an Icon Composer app icon (`PassY.icon`, light / dark / tinted).
 - Minimum iOS 26 (deployment target and Info.plist).
 - Unlock: the vault list is warmed up (decrypted off the main actor) while the shell is built, and the unlock waits up
