@@ -16,17 +16,18 @@ final class ShotsCustomizeTests: PassYUITestCase {
                 sleep(1)
                 shot(app, mode, 80 + index, name)
                 if preset == "default" {
-                    app.buttons["CategoryTile_login"].press(forDuration: 1.0)
-                    sleep(1)
-                    shot(app, mode, 77, "home-card-menu")
-                    app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)).tap()
-                    sleep(1)
                     goTo(app, "Settings")
                     app.buttons["CustomizeSettingsButton"].tap()
                     XCTAssertTrue(app.descendants(matching: .any)["CustomizeCardColorsPicker"].waitForExistence(timeout: 10))
                     shot(app, mode, 79, "customize")
                     app.swipeUp(velocity: .slow)
                     shot(app, mode, 78, "customize-rows")
+                    // Last: the long-press menu of a card (the app is terminated with the menu open).
+                    goTo(app, "My vault")
+                    XCTAssertTrue(app.buttons["CategoryTile_login"].waitForExistence(timeout: 10))
+                    app.buttons["CategoryTile_login"].press(forDuration: 1.0)
+                    sleep(1)
+                    shot(app, mode, 77, "home-card-menu")
                 }
                 app.terminate()
             }

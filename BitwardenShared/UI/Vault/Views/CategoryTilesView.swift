@@ -6,7 +6,7 @@ import SwiftUI
 
 /// The cards at the top of the vault home (logins, cards, codes, trash, ... and the folders switched to cards), built
 /// only from system fonts, SF Symbols and system colors, in adaptive columns (two on an iPhone, one at accessibility
-/// sizes). A long press opens the card's menu (`menu`) over the lifted card.
+/// sizes). A long press opens the card's menu (`menu`) from the card.
 ///
 struct CategoryTilesView<MenuItems: View>: View {
     // MARK: Properties
@@ -41,32 +41,40 @@ struct CategoryTilesView<MenuItems: View>: View {
         LazyVGrid(columns: columns, spacing: 12) {
             ForEach(items) { item in
                 if case let .group(group, count) = item.itemType {
-                    let card = Button {
+                    let open = {
                         #if DEBUG
                         PassYPerf.beginTap("tile")
                         #endif
                         CategoryTileHaptics.tapped()
                         onSelect(item)
-                    } label: {
-                        CategoryTile(group: group, count: count, colors: colors)
+                    }
+                    Group {
+                        if let menu {
+                            // A menu button: a tap opens the card (primary action), a long press opens the card's menu
+                            // from the card. A `contextMenu` cannot be used here: all cards share one list row, and a
+                            // list row has one context menu (the first card's, measured).
+                            Menu {
+                                menu(item)
+                            } label: {
+                                CategoryTile(group: group, count: count, colors: colors)
+                            } primaryAction: {
+                                open()
+                            }
+                            .menuStyle(.button)
+                            .menuOrder(.fixed)
+                        } else {
+                            Button(action: open) {
+                                CategoryTile(group: group, count: count, colors: colors)
+                            }
+                            .accessibilityElement(children: .ignore)
+                        }
                     }
                     .buttonStyle(CategoryTileButtonStyle())
                     .hoverEffect(.highlight)
-                    .accessibilityElement(children: .ignore)
                     .accessibilityLabel(group.name)
                     .accessibilityValue("\(count)")
                     .accessibilityAddTraits(.isButton)
                     .accessibilityIdentifier("CategoryTile_\(item.passYHomeElementId)")
-                    if let menu {
-                        card
-                            .contentShape(
-                                .contextMenuPreview,
-                                RoundedRectangle(cornerRadius: categoryTileCornerRadius, style: .continuous),
-                            )
-                            .contextMenu { menu(item) }
-                    } else {
-                        card
-                    }
                 }
             }
         }

@@ -21,15 +21,21 @@ final class CustomizeTests: PassYUITestCase {
 
         // The avatar menu has no Customize entry any more.
         XCTAssertTrue(openAvatarMenu(app), "avatar menu opens")
+        XCTAssertTrue(menuButton(app, id: "ProfileMenuSyncButton", label: "Sync now").waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["ProfileMenuCustomizeButton"].exists, "no Customize entry in the avatar menu")
-        XCTAssertTrue(app.buttons["ProfileMenuSyncButton"].exists)
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)).tap()
-        sleep(1)
+        XCTAssertFalse(app.buttons["Customize home…"].exists || app.menuItems["Customize home…"].exists)
+        // Close the menu with a harmless entry (a tap outside left the menu's overlay on the home).
+        menuButton(app, id: "ProfileMenuSyncButton", label: "Sync now").tap()
+        sleep(2)
 
         // Long press on the SSH key card: the menu over the lifted card, then "Show as Folder Row".
         longPress(app.buttons["CategoryTile_\(switchedTile)"])
         let asRow = menuItem(app, id: "HomeShowAsRowButton", label: "Show as Folder Row")
-        XCTAssertTrue(asRow.waitForExistence(timeout: 5), "card menu: show as folder row")
+        if !asRow.waitForExistence(timeout: 5) {
+            attachUnchecked(app, "card-menu-missing")
+            print("CUSTOMIZE-MENU-TREE\n\(app.debugDescription)")
+        }
+        XCTAssertTrue(asRow.exists, "card menu: show as folder row")
         XCTAssertTrue(menuItem(app, id: "HomeCustomizeButton", label: "Customize…").exists, "card menu: Customize…")
         attach(app, "card-menu")
         asRow.tap()
@@ -124,6 +130,7 @@ final class CustomizeTests: PassYUITestCase {
         typesRelaunched.tap()
         let sshRow = sshKeyRow(app)
         XCTAssertTrue(waitFor(sshRow, timeout: 5), "SSH key row under Types")
+        scrollTo(sshRow, in: app)
         sshRow.tap()
         XCTAssertTrue(waitFor(app.navigationBars.staticTexts["SSH key"].firstMatch, timeout: 10)
             || waitFor(app.staticTexts["SSH key"].firstMatch, timeout: 2), "the SSH key page opens from its row")
@@ -204,10 +211,19 @@ final class CustomizeTests: PassYUITestCase {
             ?? app.buttons["no-handle"]
     }
 
-    /// Scrolls until the element is hittable (at most 6 swipes).
+    /// Scrolls until the element is hittable and clear of the bottom search bar (at most 6 swipes up, then 6 down):
+    /// a long press on a row under the bar would focus the search field instead.
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0 ..< 6 where !(element.exists && element.isHittable) {
+        func reachable() -> Bool {
+            guard element.exists, element.isHittable else { return false }
+            let bar = app.searchFields.firstMatch
+            return !bar.exists || element.frame.maxY <= bar.frame.minY - 4
+        }
+        for _ in 0 ..< 6 where !reachable() {
             app.swipeUp(velocity: .slow)
+        }
+        for _ in 0 ..< 6 where !reachable() {
+            app.swipeDown(velocity: .slow)
         }
     }
 
