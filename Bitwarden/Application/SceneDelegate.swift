@@ -18,6 +18,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     /// The main window for this scene.
     var window: UIWindow?
 
+    /// Whether the cover went up only because a failed or cancelled biometric unlock ended while the scene was
+    /// inactive (it then goes away without the fade: the unlock already took the user's time).
+    private(set) var isCoverForBiometricUnlockEnd = false
+
+    /// Whether a successful biometric unlock ended while the scene was inactive (the system Face ID UI still fading)
+    /// and the vault was left uncovered; until the scene becomes active or goes to the background.
+    private(set) var isUncoveredAfterBiometricUnlock = false
+
     /// The processor that manages application level logic.
     var appProcessor: AppProcessor? {
         (UIApplication.shared.delegate as? AppDelegateType)?.appProcessor
@@ -31,6 +39,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions,
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
+        #if DEBUG
+        PassYPerf.mark("sceneConnect")
+        #endif
         guard let appProcessor else {
             if (UIApplication.shared.delegate as? AppDelegateType)?.isTesting == true {
                 // If the app is running tests, show a testing view.
@@ -46,6 +57,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             self?.appProcessor?.showDebugMenu()
             #endif
         }
+        // Never an empty color between two screens (the unlock page leaving, the vault shell arriving): the window and
+        // the root show the vault home's background (`backgroundPrimary` = system grouped background, light and dark).
+        appWindow.backgroundColor = .systemGroupedBackground
+        rootViewController.view.backgroundColor = .systemGroupedBackground
         appWindow.rootViewController = rootViewController
         appWindow.makeKeyAndVisible()
         window = appWindow
@@ -56,6 +71,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Splash window. This is initially visible until the app's processor has finished starting.
         splashWindow = buildSplashWindow(windowScene: windowScene)
+        PassYPrivacyCover.unlockEnded = { [weak self, weak windowScene] succeeded in
+            #if DEBUG
+            PassYStartupTimeline.event(
+                "bioEnded",
+                "succeeded=\(succeeded ? 1 : 0) sceneActive=\(windowScene?.activationState == .foregroundActive ? 1 : 0)",
+                snapshot: true,
+            )
+            #endif
+            guard let self, let windowScene else { return }
+            biometricUnlockEnded(succeeded: succeeded, sceneActive: windowScene.activationState == .foregroundActive)
+        }
 
         // Start the app's processor and show the splash view until the initial view is shown.
         Task {
@@ -65,6 +91,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 splashWindow: splashWindow,
                 window: appWindow,
             )
+            #if DEBUG
+            PassYPerf.mark("startDone")
+            #endif
             hideSplash()
             isStartingUp = false
 
@@ -76,8 +105,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 await appProcessor.openUrl(url)
             }
 
-            if #available(iOS 26.0, *),
-               let userActivity = connectionOptions.userActivities.first {
+            if let userActivity = connectionOptions.userActivities.first {
                 await checkAndHandleCredentialExchangeActivity(appProcessor: appProcessor, userActivity: userActivity)
             }
         }
@@ -96,10 +124,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             appProcessor.handleAppLinks(incomingURL: incomingURL)
         }
 
-        if #available(iOS 26.0, *) {
-            Task {
-                await checkAndHandleCredentialExchangeActivity(appProcessor: appProcessor, userActivity: userActivity)
-            }
+        Task {
+            await checkAndHandleCredentialExchangeActivity(appProcessor: appProcessor, userActivity: userActivity)
         }
     }
 
@@ -115,12 +141,51 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
-        showSplash()
+        #if DEBUG
+        PassYPerf.mark("resignActive")
+        #endif
+        // The Face ID / Touch ID prompt of an unlock resigns the scene: the locked unlock page needs no cover (see
+        // `PassYPrivacyCover`). Every other reason (app switcher, control center, a call) covers as before.
+        guard !PassYPrivacyCover.isBiometricUnlockInProgress else { return }
+        showSplash(reason: "resignActive")
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        // The app switcher snapshot is taken after this: always covered, also when a biometric unlock is running or
+        // a successful one left the vault uncovered while the scene was inactive.
+        isUncoveredAfterBiometricUnlock = false
+        showSplash(reason: "enterBackground")
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
+        #if DEBUG
+        PassYPerf.mark("becomeActive")
+        #endif
+        isUncoveredAfterBiometricUnlock = false
         guard !isStartingUp else { return }
+        if isCoverForBiometricUnlockEnd {
+            isCoverForBiometricUnlockEnd = false
+            splashWindow?.alpha = 0
+            #if DEBUG
+            PassYStartupTimeline.event("coverHidden", "animated=0")
+            PassYPerf.mark("splashHidden")
+            #endif
+            return
+        }
         hideSplash()
+    }
+
+    /// A biometric unlock ended. While the scene is still inactive, a failed or cancelled unlock covers (until the
+    /// scene becomes active, without the fade); a successful one leaves the vault uncovered: the system Face ID UI is
+    /// still fading out over the vault the user just unlocked (`PassYPrivacyCover`).
+    func biometricUnlockEnded(succeeded: Bool, sceneActive: Bool) {
+        guard !sceneActive else { return }
+        if succeeded {
+            isUncoveredAfterBiometricUnlock = true
+        } else {
+            isCoverForBiometricUnlockEnd = true
+            showSplash(reason: "bioFailedInactive")
+        }
     }
 
     // MARK: Private
@@ -143,13 +208,23 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     /// Hides the splash view.
     private func hideSplash() {
+        #if DEBUG
+        PassYStartupTimeline.event("coverHide", "fromAlpha=\(String(format: "%.2f", splashWindow?.alpha ?? -1))")
+        #endif
         UIView.animate(withDuration: UI.duration(0.4)) {
             self.splashWindow?.alpha = 0
+        } completion: { _ in
+            #if DEBUG
+            PassYPerf.mark("splashHidden")
+            #endif
         }
     }
 
-    /// Shows the splash view.
-    private func showSplash() {
+    /// Shows the splash view (`reason`: DEBUG timeline only).
+    private func showSplash(reason: StaticString) {
+        #if DEBUG
+        PassYStartupTimeline.event("coverShown", "reason=\(reason) fromAlpha=\(String(format: "%.2f", splashWindow?.alpha ?? -1))")
+        #endif
         splashWindow?.alpha = 1
     }
 
@@ -170,6 +245,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         )
         tapGesture.numberOfTapsRequired = 3
         tapGesture.numberOfTouchesRequired = 1
+        // A multi-tap recognizer on the window holds back every touch-up (`delaysTouchesEnded`, default true) until it
+        // fails after the multi-tap interval: every UIKit control (navigation bar Back, Cancel, Close) fired ~360 ms
+        // after the finger lifted (measured with PassYTouchProbe; SwiftUI buttons were not affected). Never delay or
+        // swallow app touches for a debug gesture.
+        tapGesture.delaysTouchesEnded = false
+        tapGesture.cancelsTouchesInView = false
         window.addGestureRecognizer(tapGesture)
     }
     #endif
@@ -177,7 +258,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 // MARK: - SceneDelegate 26.0
 
-@available(iOS 26.0, *)
 extension SceneDelegate {
     /// Checks  whether there is an `ASCredentialExchangeActivity` in the `userActivity` and handles it.
     /// - Parameters:

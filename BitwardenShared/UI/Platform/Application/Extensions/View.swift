@@ -55,67 +55,6 @@ extension View {
         .accessibilityIdentifier("AddItemFloatingActionButton")
     }
 
-    /// Returns a floating action menu positioned at the bottom-right corner of the screen for
-    /// adding a send item.
-    ///
-    /// - Parameters:
-    ///   - hidden: Whether the menu button should be hidden.
-    ///   - action: The action to perform when a send type is tapped in the menu.
-    /// - Returns: A `FloatingActionMenu` configured for adding a send item.
-    ///
-    func addSendItemFloatingActionMenu(
-        hidden: Bool = false,
-        action: @escaping (SendType) async -> Void,
-    ) -> some View {
-        FloatingActionMenu(image: SharedAsset.Icons.plus32.swiftUIImage) {
-            ForEach(SendType.allCases) { type in
-                AsyncButton(type.localizedName) {
-                    await action(type)
-                }
-            }
-        }
-        .accessibilityLabel(Localizations.add)
-        .accessibilityIdentifier("AddItemFloatingActionButton")
-        .padding([.trailing, .bottom], 16)
-    }
-
-    /// Returns a floating action menu positioned at the bottom-right corner of the screen.
-    ///
-    /// - Parameters:
-    ///   - hidden: Whether the menu button should be hidden.
-    ///   - availableItemTypes: The list of cipher item types available for creation.
-    ///   - addItem: The action to perform when a new cipher item type is tapped in the menu.
-    ///   - addFolder: The action to perform when the new folder button is tapped in the menu.
-    /// - Returns: A `FloatingActionMenu` configured for adding a vault item for folder.
-    ///
-    func addVaultItemFloatingActionMenu(
-        hidden: Bool = false,
-        availableItemTypes: [CipherType] = CipherType.canCreateCases,
-        addItem: @escaping (CipherType) -> Void,
-        addFolder: (() -> Void)? = nil,
-    ) -> some View {
-        FloatingActionMenu(image: SharedAsset.Icons.plus32.swiftUIImage) {
-            // The items in the menu are added in reverse order so that when the context menu
-            // displays above the button, which is the common case, the types are at the top with
-            // folder at the bottom.
-
-            if let addFolder {
-                Button(Localizations.folder, action: addFolder)
-                Divider()
-            }
-
-            ForEach(availableItemTypes, id: \.hashValue) { type in
-                Button(type.localizedName) {
-                    addItem(type)
-                }
-            }
-        }
-        .accessibilityLabel(Localizations.add)
-        .accessibilityIdentifier("AddItemFloatingActionButton")
-        .padding([.trailing, .bottom], 16)
-        .hidden(hidden)
-    }
-
     /// Dismisses the keyboard when the view appears.
     /// Safe for use in both app targets and app extensions.
     ///

@@ -6,6 +6,10 @@ public extension Notification.Name {
     /// Create a new login (Cmd+N).
     static let passyNewLogin = Notification.Name("de.aiity.passy.command.newLogin")
 
+    /// Posted (main thread) when the vault session ends or changes: lock, logout, timeout, account switch, any auth
+    /// screen. Holders of decrypted vault state drop it (the vault list stream of `VaultListProcessor`).
+    static let passyVaultSessionEnded = Notification.Name("de.aiity.passy.vaultSessionEnded")
+
     /// Lock the vault (Cmd+L).
     static let passyLockVault = Notification.Name("de.aiity.passy.command.lockVault")
 

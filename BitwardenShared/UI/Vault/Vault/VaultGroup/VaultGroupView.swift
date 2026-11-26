@@ -21,12 +21,6 @@ struct VaultGroupView: View {
     /// The `TimeProvider` used to calculate TOTP expiration.
     var timeProvider: any TimeProvider
 
-    /// Whether the system shows "N Items" as a navigation subtitle (iOS 26). Before that the count is a plain
-    /// secondary text row at the top of the list (`ItemCountHeader`).
-    var supportsNavigationSubtitle: Bool = {
-        if #available(iOS 26, *) { true } else { false }
-    }()
-
     /// Whether the list is in Select mode (Apple Passwords).
     private var isSelecting: Bool { store.state.isSelecting }
 
@@ -37,6 +31,8 @@ struct VaultGroupView: View {
 
     var body: some View {
         content
+            // Customize: the device's row and code preferences for the group page and its search results.
+            .passYLayoutEnvironment()
             .toolbar { selectToolbar }
             .passYSearchTarget(
                 id: ObjectIdentifier(store),
@@ -47,8 +43,9 @@ struct VaultGroupView: View {
                 setSearching: { store.send(.searchStateChanged(isSearching: $0)) },
             )
             .navigationTitle(store.state.group.navigationTitle)
-            .passYItemCountSubtitle(supportsNavigationSubtitle ? itemCountSubtitle : nil)
+            .passYItemCountSubtitle(itemCountSubtitle)
             .navigationBarTitleDisplayMode(.large)
+            // The page color of the shell (the floating bottom bar area shows it too: a different color here drew a seam).
             .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
             .task {
                 await store.perform(.appeared)
@@ -67,7 +64,6 @@ struct VaultGroupView: View {
                     get: \.toast,
                     send: VaultGroupAction.toastShown,
                 ),
-                additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
             )
     }
 
@@ -79,10 +75,11 @@ struct VaultGroupView: View {
         return sections.flatMap(\.items)
     }
 
-    /// "N Items" under the title (iOS 26) or as the first list row (earlier systems), like Apple Passwords.
+    /// "N Items" under the title, like Apple Passwords. While the first stream value is on its way the count of the
+    /// row that opened the page stands in, so the title block has its final layout from the first frame.
     private var itemCountSubtitle: String? {
-        guard !store.state.isSearching, case .data = store.state.loadingState, !allItems.isEmpty else { return nil }
-        return Localizations.xItems(allItems.count).replacingOccurrences(of: "items", with: "Items")
+        guard !store.state.isSearching, let count = store.state.displayedItemCount, count > 0 else { return nil }
+        return Localizations.xItems(count).replacingOccurrences(of: "item", with: "Item")
     }
 
     /// The selected items.
@@ -98,48 +95,31 @@ struct VaultGroupView: View {
     }
 
     @ViewBuilder private var selectBarContent: some View {
-        if !store.state.isSearching, !allItems.isEmpty, !isCipherlessGroup {
-            if isSelecting {
-                Menu {
-                    Button(Localizations.folderNone) {
-                        let items = selectedItems
-                        Task { await store.perform(.moveItems(items, folderId: nil)) }
-                    }
-                    ForEach(store.state.folders, id: \.id) { folder in
-                        Button(folder.name) {
-                            let items = selectedItems
-                            Task { await store.perform(.moveItems(items, folderId: folder.id)) }
-                        }
-                    }
-                } label: {
-                    Image(systemName: "folder")
-                }
-                .disabled(store.state.selection.isEmpty || store.state.group == .trash)
-                .accessibilityLabel(Localizations.move)
-                .accessibilityIdentifier("SelectMoveButton")
-
-                Button(role: .destructive) {
+        if !store.state.isSearching, (store.state.displayedItemCount ?? 0) > 0, !isCipherlessGroup {
+            PassYSelectModeButtons(
+                isSelecting: isSelecting,
+                selectionIsEmpty: store.state.selection.isEmpty,
+                moveIsDisabled: store.state.group == .trash,
+                folders: store.state.folders,
+                move: { folderId in
+                    let items = selectedItems
+                    Task { await store.perform(.moveItems(items, folderId: folderId)) }
+                },
+                delete: {
                     let items = selectedItems
                     // Select mode stays: the processor ends it after a complete delete, keeps failed items
                     // selected, and a cancelled confirmation changes nothing.
                     Task { await store.perform(.deleteItems(items)) }
-                } label: {
-                    Image(systemName: "trash")
-                }
-                .disabled(store.state.selection.isEmpty)
-                .accessibilityLabel(Localizations.delete)
-                .accessibilityIdentifier("SelectDeleteButton")
-            }
-            Button(isSelecting ? Localizations.done : "Select") {
-                store.send(.setSelecting(!isSelecting))
-            }
-            .accessibilityIdentifier("SelectButton")
+                },
+                toggle: { store.send(.setSelecting(!isSelecting)) },
+            )
         }
     }
 
     /// Groups made only of non-cipher rows (e.g. verification codes) have no Select mode.
     private var isCipherlessGroup: Bool {
-        !allItems.contains { if case .cipher = $0.itemType { true } else { false } }
+        guard case .data = store.state.loadingState else { return store.state.group == .totp }
+        return !allItems.contains { if case .cipher = $0.itemType { true } else { false } }
     }
 
     /// The "+" menu of the persistent bottom bar for this group.
@@ -178,9 +158,22 @@ struct VaultGroupView: View {
         }
     }
 
+    /// The group list stays alive from the first frame (no spinner, no swap of scroll views: the large title stays
+    /// bound to the same list); the search list only exists while searching, on top of the hidden group list.
     @ViewBuilder private var content: some View {
-        searchOrGroup
+        ZStack {
+            groupList
+                .opacity(store.state.isSearching ? 0 : 1)
+                .allowsHitTesting(!store.state.isSearching)
+                .accessibilityHidden(store.state.isSearching)
+
+            if store.state.isSearching {
+                searchContent
+            }
+        }
             .readableContentWidth(760)
+            // One countdown clock for all code rows of the page (verification codes and their search results).
+            .passYCountdownClock(timeProvider: timeProvider, isActive: store.state.group == .totp)
             .onChange(of: store.state.url) { newValue in
                 guard let url = newValue else { return }
                 openURL(url)
@@ -200,17 +193,16 @@ struct VaultGroupView: View {
 
     /// A view that displays an empty state for this vault group.
     @ViewBuilder private var emptyView: some View {
-        IllustratedMessageView(
-            image: Asset.Images.Illustrations.noItems.swiftUIImage,
-            title: store.state.noItemsTitle,
+        let group = store.state.group
+        let title = store.state.noItemsTitle ?? (group == .totp ? "No \(Localizations.verificationCodes.lowercased())" : group.name)
+        PassYEmptyState(
+            title,
+            systemImage: group.tileSymbol,
             message: store.state.noItemsString,
+            identifier: "EmptyGroupTitle",
         ) {
             if let newItemButtonType = store.state.newItemButtonType {
-                let newItemLabel = Label(
-                    store.state.addItemButtonTitle,
-                    image: SharedAsset.Icons.plus16.swiftUIImage,
-                )
-
+                let newItemLabel = Label(store.state.addItemButtonTitle, systemImage: "plus")
                 Group {
                     switch newItemButtonType {
                     case .button:
@@ -219,11 +211,10 @@ struct VaultGroupView: View {
                         } label: {
                             newItemLabel
                         }
-                        .buttonStyle(.primary(shouldFillWidth: false))
                     case .menu:
                         Menu {
                             ForEach(store.state.itemTypesUserCanCreate, id: \.hashValue) { type in
-                                Button(type.localizedName) {
+                                Button(type.localizedName, systemImage: type.passYAddMenuSymbol) {
                                     store.send(.addItemPressed(type))
                                 }
                             }
@@ -232,20 +223,8 @@ struct VaultGroupView: View {
                         }
                     }
                 }
+                .passYButtonStyle(.primary)
                 .accessibilityIdentifier("AddItemButton")
-                .buttonStyle(.primary(shouldFillWidth: false))
-            }
-        }
-        .scrollView(centerContentVertically: true)
-    }
-
-    /// A view that displays either the group or empty interface.
-    @ViewBuilder private var groupItems: some View {
-        LoadingView(state: store.state.loadingState) { items in
-            if items.isEmpty {
-                emptyView
-            } else {
-                groupView(with: items)
             }
         }
     }
@@ -255,19 +234,24 @@ struct VaultGroupView: View {
     ///
     @ViewBuilder private var searchContent: some View {
         if store.state.searchText.isEmpty || !store.state.searchResults.isEmpty {
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    searchVaultFilterRow
+            List {
+                // No section without a filter (members of no organization): an empty section drew an empty card.
+                if !store.state.vaultFilterState.vaultFilterOptions.isEmpty {
+                    Section {
+                        searchVaultFilterRow
+                            .listRowInsets(EdgeInsets())
+                    }
+                }
 
+                Section {
                     ForEach(store.state.searchResults) { item in
-                        vaultItemRow(
-                            for: item,
-                            isLastInSection: store.state.searchResults.last?.id == item.id,
-                        )
-                        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
+                        swipeableRow(for: item)
                     }
                 }
             }
+            // Rebuilt when the set of result rows changes (see the home search results: the incremental diff crashed).
+            .id(store.state.searchResults.map(\.id))
+            .passYCardList()
         } else {
             SearchNoResultsView {
                 searchVaultFilterRow
@@ -275,24 +259,11 @@ struct VaultGroupView: View {
         }
     }
 
-    /// The group content or search view.
-    ///
-    ///  If `store.state.isSearching` is `true`:  The view shows the `searchContentView`,
-    ///     else: The view shows the `groupItemsView`.
-    ///
-    @ViewBuilder private var searchOrGroup: some View {
-        if store.state.isSearching {
-            searchContent
-        } else {
-            groupItems
-        }
-    }
-
     /// Displays the vault filter for search row if the user is a member of any org.
     ///
     private var searchVaultFilterRow: some View {
         SearchVaultFilterRowView(
-            hasDivider: true, store: store.child(
+            hasDivider: false, store: store.child(
                 state: \.vaultFilterState,
                 mapAction: { action in
                     switch action {
@@ -307,118 +278,78 @@ struct VaultGroupView: View {
 
     // MARK: Private Methods
 
-    /// A view that displays a list of the sections within this vault group.
-    ///
-    @ViewBuilder
-    private func groupView(with sections: [VaultListSection]) -> some View {
+    /// The list of the sections within this vault group: a native inset-grouped list like the vault home (each section
+    /// a rounded card on the grouped background) with system row separators aligned to the item name. It exists from
+    /// the first frame; until the first stream value arrives it is empty (no spinner), and an empty group shows its
+    /// message on top of it.
+    private var groupList: some View {
         List(selection: store.binding(get: \.selection, send: VaultGroupAction.selectionChanged)) {
-            if !supportsNavigationSubtitle, let count = itemCountSubtitle {
-                Text(count)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .accessibilityIdentifier("ItemCountHeader")
-            }
-
             if store.state.showArchivePremiumSubscriptionEndedCard {
                 archivePremiumSubscriptionEndedCard
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
 
-            ForEach(sections) { section in
-                Section {
-                    ForEach(section.items) { item in
-                        vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
-                            .listRowInsets(EdgeInsets())
-                            .listRowSeparator(.hidden)
-                            .tag(item.id)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                if case .cipher = item.itemType {
-                                    // No `role: .destructive`: it makes the list drop the row on the tap,
-                                    // before the confirmation; the later real removal then hit a list that
-                                    // no longer matched its data ("Invalid number of items in section").
-                                    Button {
-                                        Task { await store.perform(.deleteItems([item])) }
-                                    } label: {
-                                        Label(Localizations.delete, systemImage: "trash")
-                                    }
-                                    .tint(.red)
-                                    Button {
-                                        Task { await store.perform(.morePressed(item)) }
-                                    } label: {
-                                        Label(Localizations.moreOptions, systemImage: "ellipsis")
-                                    }
-                                    .tint(.gray)
-                                }
-                            }
-                    }
-                } header: {
-                    if itemCountSubtitle == nil {
-                        Text(section.name)
+            if case let .data(sections) = store.state.loadingState {
+                ForEach(sections) { section in
+                    Section {
+                        ForEach(section.items) { item in
+                            swipeableRow(for: item)
+                        }
+                    } header: {
+                        if itemCountSubtitle == nil, !section.name.isEmpty {
+                            PassYSectionHeader(section.name)
+                        }
                     }
                 }
             }
+        }
+        .passYCardList()
+        .overlay {
+            if case .data([]) = store.state.loadingState {
+                emptyView
+                    .passYEmptyListState()
+            }
+        }
+        .passYSelectEditMode(isSelecting: isSelecting, listIsEditing: $listIsEditing)
+    }
 
-            Section {
-                Color.clear
-                    .frame(height: FloatingActionButton.bottomOffsetPadding)
-                    .listRowBackground(Color.clear)
-                    .accessibilityHidden(true)
-            }
-        }
-        .listStyle(.plain)
-        .environment(\.editMode, .constant(listIsEditing ? .active : .inactive))
-        // See the home search results: leaving Select mode together with the removal of rows can crash the list diff.
-        .task(id: isSelecting) {
-            if isSelecting {
-                listIsEditing = true
-            } else {
-                try? await Task.sleep(nanoseconds: 500_000_000)
-                listIsEditing = false
-            }
-        }
-        .softBottomScrollEdge()
+    /// A list row for the item with its selection tag and swipe actions (Delete, More menu).
+    ///
+    /// - Parameter item: The `VaultListItem` to show.
+    ///
+    private func swipeableRow(for item: VaultListItem) -> some View {
+        vaultItemRow(for: item)
+            .tag(item.id)
+            .passYVaultRow(
+                item,
+                hasPremium: store.state.hasPremium,
+                delete: { Task { await store.perform(.deleteItems([item])) } },
+                perform: { kind in Task { await store.perform(.accessibilityMoreOptionsActionPressed(item, kind)) } },
+            )
     }
 
     /// Creates a row in the list for the provided item.
     ///
     /// - Parameters:
     ///   - item: The `VaultListItem` to use when creating the view.
-    ///   - isLastInSection: A flag indicating if this item is the last one in the section.
     ///
-    @ViewBuilder
-    private func vaultItemRow(for item: VaultListItem, isLastInSection: Bool = false) -> some View {
-        // No child `Store` per row and body pass: the row gets plain state and closures (ui-r8).
+    private func vaultItemRow(for item: VaultListItem) -> some View {
         let state = store.state
-        VaultListRowCell(
-            state: VaultListItemRowState(
-                iconBaseURL: state.iconBaseURL,
-                hasPremium: state.hasPremium,
-                isSelecting: listIsEditing,
-                item: item,
-                hasDivider: !isLastInSection,
-                showWebIcons: state.showWebIcons,
-            ),
-            perform: { [weak store] effect in
-                switch effect {
-                case let .accessibilityMoreOptionsActionPressed(kind):
-                    await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
-                case .morePressed:
-                    await store?.perform(.morePressed(item))
-                case .pressed:
-                    await store?.perform(.itemPressed(item))
-                }
-            },
-            send: { [weak store] action in
-                switch action {
-                case let .copyTOTPCode(code):
-                    store?.send(.copyTOTPCode(code))
-                }
-            },
+        return VaultListRowCell.make(
+            for: item,
+            isSelecting: listIsEditing,
+            iconBaseURL: state.iconBaseURL,
+            hasPremium: state.hasPremium,
+            showWebIcons: state.showWebIcons,
             timeProvider: timeProvider,
-            onDelete: item.isCipherItem ? { [weak store] in Task { await store?.perform(.deleteItems([item])) } } : nil,
+            itemPressed: { [weak store] item in await store?.perform(.itemPressed(item)) },
+            moreOptions: { [weak store] item, kind in
+                await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
+            },
+            copyTOTPCode: { [weak store] code in store?.send(.copyTOTPCode(code)) },
+            deleteItem: { [weak store] item in Task { await store?.perform(.deleteItems([item])) } },
         )
         .equatable()
     }
@@ -427,14 +358,9 @@ struct VaultGroupView: View {
 // MARK: - Item count subtitle
 
 extension View {
-    /// Shows "N Items" under the navigation title (iOS 26 `navigationSubtitle`, like Apple Passwords).
-    @ViewBuilder
+    /// Shows "N Items" under the navigation title (`navigationSubtitle`, like Apple Passwords).
     func passYItemCountSubtitle(_ text: String?) -> some View {
-        if #available(iOS 26, *) {
-            navigationSubtitle(text ?? "")
-        } else {
-            self
-        }
+        navigationSubtitle(text ?? "")
     }
 }
 

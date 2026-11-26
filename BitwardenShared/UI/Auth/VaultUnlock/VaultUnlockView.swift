@@ -19,17 +19,6 @@ struct VaultUnlockView: View {
     /// The `Store` for this view.
     @ObservedObject var store: Store<VaultUnlockState, VaultUnlockAction, VaultUnlockEffect>
 
-    /// The text to display in the footer of the password/pin text field.
-    var footerText: String {
-        """
-        \(store.state.unlockMethod == .pin
-            ? Localizations.vaultLockedPIN
-            : Localizations.vaultLockedMasterPassword)
-
-        \(Localizations.loggedInAsOn(store.state.email, store.state.webVaultHost))
-        """
-    }
-
     /// The view's navigation title.
     var navigationTitle: String {
         store.state.unlockMethod == .pin
@@ -81,38 +70,47 @@ struct VaultUnlockView: View {
         ))
     }
 
-    /// The content of the view: a native grouped form with the credential field and the unlock actions.
+    /// The content of the view: the shield, the account and the lock message, the credential field, then one
+    /// primary Unlock button and, when enabled, the biometric unlock as a secondary button.
     @ViewBuilder var scrollView: some View {
         Form {
+            Section {
+                PassYHeroHeader(
+                    title: store.state.email,
+                    message: store.state.unlockMethod == .pin
+                        ? Localizations.vaultLockedPIN
+                        : Localizations.vaultLockedMasterPassword,
+                )
+            }
+            .passYPlainListRow()
+
             if store.state.shouldShowPasswordOrPinFields {
                 Section {
                     textField
                 } footer: {
-                    Text(footerText)
+                    Text(Localizations.loggedInAsOn(store.state.email, store.state.webVaultHost))
                         .accessibilityIdentifier("UserAndEnvironmentDataLabel")
                 }
             }
 
             Section {
-                VStack(spacing: 12) {
-                    biometricAuthButton
+                VStack(spacing: PassYDesign.Spacing.medium) {
                     if store.state.shouldShowPasswordOrPinFields {
-                        AsyncButton {
+                        Button {
                             focusedField = nil
-                            await store.perform(.unlockVault)
+                            Task { await store.perform(.unlockVault) }
                         } label: {
                             Text(Localizations.unlock)
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
+                        .passYButtonStyle(.primary, fillsWidth: true)
                         .accessibilityIdentifier("UnlockVaultButton")
                     }
+                    biometricAuthButton
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, PassYDesign.Spacing.large)
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
+            .passYPlainListRow()
         }
     }
 
@@ -136,14 +134,18 @@ struct VaultUnlockView: View {
     /// A button to trigger a biometric auth unlock.
     @ViewBuilder private var biometricAuthButton: some View {
         if case let .available(biometryType, true) = store.state.biometricUnlockStatus {
-            AsyncButton {
+            Button {
                 Task { await store.perform(.unlockVaultWithBiometrics) }
             } label: {
-                biometricUnlockText(biometryType)
-                    .frame(maxWidth: .infinity)
+                Label {
+                    biometricUnlockText(biometryType)
+                } icon: {
+                    Image(systemName: biometrySymbol(biometryType))
+                }
+                .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .passYButtonStyle(store.state.shouldShowPasswordOrPinFields ? .secondary : .primary, fillsWidth: true)
+            .accessibilityIdentifier("BiometricUnlockButton")
         }
     }
 
@@ -199,35 +201,29 @@ struct VaultUnlockView: View {
         toggleIdentifier: String,
         keyboard: UIKeyboardType,
     ) -> some View {
-        HStack {
-            Group {
-                if isRevealed {
-                    TextField(title, text: text)
-                } else {
-                    SecureField(title, text: text)
-                }
-            }
-            .keyboardType(keyboard)
-            .textContentType(.password)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled(true)
+        PassYPasswordField(
+            title,
+            text: text,
+            isRevealed: isRevealed,
+            keyboard: keyboard,
+            fieldIdentifier: fieldIdentifier,
+            toggleIdentifier: toggleIdentifier,
+        ) { _ in onReveal() }
             .submitLabel(.go)
             .focused($focusedField, equals: .passwordOrPin)
-            .accessibilityIdentifier(fieldIdentifier)
             .onSubmit {
                 focusedField = nil
                 Task { await store.perform(.unlockVault) }
             }
+    }
 
-            Button(action: onReveal) {
-                Image(systemName: isRevealed ? "eye.slash" : "eye")
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.borderless)
-            .accessibilityIdentifier(toggleIdentifier)
-            .accessibilityLabel(
-                isRevealed ? Localizations.passwordIsVisibleTapToHide : Localizations.passwordIsNotVisibleTapToShow,
-            )
+    /// The SF Symbol of the biometric unlock button.
+    private func biometrySymbol(_ biometryType: BiometricAuthenticationType) -> String {
+        switch biometryType {
+        case .faceID: "faceid"
+        case .opticID: "opticid"
+        case .touchID: "touchid"
+        case .unknown: "lock.open"
         }
     }
 

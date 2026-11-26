@@ -110,6 +110,8 @@ struct PassYProfileMenuSource {
     let serverURL: String
     let showsPlaceholder: Bool
     let sync: () -> Void
+    /// Opens the Customize screen ("Customize home…"), `nil` for no entry.
+    var customize: (() -> Void)?
 }
 
 extension URL {
@@ -176,6 +178,9 @@ final class PassYShellModel: ObservableObject {
 
     /// Ends editing and clears the text.
     func cancelSearch() {
+        #if DEBUG
+        PassYPerf.mark("bar.cancelSearch")
+        #endif
         text = ""
         isEditing = false
         NotificationCenter.default.post(name: .vaultSearchResign, object: nil)
@@ -318,7 +323,7 @@ struct PassYShellBar: View {
             Spacer(minLength: 0)
             HStack(spacing: 10) {
                 if !model.isAtVaultHome {
-                    PassYVaultButton { model.goToVault?() }
+                    PassYBarButton.vault { model.goToVault?() }
                         .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
                 }
@@ -329,12 +334,12 @@ struct PassYShellBar: View {
                     .reportsBarFrame()
 
                 if model.isSearching {
-                    SearchCancelButton { model.cancelSearch() }
+                    PassYBarButton.searchCancel { model.cancelSearch() }
                         .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
                 } else if let entries = model.activeTarget?.entries, !entries.isEmpty {
                     PassYAddMenu(entries: entries)
-                        .frame(width: 44, height: 44)
+                        .frame(width: PassYButtonMetrics.minTarget, height: PassYButtonMetrics.minTarget)
                         .background { PassYGlassBackground(shape: Circle()) }
                         .reportsBarFrame()
                         .transition(.scale.combined(with: .opacity))
@@ -378,26 +383,6 @@ extension View {
     }
 }
 
-// MARK: - PassYVaultButton
-
-/// The Vault button left of the search field: returns to the vault home from every other page.
-struct PassYVaultButton: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: "lock.shield")
-                .font(.body.weight(.semibold))
-                .frame(width: 44, height: 44)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .modifier(BarBackground(shape: Circle()))
-        .accessibilityLabel(Localizations.myVault)
-        .accessibilityIdentifier("BottomBarVaultButton")
-    }
-}
-
 // MARK: - PassYAddMenu
 
 /// The "+" control: a menu for several entries or a plain button for a single one.
@@ -409,7 +394,7 @@ private struct PassYAddMenu: View {
         Image(systemName: "plus")
             .font(.body.weight(.semibold))
             .foregroundStyle(.tint)
-            .frame(width: 44, height: 44)
+            .frame(width: PassYButtonMetrics.minTarget, height: PassYButtonMetrics.minTarget)
             .contentShape(Circle())
     }
 
@@ -466,6 +451,13 @@ struct PassYAvatarMenu: View {
                     }
                     .accessibilityIdentifier("ProfileMenuSyncButton")
 
+                    if let customize = source.customize {
+                        Button(action: customize) {
+                            Label(Localizations.customizeHome, systemImage: "slider.horizontal.3")
+                        }
+                        .accessibilityIdentifier("ProfileMenuCustomizeButton")
+                    }
+
                     if source.canLock, let active = source.activeProfile {
                         Button { source.lock(active) } label: {
                             Label(Localizations.lockNow, systemImage: "lock")
@@ -505,17 +497,17 @@ struct PassYAvatarMenu: View {
             }
             if let initials = profile?.userInitials {
                 Text(initials)
-                    .font(Font.system(.footnote, design: .rounded).weight(.semibold))
+                    .font(Font.system(.body, design: .rounded).weight(.semibold))
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
                     .foregroundStyle(Color.white)
             } else {
                 Image(systemName: "person.fill")
-                    .font(.footnote)
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: avatarSize, height: avatarSize)
+        .frame(width: Self.avatarSize, height: Self.avatarSize)
     }
 
     /// The opacity of a black overlay (0 to 0.6) after which white text on `color` has a contrast ratio of at least 4.6.
@@ -535,21 +527,19 @@ struct PassYAvatarMenu: View {
         return 0.6
     }
 
-    /// The avatar diameter: 30 pt at the default text size, grows with Dynamic Type.
-    @ScaledMetric(relativeTo: .footnote) private var avatarSize: CGFloat = 30
+    /// The avatar diameter: the 44 pt of the neighbouring glass toolbar buttons (back, Select, "..."), so it has the
+    /// same size and weight. Fixed like those buttons: a Dynamic Type size would outgrow the bar; the initials shrink
+    /// to fit instead.
+    static let avatarSize: CGFloat = 44
 }
 
 // MARK: - PassYAvatarToolbarItem
 
-/// The avatar as a toolbar item. On iOS 26 the system toolbar capsule around it is removed, so only the avatar shows.
+/// The avatar as a toolbar item, without the system toolbar capsule around it, so only the avatar shows.
 ///
 struct PassYAvatarToolbarItem: ToolbarContent {
     var body: some ToolbarContent {
-        if #available(iOS 26, *) {
-            ToolbarItem(placement: .topBarTrailing) { PassYAvatarMenu() }
-                .sharedBackgroundVisibility(.hidden)
-        } else {
-            ToolbarItem(placement: .topBarTrailing) { PassYAvatarMenu() }
-        }
+        ToolbarItem(placement: .topBarTrailing) { PassYAvatarMenu() }
+            .sharedBackgroundVisibility(.hidden)
     }
 }

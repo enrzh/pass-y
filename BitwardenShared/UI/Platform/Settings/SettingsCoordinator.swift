@@ -171,6 +171,8 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
             showAddEditFolder(folder, delegate: context as? AddEditFolderDelegate)
         case .appearance:
             showAppearance()
+        case .customize:
+            showCustomize()
         case .appExtension:
             showAppExtension()
         case .appExtensionSetup:
@@ -282,6 +284,17 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
 
     /// Shows the appearance screen.
     ///
+    /// Shows the Customize screen (on-device layout preferences of the home, rows and codes).
+    private func showCustomize() {
+        let view = CustomizeView(
+            layout: .shared,
+            webIcons: PassYWebIconsSetting(stateService: services.stateService),
+        )
+        let viewController = UIHostingController(rootView: view)
+        viewController.navigationItem.largeTitleDisplayMode = .never
+        stackNavigator?.push(viewController, navigationTitle: Localizations.customize)
+    }
+
     private func showAppearance() {
         let processor = AppearanceProcessor(
             coordinator: asAnyCoordinator(),

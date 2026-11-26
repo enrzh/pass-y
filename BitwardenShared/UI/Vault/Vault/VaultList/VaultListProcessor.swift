@@ -116,13 +116,36 @@ final class VaultListProcessor: StateProcessor<
                 await MainActor.run { [weak self] in self?.receive(.addItemPressed(.login)) }
             }
         }
+        // Lock, logout, timeout and account switch: the vault list stream ends and the decrypted list is dropped, also
+        // if this processor outlives the session for a moment (see `startVaultListStreamIfNeeded`).
+        sessionEndTask = Task { [weak self] in
+            for await _ in NotificationCenter.default.notifications(named: .passyVaultSessionEnded) {
+                await MainActor.run { [weak self] in self?.endVaultListStream(clearData: true) }
+            }
+        }
     }
 
     /// Task observing the new-login command.
     private var commandsTask: Task<Void, Never>?
 
+    /// Task observing the end of the vault session.
+    private var sessionEndTask: Task<Void, Never>?
+
+    /// The running vault list stream. It belongs to the processor, not to the view's appearance: the home page
+    /// disappears under every pushed page (group, item, folder) and appears again on back, and restarting the stream
+    /// there decrypted and rebuilt the whole vault (2000 items) right inside the pop transition.
+    private(set) var vaultListStreamTask: Task<Void, Never>?
+
+    /// The filter of the running vault list stream.
+    private var vaultListStreamFilter: VaultFilterType?
+
+    /// Counts started streams, so only the current stream marks itself as ended.
+    private var vaultListStreamGeneration = 0
+
     deinit {
         commandsTask?.cancel()
+        sessionEndTask?.cancel()
+        vaultListStreamTask?.cancel()
         reviewPromptTask?.cancel()
     }
 
@@ -155,8 +178,6 @@ final class VaultListProcessor: StateProcessor<
             await moveItems(items, folderId: folderId)
         case let .itemPressed(item):
             handleItemTapped(item)
-        case let .morePressed(item):
-            await morePressed(item: item)
         case let .profileSwitcher(profileEffect):
             await handleProfileSwitcherEffect(profileEffect)
         case .refreshAccountProfiles:
@@ -176,7 +197,7 @@ final class VaultListProcessor: StateProcessor<
         case .streamSyncComplete:
             await streamSyncComplete()
         case .streamVaultList:
-            await streamVaultList()
+            startVaultListStreamIfNeeded()
         case .tryAgainTapped:
             await tryAgainTapped()
         case .upgradeToPremium:
@@ -229,6 +250,8 @@ final class VaultListProcessor: StateProcessor<
             setSectionExpanded(sectionId: sectionId, isExpanded: isExpanded)
         case .settingsPressed:
             coordinator.navigate(to: .settings)
+        case .customizePressed:
+            coordinator.navigate(to: .customize)
         case .showImportLogins:
             coordinator.navigate(to: .importLogins)
         case let .toastShown(newValue):
@@ -468,7 +491,7 @@ extension VaultListProcessor {
                 )
                 return
             }
-            coordinator.navigate(to: .group(group, filter: state.vaultFilterType))
+            coordinator.navigate(to: .group(group, filter: state.vaultFilterType, count: count))
         case let .totp(_, model):
             navigateToViewItem(cipherListView: model.cipherListView, id: model.id)
         }
@@ -607,6 +630,10 @@ extension VaultListProcessor {
             }
 
             do {
+                #if DEBUG
+                PassYPerf.mark("syncStart")
+                defer { PassYPerf.mark("syncEnd") }
+                #endif
                 try await services.vaultRepository.fetchSync(
                     forceSync: false,
                     isPeriodic: syncWithPeriodicCheck,
@@ -746,26 +773,6 @@ extension VaultListProcessor {
                 services.errorReporter.log(error: error)
             }
         }
-    }
-
-    /// Shows the more options alert for the given vault item.
-    ///
-    /// - Parameter item: The vault list item for which to show more options.
-    ///
-    private func morePressed(item: VaultListItem) async {
-        await vaultItemMoreOptionsHelper.showMoreOptionsAlert(
-            for: item,
-            delegate: self,
-            handleDisplayToast: { [weak self] toast in
-                self?.state.toast = toast
-            },
-            handleNavigateToPremiumUpgrade: { [weak self] in
-                await self?.navigateToPremiumUpgrade()
-            },
-            handleOpenURL: { [weak self] url in
-                self?.state.url = url
-            },
-        )
     }
 
     /// Performs the more-options action identified by `kind` for the given vault item, activated
@@ -947,48 +954,103 @@ extension VaultListProcessor {
         }
     }
 
-    /// Streams the user's vault list.
-    private func streamVaultList() async {
-        do {
-            let collapsedSectionIds = await (try? services.stateService.getCollapsedVaultListSectionIds()) ?? []
-            state.collapsedSectionIds = Set(collapsedSectionIds)
-            for try await vaultList in try await services.vaultRepository
-                .vaultListPublisher(
-                    filter: VaultListFilter(
-                        filterType: state.vaultFilterType,
-                        options: [.addTOTPGroup, .addHiddenItemsGroup],
-                    ),
-                ) {
-                // Check if the vault needs a sync.
-                let needsSync = try await services.vaultRepository.needsSync()
-
-                let value = vaultList.sections
-
-                // If the data is empty, check to ensure that a sync is not needed.
-                if !needsSync || !value.isEmpty {
-                    // Dismiss the "this is taking a while" toast now that we have data,
-                    // since this might not happen because of the sync in `refreshVault()`.
-                    dismissSlowLoadingToast()
-                    // If the data is not empty or if a sync is not needed, set the data.
+    /// Starts streaming the user's vault list for the active filter, unless it already streams for that filter
+    /// (the home page appearing again after a back). Returns right away; the stream runs until the filter changes,
+    /// the vault session ends (`.passyVaultSessionEnded`) or the processor goes away.
+    private func startVaultListStreamIfNeeded() {
+        let filterType = state.vaultFilterType
+        if vaultListStreamTask != nil, vaultListStreamFilter == filterType { return }
+        vaultListStreamTask?.cancel()
+        vaultListStreamFilter = filterType
+        vaultListStreamGeneration += 1
+        let generation = vaultListStreamGeneration
+        let services = services
+        // The task holds the processor weakly between emissions, so the processor (and the decrypted list in its
+        // state) is released with its view; `deinit` cancels the task.
+        vaultListStreamTask = Task { [weak self] in
+            // A stream that ended on its own (an error) is started again by the next appearance, as before.
+            defer { self?.vaultListStreamEnded(generation: generation) }
+            do {
+                #if DEBUG
+                PassYPerf.mark("listSubscribe")
+                #endif
+                let collapsedSectionIds = await (try? services.stateService.getCollapsedVaultListSectionIds()) ?? []
+                guard !Task.isCancelled else { return }
+                // Customize: the sections chosen as "collapsed when opened" start collapsed; the header chevrons
+                // stay the one source of the collapsed state from here on (persisted per account as before).
+                self?.state.collapsedSectionIds = Set(collapsedSectionIds)
+                    .union(PassYLayoutStore.shared.home.collapsedSections)
+                // Right after an unlock the first list is being built already (PassYVaultListWarmup, started with the
+                // unlock): show it as soon as it is ready instead of decrypting the vault a second time first.
+                if case .loading = self?.state.loadingState,
+                   let sections = await PassYVaultListWarmup.sections(filter: filterType),
+                   !Task.isCancelled, let self, case .loading = state.loadingState {
+                    #if DEBUG
                     PassYPerf.beginListLoad()
-                    state.loadingState = .data(value)
-                } else {
-                    // Otherwise mark the state as `.loading` until the sync is complete.
-                    state.loadingState = .loading(value)
+                    #endif
+                    state.loadingState = .data(sections)
                 }
-
-                // Dismiss the import logins action card once the vault has items in it.
-                if !value.isEmpty {
-                    await setImportLoginsProgress(.complete)
+                for try await vaultList in try await services.vaultRepository.vaultListPublisher(
+                    filter: VaultListFilter(filterType: filterType, options: [.addTOTPGroup, .addHiddenItemsGroup]),
+                ) {
+                    guard let self, !Task.isCancelled else { return }
+                    await receiveVaultList(vaultList)
                 }
-                // Dismiss the coach mark action cards once the vault has at least one login item in it.
-                if value.hasLoginItems {
-                    await services.stateService.setLearnNewLoginActionCardStatus(.complete)
-                    await services.stateService.setLearnGeneratorActionCardStatus(.complete)
-                }
-                // Alert the user of any cipher decryption failures.
-                handleCipherDecryptionFailures(cipherIds: vaultList.cipherDecryptionFailureIds)
+            } catch {
+                services.errorReporter.log(error: error)
             }
+        }
+    }
+
+    /// Forgets the stream of `generation` once it ended, unless a newer stream replaced it.
+    private func vaultListStreamEnded(generation: Int) {
+        guard vaultListStreamGeneration == generation else { return }
+        vaultListStreamTask = nil
+        vaultListStreamFilter = nil
+    }
+
+    /// Ends the vault list stream; `clearData` also drops the decrypted list (end of the vault session).
+    private func endVaultListStream(clearData: Bool) {
+        vaultListStreamTask?.cancel()
+        vaultListStreamTask = nil
+        vaultListStreamFilter = nil
+        if clearData { state.loadingState = .loading(nil) }
+    }
+
+    /// Applies one emission of the vault list stream.
+    private func receiveVaultList(_ vaultList: VaultListData) async {
+        do {
+            // Check if the vault needs a sync.
+            let needsSync = try await services.vaultRepository.needsSync()
+
+            let value = vaultList.sections
+
+            // If the data is empty, check to ensure that a sync is not needed.
+            if !needsSync || !value.isEmpty {
+                // Dismiss the "this is taking a while" toast now that we have data,
+                // since this might not happen because of the sync in `refreshVault()`.
+                dismissSlowLoadingToast()
+                // If the data is not empty or if a sync is not needed, set the data.
+                #if DEBUG
+                PassYPerf.beginListLoad()
+                #endif
+                state.loadingState = .data(value)
+            } else {
+                // Otherwise mark the state as `.loading` until the sync is complete.
+                state.loadingState = .loading(value)
+            }
+
+            // Dismiss the import logins action card once the vault has items in it.
+            if !value.isEmpty {
+                await setImportLoginsProgress(.complete)
+            }
+            // Dismiss the coach mark action cards once the vault has at least one login item in it.
+            if value.hasLoginItems {
+                await services.stateService.setLearnNewLoginActionCardStatus(.complete)
+                await services.stateService.setLearnGeneratorActionCardStatus(.complete)
+            }
+            // Alert the user of any cipher decryption failures.
+            handleCipherDecryptionFailures(cipherIds: vaultList.cipherDecryptionFailureIds)
         } catch {
             services.errorReporter.log(error: error)
         }

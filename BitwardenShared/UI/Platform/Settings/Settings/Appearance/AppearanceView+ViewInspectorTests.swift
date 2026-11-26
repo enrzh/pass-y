@@ -67,12 +67,9 @@ class AppearanceViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .toggleShowWebsiteIcons(true))
     }
 
-    /// The show website icons info button's image has an accessibility label, which names the
-    /// custom accessibility action exposed on the toggle.
+    /// The show website icons learn more link sits in the section footer.
     @MainActor
     func test_showWebsiteIconsToggle_learnMoreButton_accessibility() throws {
-        XCTAssertNoThrow(try subject.inspect().find(ViewType.Image.self) { image in
-            try image.accessibilityLabel().string() == Localizations.learnMore
-        })
+        XCTAssertNoThrow(try subject.inspect().find(button: Localizations.learnMore))
     }
 }

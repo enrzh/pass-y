@@ -98,7 +98,6 @@ public extension Image {
 }
 
 #if DEBUG
-@available(iOS 17.0, *)
 #Preview(traits: .sizeThatFitsLayout) {
     VStack {
         Image(systemName: "ruler.fill")

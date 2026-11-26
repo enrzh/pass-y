@@ -44,36 +44,9 @@ class VaultGroupViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// Before iOS 26 (no `navigationSubtitle`) "N Items" is a plain secondary text row at the top of the list.
+    /// "N Items" is the navigation subtitle; there is no extra count row in the list.
     @MainActor
-    func test_itemCount_fallbackRow_withoutNavigationSubtitle() throws {
-        subject = VaultGroupView(
-            store: Store(processor: processor),
-            timeProvider: timeProvider,
-            supportsNavigationSubtitle: false,
-        )
-        processor.state.loadingState = .data([
-            VaultListSection(
-                id: "1",
-                items: [
-                    try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A"))),
-                    try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "2", name: "B"))),
-                ],
-                name: "Items",
-            ),
-        ])
-        let header = try subject.inspect().find(viewWithAccessibilityIdentifier: "ItemCountHeader").text()
-        XCTAssertEqual(try header.string(), "2 Items")
-    }
-
-    /// With the navigation subtitle (iOS 26) there is no extra row.
-    @MainActor
-    func test_itemCount_noFallbackRow_withNavigationSubtitle() throws {
-        subject = VaultGroupView(
-            store: Store(processor: processor),
-            timeProvider: timeProvider,
-            supportsNavigationSubtitle: true,
-        )
+    func test_itemCount_noCountRow() throws {
         processor.state.loadingState = .data([
             VaultListSection(
                 id: "1",
@@ -130,12 +103,14 @@ class VaultGroupViewTests: BitwardenTestCase {
 
     /// Tapping a vault item dispatches the `.itemPressed` effect.
     @MainActor
-    func test_vaultItem_tap() async throws {
+    func test_vaultItem_tap() throws {
         let item = VaultListItem.fixture(cipherListView: .fixture(name: "Item"))
         let section = VaultListSection(id: "Items", items: [item], name: Localizations.items)
         processor.state.loadingState = .data([section])
-        let button = try subject.inspect().find(asyncButton: "Item")
-        try await button.tap()
+        // The row button is the button around the item name (not a swipe or menu button).
+        let button = try subject.inspect().find(text: "Item").find(ViewType.Button.self, relation: .parent)
+        try button.tap()
+        waitFor(processor.effects.last == .itemPressed(item))
         XCTAssertEqual(processor.effects.last, .itemPressed(item))
     }
 
@@ -157,7 +132,8 @@ class VaultGroupViewTests: BitwardenTestCase {
                 ),
             ],
         )
-        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.copyTotp)
+        // PassYDesign: a tap on a code row copies (no separate copy button).
+        let button = try subject.inspect().find(buttonWithAccessibilityIdentifier: "VaultListItemRowButton")
         try button.tap()
         waitFor(!processor.dispatchedActions.isEmpty)
         XCTAssertEqual(processor.dispatchedActions.last, .copyTOTPCode("123456"))
@@ -177,12 +153,13 @@ class VaultGroupViewTests: BitwardenTestCase {
     /// ui-r8: the identifier `VaultListItemRowButton` (used by the UI tests and VoiceOver users of the identifier) sits
     /// on the tappable row button of the group list, the item name stays its label, and a tap reaches the processor.
     @MainActor
-    func test_vaultItem_rowButtonKeepsIdentifierAndLabel() async throws {
+    func test_vaultItem_rowButtonKeepsIdentifierAndLabel() throws {
         let item = VaultListItem.fixture(cipherListView: .fixture(name: "Item"))
         processor.state.loadingState = .data([VaultListSection(id: "Items", items: [item], name: Localizations.items)])
-        let button = try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton")
-        XCTAssertNoThrow(try button.find(text: "Item"), "the item name is the label of the row button")
-        try await button.tap()
+        let button = try subject.inspect().find(text: "Item").find(ViewType.Button.self, relation: .parent)
+        XCTAssertEqual(try button.accessibilityIdentifier(), "VaultListItemRowButton")
+        try button.tap()
+        waitFor(processor.effects.last == .itemPressed(item))
         XCTAssertEqual(processor.effects.last, .itemPressed(item))
     }
 
@@ -191,6 +168,6 @@ class VaultGroupViewTests: BitwardenTestCase {
     func test_folderRow_keepsIdentifier() throws {
         let folder = VaultListItem.fixtureGroup(group: .folder(id: "1", name: "Folder"), count: 2)
         processor.state.loadingState = .data([VaultListSection(id: "Items", items: [folder], name: Localizations.items)])
-        XCTAssertNoThrow(try subject.inspect().find(asyncButtonWithAccessibilityIdentifier: "VaultListItemRowButton"))
+        XCTAssertNoThrow(try subject.inspect().find(buttonWithAccessibilityIdentifier: "VaultListItemRowButton"))
     }
 }

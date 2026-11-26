@@ -47,16 +47,12 @@ class TextAutofillHelperFactoryTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// `create()` creates the appropriate `TextAutofillHelper` depending on the OS version.
+    /// `create()` creates the reprompt-wrapped `TextAutofillHelper`.
     @MainActor
     func test_create_returnsTextAutofillHelper() {
         let delegate = MockTextAutofillHelperDelegate()
         let helper = subject.create(delegate: delegate)
 
-        guard #available(iOS 18.0, *) else {
-            XCTAssertTrue(helper is NoOpTextAutofillHelper)
-            return
-        }
         XCTAssertTrue(helper is TextAutofillHelperRepromptWrapper)
         XCTAssertTrue(userVerificationHelperFactory.createCalled)
     }

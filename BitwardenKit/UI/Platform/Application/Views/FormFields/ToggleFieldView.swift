@@ -9,14 +9,14 @@ public struct ToggleField<State>: Equatable, Identifiable {
 
     /// The accessibility id for the toggle. The `id` will be used as the accessibility id
     /// if this is `nil`.
-    let accessibilityId: String?
+    public let accessibilityId: String?
 
     /// The accessibility label for the toggle. The title will be used as the accessibility label
     /// if this is `nil`.
-    let accessibilityLabel: String?
+    public let accessibilityLabel: String?
 
     /// Whether the toggle is disabled.
-    let isDisabled: Bool
+    public let isDisabled: Bool
 
     /// The current toggle value.
     public let isOn: Bool

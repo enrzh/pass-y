@@ -64,6 +64,14 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
     /// The helper to handle the more options menu for a vault item.
     private let vaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper
 
+    /// Called with every list the stream delivers (the coordinator keeps the last one for a repeat visit).
+    private let onSectionsLoaded: (([VaultListSection]) -> Void)?
+
+    /// The list this page showed on the previous visit. It is shown as soon as the page appears, before the stream
+    /// delivers. Not part of the initial state on purpose: a list that already has rows at the hosting controller's
+    /// first layout starts scrolled under the navigation bar, which collapsed the large title (measured).
+    private var initialSections: [VaultListSection]?
+
     var vaultRepository: VaultRepository {
         services.vaultRepository
     }
@@ -78,6 +86,8 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
     ///   - services: The services for this processor.
     ///   - state: The initial state of this processor.
     ///   - vaultItemMoreOptionsHelper: The helper to handle the more options menu for a vault item.
+    ///   - initialSections: The list the page showed on the previous visit, shown as soon as it appears.
+    ///   - onSectionsLoaded: Called with every list the stream delivers.
     ///
     init(
         coordinator: any Coordinator<VaultRoute, AuthAction>,
@@ -85,7 +95,11 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
         services: Services,
         state: VaultGroupState,
         vaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper,
+        initialSections: [VaultListSection]? = nil,
+        onSectionsLoaded: (([VaultListSection]) -> Void)? = nil,
     ) {
+        self.initialSections = initialSections
+        self.onSectionsLoaded = onSectionsLoaded
         self.coordinator = coordinator
         self.masterPasswordRepromptHelper = masterPasswordRepromptHelper
         searchProcessorMediator = services.searchProcessorMediatorFactory.make()
@@ -126,6 +140,10 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
         case let .accessibilityMoreOptionsActionPressed(item, kind):
             await performMoreOptionsAction(kind, for: item)
         case .appeared:
+            if let initialSections, case .loading = state.loadingState {
+                state.loadingState = .data(initialSections)
+            }
+            initialSections = nil
             // ui-r9: the list stream starts first. The helper loads (premium, policy, item types, folders) used to run
             // one after the other before the stream began, which held the first rows back behind the spinner.
             let auxiliary = Task {
@@ -142,20 +160,6 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
             await moveItems(items, folderId: folderId)
         case let .itemPressed(item):
             handleItemTapped(item)
-        case let .morePressed(item):
-            await vaultItemMoreOptionsHelper.showMoreOptionsAlert(
-                for: item,
-                delegate: self,
-                handleDisplayToast: { [weak self] toast in
-                    self?.state.toast = toast
-                },
-                handleNavigateToPremiumUpgrade: { [weak self] in
-                    await self?.navigateToPremiumUpgrade()
-                },
-                handleOpenURL: { [weak self] url in
-                    self?.state.url = url
-                },
-            )
         case .refresh:
             await refreshVaultGroup()
         case let .search(text):
@@ -321,8 +325,8 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
             } else {
                 navigateToViewItem(cipherListView: cipherListView, id: item.id)
             }
-        case let .group(group, _):
-            coordinator.navigate(to: .group(group, filter: state.vaultFilterType))
+        case let .group(group, count):
+            coordinator.navigate(to: .group(group, filter: state.vaultFilterType, count: count))
         case let .totp(_, model):
             navigateToViewItem(cipherListView: model.cipherListView, id: model.id)
         }
@@ -481,7 +485,11 @@ final class VaultGroupProcessor: StateProcessor<// swiftlint:disable:this type_b
                 filter: VaultListFilter(filterType: state.vaultFilterType, group: state.group),
             ) {
                 groupTotpExpirationManager?.configureTOTPRefreshScheduling(for: vaultList.sections.flatMap(\.items))
-                state.loadingState = .data(vaultList.sections)
+                // An unchanged list (a repeat visit that opened with the cached rows) is not written again.
+                if state.loadingState != .data(vaultList.sections) {
+                    state.loadingState = .data(vaultList.sections)
+                }
+                onSectionsLoaded?(vaultList.sections)
             }
         } catch {
             services.errorReporter.log(error: error)

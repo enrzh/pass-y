@@ -70,6 +70,7 @@ final class AuthCoordinator: NSObject, // swiftlint:disable:this type_body_lengt
         & HasSystemDevice
         & HasTrustDeviceService
         & HasUserSessionStateService
+        & HasVaultRepository
         & HasVaultTimeoutService
 
     // MARK: Properties

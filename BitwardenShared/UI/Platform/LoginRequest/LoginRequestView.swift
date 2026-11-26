@@ -20,38 +20,36 @@ struct LoginRequestView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            VStack(alignment: .center, spacing: 12) {
-                titleText
-
-                explanationText
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("person.badge.key.fill", .accentColor),
+                    title: Localizations.areYouTryingToLogIn,
+                    message: Localizations.logInAttemptByXOnY(
+                        store.state.email ?? "",
+                        store.state.request.origin,
+                    ),
+                )
+                .accessibilityIdentifier("LogInAttemptByLabel")
             }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .multilineTextAlignment(.center)
+            .passYPlainListRow()
 
-            ContentBlock(dividerLeadingPadding: 16) {
-                detailRow(
+            Section {
+                PassYFingerprintPhrase(
                     title: Localizations.fingerprintPhrase,
-                    titleAccessibilityIdentifier: "FingerprintValueLabel",
-                    value: store.state.request.fingerprintPhrase ?? "",
-                    valueAccessibilityIdentifier: "FingerprintPhraseValue",
-                    valueColor: SharedAsset.Colors.textCodePink.swiftUIColor,
-                    valueStyle: .sensitiveInfoSmall,
+                    phrase: store.state.request.fingerprintPhrase ?? "",
                 )
+            }
 
-                detailRow(
-                    title: Localizations.deviceType,
+            Section {
+                PassYValueRow(
+                    Localizations.deviceType,
                     value: store.state.request.requestDeviceType,
-                    valueAccessibilityIdentifier: "DeviceTypeValueLabel",
+                    identifier: "DeviceTypeValueLabel",
                 )
-
-                detailRow(
-                    title: Localizations.ipAddress,
-                    value: store.state.request.requestIpAddress,
-                )
-
-                detailRow(
-                    title: Localizations.time,
+                PassYValueRow(Localizations.ipAddress, value: store.state.request.requestIpAddress)
+                PassYValueRow(
+                    Localizations.time,
                     value: Self.relativeDateTimeFormatter.localizedString(
                         for: store.state.request.creationDate,
                         relativeTo: Date(),
@@ -59,13 +57,15 @@ struct LoginRequestView: View {
                 )
             }
 
-            VStack(spacing: 12) {
-                confirmButton
-
-                denyButton
+            Section {
+                VStack(spacing: PassYDesign.Spacing.medium) {
+                    confirmButton
+                    denyButton
+                }
+                .padding(.horizontal, PassYDesign.Spacing.large)
             }
+            .passYPlainListRow()
         }
-        .scrollView()
         .refreshable { [weak store] in
             await store?.perform(.reloadData)
         }
@@ -82,78 +82,26 @@ struct LoginRequestView: View {
 
     // MARK: Private Views
 
-    /// The confirm login button.
+    /// The confirm login button (the primary action).
     private var confirmButton: some View {
-        AsyncButton(Localizations.confirmLogIn) {
-            await store.perform(.answerRequest(approve: true))
+        Button {
+            Task { await store.perform(.answerRequest(approve: true)) }
+        } label: {
+            Text(Localizations.confirmLogIn).frame(maxWidth: .infinity)
         }
-        .buttonStyle(.primary())
+        .passYButtonStyle(.primary, fillsWidth: true)
         .accessibilityIdentifier("ConfirmLoginButton")
     }
 
     /// The deny login button.
     private var denyButton: some View {
-        AsyncButton(Localizations.denyLogIn) {
-            await store.perform(.answerRequest(approve: false))
+        Button(role: .destructive) {
+            Task { await store.perform(.answerRequest(approve: false)) }
+        } label: {
+            Text(Localizations.denyLogIn).frame(maxWidth: .infinity)
         }
-        .buttonStyle(.secondary())
+        .passYButtonStyle(.destructive, fillsWidth: true)
         .accessibilityIdentifier("DenyLoginButton")
-    }
-
-    /// The explanation text.
-    private var explanationText: some View {
-        Text(
-            Localizations.logInAttemptByXOnY(
-                store.state.email ?? "",
-                store.state.request.origin,
-            ),
-        )
-        .styleGuide(.body)
-        .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-        .accessibilityIdentifier("LogInAttemptByLabel")
-    }
-
-    /// The title text.
-    private var titleText: some View {
-        Text(Localizations.areYouTryingToLogIn)
-            .styleGuide(.title2, weight: .semibold)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-    }
-
-    // MARK: Private Methods
-
-    /// Builds a titled row of details for display within the details `ContentBlock`.
-    ///
-    /// - Parameters:
-    ///   - title: The title displayed above the value.
-    ///   - titleAccessibilityIdentifier: The accessibility identifier applied to the title, if any.
-    ///   - value: The value displayed below the title.
-    ///   - valueAccessibilityIdentifier: The accessibility identifier applied to the value, if any.
-    ///   - valueColor: The foreground color applied to the value.
-    ///   - valueStyle: The style guide font applied to the value.
-    ///
-    private func detailRow(
-        title: String,
-        titleAccessibilityIdentifier: String? = nil,
-        value: String,
-        valueAccessibilityIdentifier: String? = nil,
-        valueColor: Color = SharedAsset.Colors.textSecondary.swiftUIColor,
-        valueStyle: StyleGuideFont = .body,
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(title)
-                .styleGuide(.headline, weight: .semibold, includeLinePadding: false, includeLineSpacing: false)
-                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .accessibilityIdentifier(titleAccessibilityIdentifier ?? "")
-
-            Text(value)
-                .styleGuide(valueStyle)
-                .foregroundStyle(valueColor)
-                .multilineTextAlignment(.leading)
-                .accessibilityIdentifier(valueAccessibilityIdentifier ?? "")
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
     }
 }
 

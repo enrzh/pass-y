@@ -34,15 +34,13 @@ struct IntroCarouselView: View {
             .animation(.default, value: store.state.currentPageIndex)
 
             VStack(spacing: 12) {
-                AsyncButton {
-                    await store.perform(.createAccount)
+                Button {
+                    Task { await store.perform(.createAccount) }
                 } label: {
                     Text(Localizations.createAccount)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.capsule)
-                .controlSize(.large)
+                .passYButtonStyle(.primary, fillsWidth: true)
 
                 Button {
                     store.send(.logIn)
@@ -140,7 +138,6 @@ struct IntroCarouselView: View {
     IntroCarouselView(store: Store(processor: StateProcessor(state: IntroCarouselState())))
 }
 
-@available(iOS 17, *)
 #Preview("Carousel Landscape", traits: .landscapeRight) {
     IntroCarouselView(store: Store(processor: StateProcessor(state: IntroCarouselState())))
 }

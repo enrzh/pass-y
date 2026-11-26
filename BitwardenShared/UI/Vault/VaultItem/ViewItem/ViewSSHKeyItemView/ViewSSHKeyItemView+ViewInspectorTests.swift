@@ -39,8 +39,7 @@ class ViewSSHKeyItemViewTests: BitwardenTestCase {
     /// The processor gets the action when copying the private key.
     @MainActor
     func test_copyPrivateKeyButton_pressed() throws {
-        let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyPrivateKeyButton").button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PrivateKeyEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "privateKey", field: .sshPrivateKey))
     }
 
@@ -55,47 +54,37 @@ class ViewSSHKeyItemViewTests: BitwardenTestCase {
         )
     }
 
-    /// The SSHKeyCopyPrivateKeyButton is not found when can't view private key.
+    /// The private key cannot be copied when the user can't view it (tapping the row does nothing).
     @MainActor
-    func test_copyPrivateKeyButton_notFoundIfCantViewPrivateKey() throws {
+    func test_copyPrivateKey_disabledIfCantViewPrivateKey() throws {
         initSubject(canViewPrivateKey: false, showCopyButtons: true)
-        XCTAssertThrowsError(
-            try subject.inspect().find(
-                viewWithAccessibilityIdentifier: "SSHKeyCopyPrivateKeyButton",
-            ).button(),
-        )
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PrivateKeyEntry")
+        XCTAssertTrue(processor.dispatchedActions.isEmpty)
     }
 
     /// The processor gets the action when copying the public key.
     @MainActor
     func test_copyPublicKeyButton_pressed() throws {
-        let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyPublicKeyButton").button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "SSHKeyPublicKeyEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "publicKey", field: .sshPublicKey))
     }
 
     /// The processor gets the action when copying the key fingerprint.
     @MainActor
     func test_copyKeyFingerprintButton_pressed() throws {
-        let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyFingerprintButton").button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "FingerprintEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "fingerprint", field: .sshKeyFingerprint))
     }
 
-    /// Copy buttons are not shown when `showCopyButtons` is `false`.
+    /// The rows don't copy when `showCopyButtons` is `false` (edit form).
     @MainActor
     func test_copy_notShown() throws {
         initSubject(canViewPrivateKey: true, showCopyButtons: false)
 
-        XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyPrivateKeyButton"),
-        )
-        XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyPublicKeyButton"),
-        )
-        XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "SSHKeyCopyFingerprintButton"),
-        )
+        for identifier in ["PrivateKeyEntry", "SSHKeyPublicKeyEntry", "FingerprintEntry"] {
+            try subject.inspect().tapPassYCopyRow(valueIdentifier: identifier)
+        }
+        XCTAssertTrue(processor.dispatchedActions.isEmpty)
     }
 
     // MARK: Private

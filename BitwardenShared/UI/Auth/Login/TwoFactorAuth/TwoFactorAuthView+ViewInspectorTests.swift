@@ -44,8 +44,10 @@ class TwoFactorAuthViewTests: BitwardenTestCase {
     /// Tapping the continue button performs the `.continueTapped` effect.
     @MainActor
     func test_continueButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.continue)
-        try await button.tap()
+        processor.state.continueEnabled = true
+        let button = try subject.inspect().find(button: Localizations.continue)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .continueTapped)
     }
 
@@ -53,8 +55,9 @@ class TwoFactorAuthViewTests: BitwardenTestCase {
     @MainActor
     func test_launchDuo_tap() async throws {
         processor.state.authMethod = .duo
-        let button = try subject.inspect().find(asyncButton: Localizations.launchDuo)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.launchDuo)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .beginDuoAuth)
     }
 
@@ -72,8 +75,9 @@ class TwoFactorAuthViewTests: BitwardenTestCase {
     /// Tapping the resend email button performs the `.resendEmailTapped` effect.
     @MainActor
     func test_resendEmailButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.resendCode)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.resendCode)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .resendEmailTapped)
     }
 

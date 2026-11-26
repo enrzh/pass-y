@@ -19,55 +19,40 @@ struct LoginView: View {
     var body: some View {
         Form {
             Section {
-                HStack {
-                    Group {
-                        if store.state.isMasterPasswordRevealed {
-                            TextField(Localizations.masterPassword, text: passwordBinding)
-                        } else {
-                            SecureField(Localizations.masterPassword, text: passwordBinding)
-                        }
-                    }
-                    .textContentType(.password)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled(true)
+                PassYHeroHeader(title: Localizations.logIn)
+            }
+            .passYPlainListRow()
+
+            Section {
+                PassYPasswordField(
+                    Localizations.masterPassword,
+                    text: passwordBinding,
+                    isRevealed: store.state.isMasterPasswordRevealed,
+                    fieldIdentifier: "LoginMasterPasswordEntry",
+                ) { store.send(.revealMasterPasswordFieldPressed($0)) }
                     .submitLabel(.go)
                     .focused($isPasswordFocused)
-                    .accessibilityIdentifier("LoginMasterPasswordEntry")
                     .onSubmit {
                         Task { await store.perform(.loginWithMasterPasswordPressed) }
                     }
-
-                    Button {
-                        store.send(.revealMasterPasswordFieldPressed(!store.state.isMasterPasswordRevealed))
-                    } label: {
-                        Image(systemName: store.state.isMasterPasswordRevealed ? "eye.slash" : "eye")
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityIdentifier("PasswordVisibilityToggle")
-                    .accessibilityLabel(
-                        store.state.isMasterPasswordRevealed
-                            ? Localizations.passwordIsVisibleTapToHide
-                            : Localizations.passwordIsNotVisibleTapToShow,
-                    )
-                }
-
+            } footer: {
                 Button(Localizations.getMasterPasswordwordHint) {
                     store.send(.getMasterPasswordHintPressed)
                 }
+                .font(.footnote)
+                .buttonStyle(.borderless)
                 .accessibilityIdentifier("GetMasterPasswordHintLabel")
             }
 
             Section {
                 loginButtons
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
+            .passYPlainListRow()
 
             Section {
                 loggedInAs
             }
-            .listRowBackground(Color.clear)
+            .passYPlainListRow()
         }
         .navigationTitle(Localizations.bitwarden)
         .navigationBarTitleDisplayMode(.inline)
@@ -89,18 +74,17 @@ struct LoginView: View {
         store.binding(get: \.masterPassword, send: LoginAction.masterPasswordChanged)
     }
 
-    /// The set of login option buttons.
+    /// The login actions: one primary action, the other ways to log in as secondary buttons.
     @ViewBuilder var loginButtons: some View {
-        VStack(alignment: .center, spacing: 12) {
-            AsyncButton {
-                await store.perform(.loginWithMasterPasswordPressed)
+        VStack(alignment: .center, spacing: PassYDesign.Spacing.medium) {
+            Button {
+                Task { await store.perform(.loginWithMasterPasswordPressed) }
             } label: {
                 Text(Localizations.logInWithMasterPassword)
                     .frame(maxWidth: .infinity)
             }
+            .passYButtonStyle(.primary, fillsWidth: true)
             .accessibilityIdentifier("LogInWithMasterPasswordButton")
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
 
             if store.state.isLoginWithDeviceVisible {
                 Button {
@@ -109,9 +93,8 @@ struct LoginView: View {
                     Label(Localizations.logInWithDevice, systemImage: "iphone")
                         .frame(maxWidth: .infinity)
                 }
+                .passYButtonStyle(.secondary, fillsWidth: true)
                 .accessibilityIdentifier("LogInWithAnotherDeviceButton")
-                .buttonStyle(.bordered)
-                .controlSize(.large)
             }
 
             Button {
@@ -120,31 +103,30 @@ struct LoginView: View {
                 Label(Localizations.logInSso, systemImage: "building.2")
                     .frame(maxWidth: .infinity)
             }
+            .passYButtonStyle(.secondary, fillsWidth: true)
             .accessibilityIdentifier("LogInWithSsoButton")
-            .buttonStyle(.bordered)
-            .controlSize(.large)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, PassYDesign.Spacing.large)
     }
 
-    /// The "logged in as..." text along with the not you button.
+    /// The account the login is for, with a "Not you?" button back to the landing screen.
     @ViewBuilder var loggedInAs: some View {
-        VStack(alignment: .center, spacing: 2) {
-            Text(Localizations.loggedInAsOn(
-                store.state.username,
-                store.state.serverURLString,
-            ))
-            .accessibilityIdentifier("LoggingInAsLabel")
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
+        VStack(alignment: .center, spacing: PassYDesign.Spacing.xSmall) {
+            Text(Localizations.loggedInAsOn(store.state.username, store.state.serverURLString))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .accessibilityIdentifier("LoggingInAsLabel")
 
             Button(Localizations.notYou) {
                 store.send(.notYouPressed)
             }
+            .font(.footnote.weight(.semibold))
+            .buttonStyle(.borderless)
             .accessibilityIdentifier("NotYouLabel")
         }
-        .font(.footnote)
         .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.vertical, PassYDesign.Spacing.small)
     }
 }
 

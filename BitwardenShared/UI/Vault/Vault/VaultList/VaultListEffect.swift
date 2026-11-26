@@ -44,12 +44,6 @@ enum VaultListEffect: Equatable {
     ///
     case itemPressed(_ item: VaultListItem)
 
-    /// The more button on an item in the vault group was tapped.
-    ///
-    /// - Parameter item: The item associated with the more button that was tapped.
-    ///
-    case morePressed(_ item: VaultListItem)
-
     /// A Profile Switcher Effect.
     case profileSwitcher(ProfileSwitcherEffect)
 

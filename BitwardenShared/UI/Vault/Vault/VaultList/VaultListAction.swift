@@ -62,6 +62,9 @@ enum VaultListAction: Equatable {
     /// The user chose Settings in the profile menu.
     case settingsPressed
 
+    /// The user chose "Customize home…" in the profile menu.
+    case customizePressed
+
     /// The selection of search results in Select mode changed (item ids).
     case selectionChanged(Set<String>)
 

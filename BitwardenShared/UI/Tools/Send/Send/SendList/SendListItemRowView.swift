@@ -68,43 +68,33 @@ enum SendListItemRowEffect: Equatable, Sendable {
 
 // MARK: - SendListItemView
 
-/// A view that displays details about a `SendListItem`, to be used as a row in a list.
-///
+/// A row of the Send list: a `PassYRow` with the type tile, the name, the deletion date and quiet status badges
+/// (disabled, password, access limit, expired, pending deletion), and the row's "..." options menu; group rows (Text,
+/// File) show their count and a chevron. Identifiers kept for the UI tests: `SendCell` (`SendTextFilter`,
+/// `SendFileFilter`), `SendNameLabel`, `SendDateLabel`, `SendOptionsButton` and the status icon identifiers.
 struct SendListItemRowView: View {
-    // MARK: Private Properties
-
-    /// The width of the icon displayed on the leading edge of the screen, scaled to match
-    /// DynamicType.
-    @ScaledMetric private var scaledIconWidth = 22
-
     // MARK: Properties
 
     /// The `Store` for this view.
     @ObservedObject var store: Store<SendListItemRowState, SendListItemRowAction, SendListItemRowEffect>
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 16) {
-                Button {
+        HStack(spacing: PassYDesign.Spacing.small) {
+            row(for: store.state.item)
+                .passYRowButton(horizontalBleed: PassYDesign.Spacing.large) {
                     store.send(.sendListItemPressed(store.state.item))
-                } label: {
-                    buttonLabel(for: store.state.item)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        // ui-r8: the blank part of the row is tappable too (one tap opens the send).
-                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
 
-                if case let .send(sendView) = store.state.item.itemType {
-                    optionsMenu(for: sendView)
-                        .accessibilityLabel(Localizations.moreOptions)
-                }
+            if case let .send(sendView) = store.state.item.itemType {
+                optionsMenu(for: sendView)
+                    .accessibilityLabel(Localizations.moreOptions)
             }
-            .padding(.horizontal, 16)
-
+        }
+        .padding(.horizontal, PassYDesign.Spacing.large)
+        .overlay(alignment: .bottom) {
             if store.state.hasDivider {
                 Divider()
-                    .padding(.leading, scaledIconWidth + 16 + 16)
+                    .padding(.leading, PassYDesign.Spacing.large + PassYDesign.IconSize.row + PassYDesign.Spacing.medium)
             }
         }
         .accessibilityElement(children: .combine)
@@ -113,44 +103,39 @@ struct SendListItemRowView: View {
 
     // MARK: Private Views
 
-    /// The button's label for the specified send.
-    ///
-    /// - Parameter item: The `SendListItem` to display.
-    ///
+    /// The row content for the item.
     @ViewBuilder
-    private func buttonLabel(for item: SendListItem) -> some View {
-        HStack(spacing: 16) {
-            Image(decorative: item.icon)
-                .scaledFrame(width: 22, height: 22)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .padding(.vertical, 19)
-
-            switch item.itemType {
-            case let .send(sendView):
-                sendLabel(for: sendView)
-            case let .group(sendType, count):
-                groupLabel(for: sendType, count: count)
+    private func row(for item: SendListItem) -> some View {
+        switch item.itemType {
+        case let .send(sendView):
+            PassYRow(
+                title: .init(text: sendView.name, identifier: "SendNameLabel"),
+                subtitles: [.init(text: sendView.deletionDate.dateTimeDisplay, identifier: "SendDateLabel")],
+            ) {
+                PassYIconTile(
+                    systemImage: sendView.type == .file ? SendType.file.passYSymbol : SendType.text.passYSymbol,
+                    tint: sendView.disabled ? .gray : .blue,
+                )
+            } titleAccessory: {
+                ForEach(statusBadges(for: sendView), id: \.identifier) { badge in
+                    PassYBadge(
+                        systemImage: badge.symbol,
+                        tint: badge.tint,
+                        label: badge.label,
+                        identifier: badge.identifier,
+                    )
+                }
+            }
+        case let .group(sendType, count):
+            PassYRow(title: .init(text: sendType.localizedName), showsDisclosure: true) {
+                PassYIconTile(systemImage: sendType.passYSymbol, tint: .blue)
+            } trailing: {
+                Text("\(count)")
+                    .passYFont(.rowValue)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
             }
         }
-    }
-
-    /// The label for a group.
-    ///
-    /// - Parameters:
-    ///   - sendType: The type of sends this group represents.
-    ///   - count: The number of sends in this group.
-    ///
-    @ViewBuilder
-    private func groupLabel(for sendType: SendType, count: Int) -> some View {
-        Text(sendType.localizedName)
-            .styleGuide(.body)
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-
-        Spacer()
-
-        Text("\(count)")
-            .styleGuide(.body)
-            .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
     }
 
     /// An options menu to display for a send.
@@ -159,148 +144,120 @@ struct SendListItemRowView: View {
     ///
     @ViewBuilder
     private func optionsMenu(for sendView: SendView) -> some View {
+        // A native pull-down menu from the row's "..." (SF Symbols; the destructive Delete last, after a divider).
         Menu {
             if !store.state.isSendDisabled {
                 if !sendView.disabled {
-                    AsyncButton(Localizations.copyLink) {
+                    AsyncButton {
                         await store.perform(.copyLinkPressed(sendView))
+                    } label: {
+                        Label(Localizations.copyLink, systemImage: "link")
                     }
                     .accessibilityIdentifier("Copy")
-                    AsyncButton(Localizations.shareLink) {
+                    AsyncButton {
                         await store.perform(.shareLinkPressed(sendView))
+                    } label: {
+                        Label(Localizations.shareLink, systemImage: "square.and.arrow.up")
                     }
+                    Divider()
                 }
 
-                Section("") {
-                    Button(Localizations.view) {
-                        store.send(.viewSend(sendView))
+                Button {
+                    store.send(.viewSend(sendView))
+                } label: {
+                    Label(Localizations.view, systemImage: "eye")
+                }
+                if !sendView.disabled {
+                    Button {
+                        store.send(.editPressed(sendView))
+                    } label: {
+                        Label(Localizations.edit, systemImage: "pencil")
                     }
-                    if !sendView.disabled {
-                        Button(Localizations.edit) {
-                            store.send(.editPressed(sendView))
+                    if sendView.hasPassword {
+                        AsyncButton {
+                            await store.perform(.removePassword(sendView))
+                        } label: {
+                            Label(Localizations.removePassword, systemImage: "lock.open")
                         }
-                        if sendView.hasPassword {
-                            AsyncButton(Localizations.removePassword) {
-                                await store.perform(.removePassword(sendView))
-                            }
-                        }
-                    }
-
-                    AsyncButton(Localizations.delete, role: .destructive) {
-                        await store.perform(.deletePressed(sendView))
                     }
                 }
-            } else {
-                AsyncButton(Localizations.delete, role: .destructive) {
-                    await store.perform(.deletePressed(sendView))
-                }
+                Divider()
             }
-
+            AsyncButton(role: .destructive) {
+                await store.perform(.deletePressed(sendView))
+            } label: {
+                Label(Localizations.delete, systemImage: "trash")
+            }
         } label: {
-            SharedAsset.Icons.ellipsisHorizontal24.swiftUIImage
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+            Image(systemName: "ellipsis")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
         }
         .accessibilityIdentifier("SendOptionsButton")
     }
 
-    /// The label for a send.
-    ///
-    /// - Parameter sendView: The `SendView` to display.
-    ///
-    @ViewBuilder
-    private func sendLabel(for sendView: SendView) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            AccessibleHStack(alignment: .leading, spacing: 8) {
-                Text(sendView.name)
-                    .styleGuide(.body)
-                    .lineLimit(1)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .accessibilityIdentifier("SendNameLabel")
-
-                iconStack(for: sendView)
-            }
-
-            Text(sendView.deletionDate.dateTimeDisplay)
-                .styleGuide(.subheadline)
-                .lineLimit(1)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .accessibilityIdentifier("SendDateLabel")
-        }
-        .padding(.vertical, 9)
-
-        Spacer()
-    }
-
-    private func icons(
-        for sendView: SendView,
-    ) -> [[SendListItemIcon]] {
-        var icons: [SendListItemIcon] = []
+    /// The quiet status badges of a send, in a fixed order.
+    private func statusBadges(for sendView: SendView) -> [SendStatusBadge] {
+        var badges: [SendStatusBadge] = []
         if sendView.disabled {
-            icons.append(
-                SendListItemIcon(
-                    accessibilityID: "DisabledSendIcon",
-                    asset: SharedAsset.Icons.warning16.swiftUIImage,
-                ),
-            )
+            badges.append(.init(
+                identifier: "DisabledSendIcon",
+                symbol: "exclamationmark.triangle.fill",
+                tint: .orange,
+                label: "Deactivated",
+            ))
         }
-
         if sendView.hasPassword {
-            icons.append(
-                SendListItemIcon(
-                    accessibilityID: "PasswordProtectedSendIcon",
-                    asset: SharedAsset.Icons.key16.swiftUIImage,
-                ),
-            )
+            badges.append(.init(identifier: "PasswordProtectedSendIcon", symbol: "key.fill", label: Localizations.password))
         }
-
-        if let maxAccessCount = sendView.maxAccessCount,
-           sendView.accessCount >= maxAccessCount {
-            icons.append(
-                SendListItemIcon(
-                    accessibilityID: "MaxAccessSendIcon",
-                    asset: SharedAsset.Icons.doNot16.swiftUIImage,
-                ),
-            )
+        if let maxAccessCount = sendView.maxAccessCount, sendView.accessCount >= maxAccessCount {
+            badges.append(.init(
+                identifier: "MaxAccessSendIcon",
+                symbol: "nosign",
+                label: Localizations.maximumAccessCount,
+            ))
         }
-
         if let expirationDate = sendView.expirationDate, expirationDate < Date() {
-            icons.append(
-                SendListItemIcon(
-                    accessibilityID: "ExpiredSendIcon",
-                    asset: SharedAsset.Icons.clock16.swiftUIImage,
-                ),
-            )
+            badges.append(.init(identifier: "ExpiredSendIcon", symbol: "clock.badge.xmark", label: Localizations.expired))
         }
-
         if sendView.deletionDate < Date() {
-            icons.append(
-                SendListItemIcon(
-                    accessibilityID: "PendingDeletionSendIcon",
-                    asset: SharedAsset.Icons.trash16.swiftUIImage,
-                ),
-            )
+            badges.append(.init(
+                identifier: "PendingDeletionSendIcon",
+                symbol: "trash",
+                label: "Pending deletion",
+            ))
         }
-
-        let groupedIcons = stride(from: icons.startIndex, to: icons.endIndex, by: 3)
-            .map { index in
-                Array(icons[index ..< min(index + 3, icons.endIndex)])
-            }
-        return groupedIcons
+        return badges
     }
+}
 
-    @ViewBuilder
-    private func iconStack(for sendView: SendView) -> some View {
-        AccessibleHStack(alignment: .leading, spacing: 8, minVerticalDynamicTypeSize: .accessibility3) {
-            ForEachIndexed(icons(for: sendView), id: \.self) { _, row in
-                HStack(spacing: 8) {
-                    ForEachIndexed(row, id: \.self) { _, image in
-                        image.asset
-                            .scaledFrame(width: 16, height: 16)
-                            .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                            .accessibilityIdentifier(image.accessibilityID)
-                    }
-                }
-            }
+// MARK: - SendStatusBadge
+
+/// A status badge of a send row.
+private struct SendStatusBadge {
+    /// The accessibility identifier (kept for the UI tests).
+    let identifier: String
+
+    /// The SF Symbol.
+    let symbol: String
+
+    /// The colour, `nil` for the quiet secondary colour.
+    var tint: Color?
+
+    /// The spoken label.
+    let label: String
+}
+
+// MARK: - SendType + symbol
+
+extension SendType {
+    /// The SF Symbol of the type tile.
+    var passYSymbol: String {
+        switch self {
+        case .file: "doc.fill"
+        case .text, .unknown: "text.alignleft"
         }
     }
 }

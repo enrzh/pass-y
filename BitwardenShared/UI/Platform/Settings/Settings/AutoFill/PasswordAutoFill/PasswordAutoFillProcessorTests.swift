@@ -175,32 +175,9 @@ class PasswordAutoFillProcessorTests: BitwardenTestCase {
         XCTAssertFalse(delegate.didEnableAutofillCalled)
     }
 
-    /// `perform(_:)` with `.continueTapped` opens the verification code settings on iOS 17.
-    @MainActor
-    func test_perform_continueTapped_iOS17() async {
-        guard #available(iOS 17, *) else { return }
-        guard #unavailable(iOS 18) else { return }
-
-        await subject.perform(.continueTapped)
-
-        XCTAssertTrue(asSettingsMediator.openVerificationCodeAppSettingsCalled)
-    }
-
-    /// `perform(_:)` with `.continueTapped` sets a URL for older iOS versions.
-    @MainActor
-    func test_perform_continueTapped_preIOS17() async {
-        guard #unavailable(iOS 17) else { return }
-
-        await subject.perform(.continueTapped)
-
-        XCTAssertEqual(subject.state.url, ExternalLinksConstants.passwordOptions)
-    }
-
     /// `perform(_:)` with `.continueTapped` on iOS 18 and `.cantRequest` opens the app settings.
     @MainActor
     func test_perform_continueTapped_iOS18_cantRequest() async {
-        guard #available(iOS 18, *) else { return }
-
         // swiftlint:disable:next line_length
         asSettingsMediator.requestToTurnOnCredentialProviderExtensionThrowableError = ASSettingsMediatorError.cantRequest
 
@@ -213,8 +190,6 @@ class PasswordAutoFillProcessorTests: BitwardenTestCase {
     /// autofill completion and calls the delegate.
     @MainActor
     func test_perform_continueTapped_iOS18_credentialProviderOn() async {
-        guard #available(iOS 18, *) else { return }
-
         stateService.activeAccount = .fixture()
         autofillCredentialService.isAutofillCredentialsEnabled = true
         asSettingsMediator.requestToTurnOnCredentialProviderExtensionReturnValue = true
@@ -229,8 +204,6 @@ class PasswordAutoFillProcessorTests: BitwardenTestCase {
     /// setup to `.setUpLater` and navigates on completion.
     @MainActor
     func test_perform_continueTapped_iOS18_credentialProviderOff() async {
-        guard #available(iOS 18, *) else { return }
-
         stateService.activeAccount = .fixture()
         asSettingsMediator.requestToTurnOnCredentialProviderExtensionReturnValue = false
 

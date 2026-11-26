@@ -12,7 +12,6 @@ import XCTest
 
 // MARK: - AddItemProcessorTests
 
-@available(iOS 17.0, *)
 class AddEditItemProcessorFido2Tests: BitwardenTestCase {
     // MARK: Properties
 

@@ -5,11 +5,10 @@ import TestHelpers
 
 @testable import BitwardenShared
 
-@available(iOS 17.0, *)
 class MockCredentialProviderExtensionDelegate: MockAppExtensionDelegate, CredentialProviderExtensionDelegate {
     var completeAssertionRequestMocker = InvocationMocker<ASPasskeyAssertionCredential>()
     /// Stores the `ASGeneratedPassword.Kind` as `Any?` to avoid the iOS 26.2 type availability
-    /// requirement on the stored property, since this class is `@available(iOS 17.0, *)`.
+    /// requirement on the stored property (the deployment target is iOS 26.0).
     /// Cast to `ASGeneratedPassword.Kind` inside `@available(iOS 26.2, *)` test code.
     var completeGeneratePasswordRequestKind: Any?
     var completeGeneratePasswordRequestPassword: String?
@@ -47,7 +46,6 @@ class MockCredentialProviderExtensionDelegate: MockAppExtensionDelegate, Credent
         completeRegistrationRequestMocker.invoke(param: asPasskeyRegistrationCredential)
     }
 
-    @available(iOSApplicationExtension 18.0, *)
     func completeTextRequest(text: String) {
         completeTextRequestTextToInsert = text
     }
@@ -62,7 +60,6 @@ class MockCredentialProviderExtensionDelegate: MockAppExtensionDelegate, Credent
         releaseKeyboardAnchorCalled = true
     }
 
-    @available(iOSApplicationExtension 18.0, *)
     func setMatchedExcludedCredentialFound() {
         setMatchedExcludedCredentialFoundCalled = true
     }

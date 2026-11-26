@@ -2,7 +2,8 @@ import XCTest
 
 /// List row actions: chevron, context menu, swipe, Select mode delete (list and search results).
 final class ItemListActionsTests: PassYUITestCase {
-    /// Rows end with a chevron (no "..." button); the options are in the context menu and the swipe actions.
+    /// Rows end with a chevron (no "..." button); the options are in the context menu and the swipe actions, whose
+    /// More button drops down the same menu.
     /// Formerly `PassYUiR6ShotsTests.test_rowChevronContextMenuSwipe`.
     func test_rowChevronContextMenuSwipe() {
         for mode in ["light", "dark"] {
@@ -30,6 +31,12 @@ final class ItemListActionsTests: PassYUITestCase {
             XCTAssertTrue(app.buttons["Delete"].exists, "swipe offers Delete")
             XCTAssertTrue(app.buttons["More options"].exists, "swipe offers More options")
             shot(app, 3, "\(mode)-swipe")
+            // More drops down a menu from the swipe button (no centered action sheet or alert).
+            app.buttons["More options"].firstMatch.tap()
+            XCTAssertTrue(app.buttons["Copy username"].waitForExistence(timeout: 5)
+                          || app.menuItems["Copy username"].exists, "More opens the options menu")
+            XCTAssertFalse(app.sheets.firstMatch.exists || app.alerts.firstMatch.exists, "no action sheet or alert")
+            shot(app, 4, "\(mode)-swipe-more-menu")
             app.terminate()
         }
         setPassYAppearance(.light)

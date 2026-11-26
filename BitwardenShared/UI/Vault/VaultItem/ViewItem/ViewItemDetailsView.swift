@@ -5,18 +5,16 @@ import SwiftUI
 
 // MARK: - ViewItemDetailsView
 
-/// A view for displaying the contents of a Vault item details.
-struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
+/// The sections of the item view (Apple Passwords): a centred header (large tile, name, where the item belongs), the
+/// type's fields, websites, notes, custom fields, attachments and the dates with the password history link. Every value
+/// row copies on tap, secrets have an eye button; no section titles, no copy icons.
+struct ViewItemDetailsView: View {
     // MARK: Private Properties
 
     /// Whether the second item in the collections list is focused. This is used alongside the Show more/less button.
     @AccessibilityFocusState private var isSecondCollectionFocused: Bool
 
     @Environment(\.openURL) private var openURL
-
-    /// The top padding to use in the `belongingView` image.
-    @ScaledMetric(relativeTo: .body)
-    private var paddingTopBelongingViewImage = 4
 
     // MARK: Properties
 
@@ -41,194 +39,87 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
 
         attachmentsSection
 
-        Section {
-            updatedDate
-                .listRowBackground(Color.clear)
-        }
+        datesSection
     }
 
     // MARK: Private Views
 
-    /// The attachments section.
+    /// The attachments: one row per file, tap downloads.
     @ViewBuilder private var attachmentsSection: some View {
         if let attachments = store.state.attachments, !attachments.isEmpty {
-            SectionView(Localizations.attachments, contentSpacing: 8) {
-                ContentBlock {
-                    ForEach(attachments) { attachment in
-                        attachmentRow(attachment, hasDivider: attachment != attachments.last)
-                    }
+            Section {
+                ForEach(attachments) { attachment in
+                    attachmentRow(attachment)
                 }
+            } header: {
+                PassYSectionHeader(Localizations.attachments, count: attachments.count)
             }
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("AttachmentsList")
         }
     }
 
-    /// The custom fields section.
+    /// The custom fields: text and hidden values copy on tap, hidden ones have an eye button.
     @ViewBuilder private var customFieldsSection: some View {
         if !store.state.customFieldsState.customFields.isEmpty {
-            SectionView(Localizations.customFields, contentSpacing: 8) {
+            Section {
                 ForEach(store.state.customFieldsState.customFields, id: \.self) { customField in
-                    if customField.type == .boolean {
-                        HStack(spacing: 16) {
-                            let image = customField.booleanValue
-                                ? SharedAsset.Icons.checkSquare16.swiftUIImage
-                                : SharedAsset.Icons.square16.swiftUIImage
-                            image
-                                .imageStyle(.accessoryIcon16(color: SharedAsset.Colors.textSecondary.swiftUIColor))
-
-                            Text(customField.name ?? "")
-                                .styleGuide(.body)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 28, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .listRowInsets(EdgeInsets())
-                    } else {
-                        BitwardenField(title: customField.name) {
-                            switch customField.type {
-                            case .boolean:
-                                EmptyView()
-                            case .hidden:
-                                if let value = customField.value {
-                                    PasswordText(
-                                        password: value,
-                                        isPasswordVisible: customField.isPasswordVisible,
-                                    )
-                                } else {
-                                    Text(" ") // Placeholder so the field's title is positioned correctly.
-                                }
-                            case .text:
-                                // An empty string is a placeholder when the value is nil so the
-                                // field's title is positioned correctly.
-                                Text(customField.value ?? "")
-                                    .textSelection(.enabled)
-                                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                                    .styleGuide(.body)
-                            case .linked:
-                                if let linkedIdType = customField.linkedIdType {
-                                    HStack(spacing: 8) {
-                                        SharedAsset.Icons.link16.swiftUIImage
-                                            .imageStyle(
-                                                .accessoryIcon16(color: SharedAsset.Colors.textSecondary.swiftUIColor),
-                                            )
-                                        Text(linkedIdType.localizedName)
-                                            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                                            .styleGuide(.body)
-                                    }
-                                }
-                            }
-                        } accessoryContent: {
-                            if let value = customField.value {
-                                switch customField.type {
-                                case .hidden:
-                                    PasswordVisibilityButton(
-                                        accessibilityIdentifier: "HiddenCustomFieldShowValueButton",
-                                        isPasswordVisible: customField.isPasswordVisible,
-                                    ) {
-                                        store.send(.customFieldVisibilityPressed(customField))
-                                    }
-                                    Button {
-                                        store.send(.copyPressed(value: value, field: .customHiddenField))
-                                    } label: {
-                                        SharedAsset.Icons.copy24.swiftUIImage
-                                            .imageStyle(.accessoryIcon24)
-                                    }
-                                    .accessibilityIdentifier("HiddenCustomFieldCopyValueButton")
-                                case .text:
-                                    Button {
-                                        store.send(.copyPressed(value: value, field: .customTextField))
-                                    } label: {
-                                        SharedAsset.Icons.copy24.swiftUIImage
-                                            .imageStyle(.accessoryIcon24)
-                                    }
-                                    .accessibilityIdentifier("TextCustomFieldCopyValueButton")
-                                case .boolean, .linked:
-                                    EmptyView()
-                                }
-                            }
-                        }
-                    }
+                    customFieldRow(customField)
                 }
             }
         }
     }
 
-    /// A section with additional details to display on the header details.
+    /// Where the item belongs: organization, collections, folder, archived (small lines under the name).
     @ViewBuilder private var itemHeaderAdditionalDetails: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: PassYDesign.Spacing.xSmall) {
             if store.state.shouldDisplayNoFolder {
-                belongingView(
-                    icon: SharedAsset.Icons.folder16,
-                    name: Localizations.folderNone,
-                )
-                .padding(.leading, 8)
-                .accessibilityLabel(store.state.noFolderAccessibilityLabel)
+                belongingView(systemImage: "folder", name: Localizations.folderNone)
+                    .accessibilityLabel(store.state.noFolderAccessibilityLabel)
             } else {
                 if store.state.shouldDisplayAsArchived {
-                    belongingView(
-                        icon: SharedAsset.Icons.archive24,
-                        name: Localizations.archived,
-                    )
-                    .padding(.leading, 8)
-                    .accessibilityLabel(Localizations.archived)
+                    belongingView(systemImage: "archivebox", name: Localizations.archived)
+                        .accessibilityLabel(Localizations.archived)
                 }
 
                 itemHeaderBelongingToSection
-                    .padding(.leading, 8)
 
                 if store.state.belongsToMultipleCollections {
-                    AsyncButton(store.state.multipleCollectionsDisplayButtonTitle) {
-                        await store.perform(.toggleDisplayMultipleCollections)
+                    Button(store.state.multipleCollectionsDisplayButtonTitle) {
+                        Task { await store.perform(.toggleDisplayMultipleCollections) }
                     }
-                    .buttonStyle(.bitwardenBorderless)
-                    .padding(.top, 6)
-                    .padding(.bottom, 4)
+                    .buttonStyle(.borderless)
+                    .font(.subheadline)
                     .accessibilityLabel(store.state.multipleCollectionsDisplayButtonTitle)
                     .accessibilityIdentifier("ToggleDisplayMultipleCollectionsButton")
                 }
             }
         }
-        .padding(12)
+        .frame(maxWidth: .infinity)
     }
 
-    /// A section displaying where the item belongs to, i.e. organization, collections and folder.
+    /// The organization, the collections and the folder of the item.
     @ViewBuilder private var itemHeaderBelongingToSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let organizationName = store.state.organizationName,
-               let organizationAccessibilityLabel = store.state.organizationAccessibilityLabel {
-                belongingView(
-                    icon: SharedAsset.Icons.business16,
-                    name: organizationName,
-                )
+        if let organizationName = store.state.organizationName,
+           let organizationAccessibilityLabel = store.state.organizationAccessibilityLabel {
+            belongingView(systemImage: "building.2", name: organizationName)
                 .accessibilityLabel(organizationAccessibilityLabel)
                 .accessibilityHint(Localizations.itemXOfY(1, store.state.totalHeaderAdditionalItems))
-            }
+        }
 
-            if !store.state.cipherCollectionsToDisplay.isEmpty {
-                ForEachIndexed(store.state.cipherCollectionsToDisplay) { index, collection in
-                    VStack(alignment: .leading, spacing: 0) {
-                        belongingView(
-                            icon: store.state.collectionIcon,
-                            name: collection.name,
-                        )
-                        .accessibilityLabel(store.state.collectionAccessibilityLabel(collection.name))
-                        .accessibilityHint(Localizations.itemXOfY(index + 2, store.state.totalHeaderAdditionalItems))
-                        .if(index == 1) { view in
-                            view.accessibilityFocused($isSecondCollectionFocused)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+        ForEachIndexed(store.state.cipherCollectionsToDisplay) { index, collection in
+            belongingView(systemImage: "square.stack", name: collection.name)
+                .accessibilityLabel(store.state.collectionAccessibilityLabel(collection.name))
+                .accessibilityHint(Localizations.itemXOfY(index + 2, store.state.totalHeaderAdditionalItems))
+                .if(index == 1) { view in
+                    view.accessibilityFocused($isSecondCollectionFocused)
                 }
-            }
+        }
 
-            if store.state.shouldDisplayFolder,
-               let folderName = store.state.folderName,
-               let folderAccessibilityLabel = store.state.folderAccessibilityLabel {
-                belongingView(
-                    icon: SharedAsset.Icons.folder16,
-                    name: folderName,
-                )
+        if store.state.shouldDisplayFolder,
+           let folderName = store.state.folderName,
+           let folderAccessibilityLabel = store.state.folderAccessibilityLabel {
+            belongingView(systemImage: "folder", name: folderName)
                 .accessibilityLabel(folderAccessibilityLabel)
                 .accessibilityHint(
                     Localizations.itemXOfY(
@@ -236,76 +127,52 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
                         store.state.totalHeaderAdditionalItems,
                     ),
                 )
-            }
         }
     }
 
-    /// The main details header section: big centered icon and title (Apple Passwords), favorite star trailing.
+    /// The large tile and the name, centred (Apple Passwords).
     private var itemHeaderMainDetails: some View {
-        VStack(spacing: 12) {
-            VaultItemDecorativeImageView(
-                item: store.state,
+        VStack(spacing: PassYDesign.Spacing.medium) {
+            ViewItemHeaderTile(
+                state: store.state,
                 iconBaseURL: store.state.iconBaseURL,
                 showWebIcons: store.state.showWebIcons,
-            ) { placeholderIconAsset in
-                Group {
-                    if store.state.type == .login {
-                        ItemLetterIcon(name: store.state.name, textStyle: .largeTitle)
-                            .frame(width: 64, height: 64)
-                            .background(Color(.secondarySystemFill))
-                    } else {
-                        Image(decorative: placeholderIconAsset)
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundStyle(SharedAsset.Colors.illustrationStroke.swiftUIColor)
-                            .accessibilityHidden(true)
-                            .imageStyle(.viewIcon(size: 36))
-                            .withCircularBackground(
-                                color: SharedAsset.Colors.illustrationFillPrimary.swiftUIColor,
-                                width: 64,
-                                height: 64,
-                            )
-                    }
-                }
-            }
-            .imageStyle(.viewIcon(size: 64))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            )
             .accessibilityHidden(true)
-            .padding(.top, 8)
 
             Text(store.state.name)
-                .styleGuide(.title, weight: .bold, includeLinePadding: false, includeLineSpacing: false)
+                .font(.title2.weight(.bold))
                 .multilineTextAlignment(.center)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier(store.state.name)
                 .accessibilityLabel(Localizations.itemNameX(store.state.name))
+                .accessibilityAddTraits(.isHeader)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
         .accessibilityElement(children: .contain)
     }
 
-    /// The item header section.
+    /// The header: tile, name and where the item belongs, on the page colour (no card).
     private var itemHeaderSection: some View {
         Section {
-            itemHeaderMainDetails
-                .listRowInsets(EdgeInsets())
-                .listRowSeparator(.hidden)
-
-            itemHeaderAdditionalDetails
-                .listRowInsets(EdgeInsets())
+            VStack(spacing: PassYDesign.Spacing.small) {
+                itemHeaderMainDetails
+                itemHeaderAdditionalDetails
+            }
+            .padding(.vertical, PassYDesign.Spacing.small)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         }
-        .onChange(of: store.state.isShowingMultipleCollections) { value in
+        .onChange(of: store.state.isShowingMultipleCollections) { _, value in
             if value {
                 isSecondCollectionFocused = true
             }
         }
     }
 
-    /// The item information section.
+    /// The fields of the item's type.
     @ViewBuilder private var itemInformationSection: some View {
-        // check for type
         switch store.state.type {
         case .bankAccount:
             ViewBankAccountItemView(
@@ -370,96 +237,75 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
         }
     }
 
-    /// The notes section.
+    /// The notes (stacked, tap copies).
     @ViewBuilder private var notesSection: some View {
         if !store.state.notes.isEmpty {
             let notes = store.state.notes
-            let notesView = BitwardenTextValueField(
-                title: Localizations.notes,
-                value: notes,
-                useUIKitTextView: true,
-                copyButtonAccessibilityIdentifier: "CopyNotesButton",
-                copyButtonAction: { store.send(.copyPressed(value: notes, field: .notes))
-                },
-            )
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("CipherNotesLabel")
-            if store.state.type == .secureNote {
-                Section {
-                    notesView
-                }
-            } else {
-                SectionView(Localizations.additionalOptions) {
-                    notesView
+            Section {
+                PassYCopyRow(Localizations.notes, value: notes, identifier: "CipherNotesLabel", layout: .stacked) {
+                    store.send(.copyPressed(value: notes, field: .notes))
                 }
             }
         }
     }
 
-    /// The updated date footer.
-    private var updatedDate: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(Localizations.created(store.state.cipher.creationDate.dateTimeDisplay))
-                .styleGuide(.callout)
-
-            Text(Localizations.lastEdited(store.state.updatedDate.dateTimeDisplay))
-                .styleGuide(.callout)
-
-            if store.state.type == .login {
-                if let passwordUpdatedDate = store.state.loginState.passwordUpdatedDate {
-                    Text(Localizations.passwordLastUpdated(passwordUpdatedDate.dateTimeDisplay))
-                        .styleGuide(.callout)
-                }
-
-                if let passwordHistoryCount = store.state.loginState.passwordHistoryCount, passwordHistoryCount > 0 {
-                    Button {
-                        store.send(.passwordHistoryPressed)
-                    } label: {
-                        Text(Localizations.passwordHistory + ": \(passwordHistoryCount)")
-                            .styleGuide(.callout, weight: .semibold)
+    /// Created and edited dates, the password's last change and the password history link.
+    private var datesSection: some View {
+        Section {
+            if store.state.type == .login,
+               let passwordHistoryCount = store.state.loginState.passwordHistoryCount, passwordHistoryCount > 0 {
+                Button {
+                    store.send(.passwordHistoryPressed)
+                } label: {
+                    HStack {
+                        Text(Localizations.passwordHistory)
+                            .foregroundStyle(.primary)
+                        Spacer(minLength: PassYDesign.Spacing.small)
+                        Text("\(passwordHistoryCount)")
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                        PassYDisclosureChevron()
                     }
-                    .foregroundStyle(SharedAsset.Colors.textInteraction.swiftUIColor)
-                    .id("passwordHistoryButton")
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("PasswordHistoryButton")
+            }
+        } footer: {
+            VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
+                Text(Localizations.created(store.state.cipher.creationDate.dateTimeDisplay))
+                Text(Localizations.lastEdited(store.state.updatedDate.dateTimeDisplay))
+                if store.state.type == .login, let passwordUpdatedDate = store.state.loginState.passwordUpdatedDate {
+                    Text(Localizations.passwordLastUpdated(passwordUpdatedDate.dateTimeDisplay))
                 }
             }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .multilineTextAlignment(.leading)
-        .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
     }
 
-    /// The URIs section (login only).
+    /// The websites of a login: host shown, tap copies the full URI, the arrow opens it.
     @ViewBuilder private var uriSection: some View {
         if store.state.type == .login, !store.state.loginState.uris.isEmpty {
-            SectionView(Localizations.autofillOptions, contentSpacing: 8) {
-                ContentBlock {
-                    ForEach(store.state.loginState.uris, id: \.self) { uri in
-                        BitwardenTextValueField(
-                            title: Localizations.websiteURI,
-                            value: URL(string: uri.uri)?.host ?? uri.uri,
-                            valueAccessibilityIdentifier: "LoginUriEntry",
-                        ) {
-                            if let url = URL(string: uri.uri)?.sanitized, url.hasValidURLComponents {
-                                Button {
-                                    openURL(url)
-                                } label: {
-                                    SharedAsset.Icons.externalLink24.swiftUIImage
-                                        .imageStyle(.accessoryIcon24)
-                                }
-                                .accessibilityLabel(Localizations.launch)
+            Section {
+                ForEach(store.state.loginState.uris, id: \.self) { uri in
+                    PassYCopyRow(
+                        Localizations.websiteURI,
+                        value: URL(string: uri.uri)?.host ?? uri.uri,
+                        identifier: "LoginUriEntry",
+                    ) {
+                        if let url = URL(string: uri.uri)?.sanitized, url.hasValidURLComponents {
+                            PassYIconButton(Localizations.launch, systemImage: "arrow.up.forward.app") {
+                                openURL(url)
                             }
-
-                            Button {
-                                store.send(.copyPressed(value: uri.uri, field: .uri))
-                            } label: {
-                                SharedAsset.Icons.copy24.swiftUIImage
-                                    .imageStyle(.accessoryIcon24)
-                            }
-                            .accessibilityLabel(Localizations.copy)
-                            .accessibilityIdentifier("CopyValueButton")
+                            .accessibilityIdentifier("LaunchUriButton")
                         }
-                        .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier("UriRow")
+                    } copy: {
+                        store.send(.copyPressed(value: uri.uri, field: .uri))
                     }
+                    .accessibilityIdentifier("UriRow")
                 }
             }
         }
@@ -467,61 +313,133 @@ struct ViewItemDetailsView: View { // swiftlint:disable:this type_body_length
 
     // MARK: Private methods
 
-    /// A row to display an existing attachment.
-    ///
-    /// - Parameters:
-    ///   - attachment: The attachment to display.
-    ///   - hasDivider: Whether the row should display a divider.
-    ///
-    private func attachmentRow(_ attachment: AttachmentView, hasDivider: Bool) -> some View {
-        BitwardenField {
-            HStack {
+    /// An attachment: file name and size, tap downloads.
+    private func attachmentRow(_ attachment: AttachmentView) -> some View {
+        Button {
+            store.send(.downloadAttachment(attachment))
+        } label: {
+            HStack(spacing: PassYDesign.Spacing.medium) {
+                Image(systemName: "doc")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
                 Text(attachment.fileName ?? "")
-                    .styleGuide(.body)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .lineLimit(1)
-
-                Spacer()
-
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                Spacer(minLength: PassYDesign.Spacing.small)
                 if let sizeName = attachment.sizeName {
                     Text(sizeName)
-                        .styleGuide(.body)
-                        .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
-
-                Button {
-                    store.send(.downloadAttachment(attachment))
-                } label: {
-                    Image(asset: SharedAsset.Icons.download24)
-                        .imageStyle(.rowIcon(color: SharedAsset.Colors.iconSecondary.swiftUIColor))
-                }
-                .accessibilityLabel(Localizations.download)
+                Image(systemName: "arrow.down.circle")
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
             }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
-        .accessibilityElement(children: .contain)
+        .buttonStyle(.borderless)
+        .accessibilityLabel([attachment.fileName, attachment.sizeName].compactMap(\.self).joined(separator: ", "))
+        .accessibilityHint(Localizations.download)
         .accessibilityIdentifier("CipherAttachment")
     }
 
-    /// Returns a view used to display where the item belongs to information.
-    /// - Parameters:
-    ///   - icon: The icon to display.
-    ///   - name: The name to display.
-    /// - Returns: A view with an icon and a name stating where the item belongs to.
-    @ViewBuilder
-    private func belongingView(icon: SharedImageAsset, name: String) -> some View {
-        HStack(alignment: .top) {
-            Image(decorative: icon)
-                .resizable()
-                .foregroundStyle(SharedAsset.Colors.iconPrimary.swiftUIColor)
-                .scaledToFit()
-                .imageStyle(.accessoryIcon16(scaleWithFont: true))
-                .padding(.top, paddingTopBelongingViewImage)
-
+    /// A line of where the item belongs: symbol and name.
+    private func belongingView(systemImage: String, name: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: PassYDesign.Spacing.xSmall + 2) {
+            Image(systemName: systemImage)
+                .accessibilityHidden(true)
             Text(name)
-                .styleGuide(.body)
-                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
         .accessibilityElement(children: .combine)
     }
-} // swiftlint:disable:this file_length
+
+    /// A custom field row.
+    @ViewBuilder
+    private func customFieldRow(_ customField: CustomFieldState) -> some View {
+        let name = customField.name ?? ""
+        switch customField.type {
+        case .boolean:
+            LabeledContent(name) {
+                Image(systemName: customField.booleanValue ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(customField.booleanValue ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+                    .accessibilityLabel(customField.booleanValue ? Localizations.on : Localizations.off)
+            }
+            .frame(minHeight: 44)
+        case .hidden:
+            let value = customField.value ?? ""
+            PassYCopyRow(
+                name,
+                value: value,
+                secret: .init(
+                    isRevealed: customField.isPasswordVisible,
+                    revealIdentifier: "HiddenCustomFieldShowValueButton",
+                ) {
+                    store.send(.customFieldVisibilityPressed(customField))
+                },
+                identifier: "HiddenCustomFieldValue",
+                copy: customField.value == nil ? nil : {
+                    store.send(.copyPressed(value: value, field: .customHiddenField))
+                },
+            )
+        case .text:
+            let value = customField.value ?? ""
+            PassYCopyRow(name, value: value, identifier: "TextCustomFieldValue") {
+                store.send(.copyPressed(value: value, field: .customTextField))
+            }
+        case .linked:
+            PassYCopyRow(
+                name,
+                value: customField.linkedIdType?.localizedName ?? "",
+                accessory: {
+                    Image(systemName: "link")
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                },
+                copy: nil,
+            )
+        }
+    }
+}
+
+// MARK: - ViewItemHeaderTile
+
+/// The large tile of the item view: the website icon or the tinted letter for logins, the category symbol otherwise
+/// (the same symbols and colours as the list rows).
+private struct ViewItemHeaderTile: View {
+    /// The item.
+    let state: ViewVaultItemState
+
+    /// The base URL of the website icons.
+    let iconBaseURL: URL?
+
+    /// Whether website icons are shown.
+    let showWebIcons: Bool
+
+    var body: some View {
+        if state.type == .login {
+            if showWebIcons, let iconBaseURL, let data = state.cipherDecorativeIconDataView,
+               let url = IconImageHelper.getIconImage(for: data, from: iconBaseURL) {
+                CipherIconAsyncImage(url: url) { image in
+                    PassYIconTile(size: PassYDesign.IconSize.large) {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .padding(PassYDesign.Spacing.medium - 2)
+                    }
+                } placeholder: {
+                    PassYIconTile(letter: state.name, size: PassYDesign.IconSize.large)
+                }
+            } else {
+                PassYIconTile(letter: state.name, size: PassYDesign.IconSize.large)
+            }
+        } else {
+            let group = VaultListGroup(tileFor: state.type)
+            PassYIconTile(systemImage: group.tileSymbol, tint: group.tileColor, size: PassYDesign.IconSize.large)
+        }
+    }
+}

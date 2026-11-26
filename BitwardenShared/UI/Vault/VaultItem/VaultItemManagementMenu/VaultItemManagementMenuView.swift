@@ -34,54 +34,72 @@ struct VaultItemManagementMenuView: View {
     @ObservedObject var store: Store<Void, VaultItemManagementMenuAction, VaultItemManagementMenuEffect>
 
     var body: some View {
+        // A native pull-down menu from the "..." toolbar button (SF Symbols, destructive Delete after a divider).
         Menu {
             if isRestoreEnabled {
-                Button(Localizations.restore) {
+                Button {
                     store.send(.restore)
+                } label: {
+                    Label(Localizations.restore, systemImage: "arrow.uturn.backward")
                 }
                 .accessibilityIdentifier("RestoreButton")
             }
 
-            Button(Localizations.attachments) {
+            Button {
                 store.send(.attachments)
+            } label: {
+                Label(Localizations.attachments, systemImage: "paperclip")
             }
 
             if isCloneEnabled {
-                Button(Localizations.clone) {
+                Button {
                     store.send(.clone)
+                } label: {
+                    Label(Localizations.clone, systemImage: "plus.square.on.square")
                 }
             }
 
             if isCollectionsEnabled {
-                Button(Localizations.sharedFolders) {
+                Button {
                     store.send(.editCollections)
+                } label: {
+                    Label(Localizations.sharedFolders, systemImage: "folder.badge.person.crop")
                 }
             }
 
             if isMoveToOrganizationEnabled {
-                Button(Localizations.move) {
+                Button {
                     store.send(.moveToOrganization)
+                } label: {
+                    Label(Localizations.move, systemImage: "folder")
                 }
             }
 
             if isArchiveEnabled {
-                AsyncButton(Localizations.archive) {
+                AsyncButton {
                     await store.perform(.archiveItem)
+                } label: {
+                    Label(Localizations.archive, systemImage: "archivebox")
                 }
             } else if isUnarchiveEnabled {
-                AsyncButton(Localizations.unarchive) {
+                AsyncButton {
                     await store.perform(.unarchiveItem)
+                } label: {
+                    Label(Localizations.unarchive, systemImage: "tray.and.arrow.up")
                 }
             }
 
             if isDeleteEnabled {
-                AsyncButton(Localizations.delete, role: .destructive) {
+                Divider()
+                AsyncButton(role: .destructive) {
                     await store.perform(.deleteItem)
+                } label: {
+                    Label(Localizations.delete, systemImage: "trash")
                 }
             }
         } label: {
-            Image(asset: SharedAsset.Icons.ellipsisVertical24, label: Text(Localizations.options))
-                .imageStyle(.toolbarIcon)
+            // The plain system symbol: the toolbar draws it like its other buttons.
+            Image(systemName: "ellipsis")
         }
         .accessibilityLabel(Localizations.options)
         .frame(minHeight: 44)

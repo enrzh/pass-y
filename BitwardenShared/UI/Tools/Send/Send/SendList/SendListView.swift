@@ -36,82 +36,76 @@ private struct MainSendListView: View {
                 || !store.state.searchText.isEmpty
                 || !store.state.searchResults.isEmpty
 
+            // The list keeps its identity (and scroll position) while hidden; the search list only exists while
+            // searching (two scroll views at once confuse UIKit's choice of the scroll view for the large title).
             content
-                .hidden(isSearching)
+                .opacity(isSearching ? 0 : 1)
+                .allowsHitTesting(!isSearching)
+                .accessibilityHidden(isSearching)
 
-            search
-                .hidden(!isSearching)
+            if isSearching {
+                search
+            }
         }
         .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
     }
 
     // MARK: Private views
 
-    /// The view shown when not searching. Contains sends content or an empty state.
+    /// The view shown when not searching. One list from the first frame (no spinner and no swap of scroll views, so
+    /// the large title stays bound to it); the empty state lies on top of the empty list once loaded.
     @ViewBuilder private var content: some View {
-        LoadingView(state: store.state.loadingState) { sections in
-            if sections.isEmpty {
-                empty
-            } else {
-                list(sections: sections)
+        list(sections: store.state.loadingState.data ?? [])
+            .overlay {
+                if case let .data(sections) = store.state.loadingState, sections.isEmpty {
+                    empty
+                        .passYEmptyListState()
+                }
             }
-        }
     }
 
-    /// The empty state for this view, displayed when there are no items (native unavailable-content style).
+    /// The empty state for this view, displayed when there are no items (`PassYEmptyState`).
     @ViewBuilder private var empty: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: PassYDesign.Spacing.large) {
             if store.state.isSendDisabled {
-                InfoContainer(Localizations.sendDisabledWarning)
+                Label(Localizations.sendDisabledWarning, systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, PassYDesign.Spacing.xLarge)
                     .accessibilityIdentifier("SendPolicyLabel")
             }
 
-            Spacer()
-
-            Image(systemName: "paperplane")
-                .font(.largeTitle.weight(.light))
-                .imageScale(.large)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-
-            Text(Localizations.sendSensitiveInformationSafely)
-                .font(.title2.weight(.bold))
-                .multilineTextAlignment(.center)
-
-            Text(Localizations
-                .shareFilesAndDataSecurelyWithAnyoneOnAnyPlatformYourInformationWillRemainEndToEndEncrypted)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Group {
-                let newSendLabel = Label(Localizations.newSend, systemImage: "plus")
-                if let sendType = store.state.type ?? store.state.restrictedSendType {
-                    AsyncButton {
-                        await store.perform(.addItemPressed(sendType))
-                    } label: {
-                        newSendLabel
-                    }
-                } else {
-                    Menu {
-                        ForEach(SendType.allCases.reversed()) { sendType in
-                            AsyncButton(sendType.localizedName) {
-                                await store.perform(.addItemPressed(sendType))
-                            }
+            PassYEmptyState(
+                Localizations.sendSensitiveInformationSafely,
+                systemImage: "paperplane",
+                message: Localizations
+                    .shareFilesAndDataSecurelyWithAnyoneOnAnyPlatformYourInformationWillRemainEndToEndEncrypted,
+            ) {
+                Group {
+                    let newSendLabel = Label(Localizations.newSend, systemImage: "plus")
+                    if let sendType = store.state.type ?? store.state.restrictedSendType {
+                        AsyncButton {
+                            await store.perform(.addItemPressed(sendType))
+                        } label: {
+                            newSendLabel
                         }
-                    } label: {
-                        newSendLabel
+                    } else {
+                        Menu {
+                            ForEach(SendType.allCases.reversed()) { sendType in
+                                AsyncButton(sendType.localizedName) {
+                                    await store.perform(.addItemPressed(sendType))
+                                }
+                            }
+                        } label: {
+                            newSendLabel
+                        }
                     }
                 }
+                .passYButtonStyle(.primary)
+                // The bottom bar offers the same action.
+                .accessibilityHidden(true)
             }
-            .buttonStyle(.borderedProminent)
-            .padding(.top, 8)
-            // The bottom bar offers the same action.
-            .accessibilityHidden(true)
-
-            Spacer()
         }
-        .padding(.horizontal, 24)
         .frame(maxWidth: .infinity)
     }
 
@@ -119,15 +113,14 @@ private struct MainSendListView: View {
     /// interface, and a message indicating that no results were found.
     @ViewBuilder private var search: some View {
         if store.state.searchText.isEmpty || !store.state.searchResults.isEmpty {
-            VStack(spacing: 0) {
+            List {
                 if !store.state.searchResults.isEmpty {
-                    sendItemSectionView(
-                        sectionName: nil,
-                        items: store.state.searchResults,
-                    )
+                    Section {
+                        sendRows(items: store.state.searchResults)
+                    }
                 }
             }
-            .scrollView()
+            .passYCardList(reservesBottomBarSpace: false)
         } else {
             SearchNoResultsView()
         }
@@ -137,7 +130,7 @@ private struct MainSendListView: View {
     @ViewBuilder
     private func list(sections: [SendListSection]) -> some View {
         List {
-            if store.state.isSendDisabled {
+            if store.state.isSendDisabled, !sections.isEmpty {
                 InfoContainer(Localizations.sendDisabledWarning)
                     .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
                     .listRowBackground(Color.clear)
@@ -154,7 +147,7 @@ private struct MainSendListView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .passYCardList(reservesBottomBarSpace: false)
     }
 
     /// The rows of a section of sends.
@@ -176,45 +169,6 @@ private struct MainSendListView: View {
             )
             .buttonStyle(.plain)
             .listRowInsets(EdgeInsets())
-        }
-    }
-
-    /// Creates a section that appears in the sends list.
-    ///
-    /// - Parameters:
-    ///   - sectionName: The title of the section.
-    ///   - items: The `SendListItem`s in this section.
-    ///
-    @ViewBuilder
-    private func sendItemSectionView(
-        sectionName: String?,
-        items: [SendListItem],
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
-            if let sectionName {
-                SectionHeaderView("\(sectionName) (\(items.count))")
-                    .accessibilityLabel("\(sectionName), \(Localizations.xItems(items.count))")
-            }
-
-            LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(items) { item in
-                    SendListItemRowView(
-                        store: store.child(
-                            state: { _ in
-                                SendListItemRowState(
-                                    isSendDisabled: store.state.isSendDisabled,
-                                    item: item,
-                                    hasDivider: items.last != item,
-                                )
-                            },
-                            mapAction: SendListAction.sendListItemRow,
-                            mapEffect: SendListEffect.sendListItemRow,
-                        ),
-                    )
-                }
-            }
-            .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }
 }
@@ -312,7 +266,6 @@ struct SendListView: View {
                     get: \.toast,
                     send: SendListAction.toastShown,
                 ),
-                additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
             )
             .task { await store.perform(.appeared) }
             .task { await store.perform(.loadData) }

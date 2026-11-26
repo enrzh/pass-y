@@ -2,7 +2,6 @@ import AppIntents
 import BitwardenShared
 
 /// App intent that locks all accounts.
-@available(iOS 16.0, *)
 struct LockAllAccountsIntent: AppIntent {
     static var title: LocalizedStringResource = "LockAllAccounts"
 

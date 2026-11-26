@@ -22,7 +22,7 @@ struct SingleSignOnView: View {
                     .textCase(nil)
             }
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .navigationBar(title: Localizations.bitwarden, titleDisplayMode: .inline)
         .toolbar {
             cancelToolbarItem {

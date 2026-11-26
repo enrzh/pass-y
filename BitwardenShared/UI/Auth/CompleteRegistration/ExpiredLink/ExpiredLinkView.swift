@@ -15,32 +15,33 @@ struct ExpiredLinkView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            VStack(alignment: .center, spacing: 12) {
-                Text(Localizations.expiredLink)
-                    .styleGuide(.title2, weight: .semibold)
-
-                Text(Localizations.pleaseRestartRegistrationOrTryLoggingInYouMayAlreadyHaveAnAccount)
-                    .styleGuide(.headline)
-                    .multilineTextAlignment(.center)
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("clock.badge.exclamationmark.fill", .orange),
+                    title: Localizations.expiredLink,
+                    message: Localizations.pleaseRestartRegistrationOrTryLoggingInYouMayAlreadyHaveAnAccount,
+                )
             }
+            .passYPlainListRow()
 
-            VStack(spacing: 12) {
-                Button(Localizations.restartRegistration) {
+            PassYActionStack {
+                Button {
                     store.send(.restartRegistrationTapped)
+                } label: {
+                    Text(Localizations.restartRegistration).frame(maxWidth: .infinity)
                 }
+                .passYButtonStyle(.primary, fillsWidth: true)
                 .accessibilityIdentifier("RestartRegistrationButton")
-                .buttonStyle(.primary())
 
                 Button(Localizations.logIn) {
                     store.send(.logInTapped)
                 }
+                .buttonStyle(.borderless)
                 .accessibilityIdentifier("LogInButton")
-                .buttonStyle(.secondary())
             }
         }
         .navigationBar(title: Localizations.createAccount, titleDisplayMode: .inline)
-        .scrollView()
         .toolbar {
             cancelToolbarItem {
                 store.send(.dismissTapped)

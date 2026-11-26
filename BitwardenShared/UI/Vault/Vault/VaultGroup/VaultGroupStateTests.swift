@@ -190,4 +190,22 @@ class VaultGroupStateTests: BitwardenTestCase {
         )
         XCTAssertFalse(subjectHasPremiumLogin.showArchivePremiumSubscriptionEndedCard)
     }
+
+    /// `displayedItemCount` is the expected count while loading and the loaded count afterwards.
+    func test_displayedItemCount() {
+        var subject = VaultGroupState(expectedItemCount: 3, vaultFilterType: .allVaults)
+        XCTAssertEqual(subject.displayedItemCount, 3)
+
+        let items = [
+            VaultListItem(id: "a", itemType: .group(.card, 1)),
+            VaultListItem(id: "b", itemType: .group(.card, 1)),
+        ]
+        subject.loadingState = .data([VaultListSection(id: "1", items: items, name: "Items")])
+        XCTAssertEqual(subject.displayedItemCount, 2)
+
+        subject.loadingState = .data([])
+        XCTAssertEqual(subject.displayedItemCount, 0)
+
+        XCTAssertNil(VaultGroupState(vaultFilterType: .allVaults).displayedItemCount)
+    }
 }

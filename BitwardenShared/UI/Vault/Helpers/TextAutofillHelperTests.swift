@@ -9,7 +9,6 @@ import XCTest
 
 // MARK: - TextAutofillHelperTests
 
-@available(iOS 18.0, *)
 class TextAutofillHelperTests: BitwardenTestCase { // swiftlint:disable:this type_body_length
     // MARK: Properties
 

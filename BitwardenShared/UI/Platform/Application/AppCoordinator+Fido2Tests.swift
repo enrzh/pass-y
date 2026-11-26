@@ -7,7 +7,6 @@ import XCTest
 
 // MARK: - AppCoordinatorTests
 
-@available(iOS 17.0, *)
 class AppCoordinatorFido2Tests: BitwardenTestCase {
     // MARK: Properties
 

@@ -22,16 +22,20 @@ struct ExtensionActivationView: View {
     // MARK: View
 
     var body: some View {
-        Group {
+        Form {
             if store.state.showLegacyView {
                 legacyContent
             } else {
                 content
             }
         }
-        .scrollView()
         .navigationTitle(store.state.navigationBarTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            cancelToolbarItem(hidden: !store.state.showLegacyView) {
+                store.send(.cancelTapped)
+            }
+        }
         .task {
             await store.perform(.appeared)
         }
@@ -41,69 +45,44 @@ struct ExtensionActivationView: View {
 
     /// The main content of the view.
     @ViewBuilder private var content: some View {
-        VStack(spacing: 0) {
-            IllustratedMessageView(
-                image: Asset.Images.autofill,
+        Section {
+            PassYHeroHeader(
+                mark: .symbol("checkmark.circle.fill", .green),
                 title: Localizations.youreAllSet,
                 message: Localizations.autoFillActivatedDescriptionLong,
             )
-            .padding(.top, 40)
+            .padding(.top, PassYDesign.Spacing.xLarge)
+        }
+        .passYPlainListRow()
 
-            Button(Localizations.continueToBitwarden) {
+        PassYActionStack {
+            Button {
                 openURL(ExternalLinksConstants.appDeepLink)
+            } label: {
+                Text(Localizations.continueToBitwarden).frame(maxWidth: .infinity)
             }
-            .buttonStyle(.primary())
-            .padding(.top, 40)
+            .passYButtonStyle(.primary, fillsWidth: true)
 
             Button(Localizations.backToSettings) {
                 store.send(.cancelTapped)
             }
-            .buttonStyle(.secondary())
-            .padding(.top, 12)
+            .buttonStyle(.borderless)
         }
     }
 
     /// The legacy view for this screen kept intact to support both versions.
     @ViewBuilder private var legacyContent: some View {
-        VStack(spacing: 64) {
-            VStack(spacing: 20) {
-                Text(store.state.title)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .styleGuide(.title3)
-
-                Text(store.state.message)
-                    .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    .styleGuide(.body)
-            }
-            .multilineTextAlignment(.center)
-
-            image
+        Section {
+            PassYHeroHeader(
+                mark: store.state.extensionType == .appExtension
+                    ? .shield
+                    : .symbol("checkmark.circle.fill", .green),
+                title: store.state.title,
+                message: store.state.message,
+            )
+            .padding(.top, PassYDesign.Spacing.xLarge)
         }
-        .toolbar {
-            cancelToolbarItem {
-                store.send(.cancelTapped)
-            }
-        }
-    }
-
-    /// The image to display in the view.
-    @ViewBuilder private var image: some View {
-        switch store.state.extensionType {
-        case .appExtension:
-            Image(decorative: SharedAsset.Icons.shield24)
-                .resizable()
-                .frame(width: 70, height: 70)
-                .padding(16)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(SharedAsset.Colors.strokeDivider.swiftUIColor, lineWidth: 1.5)
-                }
-        case .autofillExtension:
-            Image(decorative: SharedAsset.Icons.check24)
-                .resizable()
-                .frame(width: 100, height: 100)
-                .foregroundStyle(.green)
-        }
+        .passYPlainListRow()
     }
 }
 

@@ -54,4 +54,9 @@ jobs:
             -only-testing:BitwardenSharedTests/VaultGroupStateTests \
             -only-testing:BitwardenSharedTests/AccountSecurityProcessorTests \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=- \
-            | tail -n 200
+            2>&1 | tee "$RUNNER_TEMP/xcodebuild.log" | tail -n 200
+
+      # The tail above cuts off compiler diagnostics; print them all when the build or a test fails.
+      - name: Show errors
+        if: failure()
+        run: grep -nE "error:|XCTAssert|Test Case .* failed" "$RUNNER_TEMP/xcodebuild.log" | sort -u | head -n 200 || true

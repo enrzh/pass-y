@@ -1,10 +1,12 @@
+import BitwardenKit
 import BitwardenResources
 import SwiftUI
 
 // MARK: - CategoryTilesView
 
-/// A two-column grid of category tiles (logins, cards, codes, trash, ...) shown at the top of the vault,
-/// built only from system fonts, SF Symbols and system colors.
+/// A grid of category tiles (logins, cards, codes, trash, ...) shown at the top of the vault, built only from system
+/// fonts, SF Symbols and system colors: cards in adaptive columns (two on an iPhone) or, with the Customize layout
+/// `.wide`, one column of wide cards.
 ///
 struct CategoryTilesView: View {
     // MARK: Properties
@@ -15,6 +17,9 @@ struct CategoryTilesView: View {
     /// Forces a single column (used when the tiles are shown as a sidebar).
     var singleColumn = false
 
+    /// The tile layout (`.list` is drawn by the vault list as rows, not here).
+    var layout: PassYLayoutPreferences.TileLayout = .grid
+
     /// Called when a tile is tapped.
     let onSelect: (VaultListItem) -> Void
 
@@ -22,7 +27,7 @@ struct CategoryTilesView: View {
 
     /// One column for accessibility text sizes so titles and counts are never truncated or wrapped mid-word.
     private var columns: [GridItem] {
-        (dynamicTypeSize.isAccessibilitySize || singleColumn)
+        (dynamicTypeSize.isAccessibilitySize || singleColumn || layout != .grid)
             ? [GridItem(.flexible(), spacing: 12)]
             : [GridItem(.adaptive(minimum: 160), spacing: 12)]
     }
@@ -34,13 +39,15 @@ struct CategoryTilesView: View {
             ForEach(items) { item in
                 if case let .group(group, count) = item.itemType {
                     Button {
+                        #if DEBUG
                         PassYPerf.beginTap("tile")
+                        #endif
                         CategoryTileHaptics.tapped()
                         onSelect(item)
                     } label: {
-                        CategoryTile(group: group, count: count)
+                        CategoryTile(group: group, count: count, isWide: layout != .grid)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(CategoryTileButtonStyle())
                     .hoverEffect(.highlight)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(group.name)
@@ -68,45 +75,113 @@ private enum CategoryTileHaptics {
 
 // MARK: - CategoryTile
 
-/// One tile: colored symbol badge, count and title.
-private struct CategoryTile: View {
+/// The corner radius of a tile (continuous, like the inset-grouped list cards below the tiles).
+private let categoryTileCornerRadius: CGFloat = 22
+
+/// One tile: a tinted symbol tile, the count and the title.
+struct CategoryTile: View {
     let group: VaultListGroup
     let count: Int
 
+    /// One wide card (symbol, name and count on one line) instead of the square-ish grid card.
+    var isWide = false
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    /// The page's tile colours (Customize: colourful or monochrome).
+    @Environment(\.passYTileColors) private var tileColors
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top) {
-                Image(systemName: group.tileSymbol)
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-                    .background(group.tileColor, in: Circle())
-                    // ui-r7: light badge colors are darkened so the white symbol passes the contrast audit.
-                    .overlay(Circle().fill(Color.black.opacity(group.tileBadgeDarkening)))
-                    .accessibilityHidden(true)
-                Spacer(minLength: 4)
-                Text("\(count)")
-                    .font(.title2)
-                    // A little darker than `.secondary` so the count passes the contrast audit on the white tile.
-                    .foregroundStyle(Color.primary.opacity(0.7))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
+        Group {
+            if isWide {
+                HStack(spacing: 12) {
+                    symbol
+                    name
+                    countText
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .frame(minHeight: 60, alignment: .leading)
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .top) {
+                        symbol
+                        Spacer(minLength: 4)
+                        countText
+                    }
+                    name
+                }
+                .padding(14)
+                // Same height for every tile of a row (the shrinking long names measure a fraction of a point
+                // differently).
+                .frame(minHeight: 96, alignment: .topLeading)
             }
-            Text(group.name)
-                .font(.title3)
-                .foregroundStyle(.primary)
-                .multilineTextAlignment(.leading)
-                // One line, always: long names ("Verification codes") shrink instead of wrapping, so tiles in the
-                // same row keep the same height. Accessibility sizes use a single column (see `columns`).
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(12)
-        // Same height for every tile of a row (the shrinking long names measure a fraction of a point differently).
-        .frame(minHeight: 96, alignment: .topLeading)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(
+            Color(.secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: categoryTileCornerRadius, style: .continuous),
+        )
+        .contentShape(RoundedRectangle(cornerRadius: categoryTileCornerRadius, style: .continuous))
+    }
+
+    /// A rounded-square symbol tile with a soft tint of the category color (the shape of the item icons in the
+    /// lists), instead of a saturated badge.
+    private var symbol: some View {
+        let tint = tileColors.tint(group.tileColor)
+        let symbolColor = tileColors == .monochrome
+            ? (colorScheme == .dark ? Color.gray : Color.gray.mix(with: .black, by: 0.3))
+            : group.tileSymbolColor(for: colorScheme)
+        return Image(systemName: group.tileSymbol)
+            .font(.body.weight(.semibold))
+            .foregroundStyle(symbolColor)
+            .frame(width: 36, height: 36)
+            .background(
+                tint.opacity(colorScheme == .dark ? 0.24 : 0.14),
+                in: RoundedRectangle(cornerRadius: 10, style: .continuous),
+            )
+            .accessibilityHidden(true)
+    }
+
+    /// The item count.
+    private var countText: some View {
+        Text(count, format: .number)
+            .font(.system(isWide ? .title2 : .title, design: .rounded).weight(.bold))
+            .monospacedDigit()
+            // Empty categories step back, but not below 0.7 (a little darker than `.secondary`): the count must pass
+            // the contrast audit on the white tile.
+            .foregroundStyle(Color.primary.opacity(count == 0 ? 0.7 : 0.9))
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+    }
+
+    /// The category name.
+    private var name: some View {
+        Text(group.name)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Color.primary.opacity(0.7))
+            .multilineTextAlignment(.leading)
+            // One line, always: long names ("Verification codes") shrink instead of wrapping, so tiles in the same
+            // row keep the same height. Accessibility sizes use a single column (see `columns`).
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - CategoryTileButtonStyle
+
+/// The press state of a tile: it dims to the system fill and settles back with a short spring (no scale jump, no
+/// shadow), like the cells of Apple's own grouped lists.
+private struct CategoryTileButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .overlay {
+                RoundedRectangle(cornerRadius: categoryTileCornerRadius, style: .continuous)
+                    .fill(Color(.systemFill))
+                    .opacity(configuration.isPressed ? 1 : 0)
+            }
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.spring(duration: 0.25), value: configuration.isPressed)
     }
 }
 
@@ -143,16 +218,20 @@ extension VaultListGroup {
         }
     }
 
-    /// How much black is laid over the badge color (0 to 1) so that the white symbol has enough contrast.
-    var tileBadgeDarkening: Double {
-        switch self {
+    /// The color of the tile symbol: the category color, mixed with black in light mode for the light system colors so
+    /// the symbol keeps a 3:1 contrast on its pale tint (ui-r7 contrast audit).
+    func tileSymbolColor(for colorScheme: ColorScheme) -> Color {
+        guard colorScheme == .light else { return tileColor }
+        let darkening: Double = switch self {
         case .secureNote: 0.45
-        case .passport, .totp, .driversLicense, .bankAccount: 0.3
+        case .bankAccount, .driversLicense, .passport, .totp: 0.3
+        case .archive, .card, .sshKey: 0.15
         default: 0
         }
+        return tileColor.mix(with: .black, by: darkening)
     }
 
-    /// The system color of the tile badge.
+    /// The system color of the tile.
     var tileColor: Color {
         switch self {
         case .archive: .brown

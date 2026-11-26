@@ -15,13 +15,12 @@ struct DeviceManagementView: View {
     // MARK: View
 
     var body: some View {
-        LoadingView(state: store.state.loadingState) { devices in
+        PassYLoadingContent(state: store.state.loadingState) { devices in
             if devices.isEmpty {
-                empty
-                    .scrollView(centerContentVertically: true)
+                PassYEmptyState(Localizations.noDevicesFound, systemImage: "laptopcomputer.and.iphone")
+                    .passYGroupedBackground()
             } else {
                 devicesList(devices)
-                    .scrollView()
             }
         }
         .navigationBar(title: Localizations.devices, titleDisplayMode: .inline)
@@ -44,21 +43,12 @@ struct DeviceManagementView: View {
 
     // MARK: Private Views
 
-    /// The empty view.
-    private var empty: some View {
-        IllustratedMessageView(
-            image: Asset.Images.Illustrations.devices,
-            message: Localizations.noDevicesFound,
-        )
-        .frame(maxWidth: .infinity)
-    }
-
     /// The list of devices.
     ///
     /// - Parameter devices: The devices to display.
     ///
     private func devicesList(_ devices: [DeviceListItem]) -> some View {
-        ContentBlock(dividerLeadingPadding: 16) {
+        Form {
             ForEach(devices) { device in
                 DeviceRow(
                     store: store.child(

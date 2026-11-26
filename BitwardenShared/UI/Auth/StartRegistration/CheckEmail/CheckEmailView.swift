@@ -18,54 +18,42 @@ struct CheckEmailView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 16) {
-            VStack(alignment: .center, spacing: 0) {
-                Image(decorative: Asset.Images.Illustrations.email)
-                    .resizable()
-                    .frame(width: 100, height: 100)
-                    .foregroundColor(SharedAsset.Colors.iconSecondary.swiftUIColor)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 36)
-                    .padding(.bottom, 32)
-
-                Text(Localizations.checkYourEmail)
-                    .styleGuide(.title2, weight: .semibold)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .frame(maxWidth: .infinity)
-                    .padding([.bottom, .horizontal], 8)
-
-                Text(LocalizedStringKey(store.state.headelineTextBoldEmail))
-                    .styleGuide(.headline)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 34)
-                    .tint(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-
-                Text(Localizations.selectTheLinkInTheEmailToVerifyYourEmailAddressAndContinueCreatingYourAccount)
-                    .styleGuide(.body)
-                    .multilineTextAlignment(.center)
-                    .padding(.bottom, 20)
-                    .padding(.horizontal, 34)
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-
-                Button(Localizations.openEmailApp) {
-                    openURL(URL(string: "message://")!)
+        Form {
+            Section {
+                VStack(spacing: PassYDesign.Spacing.small) {
+                    PassYHeroHeader(
+                        mark: .symbol("envelope.badge.fill", .accentColor),
+                        title: Localizations.checkYourEmail,
+                    )
+                    Text(LocalizedStringKey(store.state.headelineTextBoldEmail))
+                        .font(.headline)
+                        .tint(.primary)
+                    Text(Localizations.selectTheLinkInTheEmailToVerifyYourEmailAddressAndContinueCreatingYourAccount)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+            }
+            .passYPlainListRow()
+
+            PassYActionStack {
+                Button {
+                    openURL(URL(string: "message://")!)
+                } label: {
+                    Text(Localizations.openEmailApp).frame(maxWidth: .infinity)
+                }
+                .passYButtonStyle(.primary, fillsWidth: true)
                 .accessibilityIdentifier("OpenEmailAppButton")
-                .padding(.bottom, 12)
-                .buttonStyle(.primary())
 
                 Button(Localizations.changeEmailAddress) {
                     store.send(.goBackTapped)
                 }
+                .buttonStyle(.borderless)
                 .accessibilityIdentifier("ChangeEmailAddressButton")
-                .padding(.bottom, 32)
-                .buttonStyle(.secondary())
             }
         }
         .navigationBar(title: Localizations.createAccount, titleDisplayMode: .inline)
-        .scrollView()
         .toolbar {
             cancelToolbarItem {
                 store.send(.dismissTapped)

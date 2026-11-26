@@ -140,22 +140,10 @@ class AutoFillProcessorTests: BitwardenTestCase {
         XCTAssertEqual(errorReporter.errors.last as? StateServiceError, StateServiceError.noActiveAccount)
     }
 
-    /// `perform(_:)` with `.setUpAutofill` navigates to password autofill on pre-iOS 18 devices.
-    @MainActor
-    func test_perform_setUpAutofill_preIOS18() async {
-        guard #unavailable(iOS 18) else { return }
-
-        await subject.perform(.setUpAutofill)
-
-        XCTAssertEqual(coordinator.routes.last, .passwordAutoFill)
-    }
-
     /// `perform(_:)` with `.setUpAutofill` and `.cantRequest` navigates to password autofill
     /// with the processor as the context delegate.
     @MainActor
     func test_perform_setUpAutofill_cantRequest() async {
-        guard #available(iOS 18, *) else { return }
-
         // swiftlint:disable:next line_length
         asSettingsMediator.requestToTurnOnCredentialProviderExtensionThrowableError = ASSettingsMediatorError.cantRequest
 
@@ -169,8 +157,6 @@ class AutoFillProcessorTests: BitwardenTestCase {
     /// action card and shows a toast.
     @MainActor
     func test_perform_setUpAutofill_credentialProviderOn() async {
-        guard #available(iOS 18, *) else { return }
-
         stateService.activeAccount = .fixture()
         asSettingsMediator.requestToTurnOnCredentialProviderExtensionReturnValue = true
 
@@ -183,8 +169,6 @@ class AutoFillProcessorTests: BitwardenTestCase {
     /// `perform(_:)` with `.setUpAutofill` and the credential provider turned off does nothing.
     @MainActor
     func test_perform_setUpAutofill_credentialProviderOff() async {
-        guard #available(iOS 18, *) else { return }
-
         asSettingsMediator.requestToTurnOnCredentialProviderExtensionReturnValue = false
 
         await subject.perform(.setUpAutofill)

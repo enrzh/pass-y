@@ -29,7 +29,7 @@ struct ExportSettingsView: View {
                 }
             }
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .navigationBar(title: Localizations.exportVault, titleDisplayMode: .inline)
     }
 

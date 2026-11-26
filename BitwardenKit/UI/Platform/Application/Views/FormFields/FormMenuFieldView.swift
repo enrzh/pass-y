@@ -8,13 +8,13 @@ public struct FormMenuField<State, T: Menuable>: Equatable, Identifiable {
     // MARK: Properties
 
     /// The accessibility identifier to apply to the field.
-    let accessibilityIdentifier: String?
+    public let accessibilityIdentifier: String?
 
     /// The footer text displayed below the menu field.
     public let footer: String?
 
     /// A key path for updating the backing value for the menu field.
-    let keyPath: WritableKeyPath<State, T>
+    public let keyPath: WritableKeyPath<State, T>
 
     /// The options displayed in the menu.
     public let options: [T]

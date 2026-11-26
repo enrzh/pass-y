@@ -8,16 +8,19 @@ public struct ProfileSwitcherSheet: View {
 
     public var body: some View {
         ZStack {
-            SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea()
+            Color(.systemGroupedBackground).ignoresSafeArea()
 
-            SectionView(Localizations.selectAccount) {
+            VStack(alignment: .leading, spacing: PassYDesign.Spacing.small) {
+                PassYSectionHeader(Localizations.selectAccount)
+                    .padding(.horizontal, PassYDesign.Spacing.large)
                 ProfileSwitcherAccountsView(store: store)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .clipShape(RoundedRectangle(cornerRadius: PassYDesign.Radius.large, style: .continuous))
                 if store.state.showsAddAccount {
                     addAccountRow
+                        .padding(.top, PassYDesign.Spacing.small)
                 }
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, PassYDesign.Spacing.large)
         }
         .navigationBar(title: Localizations.accounts, titleDisplayMode: .inline)
         .toolbar {
@@ -37,12 +40,12 @@ public struct ProfileSwitcherSheet: View {
 
     /// A row to add an account
     @ViewBuilder private var addAccountRow: some View {
-        AsyncButton {
-            await store.perform(.addAccountPressed)
+        Button {
+            Task { await store.perform(.addAccountPressed) }
         } label: {
-            Label(Localizations.addAccount, image: SharedAsset.Icons.plus16.swiftUIImage)
+            Label(Localizations.addAccount, systemImage: "plus")
         }
-        .buttonStyle(.bitwardenBorderless)
+        .buttonStyle(.borderless)
         .frame(maxWidth: .infinity, alignment: .center)
         .accessibilityIdentifier("AddAccountButton")
     }
@@ -51,7 +54,6 @@ public struct ProfileSwitcherSheet: View {
 // MARK: Previews
 
 #if DEBUG
-@available(iOS 16.0, *)
 #Preview("Single Account") {
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
@@ -69,7 +71,6 @@ public struct ProfileSwitcherSheet: View {
         }
 }
 
-@available(iOS 16.0, *)
 #Preview("Dual Account") {
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
@@ -87,7 +88,6 @@ public struct ProfileSwitcherSheet: View {
         }
 }
 
-@available(iOS 16.0, *)
 #Preview("Many Accounts") {
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
@@ -105,7 +105,6 @@ public struct ProfileSwitcherSheet: View {
         }
 }
 
-@available(iOS 16.0, *)
 #Preview("Max Accounts") {
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {

@@ -39,7 +39,10 @@ class PasswordHistoryListViewTests: BitwardenTestCase {
     /// Tapping the clear button dispatches the `.clearList` action.
     @MainActor
     func test_clear_tapped() async throws {
-        let menu = try subject.inspect().find(ViewType.Menu.self, containing: Localizations.options)
+        let menu = try subject.inspect().find(ViewType.Menu.self, where: { menu in
+            // The options menu's label is the "..." symbol (identifier `HeaderBarOptionsButton`), no text.
+            (try? menu.find(viewWithAccessibilityIdentifier: "HeaderBarOptionsButton")) != nil
+        })
         let button = try menu.find(asyncButton: Localizations.clear)
         try await button.tap()
         XCTAssertEqual(processor.effects.last, .clearList)

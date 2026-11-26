@@ -27,24 +27,12 @@ public extension View {
     /// - Returns: A `Button` configured for navigating back.
     ///
     func backToolbarButton(hidden: Bool = false, action: @escaping () -> Void) -> some View {
-        if #available(iOS 26, *) {
-            return Button(action: action) {
-                Label(Localizations.back, systemImage: "chevron.backward")
-            }
-            .hidden(hidden)
-            .accessibilityIdentifier("BackButton")
-            .accessibilityLabel(Localizations.back)
+        Button(action: action) {
+            Label(Localizations.back, systemImage: "chevron.backward")
         }
-        return Button(action: action) {
-            HStack(spacing: 4) {
-                Image(systemName: "chevron.left")
-                    .font(.body.weight(.semibold))
-                Text(Localizations.back)
-            }
-        }
-        .buttonStyle(.toolbar)
         .hidden(hidden)
         .accessibilityIdentifier("BackButton")
+        .accessibilityLabel(Localizations.back)
     }
 
     /// Returns a toolbar button configured for cancelling an operation in a view.
@@ -55,15 +43,10 @@ public extension View {
     /// - Returns: A `Button` configured for cancelling an operation in a view.
     ///
     func cancelToolbarButton(hidden: Bool = false, action: @escaping () -> Void) -> some View {
-        if #available(iOS 26, *) {
-            return Button(role: .cancel, action: action)
-                .hidden(hidden)
-                .accessibilityIdentifier("CancelButton")
-                .accessibilityLabel(Localizations.cancel)
-        }
-        return toolbarButton(Localizations.cancel, action: action)
+        Button(role: .cancel, action: action)
             .hidden(hidden)
             .accessibilityIdentifier("CancelButton")
+            .accessibilityLabel(Localizations.cancel)
     }
 
     /// Returns a toolbar button configured for closing a view.
@@ -72,22 +55,16 @@ public extension View {
     /// - Returns: A `Button` configured for closing a view.
     ///
     func closeToolbarButton(action: @escaping () -> Void) -> some View {
-        if #available(iOS 26, *) {
-            return Button(role: .close, action: action)
-                .accessibilityIdentifier("CloseButton")
-                .accessibilityLabel(Localizations.close)
-        }
-        return toolbarButton(Localizations.close, action: action)
+        Button(role: .close, action: action)
             .accessibilityIdentifier("CloseButton")
+            .accessibilityLabel(Localizations.close)
     }
 
-    /// Returns a toolbar button configured to confirm a primary action, using a checkmark on iOS 26
-    /// and a text label on earlier versions.
+    /// Returns a toolbar button configured to confirm a primary action (a checkmark).
     ///
     /// - Parameters:
     ///   - accessibilityIdentifier: The accessibility identifier for the button.
-    ///   - label: The label associated with the button, used as an accessibility label and, on
-    ///     iOS versions before 26, as the visible text.
+    ///   - label: The accessibility label of the button.
     ///   - action: The action to perform when the button is tapped.
     /// - Returns: A `Button` configured to confirm a primary action.
     ///
@@ -96,19 +73,15 @@ public extension View {
         label: String,
         action: @escaping () async -> Void,
     ) -> some View {
-        if #available(iOS 26, *) {
-            // This mimics `Button(role: .confirm)` rather than using it. The system draws confirm
-            // buttons in the toolbar itself and ignores the button style and label color, which
-            // leaves a white checkmark on the light blue tint used in dark mode.
-            return AsyncButton(action: action) {
-                Image(systemName: "checkmark")
-            }
-            .buttonStyle(.primaryActionToolbar)
-            .accessibilityIdentifier(accessibilityIdentifier)
-            .accessibilityLabel(label)
+        // This mimics `Button(role: .confirm)` rather than using it. The system draws confirm
+        // buttons in the toolbar itself and ignores the button style and label color, which
+        // leaves a white checkmark on the light blue tint used in dark mode.
+        AsyncButton(action: action) {
+            Image(systemName: "checkmark")
         }
-        return primaryActionToolbarButton(label, action: action)
-            .accessibilityIdentifier(accessibilityIdentifier)
+        .buttonStyle(.primaryActionToolbar)
+        .accessibilityIdentifier(accessibilityIdentifier)
+        .accessibilityLabel(label)
     }
 
     /// Returns a toolbar button configured for editing an item.
@@ -233,8 +206,9 @@ public extension View {
         Menu {
             content()
         } label: {
-            Image(asset: SharedAsset.Icons.ellipsisVertical24, label: Text(Localizations.options))
-                .imageStyle(.toolbarIcon)
+            // The system "..." symbol (a pull-down menu, like Apple's own toolbars).
+            Image(systemName: "ellipsis")
+                .accessibilityLabel(Localizations.options)
                 .accessibilityIdentifier("HeaderBarOptionsButton")
         }
         // Ideally we would set both `minHeight` and `minWidth` to 44. Setting `minWidth` causes
@@ -310,30 +284,21 @@ public extension View {
         }
     }
 
-    /// A `ToolbarItemGroup` consisting of two items, alfa and bravo, that change position depending on
-    /// the version of iOS being used.
-    ///
-    /// On iOS versions before 26, the order is alfa - bravo.
-    ///
-    /// On iOS versions from 26 on, the order is bravo - alfa.
+    /// A `ToolbarItemGroup` of two items in the iOS 26 order: alfa (e.g. an options menu), then bravo (e.g. Save) on
+    /// the trailing edge. The name is kept from the time the order depended on the iOS version.
     ///
     /// - Parameters:
     ///   - placement: The toolbar item placement for the `ToolbarItemGroup`
-    ///   - alfa: The item that goes on the left before iOS 26
-    ///   - bravo: The item that goes on the left from iOS 26 onward
+    ///   - alfa: The leading item.
+    ///   - bravo: The trailing item.
     func versionDependentOrderingToolbarItemGroup(
         placement: ToolbarItemPlacement = .topBarTrailing,
         @ViewBuilder alfa: () -> some View,
         @ViewBuilder bravo: () -> some View,
     ) -> some ToolbarContent {
         ToolbarItemGroup(placement: placement) {
-            if #unavailable(iOS 26) {
-                bravo()
-            }
             alfa()
-            if #available(iOS 26, *) {
-                bravo()
-            }
+            bravo()
         }
     }
 }

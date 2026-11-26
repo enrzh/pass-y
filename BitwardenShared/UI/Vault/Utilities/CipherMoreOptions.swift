@@ -11,8 +11,8 @@ import UIKit
 /// concrete cipher values needed to actually perform it.
 ///
 /// Used both to decide which options are available (from a `CipherListView`, synchronously, for
-/// VoiceOver custom accessibility actions on the vault list row) and to build the more-options
-/// action sheet's `AlertAction`s (from a full `CipherView`, in `Alert.moreOptions`). If you
+/// the row's context menu, "More" swipe menu and VoiceOver custom actions) and to perform the
+/// chosen one (from a full `CipherView`). If you
 /// add/remove a case here, also update `applicableMoreOptionsActionKinds(hasPremium:)` below
 /// (which decides availability) and `moreOptionsAction(cipherView:itemId:)` (which supplies the
 /// per-case field guard used to actually perform it).
@@ -72,9 +72,9 @@ enum MoreOptionsActionKind: CaseIterable, Equatable {
     /// Navigate to view the cipher.
     case view
 
-    /// The localized display name for this action. Used both as the action sheet's `AlertAction`
-    /// title and as the row's `.accessibilityAction` name, so VoiceOver announces the same words
-    /// a sighted user reads in the sheet.
+    /// The localized display name for this action. Used both as the menu item title and as the
+    /// row's `.accessibilityAction` name, so VoiceOver announces the same words a sighted user
+    /// reads in the menu.
     var localizedName: String {
         switch self {
         case .archive: Localizations.archive
@@ -242,10 +242,10 @@ enum MoreOptionsActionKind: CaseIterable, Equatable {
 extension CipherListView {
     /// Computes, synchronously and without decrypting anything beyond what's already in this
     /// list view, the set of more-options actions applicable to this cipher. Used to populate the
-    /// vault list row's VoiceOver custom accessibility actions without a `fetchCipher` round trip,
-    /// and to decide which options `Alert.moreOptions` should present.
+    /// vault list row's menus and VoiceOver custom accessibility actions without a `fetchCipher`
+    /// round trip.
     ///
-    /// Scope note: intentionally matches `Alert.moreOptions`'s historical scope exactly (e.g. no
+    /// Scope note: intentionally matches the former more-options sheet's scope exactly (e.g. no
     /// Identity fields, no bank IBAN/SWIFT/PIN/branch number), even though `copyableFields`
     /// exposes more than is currently surfaced here.
     ///
@@ -297,22 +297,4 @@ extension CipherListView {
         if canBeUnarchived { kinds.append(.unarchive) }
         return kinds
     }
-}
-
-// MARK: - MoreOptionsAlertContext
-
-/// Context for displaying a more options alert for a vault item.
-///
-struct MoreOptionsAlertContext {
-    /// The more-options action kinds applicable to this cipher, in the order they should be
-    /// presented. Computed via `CipherListView.applicableMoreOptionsActionKinds(hasPremium:)` so
-    /// the sheet and the row's VoiceOver custom actions share a single source of truth for which
-    /// options are available.
-    let actionKinds: [MoreOptionsActionKind]
-
-    /// The cipher view to show.
-    let cipherView: CipherView
-
-    /// The id of the item.
-    let id: String
 }

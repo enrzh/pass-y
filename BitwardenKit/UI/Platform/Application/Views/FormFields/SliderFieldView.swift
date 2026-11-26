@@ -16,11 +16,11 @@ public struct SliderField<State>: Equatable, Identifiable {
 
     /// The accessibility id for the slider. The `title` will be used as the accessibility id
     /// if this is `nil`.
-    let sliderAccessibilityId: String?
+    public let sliderAccessibilityId: String?
 
     /// The accessibility id for the slider value. The `id` will be used as the accessibility id
     /// if this is `nil`.
-    let sliderValueAccessibilityId: String?
+    public let sliderValueAccessibilityId: String?
 
     /// The distance between each valid value.
     public let step: Double
@@ -107,19 +107,13 @@ public struct SliderFieldView<State>: View {
             )
             .accessibilityLabel(field.title)
             .accessibilityIdentifier(field.sliderAccessibilityId ?? field.title)
-            .apply { view in
-                if #available(iOS 17, *) {
-                    view.onKeyPress(.leftArrow) {
-                        onValueChanged(max(field.value - field.step, field.range.lowerBound))
-                        return .handled
-                    }
-                    .onKeyPress(.rightArrow) {
-                        onValueChanged(min(field.value + field.step, field.range.upperBound))
-                        return .handled
-                    }
-                } else {
-                    view
-                }
+            .onKeyPress(.leftArrow) {
+                onValueChanged(max(field.value - field.step, field.range.lowerBound))
+                return .handled
+            }
+            .onKeyPress(.rightArrow) {
+                onValueChanged(min(field.value + field.step, field.range.upperBound))
+                return .handled
             }
         }
         .padding(.vertical, 4)

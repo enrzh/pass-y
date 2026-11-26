@@ -15,13 +15,12 @@ struct PendingRequestsView: View {
     // MARK: View
 
     var body: some View {
-        LoadingView(state: store.state.loadingState) { pendingRequests in
+        PassYLoadingContent(state: store.state.loadingState) { pendingRequests in
             if pendingRequests.isEmpty {
-                empty
-                    .scrollView(centerContentVertically: true)
+                PassYEmptyState(Localizations.noPendingRequests, systemImage: "iphone.and.arrow.forward")
+                    .passYGroupedBackground()
             } else {
                 pendingRequestsList(pendingRequests)
-                    .scrollView()
             }
         }
         .navigationBar(title: Localizations.pendingLogInRequests, titleDisplayMode: .inline)
@@ -44,103 +43,79 @@ struct PendingRequestsView: View {
 
     // MARK: Private Views
 
-    /// The decline all requests button.
-    private var declineAllRequests: some View {
-        Button {
-            store.send(.declineAllRequestsTapped)
-        } label: {
-            HStack(spacing: 4) {
-                Spacer()
-
-                Image(decorative: SharedAsset.Icons.trash16)
-                    .imageStyle(.accessoryIcon16(scaleWithFont: true))
-
-                Text(Localizations.declineAllRequests)
-
-                Spacer()
-            }
-        }
-        .buttonStyle(.secondary())
-        .accessibilityIdentifier("DeclineAllRequestsButton")
-        .accessibilityLabel(Localizations.declineAllRequests)
-    }
-
-    /// The empty view.
-    private var empty: some View {
-        VStack(spacing: 20) {
-            Image(decorative: Asset.Images.Illustrations.devices)
-                .resizable()
-                .frame(width: 100, height: 100)
-
-            Text(Localizations.noPendingRequests)
-                .styleGuide(.body)
-                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    /// The list of pending requests.
+    /// The list of pending requests, with "Decline all" as a destructive row in its own section.
     ///
     /// - Parameter pendingRequests: The pending login requests to display.
     ///
     private func pendingRequestsList(_ pendingRequests: [LoginRequest]) -> some View {
-        VStack(spacing: 24) {
-            ContentBlock(dividerLeadingPadding: 16) {
+        Form {
+            Section {
                 ForEach(pendingRequests) { pendingRequest in
-                    pendingRequestRow(pendingRequest, hasDivider: pendingRequest != pendingRequests.last)
+                    pendingRequestRow(pendingRequest)
                 }
             }
 
-            declineAllRequests
+            Section {
+                PassYSettingsRow(
+                    Localizations.declineAllRequests,
+                    systemImage: "trash.fill",
+                    role: .destructive,
+                    accessory: .none,
+                    identifier: "DeclineAllRequestsButton",
+                ) {
+                    store.send(.declineAllRequestsTapped)
+                }
+            }
         }
     }
 
-    /// A pending request row.
-    private func pendingRequestRow(_ pendingRequest: LoginRequest, hasDivider: Bool) -> some View {
+    /// A pending request row: the fingerprint phrase, the device type and the time, opening the request.
+    private func pendingRequestRow(_ pendingRequest: LoginRequest) -> some View {
         Button {
             store.send(.requestTapped(pendingRequest))
         } label: {
-            VStack(spacing: 0) {
-                VStack(spacing: 0) {
-                    Text(Localizations.fingerprintPhrase)
-                        .styleGuide(.body)
-                        .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .multilineTextAlignment(.leading)
-                        .accessibilityIdentifier("FingerprintValueLabel")
-
-                    Text(pendingRequest.fingerprintPhrase ?? "")
-                        .styleGuide(.caption2Monospaced)
-                        .foregroundStyle(SharedAsset.Colors.textCodePink.swiftUIColor)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .multilineTextAlignment(.leading)
-                        .accessibilityIdentifier("FingerprintPhraseValue")
-
-                    HStack {
-                        Text(pendingRequest.requestDeviceType)
-                            .styleGuide(.footnote)
-                            .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                            .accessibilityIdentifier("DeviceTypeValueLabel")
-
-                        Spacer()
-
-                        Text(pendingRequest.creationDate.formatted(.dateTime))
-                            .styleGuide(.footnote)
-                            .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+            HStack(spacing: PassYDesign.Spacing.medium) {
+                VStack(alignment: .leading, spacing: PassYDesign.Spacing.xSmall) {
+                    PassYFingerprintPhrase(
+                        title: Localizations.fingerprintPhrase,
+                        phrase: pendingRequest.fingerprintPhrase ?? "",
+                    )
+                    ViewThatFits(in: .horizontal) {
+                        HStack {
+                            deviceType(pendingRequest)
+                            Spacer()
+                            creationDate(pendingRequest)
+                        }
+                        VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
+                            deviceType(pendingRequest)
+                            creationDate(pendingRequest)
+                        }
                     }
-                    .padding(.top, 4)
                 }
-                .padding(16)
-                .accessibilityElement(children: .combine)
-
-                if hasDivider {
-                    Divider().padding(.leading, 16)
-                }
+                PassYDisclosureChevron()
             }
+            .contentShape(Rectangle())
+            .foregroundStyle(Color.primary)
+            .accessibilityElement(children: .combine)
         }
-        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
+        .buttonStyle(.automatic)
+        .foregroundStyle(Color.primary)
         .accessibilityIdentifier("LoginRequestCell")
+    }
+
+    /// The device type of a request.
+    private func deviceType(_ request: LoginRequest) -> some View {
+        Text(request.requestDeviceType)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("DeviceTypeValueLabel")
+    }
+
+    /// The creation time of a request.
+    private func creationDate(_ request: LoginRequest) -> some View {
+        Text(request.creationDate.formatted(.dateTime))
+            .font(.footnote)
+            .foregroundStyle(.secondary)
     }
 }
 

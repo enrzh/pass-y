@@ -15,6 +15,12 @@ struct SettingsView: View {
     /// The `Store` for this view.
     @ObservedObject var store: Store<SettingsState, SettingsAction, SettingsEffect>
 
+    /// The side of the account avatar, scaled with Dynamic Type (at most 1.6 times).
+    @ScaledMetric(relativeTo: .title2) private var avatarSize: CGFloat = 56
+
+    /// The Dynamic Type size (the account row stacks vertically at accessibility sizes).
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     // MARK: View
 
     var body: some View {
@@ -50,14 +56,15 @@ struct SettingsView: View {
 
     // MARK: Private views
 
-    /// The settings items.
+    /// The settings items, in clearly separated sections (iOS Settings style): account, security and data, then
+    /// the app itself.
     @ViewBuilder private var settingsItems: some View {
         if store.state.presentationMode == .preLogin {
             Section {
-                row(Localizations.appearance, symbol: "paintbrush", id: "AppearanceSettingsButton") {
+                row(Localizations.appearance, symbol: "paintbrush.fill", tint: .indigo, id: "AppearanceSettingsButton") {
                     store.send(.appearancePressed)
                 }
-                row(Localizations.about, symbol: "info.circle", id: "AboutSettingsButton") {
+                row(Localizations.about, symbol: "info.circle.fill", tint: .gray, id: "AboutSettingsButton") {
                     store.send(.aboutPressed)
                 }
             }
@@ -68,37 +75,48 @@ struct SettingsView: View {
             Section {
                 row(
                     Localizations.accountSecurity,
-                    symbol: "lock",
+                    symbol: "lock.fill",
+                    tint: .blue,
                     badge: store.state.accountSecurityBadgeValue,
                     id: "AccountSecuritySettingsButton",
                 ) { store.send(.accountSecurityPressed) }
                 row(
                     Localizations.autofill,
-                    symbol: "checkmark.circle",
+                    symbol: "key.fill",
+                    tint: .green,
                     badge: store.state.autofillBadgeValue,
                     id: "AutofillSettingsButton",
                 ) { store.send(.autoFillPressed) }
                 row(
                     Localizations.vault,
-                    symbol: "key",
+                    symbol: "archivebox.fill",
+                    tint: .orange,
                     badge: store.state.vaultBadgeValue,
                     id: "VaultSettingsButton",
                 ) { store.send(.vaultPressed) }
                 if store.state.showPlanRow {
-                    row(Localizations.plan, symbol: "creditcard", id: "PlanSettingsButton") {
+                    row(Localizations.plan, symbol: "creditcard.fill", tint: .teal, id: "PlanSettingsButton") {
                         Task { await store.perform(.planPressed) }
                     }
                 }
             }
             Section {
-                row(Localizations.appearance, symbol: "paintbrush", id: "AppearanceSettingsButton") {
+                row(Localizations.appearance, symbol: "paintbrush.fill", tint: .indigo, id: "AppearanceSettingsButton") {
                     store.send(.appearancePressed)
                 }
-                row(Localizations.other, symbol: "ellipsis.circle", id: "OtherSettingsButton") {
+                row(Localizations.other, symbol: "gearshape.fill", tint: .gray, id: "OtherSettingsButton") {
                     store.send(.otherPressed)
                 }
-                row(Localizations.about, symbol: "info.circle", id: "AboutSettingsButton") {
+            }
+            Section {
+                row(Localizations.about, symbol: "info.circle.fill", tint: .gray, id: "AboutSettingsButton") {
                     store.send(.aboutPressed)
+                }
+            }
+            // Pass-Y Customize (on-device layout): its own section, kept separate from the settings rows above.
+            Section {
+                row(Localizations.customize, symbol: "slider.horizontal.3", id: "CustomizeSettingsButton") {
+                    store.send(.customizePressed)
                 }
             }
         }
@@ -122,63 +140,56 @@ struct SettingsView: View {
                 Label(Localizations.logOut, systemImage: "rectangle.portrait.and.arrow.right")
             }
         } label: {
-            HStack(spacing: 14) {
+            // At accessibility sizes the avatar sits above the text (no squeezed, centred column).
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: PassYDesign.Spacing.small))
+                : AnyLayout(HStackLayout(spacing: 14))
+            layout {
                 ZStack {
                     Circle().fill(active.color)
                     Text(active.userInitials ?? "")
                         .font(.system(.title2, design: .rounded).weight(.semibold))
                         .foregroundStyle(active.profileIconTextColor)
                 }
-                .frame(width: 56, height: 56)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(active.email)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                    Text(store.state.serverURL)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                .frame(
+                    width: min(avatarSize, PassYDesign.IconSize.large * 1.6),
+                    height: min(avatarSize, PassYDesign.IconSize.large * 1.6),
+                )
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(active.email)
+                            .font(.headline)
+                            .foregroundStyle(Color.primary)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
+                            .truncationMode(.middle)
+                        Text(store.state.serverURL)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(.tertiaryLabel))
                 }
-                Spacer()
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 4)
         }
         .tint(.primary)
         .accessibilityIdentifier("SettingsAccountRow")
     }
 
-    /// A native settings row: SF Symbol, title, optional badge, disclosure chevron.
+    /// A settings row: tinted SF Symbol tile, title, optional badge, disclosure chevron (`PassYSettingsRow`).
     private func row(
         _ title: String,
         symbol: String,
+        tint: Color = .accentColor,
         badge: String? = nil,
         id: String,
         action: @escaping () -> Void,
     ) -> some View {
-        Button(action: action) {
-            HStack {
-                Label(title, systemImage: symbol)
-                    .foregroundStyle(.primary)
-                Spacer()
-                if let badge {
-                    Text(badge)
-                        .font(.caption.bold())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.red))
-                }
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(id)
+        PassYSettingsRow(title, systemImage: symbol, tint: tint, badge: badge, identifier: id, action: action)
     }
 }
 

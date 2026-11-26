@@ -51,55 +51,56 @@ struct PasswordHistoryListView: View {
 
     // MARK: Private Views
 
-    /// Returns a view for the empty state when no password history items exist.
+    /// The empty state when no password history items exist.
     private func emptyView() -> some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .center) {
-                    Spacer()
-                    Text(Localizations.noPasswordsToList)
-                        .font(.body)
-                        .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                        .multilineTextAlignment(.center)
-                        .padding(16)
-                        .accessibilityIdentifier("NoPasswordsDisplayedLabel")
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, minHeight: geometry.size.height)
-            }
-        }
+        PassYEmptyState(
+            Localizations.noPasswordsToList,
+            systemImage: "clock.arrow.circlepath",
+            identifier: "NoPasswordsDisplayedLabel",
+        )
+        .passYEmptyListState()
     }
 
-    /// Returns a view for displaying the list of password history items.
+    /// The password history: one row per password, newest first; tap copies.
     private func passwordHistoryList() -> some View {
         List {
-            ForEach(store.state.passwordHistory) { passwordHistory in
-                passwordHistoryRow(passwordHistory)
+            Section {
+                ForEach(store.state.passwordHistory) { passwordHistory in
+                    passwordHistoryRow(passwordHistory)
+                }
             }
         }
+        .listStyle(.insetGrouped)
+        .passYReadableWidth()
     }
 
-    /// Return a view for a single row in the password history list.
+    /// A password with the date it was last used and a copy button; tapping the row copies too.
     private func passwordHistoryRow(_ passwordHistory: PasswordHistoryView) -> some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
-                PasswordText(password: passwordHistory.password, isPasswordVisible: true)
+        HStack(spacing: PassYDesign.Spacing.medium) {
+            VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
+                Text(PassYValueText.tinted(passwordHistory.password))
+                    .font(.body.monospaced())
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityLabel(passwordHistory.password)
                     .accessibilityIdentifier("GeneratedPasswordValue")
 
                 FormattedDateTimeView(date: passwordHistory.lastUsedDate)
-                    .styleGuide(.subheadline)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("GeneratedPasswordDateLabel")
             }
-            .padding(.vertical, 10)
+            .padding(.vertical, PassYDesign.Spacing.xSmall)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture { store.send(.copyPassword(passwordHistory)) }
 
             Button {
                 store.send(.copyPassword(passwordHistory))
             } label: {
-                Image(asset: SharedAsset.Icons.copy24)
-                    .imageStyle(.rowIcon)
+                Image(systemName: "doc.on.doc")
+                    .frame(minWidth: 44, minHeight: 44)
             }
+            .buttonStyle(.borderless)
             .accessibilityLabel(Localizations.copyPassword)
             .accessibilityIdentifier("CopyPasswordValueButton")
         }
@@ -108,6 +109,7 @@ struct PasswordHistoryListView: View {
         .accessibilityAction(named: Localizations.copyPassword) {
             store.send(.copyPassword(passwordHistory))
         }
+        .sensoryFeedback(.success, trigger: store.state.toast) { _, newValue in newValue != nil }
     }
 }
 

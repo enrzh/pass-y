@@ -62,43 +62,49 @@ struct AboutView: View {
     }
 
     /// The section of miscellaneous about items.
-    private var miscSection: some View {
+    @ViewBuilder private var miscSection: some View {
         Section {
-            externalLinkRow(Localizations.bitwardenHelpCenter, symbol: "questionmark.circle", action: .helpCenterTapped)
-
-            externalLinkRow(Localizations.privacyPolicy, symbol: "hand.raised", action: .privacyPolicyTapped)
-
-            externalLinkRow(Localizations.learnOrg, symbol: "building.2", action: .learnAboutOrganizationsTapped)
-
-            NativeSettingsRow(
-                accessory: .symbol("doc.on.doc"),
-                action: {
-                    Task {
-                        await store.perform(.copyVersionInfo)
-                    }
-                },
-                symbol: "info.circle",
-                title: store.state.version,
+            externalLinkRow(
+                Localizations.bitwardenHelpCenter,
+                symbol: "questionmark.circle.fill",
+                tint: .blue,
+                action: .helpCenterTapped,
             )
+
+            externalLinkRow(Localizations.privacyPolicy, symbol: "hand.raised.fill", tint: .blue, action: .privacyPolicyTapped)
+
+            externalLinkRow(Localizations.learnOrg, symbol: "building.2.fill", tint: .gray, action: .learnAboutOrganizationsTapped)
+        }
+
+        Section {
+            PassYSettingsRow(store.state.version, systemImage: "info.circle.fill", tint: .gray, accessory: .none) {
+                Task {
+                    await store.perform(.copyVersionInfo)
+                }
+            }
+            .accessibilityHint(Localizations.copy)
         } footer: {
             Text(store.state.copyrightText)
+                .font(.footnote)
                 .frame(maxWidth: .infinity)
                 .multilineTextAlignment(.center)
+                .padding(.top, PassYDesign.Spacing.small)
         }
     }
 
     /// The submit crash logs toggle.
     private var submitCrashLogs: some View {
         Section {
-            Toggle(
+            PassYToggleRow(
                 Localizations.submitCrashLogs,
+                systemImage: "ladybug.fill",
+                tint: .red,
                 isOn: store.binding(
                     get: \.isSubmitCrashLogsToggleOn,
                     send: AboutAction.toggleSubmitCrashLogs,
                 ),
+                identifier: "SubmitCrashLogsSwitch",
             )
-            .accessibilityIdentifier("SubmitCrashLogsSwitch")
-            .accessibilityLabel(Localizations.submitCrashLogs)
         }
     }
 
@@ -106,17 +112,15 @@ struct AboutView: View {
     ///
     /// - Parameters:
     ///   - name: The localized name of the row.
-    ///   - symbol: The SF Symbol shown before the name.
+    ///   - symbol: The SF Symbol of the row tile.
+    ///   - tint: The colour of the row tile.
     ///   - action: An action to send when the row is tapped.
     /// - Returns: A row configured for an external web link.
     ///
-    private func externalLinkRow(_ name: String, symbol: String, action: AboutAction) -> some View {
-        NativeSettingsRow(
-            accessory: .symbol("arrow.up.right.square"),
-            action: { store.send(action) },
-            symbol: symbol,
-            title: name,
-        )
+    private func externalLinkRow(_ name: String, symbol: String, tint: Color, action: AboutAction) -> some View {
+        PassYSettingsRow(name, systemImage: symbol, tint: tint, accessory: .external) {
+            store.send(action)
+        }
     }
 }
 

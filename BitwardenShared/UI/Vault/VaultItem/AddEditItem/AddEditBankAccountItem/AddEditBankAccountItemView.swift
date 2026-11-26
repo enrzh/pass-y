@@ -35,142 +35,133 @@ struct AddEditBankAccountItemView: View {
     >
 
     var body: some View {
-        SectionView(Localizations.accountDetails, contentSpacing: 8) {
-            ContentBlock {
-                BitwardenTextField(
-                    title: Localizations.bankName,
-                    text: store.binding(
-                        get: \.bankName,
-                        send: AddEditBankAccountItemAction.bankNameChanged,
-                    ),
-                    accessibilityIdentifier: "BankNameEntry",
-                    focus: .field($focusedField, equals: .bankName),
-                )
-                .onSubmit { focusNextField($focusedField) }
+        Section {
+            PassYFormField(
+                Localizations.bankName,
+                text: store.binding(
+                    get: \.bankName,
+                    send: AddEditBankAccountItemAction.bankNameChanged,
+                ),
+                identifier: "BankNameEntry",
+                focus: .field($focusedField, equals: .bankName),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.nameOnAccount,
-                    text: store.binding(
-                        get: \.nameOnAccount,
-                        send: AddEditBankAccountItemAction.nameOnAccountChanged,
-                    ),
-                    accessibilityIdentifier: "NameOnAccountEntry",
-                    focus: .field($focusedField, equals: .nameOnAccount),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.nameOnAccount,
+                text: store.binding(
+                    get: \.nameOnAccount,
+                    send: AddEditBankAccountItemAction.nameOnAccountChanged,
+                ),
+                identifier: "NameOnAccountEntry",
+                focus: .field($focusedField, equals: .nameOnAccount),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenMenuField(
-                    title: Localizations.accountType,
-                    accessibilityIdentifier: "AccountTypePicker",
-                    options: BankAccountType.displayOrder.map(DefaultableType.custom),
-                    selection: store.binding(
-                        get: \.accountType,
-                        send: AddEditBankAccountItemAction.accountTypeChanged,
-                    ),
-                )
+            PassYPickerRow(
+                Localizations.accountType,
+                options: BankAccountType.displayOrder.map(DefaultableType.custom),
+                selection: store.binding(
+                    get: \.accountType,
+                    send: AddEditBankAccountItemAction.accountTypeChanged,
+                ),
+                identifier: "AccountTypePicker",
+            )
 
-                BitwardenTextField(
-                    title: Localizations.accountNumber,
-                    text: store.binding(
-                        get: \.accountNumber,
-                        send: AddEditBankAccountItemAction.accountNumberChanged,
-                    ),
-                    accessibilityIdentifier: "AccountNumberEntry",
-                    passwordVisibilityAccessibilityId: "ShowAccountNumberButton",
-                    passwordVisibilityFieldName: Localizations.accountNumber,
-                    focus: .field($focusedField, equals: .accountNumber),
-                    isPasswordVisible: store.binding(
-                        get: \.isAccountNumberVisible,
-                        send: AddEditBankAccountItemAction.toggleAccountNumberVisibilityChanged,
-                    ),
-                    spellOutAccessibilityValue: true,
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYSecureField(
+                Localizations.accountNumber,
+                text: store.binding(
+                    get: \.accountNumber,
+                    send: AddEditBankAccountItemAction.accountNumberChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.isAccountNumberVisible,
+                    send: AddEditBankAccountItemAction.toggleAccountNumberVisibilityChanged,
+                ),
+                identifier: "AccountNumberEntry",
+                revealIdentifier: "ShowAccountNumberButton",
+                revealSpokenName: Localizations.accountNumber,
+                focus: .field($focusedField, equals: .accountNumber),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.routingNumber,
-                    text: store.binding(
-                        get: \.routingNumber,
-                        send: AddEditBankAccountItemAction.routingNumberChanged,
-                    ),
-                    accessibilityIdentifier: "RoutingNumberEntry",
-                    focus: .field($focusedField, equals: .routingNumber),
-                    spellOutAccessibilityValue: true,
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.routingNumber,
+                text: store.binding(
+                    get: \.routingNumber,
+                    send: AddEditBankAccountItemAction.routingNumberChanged,
+                ),
+                identifier: "RoutingNumberEntry",
+                focus: .field($focusedField, equals: .routingNumber),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.branchNumber,
-                    text: store.binding(
-                        get: \.branchNumber,
-                        send: AddEditBankAccountItemAction.branchNumberChanged,
-                    ),
-                    accessibilityIdentifier: "BranchNumberEntry",
-                    focus: .field($focusedField, equals: .branchNumber),
-                    spellOutAccessibilityValue: true,
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.branchNumber,
+                text: store.binding(
+                    get: \.branchNumber,
+                    send: AddEditBankAccountItemAction.branchNumberChanged,
+                ),
+                identifier: "BranchNumberEntry",
+                focus: .field($focusedField, equals: .branchNumber),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.pin,
-                    text: store.binding(
-                        get: \.pin,
-                        send: AddEditBankAccountItemAction.pinChanged,
-                    ),
-                    accessibilityIdentifier: "PinEntry",
-                    passwordVisibilityAccessibilityId: "ShowPinButton",
-                    passwordVisibilityFieldName: Localizations.pin,
-                    focus: .field($focusedField, equals: .pin),
-                    isPasswordVisible: store.binding(
-                        get: \.isPinVisible,
-                        send: AddEditBankAccountItemAction.togglePinVisibilityChanged,
-                    ),
-                    spellOutAccessibilityValue: true,
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYSecureField(
+                Localizations.pin,
+                text: store.binding(
+                    get: \.pin,
+                    send: AddEditBankAccountItemAction.pinChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.isPinVisible,
+                    send: AddEditBankAccountItemAction.togglePinVisibilityChanged,
+                ),
+                identifier: "PinEntry",
+                revealIdentifier: "ShowPinButton",
+                revealSpokenName: Localizations.pin,
+                focus: .field($focusedField, equals: .pin),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.swiftCode,
-                    text: store.binding(
-                        get: \.swiftCode,
-                        send: AddEditBankAccountItemAction.swiftCodeChanged,
-                    ),
-                    accessibilityIdentifier: "SwiftCodeEntry",
-                    focus: .field($focusedField, equals: .swiftCode),
-                    spellOutAccessibilityValue: true,
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.swiftCode,
+                text: store.binding(
+                    get: \.swiftCode,
+                    send: AddEditBankAccountItemAction.swiftCodeChanged,
+                ),
+                identifier: "SwiftCodeEntry",
+                focus: .field($focusedField, equals: .swiftCode),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.iban,
-                    text: store.binding(
-                        get: \.iban,
-                        send: AddEditBankAccountItemAction.ibanChanged,
-                    ),
-                    accessibilityIdentifier: "IbanEntry",
-                    passwordVisibilityAccessibilityId: "ShowIbanButton",
-                    passwordVisibilityFieldName: Localizations.iban,
-                    focus: .field($focusedField, equals: .iban),
-                    isPasswordVisible: store.binding(
-                        get: \.isIbanVisible,
-                        send: AddEditBankAccountItemAction.toggleIbanVisibilityChanged,
-                    ),
-                    spellOutAccessibilityValue: true,
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYSecureField(
+                Localizations.iban,
+                text: store.binding(
+                    get: \.iban,
+                    send: AddEditBankAccountItemAction.ibanChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.isIbanVisible,
+                    send: AddEditBankAccountItemAction.toggleIbanVisibilityChanged,
+                ),
+                identifier: "IbanEntry",
+                revealIdentifier: "ShowIbanButton",
+                revealSpokenName: Localizations.iban,
+                focus: .field($focusedField, equals: .iban),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.bankContactPhone,
-                    text: store.binding(
-                        get: \.bankContactPhone,
-                        send: AddEditBankAccountItemAction.bankContactPhoneChanged,
-                    ),
-                    accessibilityIdentifier: "BankContactPhoneEntry",
-                    focus: .field($focusedField, equals: .bankContactPhone),
-                    spellOutAccessibilityValue: true,
-                )
-                .textFieldConfiguration(.numeric(.telephoneNumber))
-            }
+            PassYFormField(
+                Localizations.bankContactPhone,
+                text: store.binding(
+                    get: \.bankContactPhone,
+                    send: AddEditBankAccountItemAction.bankContactPhoneChanged,
+                ),
+                identifier: "BankContactPhoneEntry",
+                focus: .field($focusedField, equals: .bankContactPhone),
+            )
+            .textFieldConfiguration(.numeric(.telephoneNumber))
         }
     }
 }
@@ -178,7 +169,7 @@ struct AddEditBankAccountItemView: View {
 #if DEBUG
 #Preview("Empty") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditBankAccountItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -186,16 +177,14 @@ struct AddEditBankAccountItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Empty Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Empty Add Edit State")
     }
 }
 
 #Preview("Populated") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditBankAccountItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -216,10 +205,8 @@ struct AddEditBankAccountItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Populated Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Populated Add Edit State")
     }
 }
 #endif

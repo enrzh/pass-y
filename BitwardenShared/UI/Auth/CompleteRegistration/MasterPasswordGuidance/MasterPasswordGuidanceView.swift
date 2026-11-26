@@ -15,43 +15,37 @@ struct MasterPasswordGuidanceView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            VStack(alignment: .center, spacing: 12) {
-                Text(Localizations.aSecureMemorablePassword)
-                    .styleGuide(.title2, weight: .semibold)
-
-                Text(Localizations.aSecureMemorablePasswordDescriptionLong)
-                    .styleGuide(.body)
-            }
-            .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-            .multilineTextAlignment(.center)
-            .padding(.top, 12)
-
-            NumberedList {
-                numberedRowView(
-                    title: Localizations.chooseThreeOrFourRandomWords,
-                    subtitle: Localizations.chooseThreeOrFourRandomWordsDescriptionLong,
-                )
-
-                numberedRowView(
-                    title: Localizations.combineThoseWordsTogether,
-                    subtitle: Localizations.combineThoseWordsTogetherDescriptionLong,
-                )
-
-                numberedRowView(
-                    title: Localizations.makeItYours,
-                    subtitle: Localizations.makeItYoursDescriptionLong,
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("key.fill", .accentColor),
+                    title: Localizations.aSecureMemorablePassword,
+                    message: Localizations.aSecureMemorablePasswordDescriptionLong,
                 )
             }
+            .passYPlainListRow()
 
-            ActionCard(
-                title: Localizations.needSomeInspiration,
-                actionButtonState: ActionCard.ButtonState(title: Localizations.checkOutThePassphraseGenerator) {
+            Section {
+                numberedRowView(1, title: Localizations.chooseThreeOrFourRandomWords,
+                                subtitle: Localizations.chooseThreeOrFourRandomWordsDescriptionLong)
+                numberedRowView(2, title: Localizations.combineThoseWordsTogether,
+                                subtitle: Localizations.combineThoseWordsTogetherDescriptionLong)
+                numberedRowView(3, title: Localizations.makeItYours,
+                                subtitle: Localizations.makeItYoursDescriptionLong)
+            }
+
+            Section {
+                PassYSettingsRow(
+                    Localizations.checkOutThePassphraseGenerator,
+                    systemImage: "wand.and.stars",
+                    tint: .purple,
+                ) {
                     store.send(.generatePasswordPressed)
-                },
-            )
+                }
+            } header: {
+                Text(Localizations.needSomeInspiration)
+            }
         }
-        .scrollView()
         .navigationBar(title: Localizations.masterPasswordHelp, titleDisplayMode: .inline)
         .toolbar {
             closeToolbarItem {
@@ -62,24 +56,22 @@ struct MasterPasswordGuidanceView: View {
 
     // MARK: Private Views
 
-    /// Returns a view for displaying a numbered row within a `NumberedList`.
-    ///
-    /// - Parameters:
-    ///   - title: The title text to display in the row.
-    ///   - subtitle: The subtitle text to display in the row.
-    ///
-    private func numberedRowView(title: String, subtitle: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(LocalizedStringKey(title))
-                .styleGuide(.headline, weight: .semibold, includeLinePadding: false, includeLineSpacing: false)
-                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+    /// A numbered step: the number in a tinted tile, the title and the explanation.
+    private func numberedRowView(_ number: Int, title: String, subtitle: String) -> some View {
+        HStack(alignment: .top, spacing: PassYDesign.Spacing.medium) {
+            PassYIconTile(systemImage: "\(number).circle.fill", tint: .accentColor, size: PassYDesign.IconSize.small)
 
-            Text(LocalizedStringKey(subtitle))
-                .styleGuide(.subheadline)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+            VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
+                Text(LocalizedStringKey(title))
+                    .font(.body.weight(.semibold))
+                Text(LocalizedStringKey(subtitle))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .passYListSeparatorLeading()
         }
-        .padding(.vertical, 12)
-        .padding(.trailing, 16) // Leading padding is handled by `NumberedList`.
+        .padding(.vertical, PassYDesign.Spacing.xSmall)
+        .accessibilityElement(children: .combine)
     }
 }
 

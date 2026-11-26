@@ -17,6 +17,7 @@ class VaultUnlockProcessor: StateProcessor<
         & HasErrorReporter
         & HasStateService
         & HasUserSessionStateService
+        & HasVaultRepository
 
     // MARK: Private Properties
 
@@ -214,12 +215,16 @@ class VaultUnlockProcessor: StateProcessor<
                 try EmptyInputValidator(fieldName: Localizations.masterPassword)
                     .validate(input: state.masterPassword)
                 try await services.authRepository.unlockVaultWithPassword(password: state.masterPassword)
+                #if DEBUG
+                PassYPerf.mark("passwordUnlocked")
+                #endif
             case .pin:
                 try EmptyInputValidator(fieldName: Localizations.pin)
                     .validate(input: state.pin)
                 try await services.authRepository.unlockVaultWithPIN(pin: state.pin)
             }
 
+            await warmUpVaultList()
             await coordinator.handleEvent(.didCompleteAuth)
             state.unsuccessfulUnlockAttemptsCount = 0
             await services.userSessionStateService.setUnsuccessfulUnlockAttempts(0)
@@ -243,6 +248,25 @@ class VaultUnlockProcessor: StateProcessor<
         }
     }
 
+    /// Starts building the first vault list right at the unlock (`PassYVaultListWarmup`; the main app only, memory
+    /// only, cleared on lock) and keeps the unlock page up for at most `warmUpWait` seconds while it runs: the vault
+    /// home then usually starts with its rows, and a slower decrypt goes on while the shell is built (the home's stream
+    /// takes its result), so no empty home page and no extra wait beyond the cap.
+    private func warmUpVaultList() async {
+        guard appExtensionDelegate?.isInAppExtension != true else { return }
+        PassYVaultListWarmup.start(vaultRepository: services.vaultRepository)
+        #if DEBUG
+        PassYPerf.mark("warmUpStarted")
+        #endif
+        await PassYVaultListWarmup.waitForBuild(atMost: Self.warmUpWait)
+        #if DEBUG
+        PassYPerf.mark("warmUpRouted")
+        #endif
+    }
+
+    /// The longest the unlock page waits for the first vault list before routing (seconds).
+    static let warmUpWait: TimeInterval = 0.3
+
     /// Attempts to unlock the vault with the user's biometrics
     ///
     private func unlockWithBiometrics() async {
@@ -257,9 +281,24 @@ class VaultUnlockProcessor: StateProcessor<
         // the extension completes (PM-44687).
         state.shouldFocusPasswordOrPinField = false
 
+        // The system prompt resigns the scene; the unlock page needs no privacy cover meanwhile (PassYPrivacyCover).
+        PassYPrivacyCover.beginBiometricUnlock()
+        defer { PassYPrivacyCover.endBiometricUnlock() }
         do {
+            #if DEBUG
+            PassYPerf.mark("bioStart")
+            #endif
             try await services.authRepository.unlockVaultWithBiometrics()
+            #if DEBUG
+            PassYPerf.mark("bioUnlocked")
+            #endif
+            // Before the vault is routed (a success does not cover the vault while the system Face ID UI fades).
+            PassYPrivacyCover.endBiometricUnlock(succeeded: true)
+            await warmUpVaultList()
             await coordinator.handleEvent(.didCompleteAuth)
+            #if DEBUG
+            PassYPerf.mark("authRouted")
+            #endif
             state.unsuccessfulUnlockAttemptsCount = 0
             await services.userSessionStateService.setUnsuccessfulUnlockAttempts(0)
         } catch BiometricsServiceError.biometryCancelled {

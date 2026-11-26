@@ -2,11 +2,8 @@
 
 /// Effects that can be performed from a `VaultListItemRowView`.
 enum VaultListItemRowEffect: Equatable {
-    /// A VoiceOver custom accessibility action for one of the more-options actions was activated.
+    /// One of the more-options actions was chosen (context menu, swipe menu or VoiceOver custom action).
     case accessibilityMoreOptionsActionPressed(MoreOptionsActionKind)
-
-    /// The more button was pressed.
-    case morePressed
 
     /// The row was pressed to open the item.
     case pressed

@@ -66,10 +66,6 @@ class ImportCXFProcessor: StateProcessor<ImportCXFState, Void, ImportCXFEffect> 
 
     /// Checks whether the CXF import feature is enabled.
     private func checkEnabled() async {
-        guard #available(iOS 26.0, *) else {
-            state.status = .failure(message: Localizations.importingFromAnotherProviderIsNotAvailableForThisDevice)
-            return
-        }
         if await services.policyService.policyAppliesToUser(.personalOwnership) {
             state.isFeatureUnavailable = true
             state.status = .failure(message: Localizations.personalOwnershipPolicyInEffect)
@@ -78,7 +74,7 @@ class ImportCXFProcessor: StateProcessor<ImportCXFState, Void, ImportCXFEffect> 
 
     /// Starts the import process.
     private func startImport() async {
-        guard #available(iOS 26.0, *), let credentialImportToken = state.credentialImportToken else {
+        guard let credentialImportToken = state.credentialImportToken else {
             coordinator.showAlert(
                 .defaultAlert(
                     title: Localizations.importError,

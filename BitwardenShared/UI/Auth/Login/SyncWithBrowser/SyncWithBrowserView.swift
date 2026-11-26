@@ -19,32 +19,31 @@ struct SyncWithBrowserView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.keyhole,
-                style: .smallImage,
-                title: Localizations.syncWithBrowser,
-                message: Localizations.syncWithBrowserDescriptionLong(store.state.vaultUrl),
-            )
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("safari.fill", .accentColor),
+                    title: Localizations.syncWithBrowser,
+                    message: Localizations.syncWithBrowserDescriptionLong(store.state.vaultUrl),
+                )
+            }
+            .passYPlainListRow()
 
-            VStack(spacing: 12) {
-                AsyncButton {
-                    await store.perform(.launchBrowserTapped)
+            PassYActionStack {
+                Button {
+                    Task { await store.perform(.launchBrowserTapped) }
                 } label: {
-                    Label(Localizations.launchBrowser, image: SharedAsset.Icons.externalLink16.swiftUIImage)
+                    Label(Localizations.launchBrowser, systemImage: "arrow.up.forward.app")
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.primary())
+                .passYButtonStyle(.primary, fillsWidth: true)
 
                 Button(Localizations.continueWithoutSyncing) {
                     store.send(.continueWithoutSyncingTapped)
                 }
-                .buttonStyle(.secondary())
+                .buttonStyle(.borderless)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .frame(maxWidth: .infinity)
-        .scrollView()
         .dismissKeyboardOnAppear()
     }
 }

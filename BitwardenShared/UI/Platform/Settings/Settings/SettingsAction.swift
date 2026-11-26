@@ -13,6 +13,9 @@ enum SettingsAction: Equatable {
     /// The appearance button was pressed.
     case appearancePressed
 
+    /// The Customize button was pressed.
+    case customizePressed
+
     /// The auto-fill button was pressed.
     case autoFillPressed
 

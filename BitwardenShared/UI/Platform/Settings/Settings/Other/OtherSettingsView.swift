@@ -20,44 +20,42 @@ struct OtherSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Toggle(
+                PassYSettingsRow(
+                    Localizations.syncNow,
+                    systemImage: "arrow.triangle.2.circlepath",
+                    tint: .blue,
+                    accessory: .none,
+                    identifier: "SyncNowButton",
+                ) {
+                    Task { await store.perform(.syncNow) }
+                }
+                PassYToggleRow(
                     Localizations.enableSyncOnRefresh,
+                    systemImage: "arrow.down.circle.fill",
+                    tint: .blue,
                     isOn: store.binding(
                         get: \.isAllowSyncOnRefreshToggleOn,
                         send: OtherSettingsAction.toggleAllowSyncOnRefresh,
                     ),
+                    identifier: "SyncOnRefreshSwitch",
                 )
-                .accessibilityIdentifier("SyncOnRefreshSwitch")
-                .accessibilityLabel(Localizations.enableSyncOnRefresh)
             } footer: {
-                Text(Localizations.enableSyncOnRefreshDescription)
-            }
-
-            Section {
-                AsyncButton {
-                    await store.perform(.syncNow)
-                } label: {
-                    HStack {
-                        Label(Localizations.syncNow, systemImage: "arrow.triangle.2.circlepath")
-                        Spacer()
+                VStack(alignment: .leading, spacing: PassYDesign.Spacing.small) {
+                    Group {
+                        if let lastSyncDate = store.state.lastSyncDate {
+                            Text("\(Localizations.lastSync) \(lastSyncDate.formatted(date: .abbreviated, time: .shortened))")
+                        } else {
+                            Text(Localizations.lastSync + " --")
+                        }
                     }
-                    .contentShape(Rectangle())
+                    .accessibilityIdentifier("LastSyncLabel")
+                    PassYFooterText(Localizations.enableSyncOnRefreshDescription)
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("SyncNowButton")
-            } footer: {
-                if let lastSyncDate = store.state.lastSyncDate {
-                    FormattedDateTimeView(label: Localizations.lastSync, separator: "", date: lastSyncDate)
-                        .accessibilityIdentifier("LastSyncLabel")
-                } else {
-                    Text(Localizations.lastSync + " --")
-                        .accessibilityIdentifier("LastSyncLabel")
-                }
+                .font(.footnote)
             }
 
             Section {
                 Picker(
-                    Localizations.clearClipboard,
                     selection: store.binding(
                         get: \.clearClipboardValue,
                         send: OtherSettingsAction.clearClipboardValueChanged,
@@ -66,52 +64,55 @@ struct OtherSettingsView: View {
                     ForEach(ClearClipboardValue.allCases, id: \.self) { value in
                         Text(value.localizedName).tag(value)
                     }
+                } label: {
+                    PassYSettingsRowLabel(title: Localizations.clearClipboard, systemImage: "clipboard.fill", tint: .orange)
                 }
                 .pickerStyle(.menu)
                 .accessibilityIdentifier("ClearClipboardChooser")
-            } footer: {
-                Text(Localizations.clearClipboardDescription)
-            }
-
-            Section {
-                Toggle(
+                PassYToggleRow(
                     Localizations.allowUniversalClipboard,
+                    systemImage: "laptopcomputer.and.iphone",
+                    tint: .orange,
                     isOn: store.binding(
                         get: \.isAllowUniversalClipboardToggleOn,
                         send: OtherSettingsAction.toggleAllowUniversalClipboard,
                     ),
+                    identifier: "UniversalClipboardChooser",
                 )
-                .accessibilityIdentifier("UniversalClipboardChooser")
-                .accessibilityLabel(Localizations.allowUniversalClipboard)
             } footer: {
-                Text(Localizations.useUniversalClipboardToCopyDescriptionLong)
+                VStack(alignment: .leading, spacing: PassYDesign.Spacing.small) {
+                    PassYFooterText(Localizations.clearClipboardDescription)
+                    PassYFooterText(Localizations.useUniversalClipboardToCopyDescriptionLong)
+                }
             }
 
             if store.state.shouldShowConnectToWatchToggle {
                 Section {
-                    Toggle(
+                    PassYToggleRow(
                         Localizations.connectToWatch,
+                        systemImage: "applewatch",
+                        tint: .gray,
                         isOn: store.binding(
                             get: \.isConnectToWatchToggleOn,
                             send: OtherSettingsAction.toggleConnectToWatch,
                         ),
                     )
-                    .accessibilityLabel(Localizations.connectToWatch)
                 }
             }
 
             Section {
-                Toggle(
+                PassYToggleRow(
                     Localizations.siriAndShortcutsAccess,
+                    systemImage: "square.2.layers.3d.fill",
+                    tint: .purple,
                     isOn: store.binding(
                         get: \.isSiriAndShortcutsAccessToggleOn,
                         send: OtherSettingsAction.toggleSiriAndShortcutsAccessToggleOn,
                     ),
+                    identifier: "SiriAndShortcutsAccessSwitch",
                 )
-                .accessibilityIdentifier("SiriAndShortcutsAccessSwitch")
-                .accessibilityLabel(Localizations.siriAndShortcutsAccess)
             } footer: {
-                Text(Localizations.enableToAllowTheAppToRespondToSiriAndShortcutsUsingAppIntents)
+                PassYFooterText(Localizations.enableToAllowTheAppToRespondToSiriAndShortcutsUsingAppIntents)
             }
         }
         .navigationBar(title: Localizations.other, titleDisplayMode: .inline)

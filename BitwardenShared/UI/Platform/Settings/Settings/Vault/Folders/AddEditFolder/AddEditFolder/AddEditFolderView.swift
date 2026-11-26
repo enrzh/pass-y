@@ -12,6 +12,9 @@ struct AddEditFolderView: View {
     /// The store that renders the view.
     @ObservedObject var store: Store<AddEditFolderState, AddEditFolderAction, AddEditFolderEffect>
 
+    /// Whether the name field has the keyboard focus (set when a new folder opens).
+    @FocusState private var focusedField: Bool?
+
     // MARK: View
 
     var body: some View {
@@ -28,7 +31,8 @@ struct AddEditFolderView: View {
     /// The view to add a new folder.
     private var addView: some View {
         content
-            .navigationBar(title: Localizations.addFolder, titleDisplayMode: .inline)
+            .navigationTitle(Localizations.addFolder)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 cancelToolbarItem {
                     store.send(.dismiss)
@@ -43,7 +47,8 @@ struct AddEditFolderView: View {
     /// The view to edit an existing folder.
     private var editView: some View {
         content
-            .navigationBar(title: Localizations.editFolder, titleDisplayMode: .inline)
+            .navigationTitle(Localizations.editFolder)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 cancelToolbarItem {
                     store.send(.dismiss)
@@ -63,25 +68,35 @@ struct AddEditFolderView: View {
             }
     }
 
-    /// The content of the view in either mode.
+    /// The content of the view in either mode: the name as a free field, focused for a new folder; Return saves.
     private var content: some View {
         Form {
             Section {
                 nameEntryTextField
             }
         }
+        .passYReadableWidth()
+        .onAppear {
+            if store.state.mode == .add { focusedField = true }
+        }
     }
 
     /// The name entry text field.
     private var nameEntryTextField: some View {
-        TextField(
+        PassYFormField(
             Localizations.name,
             text: store.binding(
                 get: \.folderName,
                 send: AddEditFolderAction.folderNameTextChanged,
             ),
+            style: .free,
+            identifier: "FolderNameField",
+            focus: .field($focusedField, equals: true),
         )
-        .id(Localizations.name)
-        .accessibilityIdentifier("FolderNameField")
+        .textInputAutocapitalization(.words)
+        .submitLabel(.done)
+        .onSubmit {
+            Task { await store.perform(.saveTapped) }
+        }
     }
 }

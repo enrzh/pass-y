@@ -31,40 +31,28 @@ class ViewPassportItemViewTests: BitwardenTestCase {
     /// Tapping the copy given name button dispatches the copy action.
     @MainActor
     func test_copyGivenNameButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "PassportCopyFirstNameButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PassportFirstNameEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "Bit", field: .givenName))
     }
 
     /// Tapping the copy surname button dispatches the copy action.
     @MainActor
     func test_copySurnameButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "PassportCopyLastNameButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PassportLastNameEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "Warden", field: .surname))
     }
 
     /// Tapping the copy passport number button dispatches the copy action.
     @MainActor
     func test_copyPassportNumberButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "PassportCopyNumberButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PassportNumberEntry")
         XCTAssertEqual(processor.dispatchedActions.last, .copyPressed(value: "X12345678", field: .passportNumber))
     }
 
     /// Tapping the copy national identification number button dispatches the copy action.
     @MainActor
     func test_copyNationalIdentificationNumberButton_pressed() throws {
-        let button = try subject.inspect().find(
-            viewWithAccessibilityIdentifier: "PassportCopyNationalIdentificationNumberButton",
-        ).button()
-        try button.tap()
+        try subject.inspect().tapPassYCopyRow(valueIdentifier: "PassportNationalIdentificationNumberEntry")
         XCTAssertEqual(
             processor.dispatchedActions.last,
             .copyPressed(value: "123456789", field: .nationalIdentificationNumber),
@@ -102,7 +90,7 @@ class ViewPassportItemViewTests: BitwardenTestCase {
     func test_emptyState_hidesFields() throws {
         initSubject(state: PassportItemState())
         XCTAssertThrowsError(
-            try subject.inspect().find(viewWithAccessibilityIdentifier: "PassportCopyFirstNameButton").button(),
+            try subject.inspect().find(viewWithAccessibilityIdentifier: "PassportFirstNameEntry").button(),
         )
         XCTAssertThrowsError(
             try subject.inspect().find(viewWithAccessibilityIdentifier: "ShowPassportNumberButton").button(),

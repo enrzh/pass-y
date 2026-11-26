@@ -6,6 +6,39 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 
 ## Unreleased
 
+## v1.28.0 (2026-11-24) - Apple polish round
+Not tagged and not version-bumped yet; no validator verdict yet.
+
+- Lists as cards: vault home, group pages, search results, Send and folders are native inset-grouped lists (rounded
+  cards on the grouped page colour, system separators aligned to the item name); group pages open fully formed (no
+  spinner, the title and "N Items" subtitle are there from the first frame, no title jump).
+- Native menus: row options, the swipe "More" action and the bar's "+" are pull-down menus with SF Symbols (no centered
+  action sheet); icon-only swipe actions Delete and More on item rows.
+- Vault home: tinted rounded-square category tiles with rounded tabular counts and a press state; avatar toolbar
+  button 44 pt like the neighbouring glass buttons.
+- Toasts: Liquid Glass capsule with an SF Symbol (copied / success / failure), snappy transition, haptic feedback,
+  dismiss after about 3 s.
+- Customize ("Anpassen", Settings and avatar menu "Customize home…"): per device, not synced. Home: show/hide,
+  reorder (drag) and layout of the tiles (cards, wide cards, compact list); show/hide, order and "collapsed when
+  opened" of Favorites, folders, No Folder and shared folders; hidden entries stay reachable under "More" at the end of
+  the home. Rows: density, user names, icons (website icons: the existing switch), favourite / shared / attachment
+  marks, colourful or monochrome tiles. Verification codes: digit grouping, countdown ring and seconds. Live preview and
+  Reset to defaults; the defaults are the previous look.
+- New logo (solid shield with a Y knocked out) and an Icon Composer app icon (`PassY.icon`, light / dark / tinted).
+- Minimum iOS 26 (deployment target and Info.plist).
+- Unlock: the vault list is warmed up (decrypted off the main actor) while the shell is built, and the unlock waits up
+  to 0.3 s for it; no privacy cover (splash) over the unlock page while the Face ID prompt is up, the app switcher
+  snapshot stays covered.
+- Empty group / folder pages show the same page colour above the bottom bar as every other page.
+- Toasts on the vault, group and Send pages sit just above the bottom bar (they floated about 80 pt higher, over the
+  list, because the bar's height was added twice).
+- Code (no visible change): pre-iOS 26 checks and fallbacks removed, list pages share one set of helpers, all DEBUG
+  diagnostics in one folder (none in Release builds).
+- Open issues: the XCUITest idle stall after unlock has no known root cause; the Face ID splash change is verified only
+  by unit tests (the simulator unlocks without a prompt); the reported back-navigation delay was not reproducible in
+  the simulator; an item opened from the home search results shows its sheet with the search keyboard still up (seen
+  in the simulator, not changed).
+
 ## v1.27.0 (2026-11-24) - Watch back, preload security fix, cleanup
 Verdicts: four validator runs, all FAIL, each on a different single UI test:
 [v1.27](Docs/verdicts/2026-11-24-v1.27.md), [recheck](Docs/verdicts/2026-11-24-v1.27-recheck.md),

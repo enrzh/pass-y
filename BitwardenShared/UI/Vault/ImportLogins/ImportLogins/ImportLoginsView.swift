@@ -91,7 +91,7 @@ struct ImportLoginsView: View {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
     }
 
     /// The step 1 page view.
@@ -191,7 +191,7 @@ struct ImportLoginsView: View {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
     }
 }
 

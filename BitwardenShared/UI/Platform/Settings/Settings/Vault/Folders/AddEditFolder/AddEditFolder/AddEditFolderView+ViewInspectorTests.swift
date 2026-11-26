@@ -53,7 +53,10 @@ class AddEditFolderViewTests: BitwardenTestCase {
     func test_deleteButton_tap() async throws {
         processor.state.mode = .edit(.fixture())
 
-        let menu = try subject.inspect().find(ViewType.Menu.self, containing: Localizations.options)
+        let menu = try subject.inspect().find(ViewType.Menu.self, where: { menu in
+            // The options menu's label is the "..." symbol (identifier `HeaderBarOptionsButton`), no text.
+            (try? menu.find(viewWithAccessibilityIdentifier: "HeaderBarOptionsButton")) != nil
+        })
         let button = try menu.find(asyncButton: Localizations.delete)
         try await button.tap()
 
@@ -63,8 +66,8 @@ class AddEditFolderViewTests: BitwardenTestCase {
     /// Updating the text field dispatches the `.folderNameTextChanged()` action.
     @MainActor
     func test_nameField_updateValue() throws {
-        let textfield = try subject.inspect().find(viewWithId: Localizations.name).textField()
-        try textfield.setInput("text")
+        let textfield = try subject.inspect().find(passYFormField: Localizations.name)
+        try textfield.inputBinding().wrappedValue = "text"
         XCTAssertEqual(processor.dispatchedActions.last, .folderNameTextChanged("text"))
     }
 

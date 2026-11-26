@@ -16,7 +16,6 @@ enum ASSettingsMediatorError: Error {
 ///
 protocol ASSettingsMediator { // sourcery: AutoMockable
     /// Calling this method will open the Settings app and navigate directly to the Verification Code provider settings.
-    @available(iOS 17.0, *)
     func openVerificationCodeAppSettings() async throws
 
     /// Call this method from your containing app to request to turn on a contained Credential Provider Extension.
@@ -25,7 +24,6 @@ protocol ASSettingsMediator { // sourcery: AutoMockable
     /// Throws: ``ASSettingsMediatorError/cantRequest`` if the required wait time has
     /// not elapsed since the last request.
     /// Returns: whether the credential provider is enabled.
-    @available(iOS 18.0, *)
     func requestToTurnOnCredentialProviderExtension() async throws -> Bool
 }
 
@@ -63,12 +61,10 @@ class DefaultASSettingsMediator: ASSettingsMediator {
 
     // MARK: Methods
 
-    @available(iOS 17.0, *)
     func openVerificationCodeAppSettings() async throws {
         try await asSettingsHelperProxy.openVerificationCodeAppSettings()
     }
 
-    @available(iOS 18.0, *)
     func requestToTurnOnCredentialProviderExtension() async throws -> Bool {
         let lastRequestDate = await stateService.getLastRequestToTurnOnCredentialProvider()
         guard canRequestToTurnOnCredentialProviderExtension(lastRequestDate: lastRequestDate) else {

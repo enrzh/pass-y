@@ -15,24 +15,33 @@ struct PreventAccountLockView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 24) {
-            instructionsView
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("lock.shield.fill", .accentColor),
+                    title: Localizations.neverLoseAccessToYourVault,
+                    message: Localizations
+                        .theBestWayToMakeSureYouCanAlwaysAccessYourAccountIsToSetUpSafeguardsFromTheStart,
+                )
+            }
+            .passYPlainListRow()
 
-            ContentBlock(dividerLeadingPadding: 48) {
+            Section {
                 rowView(
-                    image: SharedAsset.Icons.lightbulb24,
+                    systemImage: "lightbulb.fill",
+                    tint: .yellow,
                     title: Localizations.createAHint,
                     subtitle: Localizations.yourHintWillBeSentToYouViaEmailWhenYouRequestIt,
                 )
 
                 rowView(
-                    image: SharedAsset.Icons.pencil24,
+                    systemImage: "pencil",
+                    tint: .blue,
                     title: Localizations.writeYourPasswordDown,
                     subtitle: Localizations.beCarefulToKeepYourWrittenPasswordSomewhereSecretAndSafe,
                 )
             }
         }
-        .scrollView()
         .navigationBar(title: Localizations.preventAccountLockout, titleDisplayMode: .inline)
         .toolbar {
             closeToolbarItem {
@@ -43,52 +52,22 @@ struct PreventAccountLockView: View {
 
     // MARK: Private
 
-    /// The main instructions.
-    private var instructionsView: some View {
-        VStack(spacing: 8) {
-            Text(Localizations.neverLoseAccessToYourVault)
-                .styleGuide(.title2, weight: .semibold)
-                .multilineTextAlignment(.center)
+    /// A tip row: tinted symbol tile, title and explanation.
+    private func rowView(systemImage: String, tint: Color, title: String, subtitle: String) -> some View {
+        HStack(alignment: .top, spacing: PassYDesign.Spacing.medium) {
+            PassYIconTile(systemImage: systemImage, tint: tint, size: PassYDesign.IconSize.small)
 
-            Text(Localizations.theBestWayToMakeSureYouCanAlwaysAccessYourAccountIsToSetUpSafeguardsFromTheStart)
-                .styleGuide(.body)
-                .multilineTextAlignment(.center)
-        }
-        .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-        .padding(.top, 8)
-    }
-
-    /// Returns a view for displaying a row of content within the view.
-    ///
-    /// - Parameters:
-    ///   - image: The image to display on the leading edge of the title and subtitle.
-    ///   - title: The title text to display in the row.
-    ///   - subtitle: The subtitle text to display in the row.
-    /// - Returns: A view for displaying a row of content in the view.
-    ///
-    @ViewBuilder
-    private func rowView(
-        image: SharedImageAsset,
-        title: String,
-        subtitle: String? = nil,
-    ) -> some View {
-        HStack(spacing: 12) {
-            Image(decorative: image)
-                .foregroundStyle(SharedAsset.Colors.iconSecondary.swiftUIColor)
-
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
                 Text(title)
-                    .styleGuide(.body, weight: .semibold)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-
-                if let subtitle {
-                    Text(subtitle)
-                        .styleGuide(.subheadline)
-                        .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-                }
+                    .font(.body.weight(.semibold))
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
+            .passYListSeparatorLeading()
         }
-        .padding(12)
+        .padding(.vertical, PassYDesign.Spacing.xSmall)
+        .accessibilityElement(children: .combine)
     }
 }
 

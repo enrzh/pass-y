@@ -37,8 +37,9 @@ class PasswordAutoFillViewTests: BitwardenTestCase {
     @MainActor
     func test_turnOnAutoFillLaterButton_tap() async throws {
         processor.state.mode = .onboarding
-        let button = try subject.inspect().find(asyncButton: Localizations.turnOnLater)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.turnOnLater)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .turnAutoFillOnLaterButtonTapped)
     }
 
@@ -46,6 +47,6 @@ class PasswordAutoFillViewTests: BitwardenTestCase {
     @MainActor
     func test_turnOnAutoFillLaterButton_doesntExist() async throws {
         processor.state.mode = .settings
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.turnOnLater))
+        XCTAssertThrowsError(try subject.inspect().find(button: Localizations.turnOnLater))
     }
 }

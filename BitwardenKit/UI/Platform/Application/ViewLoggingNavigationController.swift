@@ -55,8 +55,14 @@ public class ViewLoggingNavigationController: UINavigationController,
 
     @discardableResult
     override public func popViewController(animated: Bool) -> UIViewController? {
+        #if DEBUG
+        PassYNavigationProbe.mark("pop")
+        #endif
         let popped = super.popViewController(animated: animated)
         stackChanged?()
+        #if DEBUG
+        PassYNavigationProbe.mark("popReturned")
+        #endif
         return popped
     }
 
@@ -80,7 +86,17 @@ public class ViewLoggingNavigationController: UINavigationController,
     }
 
     override public func dismiss(animated: Bool, completion: (() -> Void)? = nil) {
+        #if DEBUG
+        PassYNavigationProbe.mark("dismiss")
+        if animated { PassYNavigationProbe.shared.startTransition() }
+        super.dismiss(animated: animated) {
+            PassYNavigationProbe.mark("dismissed")
+            PassYNavigationProbe.shared.endTransition()
+            completion?()
+        }
+        #else
         super.dismiss(animated: animated, completion: completion)
+        #endif
         logger.log("[Navigation] View dismissed: \(resolveLoggingViewName(for: self))")
     }
 
@@ -91,6 +107,10 @@ public class ViewLoggingNavigationController: UINavigationController,
         willShow viewController: UIViewController,
         animated: Bool,
     ) {
+        #if DEBUG
+        PassYNavigationProbe.mark("willShow")
+        if animated { PassYNavigationProbe.shared.startTransition() }
+        #endif
         stackChanged?()
     }
 
@@ -99,6 +119,10 @@ public class ViewLoggingNavigationController: UINavigationController,
         didShow viewController: UIViewController,
         animated: Bool,
     ) {
+        #if DEBUG
+        PassYNavigationProbe.mark("didShow")
+        PassYNavigationProbe.shared.endTransition()
+        #endif
         logger.log("[Navigation] View appeared: \(resolveLoggingViewName(for: viewController))")
         stackChanged?()
     }

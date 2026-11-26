@@ -29,6 +29,13 @@ private struct SearchableVaultListView: View {
     /// Whether the search results list is in edit mode (follows `isSelecting`, delayed when leaving).
     @SwiftUI.State private var listIsEditing = false
 
+    /// The layout preferences (Customize). Applied inside the equatable boundaries (home list, search list), so a
+    /// change of unrelated state never re-applies them; the home slice is part of the home list key.
+    let layoutStore: PassYLayoutStore
+
+    /// The home slice of the Customize preferences (tiles, sections, tile layout).
+    private var homeLayout: PassYLayoutPreferences.Home { layoutStore.home }
+
     var body: some View {
         // A ZStack with hidden children is used here so that opening and closing the
         // search interface does not reset the scroll position for the main vault
@@ -50,6 +57,7 @@ private struct SearchableVaultListView: View {
             // choice of the content scroll view for the large title, and the hidden one still diffed every change.
             if isSearching {
                 search
+                    .passYLayoutEnvironment(layoutStore)
             }
         }
         .animation(.easeInOut, value: store.state.organizationUserNotificationBannerData)
@@ -59,7 +67,6 @@ private struct SearchableVaultListView: View {
                 get: \.toast,
                 send: VaultListAction.toastShown,
             ),
-            additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
         )
         .flightRecorderToastBanner(
             activeLog: store.state.flightRecorderToastBanner.activeLog,
@@ -93,24 +100,16 @@ private struct SearchableVaultListView: View {
 
             Spacer()
 
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.items,
-                title: Localizations.saveAndProtectYourData,
+            PassYEmptyState(
+                Localizations.saveAndProtectYourData,
+                systemImage: "lock.shield",
                 message: Localizations
                     .theVaultProtectsMoreThanJustPasswordsStoreSecureLoginsIdsCardsAndNotesSecurelyHere,
             ) {
-                Button {
+                Button(Localizations.addLogin, systemImage: "plus") {
                     store.send(.addItemPressed(.login))
-                } label: {
-                    HStack {
-                        Image(decorative: SharedAsset.Icons.plus16)
-                            .resizable()
-                            .frame(width: 16, height: 16)
-                        Text(Localizations.addLogin)
-                    }
                 }
-                .buttonStyle(.primary(shouldFillWidth: false))
-                .padding(.top, 8)
+                .passYButtonStyle(.primary)
             }
 
             Spacer()
@@ -125,58 +124,28 @@ private struct SearchableVaultListView: View {
     @ViewBuilder private var search: some View {
         if store.state.searchText.isEmpty || !store.state.searchResults.isEmpty {
             List(selection: store.binding(get: \.selection, send: VaultListAction.selectionChanged)) {
-                Section {
-                    searchVaultFilterRow
+                // No section without a filter (members of no organization): an empty section drew an empty card.
+                if !store.state.searchVaultFilterState.vaultFilterOptions.isEmpty {
+                    Section {
+                        searchVaultFilterRow
+                    }
+                    .listRowInsets(EdgeInsets())
                 }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
 
                 Section {
                     ForEach(store.state.searchResults) { item in
-                        vaultItemRow(
-                            for: item,
-                            isLastInSection: store.state.searchResults.last?.id == item.id,
-                        )
-                        .listRowInsets(EdgeInsets())
-                        .tag(item.id)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            if case .cipher = item.itemType {
-                                // No `role: .destructive`: it makes the list drop the row on the tap,
-                                // before the confirmation; the later real removal then hit a list that
-                                // no longer matched its data ("Invalid number of items in section").
-                                Button {
-                                    Task { await store.perform(.deleteItems([item])) }
-                                } label: {
-                                    Label(Localizations.delete, systemImage: "trash")
-                                }
-                                .tint(.red)
-                                Button {
-                                    Task { await store.perform(.morePressed(item)) }
-                                } label: {
-                                    Label(Localizations.moreOptions, systemImage: "ellipsis")
-                                }
-                                .tint(.gray)
-                            }
-                        }
+                        swipeableRow(for: item)
+                            .tag(item.id)
                     }
                 }
             }
             // The list is rebuilt when the set of result rows changes (a delete removes rows while Select mode is on):
             // SwiftUI's incremental list diff crashed there ("Invalid number of items in section", reproducible).
             .id(store.state.searchResults.map(\.id))
-            .environment(\.editMode, .constant(listIsEditing ? .active : .inactive))
-            // Leaving Select mode in the same update as the removal of the deleted rows makes SwiftUI's list diff crash
-            // ("Invalid number of items in section", measured), so edit mode is switched off a moment later.
-            .task(id: store.state.isSelecting) {
-                if store.state.isSelecting {
-                    listIsEditing = true
-                } else {
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    listIsEditing = false
-                }
-            }
-            .listStyle(.insetGrouped)
-            .softBottomScrollEdge()
+            .passYSelectEditMode(isSelecting: store.state.isSelecting, listIsEditing: $listIsEditing)
+            .passYCardList()
+            // Code rows among the results count down from one clock (only while the search list exists).
+            .passYCountdownClock(timeProvider: timeProvider)
         } else {
             SearchNoResultsView {
                 searchVaultFilterRow
@@ -187,7 +156,7 @@ private struct SearchableVaultListView: View {
     /// Displays the vault filter for search row if the user is a member of any org.
     private var searchVaultFilterRow: some View {
         SearchVaultFilterRowView(
-            hasDivider: true, store: store.child(
+            hasDivider: false, store: store.child(
                 state: \.searchVaultFilterState,
                 mapAction: { action in
                     switch action {
@@ -205,13 +174,14 @@ private struct SearchableVaultListView: View {
     /// ui-r8: wrapped in an `Equatable` boundary. Changes that do not touch what the vault list shows (toast, search
     /// text and results, bottom bar, profile menu, selection) no longer re-evaluate the list and its rows.
     @ViewBuilder private var vault: some View {
-        EquatableContent(key: store.state.homeListKey) {
+        EquatableContent(key: HomeContentKey(state: store.state.homeListKey, layout: homeLayout)) {
             LoadingView(state: store.state.loadingState) { sections in
                 if sections.isEmpty {
                     emptyVault
                 } else {
                     vaultContents(with: sections)
                         .readableContentWidth(760)
+                        .passYLayoutEnvironment(layoutStore)
                 }
             } errorView: { errorMessage in
                 errorViewWithRetry(errorMessage: errorMessage)
@@ -277,6 +247,7 @@ private struct SearchableVaultListView: View {
     @ViewBuilder
     private func vaultContents(with sections: [VaultListSection]) -> some View {
         let (tileItems, listSections) = splitCache.split(sections)
+        let home = PassYHomeArrangement(tiles: tileItems, sections: listSections, layout: homeLayout)
         List {
             if store.state.activeActionCard != nil, store.state.activeActionCard != .introducingArchive {
                 Section {
@@ -292,80 +263,82 @@ private struct SearchableVaultListView: View {
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
 
-            if !tileItems.isEmpty {
-                Section {
-                    CategoryTilesView(items: tileItems) { item in
-                        Task { await store.perform(.itemPressed(item)) }
+            if !home.tiles.isEmpty {
+                if homeLayout.tileLayout == .list {
+                    Section {
+                        ForEach(home.tiles) { item in
+                            swipeableRow(for: item)
+                        }
                     }
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                    .listRowBackground(Color.clear)
+                } else {
+                    Section {
+                        CategoryTilesView(items: home.tiles, layout: homeLayout.tileLayout) { item in
+                            Task { await store.perform(.itemPressed(item)) }
+                        }
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                        .listRowBackground(Color.clear)
+                    }
                 }
             }
 
-            ForEach(listSections) { section in
-                let isExpanded = !store.state.collapsedSectionIds.contains(section.id)
-                Section {
-                    if isExpanded {
-                        ForEach(section.items) { item in
-                            vaultItemRow(for: item, isLastInSection: section.items.last?.id == item.id)
-                                .listRowInsets(EdgeInsets())
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    if case .cipher = item.itemType {
-                                        Button {
-                                            Task { await store.perform(.morePressed(item)) }
-                                        } label: {
-                                            Label(Localizations.moreOptions, systemImage: "ellipsis")
-                                        }
-                                        .tint(.gray)
-                                    }
-                                }
-                        }
-                    }
-                } header: {
-                    Button {
-                        store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
-                    } label: {
-                        HStack {
-                            Text(section.name)
-                            Spacer()
-                            Text("\(section.items.count)")
-                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                .font(.footnote.weight(.semibold))
-                        }
-                        .textCase(nil)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color(.label).opacity(0.75)) // contrast (audit)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("SectionExpandButton_\(section.id)")
-                    .accessibilityLabel("\(section.name), \(Localizations.xItems(section.items.count))")
-                }
+            ForEach(home.sections) { section in
+                collapsibleSection(section)
             }
 
-            // Space below the last row so the floating action button never covers it.
-            Section {
-                Color.clear
-                    .frame(height: FloatingActionButton.bottomOffsetPadding)
-                    .listRowBackground(Color.clear)
-                    .accessibilityHidden(true)
+            // Customize: what is hidden from the home stays one tap away (never a dead end).
+            if let more = home.more {
+                collapsibleSection(more)
             }
         }
-        .listStyle(.insetGrouped)
-        .softBottomScrollEdge()
+        .passYCardList()
+    }
+
+    /// A home section with the collapse chevron of its header (the collapsed state persists per account).
+    @ViewBuilder
+    private func collapsibleSection(_ section: VaultListSection) -> some View {
+        let isExpanded = !store.state.collapsedSectionIds.contains(section.id)
+        Section {
+            if isExpanded {
+                ForEach(section.items) { item in
+                    swipeableRow(for: item)
+                }
+            }
+        } header: {
+            PassYSectionHeader(
+                section.name,
+                count: section.items.count,
+                countLabel: Localizations.xItems(section.items.count),
+                isExpanded: isExpanded,
+                identifier: "SectionExpandButton_\(section.id)",
+            ) {
+                store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
+            }
+        }
+    }
+
+    /// A list row for the item with its swipe actions (Delete, More menu).
+    ///
+    /// - Parameter item: The `VaultListItem` to show.
+    ///
+    private func swipeableRow(for item: VaultListItem) -> some View {
+        vaultItemRow(for: item)
+            .passYVaultRow(
+                item,
+                hasPremium: store.state.hasPremium,
+                delete: { Task { await store.perform(.deleteItems([item])) } },
+                perform: { kind in Task { await store.perform(.accessibilityMoreOptionsActionPressed(item, kind)) } },
+            )
     }
 
     /// Creates a row in the list for the provided item.
     ///
     /// - Parameters:
     ///   - item: The `VaultListItem` to use when creating the view.
-    ///   - isLastInSection: A flag indicating if this item is the last one in the section.
     ///
     @ViewBuilder
-    private func vaultItemRow(for item: VaultListItem, isLastInSection: Bool = false) -> some View {
+    private func vaultItemRow(for item: VaultListItem) -> some View {
         VaultListRowCell.make(
             for: item,
-            isLastInSection: isLastInSection,
             isSelecting: listIsEditing,
             store: store,
             timeProvider: timeProvider,
@@ -374,48 +347,93 @@ private struct SearchableVaultListView: View {
     }
 }
 
-// MARK: - VaultListRowCell + VaultListState
+// MARK: - VaultListRowCell + factory
 
 extension VaultListRowCell {
-    /// Creates a row of the vault or search list. No child `Store` is created: the row gets its state and closures.
+    /// Creates a row of the vault, group or search list. No child `Store` is created: the row gets plain state and
+    /// closures (ui-r8), so its body is skipped when nothing it shows changed.
+    ///
+    /// - Parameters:
+    ///   - item: The row's item.
+    ///   - isSelecting: Whether the list is in Select mode.
+    ///   - iconBaseURL: The base URL of the web icons.
+    ///   - hasPremium: Whether the account has Premium.
+    ///   - showWebIcons: Whether web icons are shown.
+    ///   - timeProvider: The `TimeProvider` used to calculate TOTP expiration.
+    ///   - itemPressed: Opens the item.
+    ///   - moreOptions: Performs one of the item's more-options actions.
+    ///   - copyTOTPCode: Copies a TOTP code.
+    ///   - deleteItem: Starts the (confirmed) delete of the item (offered for cipher rows only).
+    ///
+    @MainActor
+    static func make( // swiftlint:disable:this function_parameter_count
+        for item: VaultListItem,
+        isSelecting: Bool,
+        iconBaseURL: URL?,
+        hasPremium: Bool,
+        showWebIcons: Bool,
+        timeProvider: any TimeProvider,
+        itemPressed: @escaping (VaultListItem) async -> Void,
+        moreOptions: @escaping (VaultListItem, MoreOptionsActionKind) async -> Void,
+        copyTOTPCode: @escaping (String) -> Void,
+        deleteItem: @escaping (VaultListItem) -> Void,
+    ) -> VaultListRowCell {
+        #if DEBUG
+        PassYPerf.rowBuildCount += 1
+        #endif
+        return VaultListRowCell(
+            state: VaultListItemRowState(
+                iconBaseURL: iconBaseURL,
+                hasPremium: hasPremium,
+                isFromExtension: false,
+                isSelecting: isSelecting,
+                item: item,
+                // Lists use the system row separators (aligned to the name by the row).
+                hasDivider: false,
+                showWebIcons: showWebIcons,
+            ),
+            perform: { effect in
+                switch effect {
+                case let .accessibilityMoreOptionsActionPressed(kind):
+                    // A code row's options (Edit) act on its cipher.
+                    await moreOptions(item.totpCipherItem ?? item, kind)
+                case .pressed:
+                    await itemPressed(item)
+                }
+            },
+            send: { action in
+                switch action {
+                case let .copyTOTPCode(code):
+                    copyTOTPCode(code)
+                }
+            },
+            timeProvider: timeProvider,
+            onDelete: item.isCipherItem ? { deleteItem(item) } : nil,
+        )
+    }
+
+    /// Creates a row of the vault home or its search results.
     @MainActor
     static func make(
         for item: VaultListItem,
-        isLastInSection: Bool,
         isSelecting: Bool = false,
         store: Store<VaultListState, VaultListAction, VaultListEffect>,
         timeProvider: any TimeProvider,
     ) -> VaultListRowCell {
-        PassYPerf.rowBuildCount += 1
         let state = store.state
-        return VaultListRowCell(
-            state: VaultListItemRowState(
-                iconBaseURL: state.iconBaseURL,
-                hasPremium: state.hasPremium,
-                isFromExtension: false,
-                isSelecting: isSelecting,
-                item: item,
-                hasDivider: !isLastInSection,
-                showWebIcons: state.showWebIcons,
-            ),
-            perform: { [weak store] effect in
-                switch effect {
-                case let .accessibilityMoreOptionsActionPressed(kind):
-                    await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
-                case .morePressed:
-                    await store?.perform(.morePressed(item))
-                case .pressed:
-                    await store?.perform(.itemPressed(item))
-                }
-            },
-            send: { [weak store] action in
-                switch action {
-                case let .copyTOTPCode(code):
-                    store?.send(.copyTOTPCode(code))
-                }
-            },
+        return make(
+            for: item,
+            isSelecting: isSelecting,
+            iconBaseURL: state.iconBaseURL,
+            hasPremium: state.hasPremium,
+            showWebIcons: state.showWebIcons,
             timeProvider: timeProvider,
-            onDelete: item.isCipherItem ? { [weak store] in Task { await store?.perform(.deleteItems([item])) } } : nil,
+            itemPressed: { [weak store] item in await store?.perform(.itemPressed(item)) },
+            moreOptions: { [weak store] item, kind in
+                await store?.perform(.accessibilityMoreOptionsActionPressed(item, kind))
+            },
+            copyTOTPCode: { [weak store] code in store?.send(.copyTOTPCode(code)) },
+            deleteItem: { [weak store] item in Task { await store?.perform(.deleteItems([item])) } },
         )
     }
 }
@@ -454,6 +472,58 @@ extension VaultListState {
         key.toast = nil
         key.url = nil
         return key
+    }
+}
+
+// MARK: - HomeContentKey
+
+/// What the vault home list depends on: the list state and the home slice of the Customize preferences.
+struct HomeContentKey: Equatable {
+    let state: VaultListState
+    let layout: PassYLayoutPreferences.Home
+}
+
+// MARK: - PassYHomeArrangement
+
+/// The vault home after the Customize preferences: the visible tiles and sections in the user's order and the "More"
+/// section with everything hidden from the home (hidden tiles, and the rows of hidden Folders / Shared folders
+/// sections). Hidden Favorites and No Folder items stay reachable through their type tiles and the search.
+/// Default preferences give the tiles and sections unchanged and no "More" section.
+struct PassYHomeArrangement {
+    /// The id of the "More" section (its collapsed state persists like the other sections').
+    static let moreSectionId = "PassYMore"
+
+    /// The sections whose rows (folders, collections) move to "More" when the section is hidden.
+    static let sectionsKeptInMore: Set<String> = ["Folders", "Collections"]
+
+    /// The tiles shown on the home.
+    let tiles: [VaultListItem]
+
+    /// The list sections shown on the home.
+    let sections: [VaultListSection]
+
+    /// The "More" section, `nil` when nothing is hidden.
+    let more: VaultListSection?
+
+    init(tiles: [VaultListItem], sections: [VaultListSection], layout: PassYLayoutPreferences.Home) {
+        let preferences = PassYLayoutPreferences(home: layout)
+        let tileSplit = preferences.partitionTiles(tiles, id: \.passYTileIdentifier)
+        let sectionSplit = preferences.partitionSections(sections, id: \.id)
+        self.tiles = tileSplit.visible
+        self.sections = sectionSplit.visible
+        let moreItems = tileSplit.hidden
+            + sectionSplit.hidden.filter { Self.sectionsKeptInMore.contains($0.id) }.flatMap(\.items)
+        more = moreItems.isEmpty
+            ? nil
+            : VaultListSection(id: Self.moreSectionId, items: moreItems, name: Localizations.passYMore)
+    }
+}
+
+extension VaultListItem {
+    /// The Customize identifier of a home tile (`VaultListGroup.tileIdentifier`), the item id for other rows.
+    var passYTileIdentifier: String {
+        if case let .group(group, _) = itemType { return group.tileIdentifier }
+        return id
     }
 }
 
@@ -575,6 +645,9 @@ struct VaultListView: View {
     /// The window scene for requesting a review.
     var windowScene: UIWindowScene?
 
+    /// The layout preferences (Customize) applied to the page.
+    var layoutStore: PassYLayoutStore = .shared
+
     /// Task running the vault list stream, managed manually so it is cancelled and restarted when
     /// the vault filter type changes.
     @SwiftUI.State private var vaultListTask: Task<Void, Never>?
@@ -588,6 +661,7 @@ struct VaultListView: View {
                 isSearching: shell.isEditing || !store.state.searchText.isEmpty,
                 store: store,
                 timeProvider: timeProvider,
+                layoutStore: layoutStore,
             )
             .passYSearchTarget(
                 id: ObjectIdentifier(store),
@@ -612,9 +686,6 @@ struct VaultListView: View {
             // with the animation dump: `_UIRefreshControlModernReplicatorView`, minutes under load); XCUITest then never
             // saw the app idle ("App animations complete notification not received"). Syncing stays available as
             // "Sync now" in the avatar menu (and happens on appearing, as before). Apple Passwords has no pull either.
-            if #unavailable(iOS 26) {
-                profileSwitcher
-            }
         }
         .navigationBar(title: store.state.navigationTitle, titleDisplayMode: .large)
         .toolbar {
@@ -680,39 +751,20 @@ struct VaultListView: View {
         ToolbarItemGroup(placement: .navigationBarLeading) {
             if shell.isEditing || !store.state.searchText.isEmpty,
                store.state.searchResults.contains(where: \.isCipherItem) {
-                if store.state.isSelecting {
-                    Menu {
-                        Button(Localizations.folderNone) {
-                            let items = selectedSearchItems
-                            Task { await store.perform(.moveItems(items, folderId: nil)) }
-                        }
-                        ForEach(store.state.folders, id: \.id) { folder in
-                            Button(folder.name) {
-                                let items = selectedSearchItems
-                                Task { await store.perform(.moveItems(items, folderId: folder.id)) }
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "folder")
-                    }
-                    .disabled(store.state.selection.isEmpty)
-                    .accessibilityLabel(Localizations.move)
-                    .accessibilityIdentifier("SelectMoveButton")
-
-                    Button(role: .destructive) {
+                PassYSelectModeButtons(
+                    isSelecting: store.state.isSelecting,
+                    selectionIsEmpty: store.state.selection.isEmpty,
+                    folders: store.state.folders,
+                    move: { folderId in
+                        let items = selectedSearchItems
+                        Task { await store.perform(.moveItems(items, folderId: folderId)) }
+                    },
+                    delete: {
                         let items = selectedSearchItems
                         Task { await store.perform(.deleteItems(items)) }
-                    } label: {
-                        Image(systemName: "trash")
-                    }
-                    .disabled(store.state.selection.isEmpty)
-                    .accessibilityLabel(Localizations.delete)
-                    .accessibilityIdentifier("SelectDeleteButton")
-                }
-                Button(store.state.isSelecting ? Localizations.done : "Select") {
-                    store.send(.setSelecting(!store.state.isSelecting))
-                }
-                .accessibilityIdentifier("SelectButton")
+                    },
+                    toggle: { store.send(.setSelecting(!store.state.isSelecting)) },
+                )
             }
         }
     }
@@ -748,25 +800,7 @@ struct VaultListView: View {
             serverURL: store.state.serverURL,
             showsPlaceholder: state.showPlaceholderToolbarIcon,
             sync: { Task { await store.perform(.refreshVault) } },
-        )
-    }
-
-    // MARK: Private properties
-
-    /// A view that displays the ability to add or switch between account profiles
-    @ViewBuilder private var profileSwitcher: some View {
-        ProfileSwitcherView(
-            store: store.child(
-                state: { vaultListState in
-                    vaultListState.profileSwitcherState
-                },
-                mapAction: { action in
-                    .profileSwitcher(action)
-                },
-                mapEffect: { effect in
-                    .profileSwitcher(effect)
-                },
-            ),
+            customize: { store.send(.customizePressed) },
         )
     }
 
@@ -1220,17 +1254,3 @@ struct VaultListView: View {
     }
 }
 #endif
-
-// MARK: - Soft bottom scroll edge
-
-extension View {
-    /// Fades list content out under the floating bottom bar (iOS 26 scroll edge effect) so rows do not shine through.
-    @ViewBuilder
-    func softBottomScrollEdge() -> some View {
-        if #available(iOS 26, *) {
-            scrollEdgeEffectStyle(.soft, for: .bottom)
-        } else {
-            self
-        }
-    }
-}

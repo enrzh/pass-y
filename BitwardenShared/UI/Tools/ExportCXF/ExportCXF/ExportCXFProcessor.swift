@@ -102,15 +102,6 @@ class ExportCXFProcessor: StateProcessor<ExportCXFState, ExportCXFAction, Export
 
     /// Starts the export process.
     private func startExport() async {
-        guard #available(iOS 26.0, *) else {
-            coordinator.showAlert(
-                .defaultAlert(
-                    title: Localizations.exportingFailed,
-                ),
-            )
-            return
-        }
-
         guard let delegate else {
             return
         }

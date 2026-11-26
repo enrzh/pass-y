@@ -60,10 +60,6 @@ class ImportCXFProcessorTests: BitwardenTestCase {
     /// policy doesn't apply to user.
     @MainActor
     func test_perform_appeared() async throws {
-        guard #available(iOS 26.0, *) else {
-            throw XCTSkip("CXP Import feature is not available on this device")
-        }
-
         await subject.perform(.appeared)
         if case .failure = subject.state.status {
             XCTFail("Status shouldn't be failure when CXP import is enabled")
@@ -71,28 +67,9 @@ class ImportCXFProcessorTests: BitwardenTestCase {
     }
 
     /// `perform(_:)` with `.appeared` sets the status as `.failure` with a message
-    /// when the device is running iOS < 26.0 (CXP Import not available).
-    @MainActor
-    func test_perform_appearedNotAvailableOnDevice() async throws {
-        if #available(iOS 26.0, *) {
-            throw XCTSkip("CXP Import is available on this device")
-        }
-        await subject.perform(.appeared)
-        guard case let .failure(message) = subject.state.status else {
-            XCTFail("Status should be failure")
-            return
-        }
-        XCTAssertEqual(message, Localizations.importingFromAnotherProviderIsNotAvailableForThisDevice)
-    }
-
-    /// `perform(_:)` with `.appeared` sets the status as `.failure` with a message
     /// when `.personalOwnership` policy applies to user.
     @MainActor
     func test_perform_appearedPersonalOwnership() async throws {
-        guard #available(iOS 26.0, *) else {
-            throw XCTSkip("CXP Import feature is not available on this device")
-        }
-
         policyService.policyAppliesToUserResult[.personalOwnership] = true
 
         await subject.perform(.appeared)
@@ -207,10 +184,6 @@ class ImportCXFProcessorTests: BitwardenTestCase {
 
         await subject.perform(.mainButtonTapped)
 
-        guard checkAlertShownWhenNotInCorrectIOSVersion() else {
-            return
-        }
-
         guard case let .failure(message) = subject.state.status else {
             XCTFail("Importing status is not failure.")
             return
@@ -231,10 +204,6 @@ class ImportCXFProcessorTests: BitwardenTestCase {
 
         await subject.perform(.mainButtonTapped)
 
-        guard checkAlertShownWhenNotInCorrectIOSVersion() else {
-            return
-        }
-
         guard case let .failure(message) = subject.state.status else {
             XCTFail("Importing status is not failure.")
             return
@@ -254,10 +223,6 @@ class ImportCXFProcessorTests: BitwardenTestCase {
         }.throwing(BitwardenTestError.example)
 
         await subject.perform(.mainButtonTapped)
-
-        guard checkAlertShownWhenNotInCorrectIOSVersion() else {
-            return
-        }
 
         guard case let .failure(message) = subject.state.status else {
             XCTFail("Importing status is not failure.")
@@ -284,10 +249,6 @@ class ImportCXFProcessorTests: BitwardenTestCase {
 
         await subject.perform(.mainButtonTapped)
 
-        guard checkAlertShownWhenNotInCorrectIOSVersion() else {
-            return
-        }
-
         guard case let .success(total, results) = subject.state.status else {
             XCTFail("Importing status is not success.")
             return
@@ -295,24 +256,5 @@ class ImportCXFProcessorTests: BitwardenTestCase {
 
         XCTAssertEqual(total, 30)
         XCTAssertEqual(results, expectedResults)
-    }
-
-    /// Checks whether the alert is shown when not in the correct iOS version for CXF Import to work.
-    @MainActor
-    private func checkAlertShownWhenNotInCorrectIOSVersion() -> Bool {
-        guard #available(iOS 26.0, *) else {
-            XCTAssertEqual(
-                coordinator.alertShown,
-                [
-                    .defaultAlert(
-                        title: Localizations.importError,
-                        message: Localizations.importingFromAnotherProviderIsNotAvailableForThisDevice,
-                    ),
-                ],
-            )
-            return false
-        }
-
-        return true
     }
 }

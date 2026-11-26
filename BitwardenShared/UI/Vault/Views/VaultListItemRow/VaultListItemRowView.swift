@@ -3,34 +3,15 @@ import BitwardenResources
 import BitwardenSdk
 import SwiftUI
 
-// MARK: - View+MoreOptionsAccessibilityActions
-
-private extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
-    /// Adds a named `.accessibilityAction` for each of the provided more-options action kinds.
-    /// The number of kinds is data-driven (it depends on the cipher's `copyableFields`), so this
-    /// folds over the list at runtime. Accessibility actions applied to
-    /// `AccessibilityAttachmentModifier` content merge into the same modifier, so the view's type
-    /// stays the same however many kinds are added.
-    ///
-    /// - Parameters:
-    ///   - kinds: The more-options action kinds to expose as accessibility actions.
-    ///   - onSelect: Called with the selected kind when its accessibility action is activated.
-    ///
-    func accessibilityMoreOptionsActions(
-        _ kinds: [MoreOptionsActionKind],
-        onSelect: @escaping (MoreOptionsActionKind) async -> Void,
-    ) -> ModifiedContent<Content, Modifier> {
-        kinds.reduce(self) { view, kind in
-            view.accessibilityAction(named: kind.localizedName) {
-                Task { await onSelect(kind) }
-            }
-        }
-    }
-}
-
 // MARK: - VaultListItemRowView
 
-/// A view that displays information about a `VaultListItem` as a row in a list.
+/// A row of a vault list (`VaultListItem`): the adapter from the item to the Pass-Y row components. Ciphers and groups
+/// are a `PassYRow` (icon tile, name, subtitle, quiet badges, chevron), codes a `PassYCodeRow` (a tap copies the
+/// code). Used by the vault home, group pages, search results and the autofill / item selection lists.
+///
+/// Identifiers kept for the UI tests: the row button `VaultListItemRowButton`, `CipherNameLabel`,
+/// `CipherSubTitleLabel`, `CipherFido2CredentialRpIdLabel`, `CipherInCollectionIcon`, `CipherWithAttachmentsIcon`,
+/// `CipherDisclosureChevron`, `GroupNameLabel`, `GroupSubTitleLabel`, `GroupCountLabel` and the icon identifiers.
 struct VaultListItemRowView: View {
     // MARK: Properties
 
@@ -38,11 +19,15 @@ struct VaultListItemRowView: View {
     /// previews, tests) or plain values and closures (the vault lists: no child `Store` per row and per body pass).
     let store: Source
 
-    /// The `TimeProvider` used to calculate TOTP expiration.
+    /// The `TimeProvider` used to calculate TOTP expiration (kept for the callers; the countdown reads the page's
+    /// `PassYCountdownClock`).
     var timeProvider: (any TimeProvider)?
 
     /// Optional delete handler; when set the context menu offers "Delete".
     var onDelete: (() -> Void)?
+
+    /// Counts code copies (drives the success haptic).
+    @SwiftUI.State private var copyCount = 0
 
     // MARK: Types
 
@@ -97,256 +82,241 @@ struct VaultListItemRowView: View {
         self.onDelete = onDelete
     }
 
+    // MARK: View
+
     var body: some View {
+        #if DEBUG
         let _ = { PassYPerf.rowBodyCount += 1 }()
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 8) {
-                AsyncButton {
-                    PassYPerf.beginTap()
-                    await store.perform(.pressed)
-                } label: {
-                    HStack(spacing: 16) {
-                        VaultItemDecorativeImageView(
-                            item: store.state.item,
-                            iconBaseURL: store.state.iconBaseURL,
-                            showWebIcons: store.state.showWebIcons,
-                        ) { _ in
-                            Group {
-                                if case let .cipher(cipherItem, _) = store.state.item.itemType {
-                                    ItemLetterIcon(name: cipherItem.name)
-                                }
-                            }
-                        }
-                        .imageStyle(.rowIcon)
-                        // Apple Passwords: the icon sits in a 40 pt rounded square with a hairline border.
-                        .frame(width: 40, height: 40)
-                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color(.separator), lineWidth: 0.5))
-                        .padding(.vertical, 8)
-
-                        HStack {
-                            switch store.state.item.itemType {
-                            case let .cipher(cipherItem, _):
-                                cipherRowLabel(cipherItem)
-                            case let .group(group, count):
-                                groupRowLabel(group, count)
-                            case let .totp(name, model):
-                                totpRowLabel(name, model)
-                            }
-                        }
-                        .padding(.vertical, 9)
-
-                        Spacer(minLength: 0)
-
-                        if showsChevron {
-                            // Apple Passwords: a disclosure chevron instead of a "..." button. The options (copy,
-                            // edit, delete ...) live in the long-press context menu and the swipe actions.
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(Color(.tertiaryLabel))
-                                .accessibilityHidden(true)
-                                .accessibilityIdentifier("CipherDisclosureChevron")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    // ui-r8: with `.plain` only drawn content is tappable. The blank space between text and chevron
-                    // and the chevron itself are part of the hit area (one tap opens the item). The 16 pt side
-                    // margin stays outside the button on purpose: a button as wide as the row is merged by the
-                    // accessibility system with the row container, the row identifier (`CipherCell`, `FolderCell`)
-                    // then replaced `VaultListItemRowButton` (found in the UI test tree dump).
-                    .contentShape(Rectangle())
-                }
-                // In a `List`, several default-style buttons in one row would all fire on a single tap.
-                .buttonStyle(.plain)
-                // ui-r8: the button is the one accessibility element of the row (its label combines name and
-                // subtitle). A second, row-wide element (`.accessibilityElement(children: .combine)` with the
-                // `CipherCell` identifier) was merged with the button in the UI test tree and replaced its
-                // identifier, so the identifier and the custom actions now live on the button itself.
-                .accessibilityIdentifier("VaultListItemRowButton")
-                .accessibilityMoreOptionsActions(accessibilityMoreOptionsActionKinds) { kind in
-                    await store.perform(.accessibilityMoreOptionsActionPressed(kind))
-                }
-                .allowsHitTesting(!store.state.isSelecting)
-                .hoverEffect(.highlight)
-
-                if case let .totp(_, model) = store.state.item.itemType,
-                   !model.requiresMasterPassword, store.state.showTotpCopyButton {
-                    Button {
-                        store.send(.copyTOTPCode(model.totpCode.code))
-                    } label: {
-                        Image(systemName: "doc.on.doc")
-                            .frame(minWidth: 44, minHeight: 44)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                    .hoverEffect(.highlight)
-                    .accessibilityLabel(Localizations.copyTotp)
+        #endif
+        let state = store.state
+        content(state)
+            // The side margin stays outside the row button (see `passYRowButton`).
+            .padding(.horizontal, PassYDesign.Spacing.large)
+            .overlay(alignment: .bottom) {
+                // Rows outside a `List` (extension lists) draw their own hairline; lists use the system separators.
+                if state.hasDivider {
+                    Divider()
+                        .padding(
+                            .leading,
+                            PassYDesign.Spacing.large + PassYDesign.IconSize.row + PassYDesign.Spacing.medium,
+                        )
                 }
             }
-            .multilineTextAlignment(.leading)
-            .padding(.horizontal, 16)
-
-            if store.state.hasDivider {
-                Divider()
-                    .padding(.leading, 40 + 16 + 16)
-            }
-        }
-        .onAppear { PassYPerf.rowAppeared(store.state.item.id) }
-        .contextMenu {
-            ForEach(accessibilityMoreOptionsActionKinds, id: \.localizedName) { kind in
-                Button {
-                    Task { await store.perform(.accessibilityMoreOptionsActionPressed(kind)) }
-                } label: {
-                    Label(kind.localizedName, systemImage: kind.passYSymbol)
-                }
-            }
-            if let onDelete, !accessibilityMoreOptionsActionKinds.isEmpty {
-                Divider()
-                Button(role: .destructive, action: onDelete) {
-                    Label(Localizations.delete, systemImage: "trash")
-                }
-            }
-        }
+        #if DEBUG
+            .onAppear { PassYPerf.rowAppeared(state.item.id) }
+        #endif
+            .contextMenu { contextMenuItems(state) }
+            .sensoryFeedback(.success, trigger: copyCount)
     }
 
-    /// Whether the disclosure chevron is shown (cipher rows that open an item).
-    private var showsChevron: Bool {
-        guard case let .cipher(cipherItem, _) = store.state.item.itemType else { return false }
-        return !store.state.isFromExtension && !cipherItem.isDecryptionFailure
-    }
+    // MARK: Private
 
-    /// The more-options accessibility action kinds applicable to this row, empty for non-cipher
-    /// items, decryption-failure ciphers, or when running in an extension (matching the ellipsis
-    /// button's own visibility gate).
-    private var accessibilityMoreOptionsActionKinds: [MoreOptionsActionKind] {
-        guard case let .cipher(cipherItem, _) = store.state.item.itemType,
-              !store.state.isFromExtension, !cipherItem.isDecryptionFailure else {
-            return []
-        }
-        return cipherItem.applicableMoreOptionsActionKinds(hasPremium: store.state.hasPremium)
-    }
-
-    // MARK: - Private Views
-
-    /// The label content for a cipher row, excluding the more-options button.
+    /// The row for the item type.
     @ViewBuilder
-    private func cipherRowLabel(_ cipherItem: CipherListView) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 8) {
-                Text(cipherItem.name)
-                    .font(.body.weight(.semibold))
-                    .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                    .lineLimit(1)
-                    .accessibilityIdentifier("CipherNameLabel")
-
-                if cipherItem.organizationId != nil {
-                    SharedAsset.Icons.sharedFolder16.swiftUIImage
-                        .imageStyle(.accessoryIcon16(
-                            color: SharedAsset.Colors.textSecondary.swiftUIColor,
-                            scaleWithFont: true,
-                        ))
-                        .accessibilityLabel(Localizations.shared)
-                        .accessibilityIdentifier("CipherInCollectionIcon")
-                }
-
-                if cipherItem.attachments > 0 {
-                    SharedAsset.Icons.paperclip16.swiftUIImage
-                        .imageStyle(.accessoryIcon16(
-                            color: SharedAsset.Colors.textSecondary.swiftUIColor,
-                            scaleWithFont: true,
-                        ))
-                        .accessibilityLabel(Localizations.attachments)
-                        .accessibilityIdentifier("CipherWithAttachmentsIcon")
-                }
-            }
-
-            if store.state.item.shouldShowFido2CredentialRpId,
-               let fido2CredentialRpId = store.state.item.fido2CredentialRpId {
-                Text(fido2CredentialRpId)
-                    .styleGuide(.subheadline)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    .lineLimit(1)
-                    .accessibilityIdentifier("CipherFido2CredentialRpIdLabel")
-            }
-
-            if let subTitle = store.state.item.subtitle, !subTitle.isEmpty {
-                Text(subTitle)
-                    .styleGuide(.subheadline)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    .lineLimit(1)
-                    .accessibilityIdentifier("CipherSubTitleLabel")
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    /// The label content for a group row.
-    @ViewBuilder
-    private func groupRowLabel(_ group: VaultListGroup, _ count: Int) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(group.name)
-                .styleGuide(.body)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .accessibilityIdentifier("GroupNameLabel")
-
-            if let subTitle = store.state.item.subtitle, !subTitle.isEmpty {
-                Text(subTitle)
-                    .styleGuide(.subheadline)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    .lineLimit(1)
-                    .accessibilityIdentifier("GroupSubTitleLabel")
-            }
-        }
-        .accessibilityElement(children: .combine)
-
-        Spacer()
-
-        if let accessoryIcon = store.state.item.accessoryIcon {
-            Image(decorative: accessoryIcon)
-                .imageStyle(.rowIcon)
-                .accessibilityHidden(true)
-        } else {
-            Text("\(count)")
-                .styleGuide(.body)
-                .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .accessibilityIdentifier("GroupCountLabel")
+    private func content(_ state: VaultListItemRowState) -> some View {
+        switch state.item.itemType {
+        case let .cipher(cipherItem, _):
+            cipherRow(cipherItem, state: state)
+        case let .group(group, count):
+            groupRow(group, count: count, state: state)
+        case let .totp(name, model):
+            codeRow(name: name, model: model, state: state)
         }
     }
 
-    /// The label content for a row showing the totp code, excluding the copy button.
-    @ViewBuilder
-    private func totpRowLabel(
-        _ name: String,
-        _ model: VaultListTOTP,
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(name)
-                .styleGuide(.body)
-                .lineLimit(1)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-            if let username = model.cipherListView.type.loginListView?.username {
-                Text(username)
-                    .styleGuide(.subheadline)
-                    .lineLimit(1)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-            }
-        }
-        Spacer()
-        if let timeProvider {
-            TOTPCountdownTimerView(
-                timeProvider: timeProvider,
-                totpCode: model.totpCode,
-                onExpiration: nil,
+    /// The icon tile of the row.
+    private func tile(_ state: VaultListItemRowState) -> some View {
+        VaultItemIconTile(item: state.item, iconBaseURL: state.iconBaseURL, showWebIcons: state.showWebIcons)
+    }
+
+    /// Opens the item (cipher and group rows; code rows that cannot be copied).
+    private func press() {
+        #if DEBUG
+        PassYPerf.beginTap()
+        #endif
+        Task { await store.perform(.pressed) }
+    }
+
+    /// A cipher row: name, passkey domain and subtitle, quiet badges (favourite, shared, attachments), chevron.
+    private func cipherRow(_ cipherItem: CipherListView, state: VaultListItemRowState) -> some View {
+        PassYRow(
+            title: .init(text: cipherItem.name, identifier: "CipherNameLabel"),
+            subtitles: [
+                state.item.shouldShowFido2CredentialRpId
+                    ? .make(state.item.fido2CredentialRpId, identifier: "CipherFido2CredentialRpIdLabel") : nil,
+                .make(state.item.subtitle, identifier: "CipherSubTitleLabel"),
+            ],
+            showsDisclosure: !state.isFromExtension && !cipherItem.isDecryptionFailure,
+            disclosureIdentifier: "CipherDisclosureChevron",
+        ) {
+            tile(state)
+        } titleAccessory: {
+            CipherRowBadges(
+                favorite: cipherItem.favorite,
+                shared: cipherItem.organizationId != nil,
+                attachments: cipherItem.attachments > 0,
             )
         }
-        if !model.requiresMasterPassword {
-            Text(model.totpCode.displayCode)
-                .styleGuide(.body, monoSpacedDigit: true)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+        .passYRowButton(identifier: "VaultListItemRowButton", action: press)
+        .accessibilityActions {
+            ForEach(moreOptionsKinds(state), id: \.localizedName) { kind in
+                Button(kind.localizedName) {
+                    Task { await store.perform(.accessibilityMoreOptionsActionPressed(kind)) }
+                }
+            }
+        }
+        .allowsHitTesting(!state.isSelecting)
+    }
+
+    /// A group row (folder, collection, type, trash ...): name, item count (or a lock for Premium groups), chevron.
+    private func groupRow(_ group: VaultListGroup, count: Int, state: VaultListItemRowState) -> some View {
+        PassYRow(
+            title: .init(text: group.name, identifier: "GroupNameLabel"),
+            subtitles: [.make(state.item.subtitle, identifier: "GroupSubTitleLabel")],
+            showsDisclosure: !state.isFromExtension,
+        ) {
+            tile(state)
+        } trailing: {
+            if state.item.accessoryIcon != nil {
+                Image(systemName: "lock.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            } else {
+                Text("\(count)")
+                    .passYFont(.rowValue)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("GroupCountLabel")
+            }
+        }
+        .passYRowButton(identifier: "VaultListItemRowButton", action: press)
+        .allowsHitTesting(!state.isSelecting)
+    }
+
+    /// A code row: a tap copies the code (opens the item when the code needs the master password, or picks it in an
+    /// extension list).
+    private func codeRow(name: String, model: VaultListTOTP, state: VaultListItemRowState) -> some View {
+        let code = model.requiresMasterPassword ? nil : model.totpCode.code
+        let account = model.cipherListView.type.loginListView?.username
+        let copies = code != nil && state.showTotpCopyButton && !state.isFromExtension
+        let period = Int(model.totpCode.period)
+        return PassYCodeRow(name: name, account: account, code: code, period: period) {
+            tile(state)
+        }
+        .passYRowButton(identifier: "VaultListItemRowButton") {
+            if copies, let code {
+                copy(code)
+            } else {
+                press()
+            }
+        }
+        .modifier(CodeRowAccessibility(name: name, account: account, code: code, period: period))
+        .accessibilityHint(copies ? Localizations.copyTotp : "")
+        .allowsHitTesting(!state.isSelecting)
+    }
+
+    /// Copies a code (the processor shows the toast, the row plays the success haptic).
+    private func copy(_ code: String) {
+        store.send(.copyTOTPCode(code))
+        copyCount += 1
+    }
+
+    /// The long-press menu: the item options of a cipher row; Copy, View and Edit for a code row.
+    @ViewBuilder
+    private func contextMenuItems(_ state: VaultListItemRowState) -> some View {
+        switch state.item.itemType {
+        case let .totp(_, model):
+            if !state.isFromExtension {
+                if !model.requiresMasterPassword, state.showTotpCopyButton {
+                    Button {
+                        copy(model.totpCode.code)
+                    } label: {
+                        Label(Localizations.copy, systemImage: "doc.on.doc")
+                    }
+                }
+                Button {
+                    Task { await store.perform(.pressed) }
+                } label: {
+                    Label(Localizations.view, systemImage: "eye")
+                }
+                Button {
+                    Task { await store.perform(.accessibilityMoreOptionsActionPressed(.edit)) }
+                } label: {
+                    Label(Localizations.edit, systemImage: "pencil")
+                }
+            }
+        default:
+            VaultItemOptionsMenuContent(
+                kinds: moreOptionsKinds(state),
+                onSelect: { kind in Task { await store.perform(.accessibilityMoreOptionsActionPressed(kind)) } },
+                onDelete: onDelete,
+            )
+        }
+    }
+
+    /// The more-options action kinds of this row (VoiceOver actions and the context menu), empty in an extension.
+    private func moreOptionsKinds(_ state: VaultListItemRowState) -> [MoreOptionsActionKind] {
+        state.isFromExtension ? [] : state.item.moreOptionsActionKinds(hasPremium: state.hasPremium)
+    }
+}
+
+// MARK: - CipherRowBadges
+
+/// The quiet badges after a cipher name (favourite, shared, attachments), each shown unless switched off in Customize
+/// (`passYBadgeOptions`). Only this view reads the option, so the row itself is not evaluated again for it.
+private struct CipherRowBadges: View {
+    let favorite: Bool
+    let shared: Bool
+    let attachments: Bool
+
+    @Environment(\.passYBadgeOptions) private var options
+
+    var body: some View {
+        if favorite, options.favorite {
+            PassYBadge(
+                systemImage: "star.fill",
+                tint: .yellow,
+                label: Localizations.favorite,
+                identifier: "CipherFavoriteIcon",
+            )
+        }
+        if shared, options.shared {
+            PassYBadge(systemImage: "person.2.fill", label: Localizations.shared, identifier: "CipherInCollectionIcon")
+        }
+        if attachments, options.attachments {
+            PassYBadge(
+                systemImage: "paperclip",
+                label: Localizations.attachments,
+                identifier: "CipherWithAttachmentsIcon",
+            )
         }
     }
 }
 
+// MARK: - CodeRowAccessibility
+
+/// The spoken label of a code row: name, account, the code character by character and the seconds left. It reads the
+/// page's countdown clock, so only this modifier (not the row) is evaluated again every second.
+private struct CodeRowAccessibility: ViewModifier {
+    let name: String
+    let account: String?
+    let code: String?
+    let period: Int
+
+    @Environment(\.passYCountdownClock) private var clock
+
+    func body(content: Content) -> some View {
+        let seconds = PassYCountdown(period: period, date: clock?.now ?? Date()).secondsRemaining
+        content
+            .accessibilityLabel(PassYOneTimeCode.accessibilityLabel(
+                name: name,
+                account: account,
+                code: code,
+                secondsRemaining: seconds,
+            ))
+    }
+}
 
 // MARK: - VaultListRowCell
 
@@ -374,7 +344,9 @@ struct VaultListRowCell: View, Equatable {
     }
 
     var body: some View {
+        #if DEBUG
         let _ = { PassYPerf.cellBodyCount += 1 }()
+        #endif
         VaultListItemRowView(
             state: state,
             perform: perform,
@@ -385,10 +357,102 @@ struct VaultListRowCell: View, Equatable {
     }
 }
 
+// MARK: - VaultItemOptionsMenuContent
+
+/// The options of a cipher row as native menu items (SF Symbols), shared by the long-press context menu and the
+/// "More" swipe action: the more-options actions, then a divider and the destructive Delete.
+struct VaultItemOptionsMenuContent: View {
+    /// The applicable more-options actions, in menu order.
+    let kinds: [MoreOptionsActionKind]
+
+    /// Called with the chosen action.
+    let onSelect: (MoreOptionsActionKind) -> Void
+
+    /// Starts the (confirmed) delete of the item, `nil` for no Delete item.
+    let onDelete: (() -> Void)?
+
+    var body: some View {
+        ForEach(kinds, id: \.localizedName) { kind in
+            Button {
+                onSelect(kind)
+            } label: {
+                Label(kind.localizedName, systemImage: kind.passYSymbol)
+            }
+        }
+        if let onDelete, !kinds.isEmpty {
+            Divider()
+            Button(role: .destructive, action: onDelete) {
+                Label(Localizations.delete, systemImage: "trash")
+            }
+        }
+    }
+}
+
+extension VaultListItem {
+    /// The more-options actions of a cipher row; none for groups, codes and ciphers that failed to decrypt.
+    func moreOptionsActionKinds(hasPremium: Bool) -> [MoreOptionsActionKind] {
+        guard case let .cipher(cipherItem, _) = itemType, !cipherItem.isDecryptionFailure else { return [] }
+        return cipherItem.applicableMoreOptionsActionKinds(hasPremium: hasPremium)
+    }
+
+    /// The cipher item behind a code row (the more-options helper acts on cipher items), `nil` for other rows.
+    var totpCipherItem: VaultListItem? {
+        guard case let .totp(_, model) = itemType else { return nil }
+        return VaultListItem(cipherListView: model.cipherListView)
+    }
+}
+
+// MARK: - Swipe actions
+
+extension View {
+    /// The trailing swipe actions of a cipher row in the vault, group and search lists (Apple Passwords / Mail
+    /// style): icon-only, Delete (red, trash) outermost and More (gray, ellipsis). More is a `Menu` with the items of
+    /// the context menu: it drops down from the swipe button instead of presenting a centered sheet. The titles stay
+    /// the accessibility labels. Non-cipher rows (groups, codes) have none.
+    ///
+    /// No `role: .destructive` on Delete (see `passYRowSwipeActions`).
+    ///
+    /// - Parameters:
+    ///   - item: The row's item.
+    ///   - hasPremium: Whether the account has Premium (gates Copy TOTP).
+    ///   - delete: Starts the (confirmed) delete of the item, `nil` for no Delete action.
+    ///   - perform: Performs one of the item's more-options actions.
+    ///
+    func vaultRowSwipeActions(
+        for item: VaultListItem,
+        hasPremium: Bool,
+        delete: (() -> Void)?,
+        perform: @escaping (MoreOptionsActionKind) -> Void,
+    ) -> some View {
+        passYRowSwipeActions {
+            if item.isCipherItem {
+                if let delete {
+                    Button(action: delete) {
+                        Label(Localizations.delete, systemImage: "trash")
+                            .labelStyle(.iconOnly)
+                    }
+                    .tint(.red)
+                }
+                Menu {
+                    VaultItemOptionsMenuContent(
+                        kinds: item.moreOptionsActionKinds(hasPremium: hasPremium),
+                        onSelect: perform,
+                        onDelete: nil,
+                    )
+                } label: {
+                    Label(Localizations.moreOptions, systemImage: "ellipsis")
+                        .labelStyle(.iconOnly)
+                }
+                .tint(.gray)
+            }
+        }
+    }
+}
+
 // MARK: - MoreOptionsActionKind symbols
 
 extension MoreOptionsActionKind {
-    /// The SF Symbol shown next to this action in the context menu.
+    /// The SF Symbol shown next to this action in the options menus.
     var passYSymbol: String {
         switch self {
         case .archive: "archivebox"

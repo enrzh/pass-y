@@ -7,7 +7,6 @@ import XCTest
 
 // MARK: - TextAutofillHelperRepromptWrapperTests
 
-@available(iOS 18.0, *)
 class TextAutofillHelperRepromptWrapperTests: BitwardenTestCase {
     // MARK: Properties
 

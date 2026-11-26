@@ -225,7 +225,6 @@ public struct BitwardenStepper<Label: View, Footer: View>: View {
 // MARK: - Previews
 
 #if DEBUG
-@available(iOS 17, *)
 #Preview {
     @Previewable @SwiftUI.State var value = 1
 

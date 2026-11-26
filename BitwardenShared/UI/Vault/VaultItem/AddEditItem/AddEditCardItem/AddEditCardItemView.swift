@@ -32,89 +32,90 @@ struct AddEditCardItemView: View {
     @ObservedObject var store: Store<any AddEditCardItemState, AddEditCardItemAction, AddEditItemEffect>
 
     var body: some View {
-        SectionView(Localizations.cardDetails, contentSpacing: 8) {
+        Section {
+            PassYFormField(
+                Localizations.cardholderName,
+                text: store.binding(
+                    get: \.cardholderName,
+                    send: AddEditCardItemAction.cardholderNameChanged,
+                ),
+                identifier: "CardholderNameEntry",
+                focus: .field($focusedField, equals: .cardholderName),
+            )
+            .textContentType(.creditCardNameOrName)
+            .textInputAutocapitalization(.words)
+            .onSubmit { focusNextField($focusedField) }
+
+            PassYSecureField(
+                Localizations.number,
+                text: store.binding(
+                    get: \.formattedCardNumber,
+                    send: AddEditCardItemAction.cardNumberChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.isNumberVisible,
+                    send: AddEditCardItemAction.toggleNumberVisibilityChanged,
+                ),
+                identifier: "CardNumberEntry",
+                revealIdentifier: "ShowCardNumberButton",
+                revealSpokenName: Localizations.number,
+                focus: .field($focusedField, equals: .number),
+            )
+            .textFieldConfiguration(.numeric(.creditCardNumber))
+            .onSubmit { focusNextField($focusedField) }
+
+            PassYPickerRow(
+                Localizations.brand,
+                options: DefaultableType<CardComponent.Brand>.allCases,
+                selection: store.binding(
+                    get: \.brand,
+                    send: AddEditCardItemAction.brandChanged,
+                ),
+                identifier: "CardBrandPicker",
+            )
+
+            PassYPickerRow(
+                Localizations.expirationMonth,
+                options: DefaultableType<CardComponent.Month>.allCases,
+                selection: store.binding(
+                    get: \.expirationMonth,
+                    send: AddEditCardItemAction.expirationMonthChanged,
+                ),
+                identifier: "CardExpirationMonthPicker",
+            )
+
+            PassYFormField(
+                Localizations.expirationYear,
+                text: store.binding(
+                    get: \.expirationYear,
+                    send: AddEditCardItemAction.expirationYearChanged,
+                ),
+                prompt: "YYYY",
+                identifier: "CardExpirationYearEntry",
+                focus: .field($focusedField, equals: .expirationYear),
+            )
+            .textFieldConfiguration(.numeric(.creditCardExpirationYearOrDateTime))
+            .onSubmit { focusNextField($focusedField) }
+
+            PassYSecureField(
+                Localizations.securityCode,
+                text: store.binding(
+                    get: \.cardSecurityCode,
+                    send: AddEditCardItemAction.cardSecurityCodeChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.isCodeVisible,
+                    send: AddEditCardItemAction.toggleCodeVisibilityChanged,
+                ),
+                identifier: "CardSecurityCodeEntry",
+                revealIdentifier: "CardShowSecurityCodeButton",
+                revealSpokenName: Localizations.securityCode,
+                focus: .field($focusedField, equals: .securityCode),
+            )
+            .textFieldConfiguration(.numeric(.creditCardSecurityCodeOrPassword))
+            .onSubmit { focusNextField($focusedField) }
+
             scanCardButton
-            ContentBlock {
-                BitwardenTextField(
-                    title: Localizations.cardholderName,
-                    text: store.binding(
-                        get: \.cardholderName,
-                        send: AddEditCardItemAction.cardholderNameChanged,
-                    ),
-                    accessibilityIdentifier: "CardholderNameEntry",
-                    focus: .field($focusedField, equals: .cardholderName),
-                )
-                .textContentType(.creditCardNameOrName)
-                .onSubmit { focusNextField($focusedField) }
-
-                BitwardenTextField(
-                    title: Localizations.number,
-                    text: store.binding(
-                        get: \.formattedCardNumber,
-                        send: AddEditCardItemAction.cardNumberChanged,
-                    ),
-                    accessibilityIdentifier: "CardNumberEntry",
-                    passwordVisibilityAccessibilityId: "ShowCardNumberButton",
-                    focus: .field($focusedField, equals: .number),
-                    isPasswordVisible: store.binding(
-                        get: \.isNumberVisible,
-                        send: AddEditCardItemAction.toggleNumberVisibilityChanged,
-                    ),
-                )
-                .textFieldConfiguration(.numeric(.creditCardNumber))
-                .onSubmit { focusNextField($focusedField) }
-
-                BitwardenMenuField(
-                    title: Localizations.brand,
-                    accessibilityIdentifier: "CardBrandPicker",
-                    options: DefaultableType<CardComponent.Brand>.allCases,
-                    selection: store.binding(
-                        get: \.brand,
-                        send: AddEditCardItemAction.brandChanged,
-                    ),
-                )
-
-                BitwardenMenuField(
-                    title: Localizations.expirationMonth,
-                    accessibilityIdentifier: "CardExpirationMonthPicker",
-                    options: DefaultableType<CardComponent.Month>.allCases,
-                    selection: store.binding(
-                        get: \.expirationMonth,
-                        send: AddEditCardItemAction.expirationMonthChanged,
-                    ),
-                )
-
-                BitwardenTextField(
-                    title: Localizations.expirationYear,
-                    text: store.binding(
-                        get: \.expirationYear,
-                        send: AddEditCardItemAction.expirationYearChanged,
-                    ),
-                    accessibilityIdentifier: "CardExpirationYearEntry",
-                    focus: .field($focusedField, equals: .expirationYear),
-                )
-                .textFieldConfiguration(
-                    .numeric(.creditCardExpirationYearOrDateTime),
-                )
-                .onSubmit { focusNextField($focusedField) }
-
-                BitwardenTextField(
-                    title: Localizations.securityCode,
-                    text: store.binding(
-                        get: \.cardSecurityCode,
-                        send: AddEditCardItemAction.cardSecurityCodeChanged,
-                    ),
-                    accessibilityIdentifier: "CardSecurityCodeEntry",
-                    passwordVisibilityAccessibilityId: "CardShowSecurityCodeButton",
-                    focus: .field($focusedField, equals: .securityCode),
-                    isPasswordVisible: store.binding(
-                        get: \.isCodeVisible,
-                        send: AddEditCardItemAction.toggleCodeVisibilityChanged,
-                    ),
-                )
-                .textFieldConfiguration(.numeric(.creditCardSecurityCodeOrPassword))
-                .onSubmit { focusNextField($focusedField) }
-            }
         }
         .sheet(
             isPresented: Binding(
@@ -125,7 +126,7 @@ struct AddEditCardItemView: View {
                 },
             ),
         ) {
-            if #available(iOS 16.0, *), let scanner = preWarmedScanner as? DataScannerViewController {
+            if let scanner = preWarmedScanner as? DataScannerViewController {
                 CardScannerWrapperView(scanner: scanner) { lines in
                     store.send(.cardScannerLinesUpdated(lines))
                 }
@@ -144,18 +145,14 @@ struct AddEditCardItemView: View {
 
     // MARK: Private Views
 
-    /// A button that opens the card scanner. Only shown on iOS 16+ devices with camera support
-    /// and ``FeatureFlag.cardScanner`` enabled.
+    /// A row that opens the card scanner. Only shown on devices with camera support and
+    /// ``FeatureFlag.cardScanner`` enabled.
     @ViewBuilder private var scanCardButton: some View {
-        if #available(iOS 16.0, *), DataScannerViewController.isSupported, store.state.cardScannerEnabled {
-            AsyncButton {
+        if DataScannerViewController.isSupported, store.state.cardScannerEnabled {
+            PassYInlineButtonRow(Localizations.scanCard, systemImage: "camera", identifier: "ScanCardButton") {
                 preWarmedScanner = CardScannerView.makeScanner()
                 await store.perform(.scanCardButtonTapped)
-            } label: {
-                Label(Localizations.scanCard, image: SharedAsset.Icons.camera16.swiftUIImage)
             }
-            .accessibilityIdentifier("ScanCardButton")
-            .buttonStyle(.secondary())
         }
     }
 }
@@ -163,7 +160,7 @@ struct AddEditCardItemView: View {
 #if DEBUG
 #Preview("Empty Add Edit State") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditCardItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -171,16 +168,14 @@ struct AddEditCardItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Empty Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Empty Add Edit State")
     }
 }
 
 #Preview("Hidden Add Edit State") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditCardItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -197,16 +192,14 @@ struct AddEditCardItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Hidden Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Hidden Add Edit State")
     }
 }
 
 #Preview("Visible Add Edit State") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditCardItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -225,10 +218,8 @@ struct AddEditCardItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Visible Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Visible Add Edit State")
     }
 }
 #endif

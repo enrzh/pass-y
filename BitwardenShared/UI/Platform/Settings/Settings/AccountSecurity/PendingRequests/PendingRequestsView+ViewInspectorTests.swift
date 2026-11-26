@@ -36,7 +36,7 @@ class PendingRequestsViewTests: BitwardenTestCase {
     @MainActor
     func test_declineAllRequestsButton_tap() throws {
         processor.state.loadingState = .data([.fixture()])
-        let button = try subject.inspect().find(buttonWithAccessibilityLabel: Localizations.declineAllRequests)
+        let button = try subject.inspect().find(button: Localizations.declineAllRequests)
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .declineAllRequestsTapped)
     }

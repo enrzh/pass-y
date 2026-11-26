@@ -3,7 +3,6 @@ import BitwardenSdk
 import BitwardenShared
 
 /// App intent that generates a password.
-@available(iOS 16.0, *)
 struct GeneratePassphraseIntent: AppIntent {
     static var title: LocalizedStringResource = "GeneratePassphrase"
 

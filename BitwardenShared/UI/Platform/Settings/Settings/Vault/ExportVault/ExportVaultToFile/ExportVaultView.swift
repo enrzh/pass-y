@@ -19,13 +19,15 @@ struct ExportVaultView: View {
             disabledExportInfo
 
             Section {
-                Picker(Localizations.fileFormat, selection: store.binding(
+                Picker(selection: store.binding(
                     get: \.fileFormat,
                     send: ExportVaultAction.fileFormatTypeChanged,
                 )) {
                     ForEach(ExportFormatType.allCases, id: \.self) { format in
                         Text(format.localizedName).tag(format)
                     }
+                } label: {
+                    PassYSettingsRowLabel(title: Localizations.fileFormat, systemImage: "doc.fill", tint: .blue)
                 }
                 .pickerStyle(.menu)
                 .accessibilityIdentifier("FileFormatPicker")
@@ -35,7 +37,7 @@ struct ExportVaultView: View {
 
             masterPasswordSection
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
         .animation(.default, value: store.state.filePasswordStrengthScore)
         .disabled(store.state.disableIndividualVaultExport)
         .navigationBar(title: Localizations.exportVault, titleDisplayMode: .inline)
@@ -74,7 +76,7 @@ struct ExportVaultView: View {
         }
     }
 
-    /// A password row with a reveal button.
+    /// A password row with a reveal button (`PassYPasswordField`).
     private func secureRow(
         title: String,
         text: Binding<String>,
@@ -82,33 +84,14 @@ struct ExportVaultView: View {
         fieldId: String,
         toggleId: String,
     ) -> some View {
-        HStack {
-            if visible.wrappedValue {
-                TextField(title, text: text)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled(true)
-                    .accessibilityIdentifier(fieldId)
-            } else {
-                SecureField(title, text: text)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled(true)
-                    .accessibilityIdentifier(fieldId)
-            }
-
-            Button {
-                visible.wrappedValue.toggle()
-            } label: {
-                Image(systemName: visible.wrappedValue ? "eye.slash" : "eye")
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.borderless)
-            .accessibilityIdentifier(toggleId)
-            .accessibilityLabel(
-                visible.wrappedValue
-                    ? Localizations.passwordIsVisibleTapToHide
-                    : Localizations.passwordIsNotVisibleTapToShow,
-            )
-        }
+        PassYPasswordField(
+            title,
+            text: text,
+            isRevealed: visible.wrappedValue,
+            contentType: nil,
+            fieldIdentifier: fieldId,
+            toggleIdentifier: toggleId,
+        ) { visible.wrappedValue = $0 }
     }
 
     /// The file password fields for a JSON encrypted export.
@@ -170,8 +153,8 @@ struct ExportVaultView: View {
             )
 
             if !store.state.hasMasterPassword {
-                AsyncButton {
-                    await store.perform(.sendCodeTapped)
+                Button {
+                    Task { await store.perform(.sendCodeTapped) }
                 } label: {
                     Label(Localizations.sendCode, systemImage: "envelope")
                 }

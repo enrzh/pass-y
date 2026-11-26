@@ -47,8 +47,9 @@ class LoginWithDeviceViewTests: BitwardenTestCase {
     /// Tapping the resend notification button performs the `.resendNotification` effect.
     @MainActor
     func test_resendNotificationButton_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.resendNotification)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.resendNotification)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects.last, .resendNotification)
     }
 

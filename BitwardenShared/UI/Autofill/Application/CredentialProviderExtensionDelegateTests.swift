@@ -4,7 +4,6 @@ import XCTest
 @testable import BitwardenShared
 @testable import BitwardenSharedMocks
 
-@available(iOS 17.0, *)
 class CredentialProviderExtensionDelegateTests: BitwardenTestCase {
     // MARK: Properties
 

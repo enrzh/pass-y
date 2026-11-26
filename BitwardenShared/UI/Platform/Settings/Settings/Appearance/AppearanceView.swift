@@ -20,27 +20,21 @@ struct AppearanceView: View {
     var body: some View {
         Form {
             Section {
-                Button {
+                PassYSettingsRow(
+                    Localizations.language,
+                    systemImage: "globe",
+                    tint: .blue,
+                    value: store.state.currentLanguage.title,
+                    identifier: "LanguageChooser",
+                ) {
                     store.send(.languageTapped)
-                } label: {
-                    HStack {
-                        Text(Localizations.language).foregroundStyle(.primary)
-                        Spacer()
-                        Text(store.state.currentLanguage.title).foregroundStyle(.secondary)
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
             } footer: {
-                Text(Localizations.languageChangeRequiresAppRestart)
+                PassYFooterText(Localizations.languageChangeRequiresAppRestart)
             }
 
             Section {
                 Picker(
-                    Localizations.theme,
                     selection: store.binding(
                         get: \.appTheme,
                         send: AppearanceAction.appThemeChanged,
@@ -49,37 +43,30 @@ struct AppearanceView: View {
                     ForEach(AppTheme.allCases, id: \.self) { theme in
                         Text(theme.localizedName).tag(theme)
                     }
+                } label: {
+                    PassYSettingsRowLabel(title: Localizations.theme, systemImage: "circle.lefthalf.filled", tint: .indigo)
                 }
                 .pickerStyle(.menu)
                 .accessibilityIdentifier("ThemeChooser")
             } footer: {
-                Text(Localizations.themeDescription)
+                PassYFooterText(Localizations.themeDescription)
             }
 
             Section {
-                Toggle(
+                PassYToggleRow(
+                    Localizations.showWebsiteIcons,
+                    systemImage: "photo.on.rectangle.angled",
+                    tint: .teal,
                     isOn: store.binding(
                         get: \.isShowWebsiteIconsToggleOn,
                         send: AppearanceAction.toggleShowWebsiteIcons,
                     ),
-                ) {
-                    HStack(spacing: 8) {
-                        Text(Localizations.showWebsiteIcons)
-                        Button {
-                            openURL(ExternalLinksConstants.websiteIconsHelp)
-                        } label: {
-                            Image(systemName: "questionmark.circle")
-                                .font(.footnote)
-                                .accessibilityLabel(Localizations.learnMore)
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
-                    }
-                }
-                .accessibilityIdentifier("ShowWebsiteIconsSwitch")
-                .accessibilityLabel(Localizations.showWebsiteIcons)
+                    identifier: "ShowWebsiteIconsSwitch",
+                )
             } footer: {
-                Text(Localizations.showWebsiteIconsDescription)
+                PassYFooterText(Localizations.showWebsiteIconsDescription, link: Localizations.learnMore) {
+                    openURL(ExternalLinksConstants.websiteIconsHelp)
+                }
             }
         }
         .navigationBar(title: Localizations.appearance, titleDisplayMode: .inline)

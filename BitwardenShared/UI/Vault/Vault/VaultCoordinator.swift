@@ -66,6 +66,13 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
     /// Whether an item is being prepared for opening (debounces a second tap).
     private var isPreparingItem = false
 
+    /// The last sections each group page showed (per group and filter). A repeat visit opens fully formed: title,
+    /// "N Items" and rows are right on the first frame instead of arriving with the first stream value. Held by this
+    /// coordinator only, so it lives exactly as long as the unlocked vault tab (the tab coordinator, and with it this
+    /// coordinator, is replaced on lock and logout) and is emptied whenever the vault home is shown again (unlock,
+    /// account switch); never static.
+    private(set) var groupSectionsCache = [VaultGroupCacheKey: [VaultListSection]]()
+
     // MARK: Types
 
     typealias Module = AddEditFolderModule
@@ -260,15 +267,20 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             delegate?.switchToSettingsTab(route: .about)
         case .settings:
             delegate?.switchToSettingsTab(route: .settings(.tab))
+        case .customize:
+            delegate?.switchToSettingsTab(route: .customize)
         case .pendingLoginRequests:
             delegate?.switchToSettingsTab(route: .pendingLoginRequests)
-        case let .group(group, filter):
-            showGroup(group, filter: filter)
+        case let .group(group, filter, count):
+            showGroup(group, filter: filter, count: count)
         case let .importCXF(cxfRoute):
             showImportCXF(route: cxfRoute)
         case .importLogins:
             showImportLogins()
         case .list:
+            // The vault home is (re)shown after unlock and after an account switch, which may reuse this
+            // coordinator: never carry another session's (or account's) rows into a group page.
+            groupSectionsCache = [:]
             showList()
         case let .loginRequest(loginRequest):
             delegate?.presentLoginRequest(loginRequest)
@@ -314,7 +326,9 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
         coordinator.navigate(to: .addEditFolder(folder: nil), context: delegate)
 
         stackNavigator?.present(navigationController)
+        #if DEBUG
         PassYPerf.endTap()
+        #endif
     }
 
     /// Shows the autofill list screen.
@@ -371,13 +385,17 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
     /// - Parameters:
     ///   - group: The group of items to display.
     ///   - filter: The filter to apply to the view.
+    ///   - count: The number of items the tapped row showed, if known.
     ///
-    private func showGroup(_ group: VaultListGroup, filter: VaultFilterType) {
+    private func showGroup(_ group: VaultListGroup, filter: VaultFilterType, count: Int? = nil) {
+        let cacheKey = VaultGroupCacheKey(group: group, filter: filter)
+        let cachedSections = groupSectionsCache[cacheKey]
         let processor = VaultGroupProcessor(
             coordinator: asAnyCoordinator(),
             masterPasswordRepromptHelper: masterPasswordRepromptHelper,
             services: services,
             state: VaultGroupState(
+                expectedItemCount: count ?? cachedSections?.reduce(0) { $0 + $1.items.count },
                 group: group,
                 iconBaseURL: services.environmentService.iconsURL,
                 vaultFilterType: filter,
@@ -387,6 +405,10 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
                 masterPasswordRepromptHelper: masterPasswordRepromptHelper,
                 services: services,
             ),
+            initialSections: cachedSections,
+            onSectionsLoaded: { [weak self] sections in
+                self?.groupSectionsCache[cacheKey] = sections
+            },
         )
         let store = Store(processor: processor)
         let searchHandler = VaultGroupSearchHandler(store: store)
@@ -402,7 +424,9 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             navigationTitle: group.navigationTitle,
             largeTitle: true,
         )
+        #if DEBUG
         PassYPerf.endTap()
+        #endif
     }
 
     /// Shows the Credential Exchange import route (not in a tab). This is used when another app
@@ -459,9 +483,18 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             coordinator: asAnyCoordinator(),
             masterPasswordRepromptHelper: masterPasswordRepromptHelper,
             services: services,
-            state: VaultListState(
-                iconBaseURL: services.environmentService.iconsURL,
-            ),
+            state: {
+                var state = VaultListState(iconBaseURL: services.environmentService.iconsURL)
+                // Right after an unlock the first list is already built (PassYVaultListWarmup): the home's first
+                // frame shows the rows; its stream starts as before and keeps them up to date.
+                if let sections = PassYVaultListWarmup.take(filter: state.vaultFilterType) {
+                    state.loadingState = .data(sections)
+                    #if DEBUG
+                    PassYPerf.beginListLoad()
+                    #endif
+                }
+                return state
+            }(),
             vaultItemMoreOptionsHelper: DefaultVaultItemMoreOptionsHelper(
                 coordinator: asAnyCoordinator(),
                 masterPasswordRepromptHelper: masterPasswordRepromptHelper,

@@ -70,7 +70,6 @@ class AppIntentMediatorTests: BitwardenTestCase {
     }
 
     /// `canRunAppIntents()` throws an `AppIntentError` when it can't run app intents when getting the setting throws.
-    @available(iOS 16, *)
     @MainActor
     func test_canRunAppIntents_throwsBecauseGettingSiriAndShortcutsSettingThrows() async throws {
         stateService.activeAccount = nil

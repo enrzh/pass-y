@@ -288,6 +288,13 @@ class PassYShellController: UIViewController, TabNavigator {
             .store(in: &cancellables)
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        #if DEBUG
+        PassYPerf.mark("shellAppear")
+        #endif
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         // Pages end where the bar content begins (also above the keyboard), so lists and forms clear the bar.
@@ -363,6 +370,9 @@ class PassYShellController: UIViewController, TabNavigator {
 
     /// The Vault button: switch to the vault, pop to its root and clear the search.
     private func showVaultHome() {
+        #if DEBUG
+        PassYPerf.mark("bar.vault")
+        #endif
         show(routeIndex: PassYDestination.vault.rawValue, resetSearch: true)
         model.cancelSearch()
         popToRoot()

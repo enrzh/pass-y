@@ -9,13 +9,8 @@ public extension View {
 
     /// Wraps the view in a `NavigationStack`.
     ///
-    @ViewBuilder var navStackWrapped: some View {
-        if #available(iOSApplicationExtension 16.0, *) {
-            NavigationStack { self }
-        } else {
-            NavigationView { self }
-                .navigationViewStyle(.stack)
-        }
+    var navStackWrapped: some View {
+        NavigationStack { self }
     }
 
     // MARK: Methods

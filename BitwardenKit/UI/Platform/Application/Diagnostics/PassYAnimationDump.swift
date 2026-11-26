@@ -22,7 +22,7 @@ import UIKit
 /// (`ANIMDUMP ...`) and appended to `<tmp>/passy-animations.txt` in the app's container.
 /// `de.aiity.passy.plantStall` / `de.aiity.passy.unplantStall` start/stop a known endless UIView animation (positive
 /// control of the dump and the chain's stall watcher).
-enum PassYAnimationDump {
+public enum PassYAnimationDump {
     static let notificationName = "de.aiity.passy.dumpAnimations"
     static let plantName = "de.aiity.passy.plantStall"
     static let unplantName = "de.aiity.passy.unplantStall"
@@ -39,7 +39,7 @@ enum PassYAnimationDump {
 
     /// Starts listening for the notifications and tracking UIView animations (once).
     @MainActor
-    static func installOnce(sceneProvider: @escaping () -> UIWindowScene?) {
+    public static func installOnce(sceneProvider: @escaping () -> UIWindowScene?) {
         guard !installed else { return }
         Self.sceneProvider = sceneProvider
         installed = true

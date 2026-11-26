@@ -194,6 +194,96 @@ State represents the data and configuration needed to perform the processor's lo
 
 A view renders the UI based on its state. The state within a view is managed by a [Store](../BitwardenKit/UI/Platform/Application/Utilities/Store.swift). The store is the connection between the processor and the view. Views never mutate state directly; instead, they send actions or perform effects via the store which are forwarded back to the processor. Views are updated by the store anytime the state changes.
 
+#### Pass-Y list pages
+
+The vault home, group pages, search results, Send and folders share one construction from the design system (below):
+`passYCardList()` (inset-grouped cards; room and a soft scroll edge for the floating bottom bar),
+`passYEmptyListState()` (the empty message over an empty list, on the grouped page colour), `passYGroupedBackground()`
+(native forms), in [PassYCardList.swift](../BitwardenShared/UI/Platform/Application/Views/PassYDesign/PassYCardList.swift);
+the vault-only parts are in [View+PassYVaultList.swift](../BitwardenShared/UI/Vault/Views/View+PassYVaultList.swift):
+`passYVaultRow` (row insets and the
+Delete / More swipe actions), `passYSelectEditMode` and `PassYSelectModeButtons` (Select mode). Row options are native
+menus (`VaultItemOptionsMenuContent`), shared by the context menu and the More swipe action. The minimum is iOS 26: the
+UI and app layers have no `#available` checks or fallbacks for earlier versions (left: the Core layer, the 26.2 / 27
+checks, `ReviewModifier` and a multi-platform test).
+
+#### Design system (PassYDesign)
+
+**Rule: new and reworked UI uses PassYDesign and SwiftUI/system elements only** (`List`, `Section`, `Form`,
+`LabeledContent`, `Menu`, `ContentUnavailableView`, system button styles), never the Bitwarden UI kit
+(`ContentBlock`, `SectionView`, `BitwardenTextField`/`Toggle`/`MenuField`, `IllustratedMessageView`, `LoadingView`,
+`AsyncButton`, `.styleGuide`, `SharedAsset` colours and icons, `.primary`/`.secondary` button styles, custom
+row/divider/card views). Text uses Dynamic Type text styles only; shapes use continuous corners. One file per
+component, each with a `#Preview`, in
+[PassYDesign/](../BitwardenShared/UI/Platform/Application/Views/PassYDesign):
+
+| Component | Purpose |
+|---|---|
+| `PassYDesign` | Tokens: radii, 4 pt spacing scale, icon tile sizes (28/40/56, scaled up to 1.6x), row measures (56 pt minimum), text roles (`passYFont(.rowTitle)` ...). |
+| `PassYIconTile` | Rounded-square tile: tinted SF Symbol, tinted first letter (stable colour per name, `PassYTilePalette`) or a web icon on a neutral tile. |
+| `PassYRow` | The one list row: tile, title, up to two subtitles, inline badges, trailing accessory, chevron; `passYRowButton` (press highlight, hover, identifier on the button), `passYRowContextMenu`, `passYRowSwipeActions`. Works in a `List` and in stacks (`divider:`). |
+| `PassYCardList` | `passYCardList()`, `PassYCardSection`, `passYEmptyListState()`, `passYGroupedBackground()`, separator alignment. |
+| `PassYSectionHeader` | Section title, count, optional collapse chevron (one toggle button). |
+| `PassYEmptyState` | `ContentUnavailableView` with symbol, title, description and actions. |
+| `PassYBadge` | Quiet SF Symbol status mark or tinted text capsule. |
+| `PassYButtonStyles` | `passYButtonStyle(.primary / .secondary / .destructive)` on the system glass styles. |
+| `PassYCodeRow` | Verification code row: large two-group code, `PassYCountdownRing`, accessibility-size layout; `PassYOneTimeCode` (grouping, spoken digits, label). |
+| `PassYCountdown` | Countdown maths and tone (orange at 5 s, red at 2 s), `PassYCountdownClock` (one 1 Hz clock per page via `passYCountdownClock`), `PassYCountdownRing`. |
+| `PassYSettingsRow` | The settings row (iOS Settings style): small tinted symbol tile, title, value, red count badge, accessory (disclosure, external, checkmark, none), destructive role; one button with the system row highlight, value under the title at accessibility sizes. `PassYSettingsRowLabel` is the same content for `Picker`/`Menu` labels. Navigation stays with the coordinators (the row sends the processor action). |
+| `PassYToggleRow` | Settings switch: optional tile, title, explanation, system `Toggle` (identifier on the toggle). |
+| `PassYValueRow` | Read-only `LabeledContent` row (optional tile, selectable value). |
+| `PassYFooterText` | Section footer text with an optional inline link button ("Learn more"). |
+| `PassYSetupSection` | "Set up" prompt as a `Form` section: headline tile and text, action, secondary and dismiss rows. |
+| `PassYHeroHeader` | Centred header of auth and one-off pages: `PassYShieldMark` (the Pass-Y shield drawn on the logo grid) or an SF Symbol, title, message; `passYPlainListRow()` puts it on the page background. |
+| `PassYActionStack` | Borderless `Form` section for the page actions: one primary button, secondary/plain buttons below. |
+| `PassYPasswordField` | Password/PIN field: `SecureField` swapped for a `TextField` while revealed, eye button, no autocorrection; caller adds focus, submit label and content type. |
+| `PassYFingerprintPhrase` | Fingerprint phrase row (caption, monospaced pink phrase, selectable). |
+| `PassYLoadingContent` | Shows a `LoadingState`: data, error (`PassYEmptyState`) or a delayed system spinner (`PassYDelayedSpinner`). |
+
+Settings (main page and sub-pages) and the auth pages (landing, login, unlock, two-step login, device login, SSO
+decryption options, registration and master password pages, login requests) are built from these components: settings
+pages are grouped `Form`s of `PassYSettingsRow` / `PassYToggleRow` / `Picker` rows with `PassYFooterText` footers,
+auth pages a `PassYHeroHeader`, system fields and one primary action in a `PassYActionStack`.
+| `PassYFormField` | Edit-form text row: label left, value right (stacked at accessibility sizes) or `.free` (title as placeholder, the item name); trailing buttons; `PassYTextBuffer` keeps typing apart from store echoes (AutoFill); `PassYFieldFocus` for focus. |
+| `PassYSecureField` | Edit-form secret: `SecureField`, eye button (`PassYRevealButton`) swaps to a plain monospaced field with the same identifier, keeps focus. |
+| `PassYMultilineField` | Notes, Send text: `TextEditor` (a text view for UI tests) with the title as placeholder. |
+| `PassYCopyRow` | Detail row: label + value, tap copies (success haptic; the page shows the toast), long press Copy / Reveal / extras, eye button for secrets, `.stacked` for long values; `PassYValueText` (mask, tinted digits/symbols). |
+| `PassYToggleRow`, `PassYPickerRow`, `PassYStepperRow`, `PassYSliderRow`, `PassYDateRow` | System `Toggle` (+ help link), menu choice (tint value, checkmark, extra actions such as Add folder), `Stepper` (optional number field), `Slider` with value, optional calendar day (Add / compact `DatePicker` / clear). |
+| `PassYInlineButtonRow`, `PassYDisclosureSection`, `PassYSectionFooter` | Form action row (tinted / plain / destructive, sync or async), "Additional options" disclosure, footnote footer with optional link. |
+| `PassYCodeExpiry`, `PassYFieldNavigation`, `passYReadableWidth` | One-time code ring on the page clock that reports the period end; Return/keyboard-bar previous/next order; safe-area side insets that keep cards at 680 pt on wide pages. |
+
+Item view/edit, Send add/edit/view, attachments, collections, move, folders, the generator and the password history
+are built from the form components above (no Bitwarden field, toggle, menu, section or card views).
+
+Vault rows adapt their items onto these components in `VaultListItemRowView` (equatable `VaultListRowCell` stays
+the performance boundary) and `VaultItemIconTile`; Send and folder rows use `PassYRow` directly.
+
+#### Customize (on-device layout preferences)
+
+[Customize/](../BitwardenShared/UI/Platform/Customize) holds the user's layout choices of this device:
+`PassYLayoutPreferences` (Codable, `version`, lenient field-by-field decoding; tiles keyed by
+`VaultListGroup.tileIdentifier`, sections by vault list section id; no vault data) stored in `AppSettingsStore`
+(`passYLayoutPreferences`, app group defaults, never synced). The defaults are "no override", so they draw today's look.
+`PassYLayoutStore` (`@Observable`, `shared`) exposes three slices (home, rows, codes) that invalidate independently.
+Every page is its own hosting controller, so list pages apply them with `passYLayoutEnvironment()` (vault home, group
+pages, their search results); rows read only small environment values: `passYRowOptions` (`PassYRow`, `PassYCodeRow`:
+density, subtitle, icon), `passYBadgeOptions` (vault row badges), `passYTileColors` (`PassYIconTile`, home tiles),
+`passYCodeOptions` (digit grouping, countdown ring / seconds), `passYHomeLayout` (the home only, part of its
+`EquatableContent` key). `PassYHomeArrangement` applies order and visibility; hidden tiles and the rows of hidden
+Folders / Shared folders sections move to a collapsible "More" section, so nothing becomes unreachable. Sections marked
+"collapsed when opened" are added to the persisted chevron state when the home stream starts. `CustomizeView` (plain
+grouped `List`, live preview, `onMove` in `EditMode`, Reset) is pushed in the Settings stack from Settings and from the
+avatar menu ("Customize home…"); its website icons switch is the existing `StateService` setting. DEBUG only:
+`-PassYLayoutPreset default|wide|list|minimal` seeds a configuration for screenshots.
+
+#### Pass-Y diagnostics (DEBUG only)
+
+Signposts, counters and startup / navigation marks (`PassYPerf`, `PassYNavigationProbe`) and the XCUITest idle-stall
+dump (`PassYAnimationDump`, `PassYAnimationTracker`) live in
+[BitwardenKit/UI/Platform/Application/Diagnostics](../BitwardenKit/UI/Platform/Application/Diagnostics). Every file and
+every call site is inside `#if DEBUG`, so a Release build contains none of their symbols or strings
+(`PassYAppHygieneTests.test_diagnostics_onlyInDebug`).
+
 ### Actions and Effects
 
 Actions are triggered by the view and represent interactions with the processor that could potentially cause an update to state or navigation. These will usually be sent because of some user interaction with the UI, such as a button being tapped or a text field's value changing. Actions are processed synchronously by the processor.

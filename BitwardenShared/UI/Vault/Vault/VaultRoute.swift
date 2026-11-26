@@ -38,6 +38,9 @@ public enum VaultRoute: Equatable, Hashable {
     ///
     case dismiss(_ action: DismissAction? = nil)
 
+    /// A route to the Customize screen (shown in the Settings stack).
+    case customize
+
     /// A route to edit an item.
     ///
     /// - Parameter cipher: The `CipherView` to edit.
@@ -53,8 +56,9 @@ public enum VaultRoute: Equatable, Hashable {
     /// A route to the flight recorder settings in the settings tab.
     case flightRecorderSettings
 
-    /// A route to the vault item list screen for the specified group.
-    case group(_ group: VaultListGroup, filter: VaultFilterType)
+    /// A route to the vault item list screen for the specified group. `count` is the number of items the tapped row
+    /// showed (if known): the pushed page shows "N Items" under its title from the first frame.
+    case group(_ group: VaultListGroup, filter: VaultFilterType, count: Int? = nil)
 
     /// A route to the Credential Exchange import flow with the CXF specific route as a parameter.
     case importCXF(ImportCXFRoute)

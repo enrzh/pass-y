@@ -95,7 +95,7 @@ struct StartRegistrationView: View {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
         }
-        .passYNativeFormBackground()
+        .passYGroupedBackground()
     }
 
     /// The server row.

@@ -220,91 +220,22 @@ class VaultItemSelectionProcessorTests: BitwardenTestCase { // swiftlint:disable
         XCTAssertTrue(coordinator.routes.isEmpty)
     }
 
-    /// `perform(_:)` with `.morePressed` has the vault item more options helper display the alert.
+    /// `perform(_:)` with `.accessibilityMoreOptionsActionPressed` delegates to the Premium upgrade
+    /// helper when the upgrade action is triggered.
     @MainActor
-    func test_perform_morePressed() async throws {
-        await subject.perform(.morePressed(.fixture()))
+    func test_perform_accessibilityMoreOptionsActionPressed_navigateToPremiumUpgrade() async throws {
+        await subject.perform(.accessibilityMoreOptionsActionPressed(.fixture(), .archive))
 
-        XCTAssertTrue(vaultItemMoreOptionsHelper.showMoreOptionsAlertCalled)
-        XCTAssertNotNil(vaultItemMoreOptionsHelper.showMoreOptionsAlertHandleDisplayToast)
-        XCTAssertNotNil(vaultItemMoreOptionsHelper.showMoreOptionsAlertHandleOpenURL)
-
-        let toast = Toast(title: Localizations.valueHasBeenCopied(Localizations.password))
-        vaultItemMoreOptionsHelper.showMoreOptionsAlertHandleDisplayToast?(toast)
-        XCTAssertEqual(subject.state.toast, toast)
-
-        let url = URL.example
-        vaultItemMoreOptionsHelper.showMoreOptionsAlertHandleOpenURL?(url)
-        XCTAssertEqual(subject.state.url, url)
-    }
-
-    /// `perform(_:)` with `.morePressed` passes a delegate that shows a confirmation toast once
-    /// the item is saved and leaves this screen in place, rather than this screen's own delegate
-    /// conformance, which dismisses on save for the OTP key flow.
-    @MainActor
-    func test_perform_morePressed_editShowsToastWithoutDismissing() async throws {
-        await subject.perform(.morePressed(.fixture()))
-
-        let delegate = try XCTUnwrap(vaultItemMoreOptionsHelper.showMoreOptionsAlertDelegate)
-        XCTAssertNotIdentical(delegate as AnyObject, subject)
-
-        let shouldDismiss = delegate.itemUpdated(type: .driversLicense)
-
-        XCTAssertTrue(shouldDismiss)
-        XCTAssertEqual(subject.state.toast, Toast(title: Localizations.licenseSaved))
-        XCTAssertTrue(coordinator.routes.isEmpty)
-    }
-
-    /// `perform(_:)` with `.morePressed` delegates to the Premium upgrade helper when the
-    /// upgrade action is triggered.
-    @MainActor
-    func test_perform_morePressed_navigateToPremiumUpgrade() async throws {
-        await subject.perform(.morePressed(.fixture()))
-
-        let navigate = try XCTUnwrap(vaultItemMoreOptionsHelper.showMoreOptionsAlertHandlePremiumUpgrade)
+        let navigate = try XCTUnwrap(vaultItemMoreOptionsHelper.performActionHandlePremiumUpgrade)
         await navigate()
         try await waitForAsync { self.premiumUpgradeHelper.navigateToPremiumUpgradeCalled }
 
         XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
-    /// `perform(_:)` with `.profileSwitcher(.accountPressed)` updates the profile switcher's
-    /// visibility and navigates to switch account.
-    @MainActor
-    func test_perform_profileSwitcher_accountPressed() async throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        subject.state.profileSwitcherState.isVisible = true
-        await subject.perform(.profileSwitcher(.accountPressed(ProfileSwitcherItem.fixture(userId: "1"))))
-        authRepository.activeAccount = .fixture(profile: .fixture(userId: "42"))
-        authRepository.altAccounts = [
-            .fixture(),
-        ]
-        authRepository.vaultTimeout = [
-            "1": .fiveMinutes,
-            "42": .immediately,
-        ]
-
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-        XCTAssertEqual(
-            coordinator.events.last,
-            .switchAccount(
-                isAutomatic: false,
-                userId: "1",
-                authCompletionRoute: .tab(.vault(.vaultItemSelection(.fixtureExample))),
-            ),
-        )
-    }
-
     /// `perform(_:)` with `.profileSwitcher(.accountPressed)` for iOS 26 dismisses the profile switcher.
     @MainActor
     func test_perform_profileSwitcher_accountPressed_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         subject.state.profileSwitcherState = ProfileSwitcherState(
             accounts: [
                 ProfileSwitcherItem.fixture(userId: "42"),
@@ -332,10 +263,6 @@ class VaultItemSelectionProcessorTests: BitwardenTestCase { // swiftlint:disable
     /// dismisses the profile switcher but does not fire switch event.
     @MainActor
     func test_perform_profileSwitcher_accountPressed_sameAccount_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         subject.state.profileSwitcherState = ProfileSwitcherState(
             accounts: [
                 ProfileSwitcherItem.fixture(userId: "1"),
@@ -361,27 +288,10 @@ class VaultItemSelectionProcessorTests: BitwardenTestCase { // swiftlint:disable
         XCTAssertTrue(subject.state.profileSwitcherState.isVisible)
     }
 
-    /// `perform(_:)` with `.profileSwitcher(.requestedProfileSwitcher(visible:))` updates the state correctly.
-    @MainActor
-    func test_perform_profileSwitcher_toggleProfilesViewVisibility() async throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        subject.state.profileSwitcherState.isVisible = false
-        await subject.perform(.profileSwitcher(.requestedProfileSwitcher(visible: true)))
-
-        XCTAssertTrue(subject.state.profileSwitcherState.isVisible)
-    }
-
     /// `perform(_:)` with `.profileSwitcher(.requestedProfileSwitcher(visible:))`
     /// for iOS 26 navigates to present the profile switcher sheet.
     @MainActor
     func test_perform_profileSwitcher_toggleProfilesViewVisibility_iOS26() async throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         subject.state.profileSwitcherState.isVisible = false
         await subject.perform(.profileSwitcher(.requestedProfileSwitcher(visible: true)))
 
@@ -690,26 +600,9 @@ class VaultItemSelectionProcessorTests: BitwardenTestCase { // swiftlint:disable
         XCTAssertNil(subject.state.url)
     }
 
-    /// `receive(_:)` with `.profileSwitcher(.backgroundPressed)` turns off the Profile Switcher Visibility.
-    @MainActor
-    func test_receive_profileSwitcher_backgroundPressed() throws {
-        guard #unavailable(iOS 26) else {
-            throw XCTSkip("This test requires iOS 18.6 or earlier")
-        }
-
-        subject.state.profileSwitcherState.isVisible = true
-        subject.receive(.profileSwitcher(.backgroundTapped))
-
-        XCTAssertFalse(subject.state.profileSwitcherState.isVisible)
-    }
-
     /// `receive(_:)` with `.profileSwitcher(.backgroundTapped)` for iOS 26 dismisses the profile switcher.
     @MainActor
     func test_receive_profileSwitcher_backgroundPressed_iOS26() throws {
-        guard #available(iOS 26, *) else {
-            throw XCTSkip("This test requires iOS 26 or later")
-        }
-
         subject.receive(.profileSwitcher(.backgroundTapped))
 
         XCTAssertTrue(coordinator.routes.contains(.dismiss()))

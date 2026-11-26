@@ -52,6 +52,10 @@ struct VaultGroupState: Equatable, Sendable {
         loadingState.data.isEmptyOrNil
     }
 
+    /// The number of items the row that opened this page showed (`nil` when unknown). Until the first stream value
+    /// arrives the page shows this count under its title, so the title block never changes its layout.
+    var expectedItemCount: Int?
+
     /// The type of the new item button in the empty state and FAB to display based on which group
     /// type is shown.
     var newItemButtonType: NewItemButtonType? {
@@ -179,4 +183,23 @@ struct VaultGroupState: Equatable, Sendable {
 
     /// The vault filter used to display a single or all vaults for the user.
     let vaultFilterType: VaultFilterType
+
+    /// The number of items the page shows: the loaded items, or the expected count while loading.
+    var displayedItemCount: Int? {
+        switch loadingState {
+        case let .data(sections): sections.reduce(0) { $0 + $1.items.count }
+        default: expectedItemCount
+        }
+    }
+}
+
+// MARK: - VaultGroupCacheKey
+
+/// Identifies the content of a group page: the group and the vault filter it was opened with.
+struct VaultGroupCacheKey: Hashable {
+    /// The group shown.
+    let group: VaultListGroup
+
+    /// The vault filter applied.
+    let filter: VaultFilterType
 }

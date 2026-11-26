@@ -15,15 +15,16 @@ struct FoldersView: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if store.state.folders.isEmpty {
-                empty
-                    .background(Color(asset: SharedAsset.Colors.backgroundPrimary))
-            } else {
-                folders
+        // One list from the first frame; the empty message lies on top of the empty list (no swap of views).
+        folders
+            .overlay {
+                if store.state.folders.isEmpty {
+                    empty
+                        .passYEmptyListState()
+                }
             }
-        }
-        .navigationBar(title: Localizations.myFolders, titleDisplayMode: .inline)
+        .navigationTitle(Localizations.myFolders)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             addToolbarItem {
                 store.send(.add)
@@ -44,11 +45,7 @@ struct FoldersView: View {
 
     /// The empty state for when the user doesn't have any folders yet.
     private var empty: some View {
-        Text(Localizations.noFoldersToList)
-            .styleGuide(.callout)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .accessibilityIdentifier("NoFoldersLabel")
+        PassYEmptyState(Localizations.noFoldersToList, systemImage: "folder", identifier: "NoFoldersLabel")
     }
 
     /// The section listing all the user's folders.
@@ -64,30 +61,19 @@ struct FoldersView: View {
                 },
                 id: \.id,
             ) { folder in
-                Button {
+                PassYRow(title: .init(text: folder.name, identifier: "FolderName"), showsDisclosure: true) {
+                    PassYIconTile(systemImage: "folder.fill", tint: .blue)
+                }
+                .passYRowButton(identifier: "FolderCell") {
                     guard let id = folder.id else { return }
                     store.send(.folderTapped(id: id))
-                } label: {
-                    HStack {
-                        Label {
-                            Text(folder.name)
-                                .foregroundStyle(.primary)
-                                .accessibilityIdentifier("FolderName")
-                        } icon: {
-                            Image(systemName: "folder")
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("FolderCell")
+                .padding(.horizontal, PassYDesign.Spacing.large)
+                .listRowInsets(EdgeInsets())
             }
         }
-        .listStyle(.insetGrouped)
+        .passYCardList(reservesBottomBarSpace: false)
+        .passYReadableWidth()
     }
 }
 

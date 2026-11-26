@@ -34,8 +34,10 @@ class DeleteAccountViewTests: BitwardenTestCase {
     /// Tapping the delete account button performs the `.deleteAccount` effect.
     @MainActor
     func test_deleteAccount_tap() async throws {
-        let button = try subject.inspect().find(asyncButton: Localizations.deleteAccount)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.deleteAccount)
+        try button.tap()
+
+        try await waitForAsync { !self.processor.effects.isEmpty }
 
         XCTAssertEqual(processor.effects.last, .deleteAccount)
     }

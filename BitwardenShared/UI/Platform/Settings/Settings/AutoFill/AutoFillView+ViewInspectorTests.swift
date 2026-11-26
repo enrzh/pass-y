@@ -74,105 +74,50 @@ class AutoFillViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .toggleFillAssist(true))
     }
 
-    /// The Fill Assist info button's image has an accessibility label, which names the custom
-    /// accessibility action exposed on the toggle.
+    /// The Fill Assist learn more link sits in the section footer.
     @MainActor
     func test_fillAssistToggle_learnMoreButton_accessibility() throws {
         processor.state.isFillAssistFeatureFlagEnabled = true
-        XCTAssertNoThrow(try subject.inspect().find(ViewType.Image.self) { image in
-            try image.accessibilityLabel().string() == Localizations.learnMore
-        })
+        XCTAssertNoThrow(try subject.inspect().find(button: Localizations.learnMore))
     }
 
     /// The action card is hidden if the autofill setup progress is complete.
     @MainActor
     func test_setUpUnlockActionCard_hidden_complete() {
         processor.state.badgeState = .fixture(autofillSetupProgress: .complete)
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.dismiss))
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.getStarted))
+        XCTAssertThrowsError(try subject.inspect().find(button: Localizations.dismiss))
+        XCTAssertThrowsError(try subject.inspect().find(button: Localizations.getStarted))
     }
 
     /// The action card is hidden if there's no autofill setup progress.
     @MainActor
     func test_setUpUnlockActionCard_hidden_nilBadgeState() {
         processor.state.badgeState = nil
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.dismiss))
-        XCTAssertThrowsError(try subject.inspect().find(asyncButton: Localizations.getStarted))
-    }
-
-    /// The action card is visible if the autofill setup progress isn't complete.
-    @MainActor
-    func test_setUpUnlockActionCard_visible_iOSPre18() async throws {
-        guard #unavailable(iOS 18) else {
-            throw XCTSkip("Skipped on iOS >= 18.0")
-        }
-
-        processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let section = try subject.inspect().find(setupSection: Localizations.setUpAutofill)
-        _ = try section.find(asyncButton: Localizations.getStarted)
-        _ = try section.find(asyncButton: Localizations.dismiss)
-    }
-
-    /// Tapping the dismiss button in the set up autofill action card sends the
-    /// `.dismissSetUpUnlockActionCard` effect.
-    @MainActor
-    func test_setUpUnlockActionCard_visible_tapDismiss_preiOS18() async throws {
-        guard #unavailable(iOS 18) else {
-            throw XCTSkip("Skipped on iOS >= 18.0")
-        }
-
-        processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(setupSection: Localizations.setUpAutofill)
-
-        let button = try actionCard.find(asyncButton: Localizations.dismiss)
-        try await button.tap()
-        XCTAssertEqual(processor.effects, [.dismissSetUpAutofillActionCard])
-    }
-
-    /// Tapping the get started button in the set up autofill action card sends the
-    /// `.showSetUpUnlock` action.
-    @MainActor
-    func test_setUpUnlockActionCard_visible_tapGetStarted_preiOS18() async throws {
-        guard #unavailable(iOS 18) else {
-            throw XCTSkip("Skipped on iOS >= 18.0")
-        }
-
-        processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
-        let actionCard = try subject.inspect().find(setupSection: Localizations.setUpAutofill)
-
-        let button = try actionCard.find(asyncButton: Localizations.getStarted)
-        try await button.tap()
-        XCTAssertEqual(processor.effects, [.setUpAutofill])
+        XCTAssertThrowsError(try subject.inspect().find(button: Localizations.dismiss))
+        XCTAssertThrowsError(try subject.inspect().find(button: Localizations.getStarted))
     }
 
     /// The action card is visible if the autofill setup progress isn't complete.
     @MainActor
     func test_setUpUnlockActionCard_visible_iOS18() async throws {
-        guard #available(iOS 18.0, *) else {
-            throw XCTSkip("Skipped on iOS < 18.0")
-        }
-
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
         let section = try subject.inspect().find(setupSection: Localizations.autofillWithBitwarden)
         _ = try section.find(text: Localizations.autofillWithBitwardenDescriptionLong)
-        _ = try section.find(asyncButton: Localizations.turnOnNow)
-        _ = try section.find(asyncButton: Localizations.learnMoreAboutAutofill)
-        _ = try section.find(asyncButton: Localizations.dismiss)
+        _ = try section.find(button: Localizations.turnOnNow)
+        _ = try section.find(button: Localizations.learnMoreAboutAutofill)
+        _ = try section.find(button: Localizations.dismiss)
     }
 
     /// Tapping the dismiss button in the set up autofill action card sends the
     /// `.dismissSetUpUnlockActionCard` effect.
     @MainActor
     func test_setUpUnlockActionCard_visible_tapDismiss_iOS18() async throws {
-        guard #available(iOS 18.0, *) else {
-            throw XCTSkip("Skipped on iOS < 18.0")
-        }
-
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
         let actionCard = try subject.inspect().find(setupSection: Localizations.autofillWithBitwarden)
 
-        let button = try actionCard.find(asyncButton: Localizations.dismiss)
-        try await button.tap()
+        let button = try actionCard.find(button: Localizations.dismiss)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects, [.dismissSetUpAutofillActionCard])
     }
 
@@ -180,15 +125,12 @@ class AutoFillViewTests: BitwardenTestCase {
     /// `.showSetUpUnlock` action.
     @MainActor
     func test_setUpUnlockActionCard_visible_tapGetStarted_iOS18() async throws {
-        guard #available(iOS 18.0, *) else {
-            throw XCTSkip("Skipped on iOS < 18.0")
-        }
-
         processor.state.badgeState = .fixture(autofillSetupProgress: .setUpLater)
         let actionCard = try subject.inspect().find(setupSection: Localizations.autofillWithBitwarden)
 
-        let button = try actionCard.find(asyncButton: Localizations.turnOnNow)
-        try await button.tap()
+        let button = try actionCard.find(button: Localizations.turnOnNow)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects, [.setUpAutofill])
     }
 }

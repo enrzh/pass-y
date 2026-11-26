@@ -36,157 +36,155 @@ struct AddEditPassportItemView: View {
     >
 
     var body: some View {
-        SectionView(Localizations.passportDetails, contentSpacing: 8) {
-            ContentBlock {
-                BitwardenTextField(
-                    title: Localizations.firstName,
-                    text: store.binding(
-                        get: \.givenName,
-                        send: AddEditPassportItemAction.givenNameChanged,
-                    ),
-                    accessibilityIdentifier: "PassportFirstNameEntry",
-                    focus: .field($focusedField, equals: .givenName),
-                )
-                .onSubmit { focusNextField($focusedField) }
+        Section {
+            PassYFormField(
+                Localizations.firstName,
+                text: store.binding(
+                    get: \.givenName,
+                    send: AddEditPassportItemAction.givenNameChanged,
+                ),
+                identifier: "PassportFirstNameEntry",
+                focus: .field($focusedField, equals: .givenName),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.lastName,
-                    text: store.binding(
-                        get: \.surname,
-                        send: AddEditPassportItemAction.surnameChanged,
-                    ),
-                    accessibilityIdentifier: "PassportLastNameEntry",
-                    focus: .field($focusedField, equals: .surname),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.lastName,
+                text: store.binding(
+                    get: \.surname,
+                    send: AddEditPassportItemAction.surnameChanged,
+                ),
+                identifier: "PassportLastNameEntry",
+                focus: .field($focusedField, equals: .surname),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                DateFieldPicker(
-                    title: Localizations.dateOfBirth,
-                    accessibilityIdentifier: "PassportDateOfBirthEntry",
-                    date: store.binding(
-                        get: \.dateOfBirth,
-                        send: AddEditPassportItemAction.dateOfBirthChanged,
-                    ),
-                    in: Date.distantPast ... Date().asUTCCalendarDay(),
-                )
+            PassYDateRow(
+                Localizations.dateOfBirth,
+                date: store.binding(
+                    get: \.dateOfBirth,
+                    send: AddEditPassportItemAction.dateOfBirthChanged,
+                ),
+                in: Date.distantPast ... Date().asUTCCalendarDay(),
+                identifier: "PassportDateOfBirthEntry",
+            )
 
-                BitwardenTextField(
-                    title: Localizations.sex,
-                    text: store.binding(
-                        get: \.sex,
-                        send: AddEditPassportItemAction.sexChanged,
-                    ),
-                    accessibilityIdentifier: "PassportSexEntry",
-                    focus: .field($focusedField, equals: .sex),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.sex,
+                text: store.binding(
+                    get: \.sex,
+                    send: AddEditPassportItemAction.sexChanged,
+                ),
+                identifier: "PassportSexEntry",
+                focus: .field($focusedField, equals: .sex),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.birthPlace,
-                    text: store.binding(
-                        get: \.birthPlace,
-                        send: AddEditPassportItemAction.birthPlaceChanged,
-                    ),
-                    accessibilityIdentifier: "PassportBirthPlaceEntry",
-                    focus: .field($focusedField, equals: .birthPlace),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.birthPlace,
+                text: store.binding(
+                    get: \.birthPlace,
+                    send: AddEditPassportItemAction.birthPlaceChanged,
+                ),
+                identifier: "PassportBirthPlaceEntry",
+                focus: .field($focusedField, equals: .birthPlace),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.nationality,
-                    text: store.binding(
-                        get: \.nationality,
-                        send: AddEditPassportItemAction.nationalityChanged,
-                    ),
-                    accessibilityIdentifier: "PassportNationalityEntry",
-                    focus: .field($focusedField, equals: .nationality),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.nationality,
+                text: store.binding(
+                    get: \.nationality,
+                    send: AddEditPassportItemAction.nationalityChanged,
+                ),
+                identifier: "PassportNationalityEntry",
+                focus: .field($focusedField, equals: .nationality),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.passportNumber,
-                    text: store.binding(
-                        get: \.passportNumber,
-                        send: AddEditPassportItemAction.passportNumberChanged,
-                    ),
-                    accessibilityIdentifier: "PassportNumberEntry",
-                    passwordVisibilityAccessibilityId: "ShowPassportNumberButton",
-                    focus: .field($focusedField, equals: .passportNumber),
-                    isPasswordVisible: store.binding(
-                        get: \.isPassportNumberVisible,
-                        send: AddEditPassportItemAction.togglePassportNumberVisibilityChanged,
-                    ),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYSecureField(
+                Localizations.passportNumber,
+                text: store.binding(
+                    get: \.passportNumber,
+                    send: AddEditPassportItemAction.passportNumberChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.isPassportNumberVisible,
+                    send: AddEditPassportItemAction.togglePassportNumberVisibilityChanged,
+                ),
+                identifier: "PassportNumberEntry",
+                revealIdentifier: "ShowPassportNumberButton",
+                focus: .field($focusedField, equals: .passportNumber),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.passportType,
-                    text: store.binding(
-                        get: \.passportType,
-                        send: AddEditPassportItemAction.passportTypeChanged,
-                    ),
-                    accessibilityIdentifier: "PassportTypeEntry",
-                    focus: .field($focusedField, equals: .passportType),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.passportType,
+                text: store.binding(
+                    get: \.passportType,
+                    send: AddEditPassportItemAction.passportTypeChanged,
+                ),
+                identifier: "PassportTypeEntry",
+                focus: .field($focusedField, equals: .passportType),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.nationalIdentificationNumber,
-                    text: store.binding(
-                        get: \.nationalIdentificationNumber,
-                        send: AddEditPassportItemAction.nationalIdentificationNumberChanged,
-                    ),
-                    accessibilityIdentifier: "PassportNationalIdentificationNumberEntry",
-                    passwordVisibilityAccessibilityId: "ShowPassportNationalIdentificationNumberButton",
-                    focus: .field($focusedField, equals: .nationalIdentificationNumber),
-                    isPasswordVisible: store.binding(
-                        get: \.isNationalIdentificationNumberVisible,
-                        send: AddEditPassportItemAction.toggleNationalIdentificationNumberVisibilityChanged,
-                    ),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYSecureField(
+                Localizations.nationalIdentificationNumber,
+                text: store.binding(
+                    get: \.nationalIdentificationNumber,
+                    send: AddEditPassportItemAction.nationalIdentificationNumberChanged,
+                ),
+                isRevealed: store.binding(
+                    get: \.isNationalIdentificationNumberVisible,
+                    send: AddEditPassportItemAction.toggleNationalIdentificationNumberVisibilityChanged,
+                ),
+                identifier: "PassportNationalIdentificationNumberEntry",
+                revealIdentifier: "ShowPassportNationalIdentificationNumberButton",
+                focus: .field($focusedField, equals: .nationalIdentificationNumber),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.issuingCountry,
-                    text: store.binding(
-                        get: \.issuingCountry,
-                        send: AddEditPassportItemAction.issuingCountryChanged,
-                    ),
-                    accessibilityIdentifier: "PassportIssuingCountryEntry",
-                    focus: .field($focusedField, equals: .issuingCountry),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.issuingCountry,
+                text: store.binding(
+                    get: \.issuingCountry,
+                    send: AddEditPassportItemAction.issuingCountryChanged,
+                ),
+                identifier: "PassportIssuingCountryEntry",
+                focus: .field($focusedField, equals: .issuingCountry),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                BitwardenTextField(
-                    title: Localizations.issuingAuthorityOffice,
-                    text: store.binding(
-                        get: \.issuingAuthority,
-                        send: AddEditPassportItemAction.issuingAuthorityChanged,
-                    ),
-                    accessibilityIdentifier: "PassportIssuingAuthorityEntry",
-                    focus: .field($focusedField, equals: .issuingAuthority),
-                )
-                .onSubmit { focusNextField($focusedField) }
+            PassYFormField(
+                Localizations.issuingAuthorityOffice,
+                text: store.binding(
+                    get: \.issuingAuthority,
+                    send: AddEditPassportItemAction.issuingAuthorityChanged,
+                ),
+                identifier: "PassportIssuingAuthorityEntry",
+                focus: .field($focusedField, equals: .issuingAuthority),
+            )
+            .onSubmit { focusNextField($focusedField) }
 
-                DateFieldPicker(
-                    title: Localizations.issueDate,
-                    accessibilityIdentifier: "PassportIssueDateEntry",
-                    date: store.binding(
-                        get: \.issueDate,
-                        send: AddEditPassportItemAction.issueDateChanged,
-                    ),
-                    in: Date.distantPast ... Date().asUTCCalendarDay(),
-                )
+            PassYDateRow(
+                Localizations.issueDate,
+                date: store.binding(
+                    get: \.issueDate,
+                    send: AddEditPassportItemAction.issueDateChanged,
+                ),
+                in: Date.distantPast ... Date().asUTCCalendarDay(),
+                identifier: "PassportIssueDateEntry",
+            )
 
-                DateFieldPicker(
-                    title: Localizations.expirationDate,
-                    accessibilityIdentifier: "PassportExpirationDateEntry",
-                    date: store.binding(
-                        get: \.expirationDate,
-                        send: AddEditPassportItemAction.expirationDateChanged,
-                    ),
-                )
-            }
+            PassYDateRow(
+                Localizations.expirationDate,
+                date: store.binding(
+                    get: \.expirationDate,
+                    send: AddEditPassportItemAction.expirationDateChanged,
+                ),
+                identifier: "PassportExpirationDateEntry",
+            )
         }
     }
 }
@@ -194,7 +192,7 @@ struct AddEditPassportItemView: View {
 #if DEBUG
 #Preview("Empty") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditPassportItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -202,16 +200,14 @@ struct AddEditPassportItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Empty Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Empty Add Edit State")
     }
 }
 
 #Preview("Populated") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditPassportItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -219,16 +215,14 @@ struct AddEditPassportItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Populated Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Populated Add Edit State")
     }
 }
 
 #Preview("Hidden Fields Visible") {
     NavigationView {
-        ScrollView {
+        Form {
             AddEditPassportItemView(
                 store: Store(
                     processor: StateProcessor(
@@ -241,10 +235,8 @@ struct AddEditPassportItemView: View {
                     ),
                 ),
             )
-            .padding(16)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor)
-        .navigationBar(title: "Visible Add Edit State", titleDisplayMode: .inline)
+        .navigationTitle("Visible Add Edit State")
     }
 }
 

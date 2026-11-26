@@ -10,7 +10,6 @@ import XCTest
 /// `CardScannerWrapperView`'s retry/foreground-resume logic is driven by SwiftUI `@State` and cannot
 /// be meaningfully exercised without a live view host, so it is not covered here.
 ///
-@available(iOS 16.0, *)
 class CardScannerViewTests: BitwardenTestCase {
     // MARK: Tests
 

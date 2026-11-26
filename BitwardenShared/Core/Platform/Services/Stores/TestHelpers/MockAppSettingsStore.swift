@@ -36,6 +36,7 @@ class MockAppSettingsStore: AppSettingsStore { // swiftlint:disable:this type_bo
     var preAuthServerConfig: ServerConfig?
     var rememberedEmail: String?
     var rememberedOrgIdentifier: String?
+    var passYLayoutPreferences: PassYLayoutPreferences?
     var reviewPromptData: BitwardenShared.ReviewPromptData?
 
     var biometricAuthenticationEnabled = [String: Bool?]()

@@ -49,33 +49,21 @@ struct AutoFillView: View {
     /// The action card for setting up autofill.
     @ViewBuilder private var autofillActionCard: some View {
         if store.state.shouldShowAutofillActionCard {
-            if #available(iOS 18, *) {
-                NativeSetupSection(
-                    title: Localizations.autofillWithBitwarden,
-                    message: Localizations.autofillWithBitwardenDescriptionLong,
-                    systemImage: "text.badge.checkmark",
-                    action: NativeSetupSection.Row(title: Localizations.turnOnNow) {
-                        await store.perform(.setUpAutofill)
-                    },
-                    secondary: NativeSetupSection.Row(title: Localizations.learnMoreAboutAutofill) {
-                        store.send(.learnMoreAboutAutofillTapped)
-                    },
-                    dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
-                        await store.perform(.dismissSetUpAutofillActionCard)
-                    },
-                )
-            } else {
-                NativeSetupSection(
-                    title: Localizations.setUpAutofill,
-                    systemImage: "text.badge.checkmark",
-                    action: NativeSetupSection.Row(title: Localizations.getStarted) {
-                        await store.perform(.setUpAutofill)
-                    },
-                    dismiss: NativeSetupSection.Row(title: Localizations.dismiss) {
-                        await store.perform(.dismissSetUpAutofillActionCard)
-                    },
-                )
-            }
+            PassYSetupSection(
+                title: Localizations.autofillWithBitwarden,
+                message: Localizations.autofillWithBitwardenDescriptionLong,
+                systemImage: "key.fill",
+                tint: .green,
+                action: .init(title: Localizations.turnOnNow) {
+                    await store.perform(.setUpAutofill)
+                },
+                secondary: .init(title: Localizations.learnMoreAboutAutofill) {
+                    store.send(.learnMoreAboutAutofillTapped)
+                },
+                dismiss: .init(title: Localizations.dismiss) {
+                    await store.perform(.dismissSetUpAutofillActionCard)
+                },
+            )
         }
     }
 
@@ -84,55 +72,46 @@ struct AutoFillView: View {
         Group {
             if store.state.isFillAssistFeatureFlagEnabled {
                 Section {
-                    Toggle(
+                    PassYToggleRow(
+                        Localizations.turnOnFillAssist,
+                        systemImage: "wand.and.stars",
+                        tint: .purple,
                         isOn: store.binding(
                             get: \.isFillAssistEnabled,
                             send: AutoFillAction.toggleFillAssist,
                         ),
-                    ) {
-                        HStack(spacing: 8) {
-                            Text(Localizations.turnOnFillAssist)
-                            Button {
-                                openURL(ExternalLinksConstants.fillAssistHelp)
-                            } label: {
-                                Image(systemName: "questionmark.circle")
-                                    .font(.footnote)
-                                    .accessibilityLabel(Localizations.learnMore)
-                            }
-                            .buttonStyle(.plain)
-                            .foregroundStyle(.secondary)
-                        }
-                    }
-                    .accessibilityIdentifier("FillAssistSwitch")
-                    .accessibilityLabel(Localizations.turnOnFillAssist)
+                        identifier: "FillAssistSwitch",
+                    )
                 } header: {
                     Text(Localizations.additionalOptions)
                 } footer: {
-                    Text(Localizations.turnOnFillAssistDescriptionLong)
+                    PassYFooterText(Localizations.turnOnFillAssistDescriptionLong, link: Localizations.learnMore) {
+                        openURL(ExternalLinksConstants.fillAssistHelp)
+                    }
                 }
             }
 
             Section {
-                Toggle(
+                PassYToggleRow(
                     Localizations.copyTotpAutomatically,
+                    systemImage: "doc.on.clipboard.fill",
+                    tint: .blue,
                     isOn: store.binding(
                         get: \.isCopyTOTPToggleOn,
                         send: AutoFillAction.toggleCopyTOTPToggle,
                     ),
+                    identifier: "CopyTotpAutomaticallySwitch",
                 )
-                .accessibilityIdentifier("CopyTotpAutomaticallySwitch")
-                .accessibilityLabel(Localizations.copyTotpAutomatically)
             } header: {
                 if !store.state.isFillAssistFeatureFlagEnabled {
                     Text(Localizations.additionalOptions)
                 }
             } footer: {
-                Text(Localizations.copyTotpAutomaticallyDescription)
+                PassYFooterText(Localizations.copyTotpAutomaticallyDescription)
             }
 
             Section {
                 Picker(
-                    Localizations.defaultUriMatchDetection,
                     selection: store.binding(
                         get: \.defaultUriMatchType,
                         send: AutoFillAction.defaultUriMatchTypeChanged,
@@ -141,15 +120,26 @@ struct AutoFillView: View {
                     ForEach(store.state.uriMatchTypeOptions, id: \.self) { option in
                         Text(option.localizedName).tag(option)
                     }
+                } label: {
+                    PassYSettingsRowLabel(
+                        title: Localizations.defaultUriMatchDetection,
+                        systemImage: "link",
+                        tint: .indigo,
+                    )
                 }
                 .pickerStyle(.menu)
                 .accessibilityIdentifier("DefaultUriMatchDetectionChooser")
             } footer: {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(Localizations.uriMatchDetectionControlsHowBitwardenIdentifiesAutofillSuggestions)
+                VStack(alignment: .leading, spacing: PassYDesign.Spacing.small) {
+                    PassYFooterText(Localizations.uriMatchDetectionControlsHowBitwardenIdentifiesAutofillSuggestions)
 
                     if let warningMessage = store.state.warningMessage {
-                        Text(LocalizedStringKey(warningMessage))
+                        Label {
+                            Text(LocalizedStringKey(warningMessage))
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                        }
+                        .font(.footnote)
                     }
                 }
             }
@@ -160,18 +150,14 @@ struct AutoFillView: View {
     private var autoFillSection: some View {
         Section(Localizations.autofill) {
             if store.state.shouldShowPasswordAutofill {
-                NativeSettingsRow(
-                    action: { store.send(.passwordAutoFillTapped) },
-                    symbol: "key.viewfinder",
-                    title: Localizations.passwordAutofill,
-                )
+                PassYSettingsRow(Localizations.passwordAutofill, systemImage: "key.viewfinder", tint: .green) {
+                    store.send(.passwordAutoFillTapped)
+                }
             }
 
-            NativeSettingsRow(
-                action: { store.send(.appExtensionTapped) },
-                symbol: "puzzlepiece.extension",
-                title: Localizations.appExtension,
-            )
+            PassYSettingsRow(Localizations.appExtension, systemImage: "puzzlepiece.extension.fill", tint: .blue) {
+                store.send(.appExtensionTapped)
+            }
         }
     }
 }

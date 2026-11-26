@@ -1,6 +1,6 @@
 import UIKit
 #if DEBUG
-import BitwardenShared
+import BitwardenKit
 #endif
 
 /// Determine the app delegate class that should be used during this launch of the app. If the `TestingAppDelegate`

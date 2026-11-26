@@ -17,11 +17,8 @@ struct EditCollectionsView: View {
 
     var body: some View {
         content
-            .navigationBar(
-                title: Localizations.sharedFolders,
-                titleDisplayMode: .inline,
-            )
-            .scrollView()
+            .navigationTitle(Localizations.sharedFolders)
+            .navigationBarTitleDisplayMode(.inline)
             .task { await store.perform(.fetchCipherOptions) }
             .toolbar {
                 cancelToolbarItem {
@@ -36,31 +33,29 @@ struct EditCollectionsView: View {
 
     // MARK: Private Views
 
-    /// The content displayed in the view.
+    /// The collections as switches in one card, or an empty state.
     @ViewBuilder private var content: some View {
         if store.state.collections.isEmpty {
-            Text(Localizations.thereAreNoSharedFoldersToList)
-                .styleGuide(.body)
-                .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .multilineTextAlignment(.center)
-                .padding(16)
-                .frame(maxWidth: .infinity)
+            PassYEmptyState(Localizations.thereAreNoSharedFoldersToList, systemImage: "square.stack")
+                .passYEmptyListState()
         } else {
-            ContentBlock(dividerLeadingPadding: 16) {
-                ForEach(store.state.collections, id: \.id) { collection in
-                    if let collectionId = collection.id {
-                        BitwardenToggle(
-                            collection.name,
-                            isOn: store.binding(
-                                get: { _ in store.state.collectionIds.contains(collectionId) },
-                                send: { .collectionToggleChanged($0, collectionId: collectionId) },
-                            ),
-                            accessibilityIdentifier: "CollectionItemSwitch",
-                        )
+            Form {
+                Section {
+                    ForEach(store.state.collections, id: \.id) { collection in
+                        if let collectionId = collection.id {
+                            PassYToggleRow(
+                                collection.name,
+                                isOn: store.binding(
+                                    get: { _ in store.state.collectionIds.contains(collectionId) },
+                                    send: { .collectionToggleChanged($0, collectionId: collectionId) },
+                                ),
+                                identifier: "CollectionItemSwitch",
+                            )
+                        }
                     }
                 }
             }
-            .frame(maxWidth: .infinity)
+            .passYReadableWidth()
         }
     }
 }

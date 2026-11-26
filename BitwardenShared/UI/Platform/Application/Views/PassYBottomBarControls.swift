@@ -4,22 +4,18 @@ import UIKit
 
 // MARK: - BarBackground
 
-/// Glass on iOS 26, material before.
+/// Interactive Liquid Glass in the given shape.
 struct BarBackground<S: Shape>: ViewModifier {
     let shape: S
 
     func body(content: Content) -> some View {
-        if #available(iOS 26, *) {
-            content.glassEffect(.regular.interactive(), in: shape)
-        } else {
-            content.background(.regularMaterial, in: shape)
-        }
+        content.glassEffect(.regular.interactive(), in: shape)
     }
 }
 
 // MARK: - PassYGlassBackground
 
-/// Glass (or material) as a plain background behind a control that owns a system menu. It is NOT interactive glass on the
+/// Glass as a plain background behind a control that owns a system menu. It is NOT interactive glass on the
 /// control itself: a `Menu` whose source view is an interactive glass view morphs into the menu platter with
 /// `AnimationKit` "match" animations that, on iOS 27, sometimes never report their end. XCUITest then waits 60 s per
 /// action ("App animations complete notification not received", caught with the animation dump and a `sample`: the
@@ -28,33 +24,7 @@ struct PassYGlassBackground<S: Shape>: View {
     let shape: S
 
     var body: some View {
-        if #available(iOS 26, *) {
-            Color.clear.glassEffect(.regular, in: shape)
-        } else {
-            shape.fill(.regularMaterial)
-        }
-    }
-}
-
-// MARK: - SearchCancelButton
-
-/// The cancel control of the bottom bars: clears the search and closes the keyboard. It is a real SwiftUI button
-/// because the `UISearchBar` cancel button did not clear the search after the keyboard had been closed with the
-/// Search key (it only re-activated the field).
-struct SearchCancelButton: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: "xmark")
-                .font(.body.weight(.semibold))
-                .frame(width: 44, height: 44)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .modifier(BarBackground(shape: Circle()))
-        .accessibilityLabel(Localizations.cancel)
-        .accessibilityIdentifier("VaultSearchCancel")
+        Color.clear.glassEffect(.regular, in: shape)
     }
 }
 
