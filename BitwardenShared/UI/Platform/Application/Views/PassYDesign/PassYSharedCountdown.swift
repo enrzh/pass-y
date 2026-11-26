@@ -116,8 +116,9 @@ private struct PassYSharedCountdownTitleAccessory: View {
     var body: some View {
         HStack(spacing: 0) {
             if let subtitle {
+                // The system's large subtitle style (same height as on the other list pages).
                 Text(subtitle)
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
