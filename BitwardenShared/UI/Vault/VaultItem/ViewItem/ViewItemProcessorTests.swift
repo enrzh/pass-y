@@ -24,6 +24,7 @@ class ViewItemProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
     var pasteboardService: MockPasteboardService!
     var premiumUpgradeHelper: MockPremiumUpgradeHelper!
     var rehydrationHelper: MockRehydrationHelper!
+    var settingsRepository: MockSettingsRepository!
     var stateService: MockStateService!
     var subject: ViewItemProcessor!
     var vaultItemActionHelper: MockVaultItemActionHelper!
@@ -43,6 +44,7 @@ class ViewItemProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
         eventService = MockEventService()
         pasteboardService = MockPasteboardService()
         rehydrationHelper = MockRehydrationHelper()
+        settingsRepository = MockSettingsRepository()
         stateService = MockStateService()
         premiumUpgradeHelper = MockPremiumUpgradeHelper()
         vaultItemActionHelper = MockVaultItemActionHelper()
@@ -56,6 +58,7 @@ class ViewItemProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
             httpClient: client,
             pasteboardService: pasteboardService,
             rehydrationHelper: rehydrationHelper,
+            settingsRepository: settingsRepository,
             stateService: stateService,
             vaultRepository: vaultRepository,
         )
@@ -2097,5 +2100,63 @@ class ViewItemProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
             keyFingerprint: "fingerprint",
         )
         subject.state.loadingState = .data(cipherItemState)
+    }
+
+    // MARK: Move to folder
+
+    /// `receive(_:)` with `.morePressed(.moveToFolder)` saves the item in the folder and shows the "Moved to" toast.
+    @MainActor
+    func test_receive_morePressed_moveToFolder() async throws {
+        let cipherState = try XCTUnwrap(CipherItemState(
+            existing: CipherView.loginFixture(folderId: nil, id: "123"),
+            hasPremium: false,
+        ))
+        subject.state = ViewItemState(loadingState: .data(cipherState))
+        subject.state.folders = [.fixture(id: "f1", name: "Work")]
+
+        subject.receive(.morePressed(.moveToFolder("f1")))
+        try await waitForAsync { !self.vaultRepository.updateCipherCiphers.isEmpty }
+
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.map(\.folderId), ["f1"])
+        try await waitForAsync { self.subject.state.toast != nil }
+        XCTAssertEqual(subject.state.toast, Toast(title: Localizations.movedToX("Work")))
+    }
+
+    /// `receive(_:)` with `.morePressed(.moveToNewFolder)` asks for a name, creates the folder and moves the item.
+    @MainActor
+    func test_receive_morePressed_moveToNewFolder() async throws {
+        let cipherState = try XCTUnwrap(CipherItemState(
+            existing: CipherView.loginFixture(folderId: nil, id: "123"),
+            hasPremium: false,
+        ))
+        subject.state = ViewItemState(loadingState: .data(cipherState))
+        settingsRepository.addFolderResult = .success(.fixture(id: "new", name: "Travel"))
+        vaultRepository.fetchFoldersResult = .success([.fixture(id: "new", name: "Travel")])
+
+        subject.receive(.morePressed(.moveToNewFolder))
+        let alert = try XCTUnwrap(coordinator.alertShown.last)
+        try alert.setText("Travel", forTextFieldWithId: "name")
+        try await alert.tapAction(title: Localizations.save)
+
+        XCTAssertEqual(settingsRepository.addedFolderName, "Travel")
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.map(\.folderId), ["new"])
+        XCTAssertEqual(subject.state.toast, Toast(title: Localizations.movedToX("Travel")))
+    }
+
+    /// Items that are deleted or not editable offer no "Move to folder".
+    @MainActor
+    func test_canMoveToFolder() throws {
+        let editable = try XCTUnwrap(CipherItemState(existing: CipherView.loginFixture(id: "1"), hasPremium: false))
+        XCTAssertTrue(ViewItemState(loadingState: .data(editable)).canMoveToFolder)
+        let readOnly = try XCTUnwrap(CipherItemState(
+            existing: CipherView.loginFixture(edit: false, id: "1"),
+            hasPremium: false,
+        ))
+        XCTAssertFalse(ViewItemState(loadingState: .data(readOnly)).canMoveToFolder)
+        let deleted = try XCTUnwrap(CipherItemState(
+            existing: CipherView.loginFixture(deletedDate: Date(), id: "1"),
+            hasPremium: false,
+        ))
+        XCTAssertFalse(ViewItemState(loadingState: .data(deleted)).canMoveToFolder)
     }
 } // swiftlint:disable:this file_length

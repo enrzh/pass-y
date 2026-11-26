@@ -222,7 +222,7 @@ struct VaultListItemRowView: View {
         copyCount += 1
     }
 
-    /// The long-press menu: the item options of a cipher row; Copy, View and Edit for a code row.
+    /// The long-press menu: the item options of a cipher row; Copy, View, Edit and Move to folder for a code row.
     @ViewBuilder
     private func contextMenuItems(_ state: VaultListItemRowState) -> some View {
         switch state.item.itemType {
@@ -245,10 +245,12 @@ struct VaultListItemRowView: View {
                 } label: {
                     Label(Localizations.edit, systemImage: "pencil")
                 }
+                VaultMoveToFolderMenu(item: state.item.totpCipherItem)
             }
         default:
             VaultItemOptionsMenuContent(
                 kinds: moreOptionsKinds(state),
+                item: state.isFromExtension ? nil : state.item,
                 onSelect: { kind in Task { await store.perform(.accessibilityMoreOptionsActionPressed(kind)) } },
                 onDelete: onDelete,
             )
@@ -360,10 +362,14 @@ struct VaultListRowCell: View, Equatable {
 // MARK: - VaultItemOptionsMenuContent
 
 /// The options of a cipher row as native menu items (SF Symbols), shared by the long-press context menu and the
-/// "More" swipe action: the more-options actions, then a divider and the destructive Delete.
+/// "More" swipe action: the more-options actions, "Move to folder" (`VaultMoveToFolderMenu`), then a divider and the
+/// destructive Delete.
 struct VaultItemOptionsMenuContent: View {
     /// The applicable more-options actions, in menu order.
     let kinds: [MoreOptionsActionKind]
+
+    /// The row's item for "Move to folder", `nil` for no such entry.
+    var item: VaultListItem?
 
     /// Called with the chosen action.
     let onSelect: (MoreOptionsActionKind) -> Void
@@ -379,6 +385,7 @@ struct VaultItemOptionsMenuContent: View {
                 Label(kind.localizedName, systemImage: kind.passYSymbol)
             }
         }
+        VaultMoveToFolderMenu(item: item)
         if let onDelete, !kinds.isEmpty {
             Divider()
             Button(role: .destructive, action: onDelete) {
@@ -436,6 +443,7 @@ extension View {
                 Menu {
                     VaultItemOptionsMenuContent(
                         kinds: item.moreOptionsActionKinds(hasPremium: hasPremium),
+                        item: item,
                         onSelect: perform,
                         onDelete: nil,
                     )

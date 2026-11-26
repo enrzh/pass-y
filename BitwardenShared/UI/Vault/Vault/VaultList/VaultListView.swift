@@ -29,6 +29,9 @@ private struct SearchableVaultListView: View {
     /// Whether the search results list is in edit mode (follows `isSelecting`, delayed when leaving).
     @SwiftUI.State private var listIsEditing = false
 
+    /// The folders and move handlers of the rows' "Move to folder" menus.
+    @SwiftUI.State private var folderMove = VaultFolderMove()
+
     /// The layout preferences (Customize). Applied inside the equatable boundaries (home list, search list), so a
     /// change of unrelated state never re-applies them; the home slice is part of the home list key.
     let layoutStore: PassYLayoutStore
@@ -61,6 +64,14 @@ private struct SearchableVaultListView: View {
             }
         }
         .animation(.easeInOut, value: store.state.organizationUserNotificationBannerData)
+        .vaultFolderMove(
+            folderMove,
+            folders: store.state.folders,
+            move: { [weak store] item, folderId in
+                Task { await store?.perform(.moveItemToFolder(item, folderId: folderId)) }
+            },
+            moveToNewFolder: { [weak store] item in Task { await store?.perform(.moveItemToNewFolder(item)) } },
+        )
         .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
         .toast(
             store.binding(

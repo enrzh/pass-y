@@ -43,6 +43,34 @@ class VaultItemManagementMenuViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
+    /// Without folders (the edit form) there is no "Move to folder".
+    @MainActor
+    func test_moveToFolder_hiddenWithoutFolders() throws {
+        XCTAssertThrowsError(try subject.inspect().find(button: Localizations.newFolderEllipsis))
+    }
+
+    /// "Move to folder": choosing a folder sends `.moveToFolder`, "New folder…" sends `.moveToNewFolder`.
+    @MainActor
+    func test_moveToFolder() throws {
+        subject = VaultItemManagementMenuView(
+            isArchiveEnabled: false,
+            isCloneEnabled: false,
+            isCollectionsEnabled: false,
+            isDeleteEnabled: false,
+            isMoveToOrganizationEnabled: false,
+            isRestoreEnabled: false,
+            isUnarchiveEnabled: false,
+            moveFolders: [.fixture(id: "f1", name: "Work")],
+            currentFolderId: nil,
+            store: Store(processor: processor),
+        )
+        try subject.inspect().find(ViewType.Picker.self).select(value: String?("f1"))
+        XCTAssertEqual(processor.dispatchedActions.last, .moveToFolder("f1"))
+
+        try subject.inspect().find(button: Localizations.newFolderEllipsis).tap()
+        XCTAssertEqual(processor.dispatchedActions.last, .moveToNewFolder)
+    }
+
     /// Tapping the archive option dispatches the `.archive` action.
     @MainActor
     func test_archiveOption_tap() async throws {

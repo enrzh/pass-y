@@ -20,6 +20,7 @@ class VaultItemMoreOptionsHelperTests: BitwardenTestCase { // swiftlint:disable:
     var errorReporter: MockErrorReporter!
     var masterPasswordRepromptHelper: MockMasterPasswordRepromptHelper!
     var pasteboardService: MockPasteboardService!
+    var settingsRepository: MockSettingsRepository!
     var stateService: MockStateService!
     var subject: VaultItemMoreOptionsHelper!
     var vaultRepository: MockVaultRepository!
@@ -36,6 +37,7 @@ class VaultItemMoreOptionsHelperTests: BitwardenTestCase { // swiftlint:disable:
         errorReporter = MockErrorReporter()
         masterPasswordRepromptHelper = MockMasterPasswordRepromptHelper()
         pasteboardService = MockPasteboardService()
+        settingsRepository = MockSettingsRepository()
         stateService = MockStateService()
         vaultRepository = MockVaultRepository()
 
@@ -48,6 +50,7 @@ class VaultItemMoreOptionsHelperTests: BitwardenTestCase { // swiftlint:disable:
                 environmentService: environmentService,
                 errorReporter: errorReporter,
                 pasteboardService: pasteboardService,
+                settingsRepository: settingsRepository,
                 stateService: stateService,
                 vaultRepository: vaultRepository,
             ),
@@ -64,9 +67,116 @@ class VaultItemMoreOptionsHelperTests: BitwardenTestCase { // swiftlint:disable:
         errorReporter = nil
         masterPasswordRepromptHelper = nil
         pasteboardService = nil
+        settingsRepository = nil
         stateService = nil
         subject = nil
         vaultRepository = nil
+    }
+
+    // MARK: moveToFolder Tests
+
+    /// `moveToFolder(_:folderId:handleDisplayToast:)` saves the cipher in the folder and shows the "Moved to" toast.
+    @MainActor
+    func test_moveToFolder() async throws {
+        vaultRepository.fetchCipherResult = .success(.loginFixture(folderId: nil, id: "1"))
+        vaultRepository.fetchFolderResult = .success(.fixture(id: "f1", name: "Work"))
+        var toast: Toast?
+
+        await subject.moveToFolder(.fixture(cipherListView: .fixture(id: "1")), folderId: "f1") { toast = $0 }
+
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.last?.folderId, "f1")
+        XCTAssertEqual(toast, Toast(title: Localizations.movedToX("Work")))
+        XCTAssertTrue(coordinator.errorAlertsShown.isEmpty)
+    }
+
+    /// `moveToFolder(_:folderId:handleDisplayToast:)` with `nil` removes the item from its folder.
+    @MainActor
+    func test_moveToFolder_noFolder() async throws {
+        vaultRepository.fetchCipherResult = .success(.loginFixture(folderId: "f1", id: "1"))
+        var toast: Toast?
+
+        await subject.moveToFolder(.fixture(cipherListView: .fixture(id: "1")), folderId: nil) { toast = $0 }
+
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.count, 1)
+        XCTAssertNil(vaultRepository.updateCipherCiphers.last?.folderId)
+        XCTAssertEqual(toast, Toast(title: Localizations.movedToX(Localizations.folderNone)))
+    }
+
+    /// `moveToFolder(_:folderId:handleDisplayToast:)` does nothing for the item's current folder.
+    @MainActor
+    func test_moveToFolder_currentFolder() async throws {
+        vaultRepository.fetchCipherResult = .success(.loginFixture(folderId: "f1", id: "1"))
+        var toast: Toast?
+
+        await subject.moveToFolder(.fixture(cipherListView: .fixture(id: "1")), folderId: "f1") { toast = $0 }
+
+        XCTAssertTrue(vaultRepository.updateCipherCiphers.isEmpty)
+        XCTAssertNil(toast)
+    }
+
+    /// `moveToFolder(_:folderId:handleDisplayToast:)` moves only after the master password re-prompt.
+    @MainActor
+    func test_moveToFolder_passwordReprompt() async throws {
+        masterPasswordRepromptHelper.repromptForMasterPasswordAutoComplete = false
+        let cipher = CipherView.loginFixture(folderId: nil, id: "1", reprompt: .password)
+        vaultRepository.fetchCipherResult = .success(cipher)
+
+        await subject.moveToFolder(.fixture(cipherListView: .fixture(id: "1")), folderId: "f1") { _ in }
+
+        XCTAssertEqual(masterPasswordRepromptHelper.repromptForMasterPasswordCipherView, cipher)
+        XCTAssertTrue(vaultRepository.updateCipherCiphers.isEmpty)
+        await masterPasswordRepromptHelper.repromptForMasterPasswordCompletion?()
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.last?.folderId, "f1")
+    }
+
+    /// `moveToFolder(_:folderId:handleDisplayToast:)` moves the cipher of a code row.
+    @MainActor
+    func test_moveToFolder_codeRow() async throws {
+        vaultRepository.fetchCipherResult = .success(.loginFixture(folderId: nil, id: "123"))
+        let item = VaultListItem.fixtureTOTP(totp: .fixture(id: "123", timeProvider: MockTimeProvider(.currentTime)))
+
+        await subject.moveToFolder(item, folderId: "f1") { _ in }
+
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.last?.folderId, "f1")
+    }
+
+    /// `moveToFolder(_:folderId:handleDisplayToast:)` shows the error alert when saving fails (no toast).
+    @MainActor
+    func test_moveToFolder_error() async throws {
+        vaultRepository.fetchCipherResult = .success(.loginFixture(folderId: nil, id: "1"))
+        vaultRepository.updateCipherResult = .failure(BitwardenTestError.example)
+        var toast: Toast?
+
+        await subject.moveToFolder(.fixture(cipherListView: .fixture(id: "1")), folderId: "f1") { toast = $0 }
+
+        XCTAssertNil(toast)
+        XCTAssertEqual(coordinator.errorAlertsShown as? [BitwardenTestError], [.example])
+        XCTAssertEqual(errorReporter.errors as? [BitwardenTestError], [.example])
+    }
+
+    /// `moveToNewFolder(_:handleDisplayToast:onFolderCreated:)` asks for a name, creates the folder and moves the item
+    /// into it.
+    @MainActor
+    func test_moveToNewFolder() async throws {
+        vaultRepository.fetchCipherResult = .success(.loginFixture(folderId: nil, id: "1"))
+        settingsRepository.addFolderResult = .success(.fixture(id: "new", name: "Travel"))
+        var toast: Toast?
+        var created = false
+
+        await subject.moveToNewFolder(
+            .fixture(cipherListView: .fixture(id: "1")),
+            handleDisplayToast: { toast = $0 },
+            onFolderCreated: { created = true },
+        )
+        let alert = try XCTUnwrap(coordinator.alertShown.last)
+        XCTAssertEqual(alert.title, Localizations.addFolder)
+        try alert.setText("Travel", forTextFieldWithId: "name")
+        try await alert.tapAction(title: Localizations.save)
+
+        XCTAssertEqual(settingsRepository.addedFolderName, "Travel")
+        XCTAssertTrue(created)
+        XCTAssertEqual(vaultRepository.updateCipherCiphers.last?.folderId, "new")
+        XCTAssertEqual(toast, Toast(title: Localizations.movedToX("Travel")))
     }
 
     // MARK: performMoreOptionsAction Tests
@@ -765,5 +875,27 @@ class MockVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
         performActionHandleDisplayToast = handleDisplayToast
         performActionHandlePremiumUpgrade = handleNavigateToPremiumUpgrade
         performActionHandleOpenURL = handleOpenURL
+    }
+
+    var moveToFolderItem: VaultListItem?
+    var moveToFolderId: String?
+    var moveToFolderHandleDisplayToast: ((Toast) -> Void)?
+
+    func moveToFolder(_ item: VaultListItem, folderId: String?, handleDisplayToast: @escaping (Toast) -> Void) async {
+        moveToFolderItem = item
+        moveToFolderId = folderId
+        moveToFolderHandleDisplayToast = handleDisplayToast
+    }
+
+    var moveToNewFolderItem: VaultListItem?
+    var moveToNewFolderOnFolderCreated: (() async -> Void)?
+
+    func moveToNewFolder(
+        _ item: VaultListItem,
+        handleDisplayToast: @escaping (Toast) -> Void,
+        onFolderCreated: @escaping () async -> Void,
+    ) async {
+        moveToNewFolderItem = item
+        moveToNewFolderOnFolderCreated = onFolderCreated
     }
 }
