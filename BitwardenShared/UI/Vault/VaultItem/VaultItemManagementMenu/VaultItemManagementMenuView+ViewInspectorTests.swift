@@ -60,7 +60,7 @@ class VaultItemManagementMenuViewTests: BitwardenTestCase {
             isMoveToOrganizationEnabled: false,
             isRestoreEnabled: false,
             isUnarchiveEnabled: false,
-            moveFolders: [.fixture(id: "f1", name: "Work")],
+            moveFolders: [FolderView(id: "f1", name: "Work", revisionDate: Date())],
             currentFolderId: nil,
             store: Store(processor: processor),
         )
