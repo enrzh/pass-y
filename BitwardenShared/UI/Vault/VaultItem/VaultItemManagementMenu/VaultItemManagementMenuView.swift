@@ -30,6 +30,12 @@ struct VaultItemManagementMenuView: View {
     /// The flag for whether to show the unarchive option.
     let isUnarchiveEnabled: Bool
 
+    /// The folders offered by "Move to folder", `nil` for no such entry (the edit form, items that cannot be moved).
+    var moveFolders: [FolderView]?
+
+    /// The item's folder (checkmark in "Move to folder").
+    var currentFolderId: String?
+
     /// The `Store` for this view.
     @ObservedObject var store: Store<Void, VaultItemManagementMenuAction, VaultItemManagementMenuEffect>
 
@@ -73,6 +79,15 @@ struct VaultItemManagementMenuView: View {
                 } label: {
                     Label(Localizations.move, systemImage: "folder")
                 }
+            }
+
+            if let moveFolders {
+                VaultFolderPickerMenu(
+                    folders: moveFolders,
+                    currentFolderId: currentFolderId,
+                    select: { store.send(.moveToFolder($0)) },
+                    newFolder: { store.send(.moveToNewFolder) },
+                )
             }
 
             if isArchiveEnabled {

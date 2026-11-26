@@ -2,6 +2,7 @@ import BitwardenKit
 import BitwardenKitMocks
 import Foundation
 import Testing
+import UIKit
 
 @testable import BitwardenShared
 
@@ -120,6 +121,27 @@ struct PassYCountdownTests {
     }
 }
 
+// MARK: - PassYSharedCountdown
+
+struct PassYSharedCountdownTests {
+    /// The shared ring counts the period most codes use; 30 s without codes and when 30 s ties.
+    @Test
+    func dominantPeriod() {
+        #expect(PassYSharedCountdown.dominantPeriod([]) == 30)
+        #expect(PassYSharedCountdown.dominantPeriod([30, 30, 60]) == 30)
+        #expect(PassYSharedCountdown.dominantPeriod([60, 60, 30]) == 60)
+        #expect(PassYSharedCountdown.dominantPeriod([60, 30]) == 30)
+        #expect(PassYSharedCountdown.dominantPeriod([90, 60]) == 60)
+    }
+
+    /// VoiceOver reads the seconds left in words.
+    @Test
+    func spokenSecondsLeft() {
+        #expect(PassYCountdown.spokenSecondsLeft(14) == "14 seconds left")
+        #expect(PassYCountdown.spokenSecondsLeft(1) == "1 second left")
+    }
+}
+
 // MARK: - PassYTilePalette
 
 struct PassYTilePaletteTests {
@@ -151,5 +173,31 @@ struct PassYTilePaletteTests {
         #expect(PassYDesign.IconSize.scaled(40, by: 0.8) == 40)
         #expect(PassYDesign.IconSize.scaled(40, by: 1.25) == 50)
         #expect(PassYDesign.IconSize.scaled(40, by: 3) == 64)
+    }
+}
+
+// MARK: - Web icon backing
+
+struct PassYWebIconBackingTests {
+    /// Draws a 32 x 32 test icon: `color` filled in the centre (`inset` points from each edge), transparent around it.
+    private func icon(_ color: UIColor, inset: CGFloat) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: 32, height: 32), format: format).image { context in
+            color.setFill()
+            context.fill(CGRect(x: inset, y: inset, width: 32 - 2 * inset, height: 32 - 2 * inset))
+        }
+    }
+
+    /// A dark logo on transparency gets the light tile; colourful, light and full-bleed icons keep the neutral tile.
+    @Test
+    func darkOnTransparency() {
+        #expect(UIImage.measureDarkOnTransparency(icon(.black, inset: 6)))
+        #expect(UIImage.measureDarkOnTransparency(icon(UIColor(white: 0.1, alpha: 1), inset: 6)))
+        #expect(!UIImage.measureDarkOnTransparency(icon(.black, inset: 0)))
+        #expect(!UIImage.measureDarkOnTransparency(icon(.systemRed, inset: 6)))
+        #expect(!UIImage.measureDarkOnTransparency(icon(.white, inset: 6)))
+        #expect(!UIImage.measureDarkOnTransparency(icon(.systemOrange, inset: 0)))
     }
 }

@@ -21,6 +21,10 @@ struct PassYIconTile<Content: View>: View {
 
         /// The neutral tile with a hairline border (web icons and other full-colour images).
         case plain
+
+        /// A white tile with a hairline border in both appearances: web icons that are a dark logo on transparency
+        /// (they vanish on the dark neutral tile in dark mode).
+        case light
     }
 
     // MARK: Properties
@@ -67,7 +71,7 @@ struct PassYIconTile<Content: View>: View {
             .background(background, in: shape)
             .clipShape(shape)
             .overlay {
-                if style == .plain {
+                if style == .plain || style == .light {
                     shape.strokeBorder(Color(.separator), lineWidth: 0.5)
                 }
             }
@@ -79,6 +83,7 @@ struct PassYIconTile<Content: View>: View {
         switch style {
         case let .tinted(tint): tileColors.tint(tint).opacity(colorScheme == .dark ? 0.24 : 0.14)
         case .plain: Color(.systemBackground)
+        case .light: .white
         }
     }
 }

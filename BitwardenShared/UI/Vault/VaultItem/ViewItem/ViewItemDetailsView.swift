@@ -424,16 +424,22 @@ private struct ViewItemHeaderTile: View {
         if state.type == .login {
             if showWebIcons, let iconBaseURL, let data = state.cipherDecorativeIconDataView,
                let url = IconImageHelper.getIconImage(for: data, from: iconBaseURL) {
-                CipherIconAsyncImage(url: url) { image in
-                    PassYIconTile(size: PassYDesign.IconSize.large) {
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .padding(PassYDesign.Spacing.medium - 2)
-                    }
-                } placeholder: {
-                    PassYIconTile(letter: state.name, size: PassYDesign.IconSize.large)
-                }
+                CipherIconAsyncImage(
+                    url: url,
+                    uiImageContent: { image in
+                        // A dark logo on transparency gets a white tile (see `VaultItemIconTile`).
+                        PassYIconTile(
+                            style: image.passYIsDarkOnTransparency ? .light : .plain,
+                            size: PassYDesign.IconSize.large,
+                        ) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .padding(PassYDesign.Spacing.medium - 2)
+                        }
+                    },
+                    placeholder: { PassYIconTile(letter: state.name, size: PassYDesign.IconSize.large) },
+                )
             } else {
                 PassYIconTile(letter: state.name, size: PassYDesign.IconSize.large)
             }

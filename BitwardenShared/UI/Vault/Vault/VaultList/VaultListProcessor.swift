@@ -176,6 +176,21 @@ final class VaultListProcessor: StateProcessor<
             deleteItems(items)
         case let .moveItems(items, folderId):
             await moveItems(items, folderId: folderId)
+        case let .moveItemToFolder(item, folderId):
+            await vaultItemMoreOptionsHelper.moveToFolder(
+                item,
+                folderId: folderId,
+                handleDisplayToast: { [weak self] toast in self?.state.toast = toast },
+            )
+        case let .moveItemToNewFolder(item):
+            await vaultItemMoreOptionsHelper.moveToNewFolder(
+                item,
+                handleDisplayToast: { [weak self] toast in self?.state.toast = toast },
+                onFolderCreated: { [weak self] in
+                    guard let self else { return }
+                    state.folders = (try? await services.vaultRepository.fetchFolders()) ?? state.folders
+                },
+            )
         case let .itemPressed(item):
             handleItemTapped(item)
         case let .profileSwitcher(profileEffect):

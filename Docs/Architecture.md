@@ -203,7 +203,9 @@ The vault home, group pages, search results, Send and folders share one construc
 the vault-only parts are in [View+PassYVaultList.swift](../BitwardenShared/UI/Vault/Views/View+PassYVaultList.swift):
 `passYVaultRow` (row insets and the
 Delete / More swipe actions), `passYSelectEditMode` and `PassYSelectModeButtons` (Select mode). Row options are native
-menus (`VaultItemOptionsMenuContent`), shared by the context menu and the More swipe action. The minimum is iOS 26: the
+menus (`VaultItemOptionsMenuContent`), shared by the context menu and the More swipe action; their "Move to folder"
+submenu (`VaultMoveToFolderMenu`, also in the item view's "…" menu) reads the page's folders from the environment
+(`vaultFolderMove`), so the rows are not rebuilt for it. The minimum is iOS 26: the
 UI and app layers have no `#available` checks or fallbacks for earlier versions (left: the Core layer, the 26.2 / 27
 checks, `ReviewModifier` and a multi-platform test).
 
@@ -229,6 +231,7 @@ component, each with a `#Preview`, in
 | `PassYButtonStyles` | `passYButtonStyle(.primary / .secondary / .destructive)` on the system glass styles. |
 | `PassYCodeRow` | Verification code row: large two-group code, `PassYCountdownRing`, accessibility-size layout; `PassYOneTimeCode` (grouping, spoken digits, label). |
 | `PassYCountdown` | Countdown maths and tone (orange at 5 s, red at 2 s), `PassYCountdownClock` (one 1 Hz clock per page via `passYCountdownClock`), `PassYCountdownRing`. |
+| `PassYSharedCountdown` | One countdown ring per page of codes (`passYSharedCountdown`): beside the large title (`.largeSubtitle` toolbar item, the system title stays), in the bar once the title collapsed (scroll geometry); `passYSharedCountdownPeriod` tells `PassYCodeRow` to drop its own ring for that period. |
 | `PassYSettingsRow` | The settings row (iOS Settings style): small tinted symbol tile, title, value, red count badge, accessory (disclosure, external, checkmark, none), destructive role; one button with the system row highlight, value under the title at accessibility sizes. `PassYSettingsRowLabel` is the same content for `Picker`/`Menu` labels. Navigation stays with the coordinators (the row sends the processor action). |
 | `PassYToggleRow` | Settings switch: optional tile, title, explanation, system `Toggle` (identifier on the toggle). |
 | `PassYValueRow` | Read-only `LabeledContent` row (optional tile, selectable value). |

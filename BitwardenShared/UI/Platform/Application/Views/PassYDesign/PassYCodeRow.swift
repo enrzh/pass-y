@@ -35,6 +35,8 @@ enum PassYOneTimeCode {
 /// `PassYCountdownRing`. The code keeps its width when it changes (tabular digits, numeric transition), so rows
 /// never jump when codes refresh. At accessibility text sizes the code and ring move below the name.
 /// A code that needs the master password first shows a masked placeholder and a lock instead of the ring.
+/// On a page with one shared countdown (`passYSharedCountdownPeriod`, the verification codes page) a row whose period
+/// is the shared one has no ring of its own (the name gets that width); a row with another period keeps a small ring.
 ///
 /// Make it tappable with `.passYRowButton` (tap copies) and set its accessibility label with
 /// `PassYOneTimeCode.accessibilityLabel(...)`.
@@ -61,8 +63,11 @@ struct PassYCodeRow<Leading: View>: View {
     /// The page's row options (Customize: density, account line, icon tile).
     @Environment(\.passYRowOptions) private var rowOptions
 
-    /// The page's code options (Customize: digit grouping, countdown).
+    /// The page's code options (Customize: digit grouping).
     @Environment(\.passYCodeOptions) private var codeOptions
+
+    /// The period of the page's shared countdown, `nil` on pages without one.
+    @Environment(\.passYSharedCountdownPeriod) private var sharedPeriod
 
     // MARK: Initialization
 
@@ -144,15 +149,20 @@ struct PassYCodeRow<Leading: View>: View {
             .accessibilityIdentifier("TOTPCodeLabel")
     }
 
-    /// The countdown, or a lock for a code behind the master password.
+    /// The countdown (none when the page's shared ring counts this period), or a lock for a code behind the master
+    /// password.
     @ViewBuilder private var status: some View {
         if code == nil {
             Image(systemName: "lock.fill")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .frame(minWidth: 30)
+                .frame(minWidth: sharedPeriod == nil ? 30 : nil)
                 .accessibilityHidden(true)
-        } else if codeOptions.showsRing || codeOptions.showsSeconds {
+        } else if let sharedPeriod {
+            if sharedPeriod != period {
+                PassYCountdownRing(period: period, size: 24)
+            }
+        } else {
             PassYCountdownRing(period: period)
         }
     }
@@ -172,7 +182,7 @@ extension PassYOneTimeCode {
         if let account, !account.isEmpty { parts.append(account) }
         if let code {
             parts.append("Code \(PassYOneTimeCode.spoken(code))")
-            parts.append(secondsRemaining == 1 ? "1 second left" : "\(secondsRemaining) seconds left")
+            parts.append(PassYCountdown.spokenSecondsLeft(secondsRemaining))
         } else {
             parts.append("Code hidden, master password required")
         }
@@ -198,6 +208,21 @@ extension PassYOneTimeCode {
         }
     }
     .passYCardList(reservesBottomBarSpace: false)
+}
+
+#Preview("Code rows, shared ring") {
+    List {
+        Section {
+            PassYCodeRow(name: "GitHub", account: "octo@example.test", code: "123456", period: 30) {
+                PassYIconTile(letter: "GitHub")
+            }
+            PassYCodeRow(name: "Bank", account: "me@example.test", code: "12345678", period: 60) {
+                PassYIconTile(letter: "Bank")
+            }
+        }
+    }
+    .passYCardList(reservesBottomBarSpace: false)
+    .environment(\.passYSharedCountdownPeriod, 30)
 }
 
 #Preview("Code rows AX") {
