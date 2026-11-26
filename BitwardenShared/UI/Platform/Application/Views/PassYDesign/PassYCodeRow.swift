@@ -58,6 +58,12 @@ struct PassYCodeRow<Leading: View>: View {
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    /// The page's row options (Customize: density, account line, icon tile).
+    @Environment(\.passYRowOptions) private var rowOptions
+
+    /// The page's code options (Customize: digit grouping, countdown).
+    @Environment(\.passYCodeOptions) private var codeOptions
+
     // MARK: Initialization
 
     /// Creates a code row.
@@ -84,7 +90,7 @@ struct PassYCodeRow<Leading: View>: View {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: PassYDesign.Spacing.small) {
                     HStack(spacing: PassYDesign.Spacing.medium) {
-                        leading
+                        if rowOptions.showsIcon { leading }
                         titles
                     }
                     HStack(spacing: PassYDesign.Spacing.medium) {
@@ -95,7 +101,7 @@ struct PassYCodeRow<Leading: View>: View {
                 }
             } else {
                 HStack(spacing: PassYDesign.Spacing.medium) {
-                    leading
+                    if rowOptions.showsIcon { leading }
                     titles
                     Spacer(minLength: PassYDesign.Spacing.small)
                     codeText
@@ -103,8 +109,8 @@ struct PassYCodeRow<Leading: View>: View {
                 }
             }
         }
-        .padding(.vertical, PassYDesign.Row.verticalPadding + 2)
-        .frame(maxWidth: .infinity, minHeight: PassYDesign.Row.minHeight + 8, alignment: .leading)
+        .padding(.vertical, rowOptions.verticalPadding + 2)
+        .frame(maxWidth: .infinity, minHeight: rowOptions.minHeight + 8, alignment: .leading)
         .contentShape(Rectangle())
     }
 
@@ -114,7 +120,7 @@ struct PassYCodeRow<Leading: View>: View {
             Text(name)
                 .passYFont(.rowTitle)
                 .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
-            if let account, !account.isEmpty {
+            if rowOptions.showsSubtitle, let account, !account.isEmpty {
                 Text(account)
                     .passYFont(.rowSubtitle)
                     .foregroundStyle(.secondary)
@@ -127,7 +133,8 @@ struct PassYCodeRow<Leading: View>: View {
 
     /// The code (or its masked placeholder).
     private var codeText: some View {
-        Text(code.map(PassYOneTimeCode.display) ?? PassYOneTimeCode.masked())
+        Text(code.map { codeOptions.groupsDigits ? PassYOneTimeCode.display($0) : $0 }
+            ?? (codeOptions.groupsDigits ? PassYOneTimeCode.masked() : String(repeating: "•", count: 6)))
             .passYFont(.code)
             .foregroundStyle(code == nil ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.primary))
             .lineLimit(1)
@@ -145,7 +152,7 @@ struct PassYCodeRow<Leading: View>: View {
                 .foregroundStyle(.secondary)
                 .frame(minWidth: 30)
                 .accessibilityHidden(true)
-        } else {
+        } else if codeOptions.showsRing || codeOptions.showsSeconds {
             PassYCountdownRing(period: period)
         }
     }

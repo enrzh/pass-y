@@ -29,6 +29,13 @@ private struct SearchableVaultListView: View {
     /// Whether the search results list is in edit mode (follows `isSelecting`, delayed when leaving).
     @SwiftUI.State private var listIsEditing = false
 
+    /// The layout preferences (Customize). Applied inside the equatable boundaries (home list, search list), so a
+    /// change of unrelated state never re-applies them; the home slice is part of the home list key.
+    let layoutStore: PassYLayoutStore
+
+    /// The home slice of the Customize preferences (tiles, sections, tile layout).
+    private var homeLayout: PassYLayoutPreferences.Home { layoutStore.home }
+
     var body: some View {
         // A ZStack with hidden children is used here so that opening and closing the
         // search interface does not reset the scroll position for the main vault
@@ -50,6 +57,7 @@ private struct SearchableVaultListView: View {
             // choice of the content scroll view for the large title, and the hidden one still diffed every change.
             if isSearching {
                 search
+                    .passYLayoutEnvironment(layoutStore)
             }
         }
         .animation(.easeInOut, value: store.state.organizationUserNotificationBannerData)
@@ -166,13 +174,14 @@ private struct SearchableVaultListView: View {
     /// ui-r8: wrapped in an `Equatable` boundary. Changes that do not touch what the vault list shows (toast, search
     /// text and results, bottom bar, profile menu, selection) no longer re-evaluate the list and its rows.
     @ViewBuilder private var vault: some View {
-        EquatableContent(key: store.state.homeListKey) {
+        EquatableContent(key: HomeContentKey(state: store.state.homeListKey, layout: homeLayout)) {
             LoadingView(state: store.state.loadingState) { sections in
                 if sections.isEmpty {
                     emptyVault
                 } else {
                     vaultContents(with: sections)
                         .readableContentWidth(760)
+                        .passYLayoutEnvironment(layoutStore)
                 }
             } errorView: { errorMessage in
                 errorViewWithRetry(errorMessage: errorMessage)
@@ -238,6 +247,7 @@ private struct SearchableVaultListView: View {
     @ViewBuilder
     private func vaultContents(with sections: [VaultListSection]) -> some View {
         let (tileItems, listSections) = splitCache.split(sections)
+        let home = PassYHomeArrangement(tiles: tileItems, sections: listSections, layout: homeLayout)
         List {
             if store.state.activeActionCard != nil, store.state.activeActionCard != .introducingArchive {
                 Section {
@@ -253,39 +263,57 @@ private struct SearchableVaultListView: View {
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
 
-            if !tileItems.isEmpty {
-                Section {
-                    CategoryTilesView(items: tileItems) { item in
-                        Task { await store.perform(.itemPressed(item)) }
-                    }
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                    .listRowBackground(Color.clear)
-                }
-            }
-
-            ForEach(listSections) { section in
-                let isExpanded = !store.state.collapsedSectionIds.contains(section.id)
-                Section {
-                    if isExpanded {
-                        ForEach(section.items) { item in
+            if !home.tiles.isEmpty {
+                if homeLayout.tileLayout == .list {
+                    Section {
+                        ForEach(home.tiles) { item in
                             swipeableRow(for: item)
                         }
                     }
-                } header: {
-                    PassYSectionHeader(
-                        section.name,
-                        count: section.items.count,
-                        countLabel: Localizations.xItems(section.items.count),
-                        isExpanded: isExpanded,
-                        identifier: "SectionExpandButton_\(section.id)",
-                    ) {
-                        store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
+                } else {
+                    Section {
+                        CategoryTilesView(items: home.tiles, layout: homeLayout.tileLayout) { item in
+                            Task { await store.perform(.itemPressed(item)) }
+                        }
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                        .listRowBackground(Color.clear)
                     }
                 }
             }
 
+            ForEach(home.sections) { section in
+                collapsibleSection(section)
+            }
+
+            // Customize: what is hidden from the home stays one tap away (never a dead end).
+            if let more = home.more {
+                collapsibleSection(more)
+            }
         }
         .passYCardList()
+    }
+
+    /// A home section with the collapse chevron of its header (the collapsed state persists per account).
+    @ViewBuilder
+    private func collapsibleSection(_ section: VaultListSection) -> some View {
+        let isExpanded = !store.state.collapsedSectionIds.contains(section.id)
+        Section {
+            if isExpanded {
+                ForEach(section.items) { item in
+                    swipeableRow(for: item)
+                }
+            }
+        } header: {
+            PassYSectionHeader(
+                section.name,
+                count: section.items.count,
+                countLabel: Localizations.xItems(section.items.count),
+                isExpanded: isExpanded,
+                identifier: "SectionExpandButton_\(section.id)",
+            ) {
+                store.send(.sectionExpandToggled(sectionId: section.id, isExpanded: !isExpanded))
+            }
+        }
     }
 
     /// A list row for the item with its swipe actions (Delete, More menu).
@@ -447,6 +475,58 @@ extension VaultListState {
     }
 }
 
+// MARK: - HomeContentKey
+
+/// What the vault home list depends on: the list state and the home slice of the Customize preferences.
+struct HomeContentKey: Equatable {
+    let state: VaultListState
+    let layout: PassYLayoutPreferences.Home
+}
+
+// MARK: - PassYHomeArrangement
+
+/// The vault home after the Customize preferences: the visible tiles and sections in the user's order and the "More"
+/// section with everything hidden from the home (hidden tiles, and the rows of hidden Folders / Shared folders
+/// sections). Hidden Favorites and No Folder items stay reachable through their type tiles and the search.
+/// Default preferences give the tiles and sections unchanged and no "More" section.
+struct PassYHomeArrangement {
+    /// The id of the "More" section (its collapsed state persists like the other sections').
+    static let moreSectionId = "PassYMore"
+
+    /// The sections whose rows (folders, collections) move to "More" when the section is hidden.
+    static let sectionsKeptInMore: Set<String> = ["Folders", "Collections"]
+
+    /// The tiles shown on the home.
+    let tiles: [VaultListItem]
+
+    /// The list sections shown on the home.
+    let sections: [VaultListSection]
+
+    /// The "More" section, `nil` when nothing is hidden.
+    let more: VaultListSection?
+
+    init(tiles: [VaultListItem], sections: [VaultListSection], layout: PassYLayoutPreferences.Home) {
+        let preferences = PassYLayoutPreferences(home: layout)
+        let tileSplit = preferences.partitionTiles(tiles, id: \.passYTileIdentifier)
+        let sectionSplit = preferences.partitionSections(sections, id: \.id)
+        self.tiles = tileSplit.visible
+        self.sections = sectionSplit.visible
+        let moreItems = tileSplit.hidden
+            + sectionSplit.hidden.filter { Self.sectionsKeptInMore.contains($0.id) }.flatMap(\.items)
+        more = moreItems.isEmpty
+            ? nil
+            : VaultListSection(id: Self.moreSectionId, items: moreItems, name: Localizations.passYMore)
+    }
+}
+
+extension VaultListItem {
+    /// The Customize identifier of a home tile (`VaultListGroup.tileIdentifier`), the item id for other rows.
+    var passYTileIdentifier: String {
+        if case let .group(group, _) = itemType { return group.tileIdentifier }
+        return id
+    }
+}
+
 // MARK: - TileSplitCache
 
 /// Splits the vault sections into category tile items and list sections once per data change. `Array` equality
@@ -565,6 +645,9 @@ struct VaultListView: View {
     /// The window scene for requesting a review.
     var windowScene: UIWindowScene?
 
+    /// The layout preferences (Customize) applied to the page.
+    var layoutStore: PassYLayoutStore = .shared
+
     /// Task running the vault list stream, managed manually so it is cancelled and restarted when
     /// the vault filter type changes.
     @SwiftUI.State private var vaultListTask: Task<Void, Never>?
@@ -578,6 +661,7 @@ struct VaultListView: View {
                 isSearching: shell.isEditing || !store.state.searchText.isEmpty,
                 store: store,
                 timeProvider: timeProvider,
+                layoutStore: layoutStore,
             )
             .passYSearchTarget(
                 id: ObjectIdentifier(store),
@@ -716,6 +800,7 @@ struct VaultListView: View {
             serverURL: store.state.serverURL,
             showsPlaceholder: state.showPlaceholderToolbarIcon,
             sync: { Task { await store.perform(.refreshVault) } },
+            customize: { store.send(.customizePressed) },
         )
     }
 

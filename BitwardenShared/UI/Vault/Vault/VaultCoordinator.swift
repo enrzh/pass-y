@@ -267,6 +267,8 @@ final class VaultCoordinator: Coordinator, HasStackNavigator { // swiftlint:disa
             delegate?.switchToSettingsTab(route: .about)
         case .settings:
             delegate?.switchToSettingsTab(route: .settings(.tab))
+        case .customize:
+            delegate?.switchToSettingsTab(route: .customize)
         case .pendingLoginRequests:
             delegate?.switchToSettingsTab(route: .pendingLoginRequests)
         case let .group(group, filter, count):

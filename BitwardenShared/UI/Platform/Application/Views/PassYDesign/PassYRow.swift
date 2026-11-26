@@ -52,6 +52,9 @@ struct PassYRow<Leading: View, TitleAccessory: View, Trailing: View>: View {
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    /// The page's row options (Customize: density, subtitles, icon tiles); the default is the standard row.
+    @Environment(\.passYRowOptions) private var options
+
     // MARK: Initialization
 
     /// Creates a row.
@@ -90,7 +93,9 @@ struct PassYRow<Leading: View, TitleAccessory: View, Trailing: View>: View {
 
     var body: some View {
         HStack(spacing: PassYDesign.Spacing.medium) {
-            leading
+            if options.showsIcon {
+                leading
+            }
 
             VStack(alignment: .leading, spacing: PassYDesign.Spacing.xxSmall) {
                 HStack(alignment: .firstTextBaseline, spacing: PassYDesign.Spacing.xSmall + 2) {
@@ -98,9 +103,11 @@ struct PassYRow<Leading: View, TitleAccessory: View, Trailing: View>: View {
                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
                     titleAccessory
                 }
-                ForEach(subtitles, id: \.text) { line in
-                    text(line, role: .rowSubtitle, style: .secondary)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                if options.showsSubtitle {
+                    ForEach(subtitles, id: \.text) { line in
+                        text(line, role: .rowSubtitle, style: .secondary)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                    }
                 }
             }
             .multilineTextAlignment(.leading)
@@ -116,14 +123,14 @@ struct PassYRow<Leading: View, TitleAccessory: View, Trailing: View>: View {
                 PassYDisclosureChevron(identifier: disclosureIdentifier)
             }
         }
-        .padding(.vertical, PassYDesign.Row.verticalPadding)
-        .frame(maxWidth: .infinity, minHeight: PassYDesign.Row.minHeight, alignment: .leading)
+        .padding(.vertical, options.verticalPadding)
+        .frame(maxWidth: .infinity, minHeight: options.minHeight, alignment: .leading)
         // The blank space between text and trailing content is part of the hit area.
         .contentShape(Rectangle())
         .overlay(alignment: .bottom) {
             if divider {
                 Divider()
-                    .padding(.leading, PassYDesign.IconSize.row + PassYDesign.Spacing.medium)
+                    .padding(.leading, options.showsIcon ? PassYDesign.IconSize.row + PassYDesign.Spacing.medium : 0)
             }
         }
     }

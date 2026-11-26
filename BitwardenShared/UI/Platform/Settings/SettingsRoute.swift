@@ -26,6 +26,9 @@ public enum SettingsRoute: Equatable, Hashable {
     /// A route to the app extension screen.
     case appExtension
 
+    /// A route to the Customize screen (on-device layout preferences).
+    case customize
+
     /// A route to the app extension setup sheet.
     case appExtensionSetup
 

@@ -18,6 +18,12 @@ Not tagged and not version-bumped yet; no validator verdict yet.
   button 44 pt like the neighbouring glass buttons.
 - Toasts: Liquid Glass capsule with an SF Symbol (copied / success / failure), snappy transition, haptic feedback,
   dismiss after about 3 s.
+- Customize ("Anpassen", Settings and avatar menu "Customize home…"): per device, not synced. Home: show/hide,
+  reorder (drag) and layout of the tiles (cards, wide cards, compact list); show/hide, order and "collapsed when
+  opened" of Favorites, folders, No Folder and shared folders; hidden entries stay reachable under "More" at the end of
+  the home. Rows: density, user names, icons (website icons: the existing switch), favourite / shared / attachment
+  marks, colourful or monochrome tiles. Verification codes: digit grouping, countdown ring and seconds. Live preview and
+  Reset to defaults; the defaults are the previous look.
 - New logo (solid shield with a Y knocked out) and an Icon Composer app icon (`PassY.icon`, light / dark / tinted).
 - Minimum iOS 26 (deployment target and Info.plist).
 - Unlock: the vault list is warmed up (decrypted off the main actor) while the shell is built, and the unlock waits up

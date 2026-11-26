@@ -110,6 +110,8 @@ struct PassYProfileMenuSource {
     let serverURL: String
     let showsPlaceholder: Bool
     let sync: () -> Void
+    /// Opens the Customize screen ("Customize home…"), `nil` for no entry.
+    var customize: (() -> Void)?
 }
 
 extension URL {
@@ -448,6 +450,13 @@ struct PassYAvatarMenu: View {
                         Label(Localizations.syncNow, systemImage: "arrow.triangle.2.circlepath")
                     }
                     .accessibilityIdentifier("ProfileMenuSyncButton")
+
+                    if let customize = source.customize {
+                        Button(action: customize) {
+                            Label(Localizations.customizeHome, systemImage: "slider.horizontal.3")
+                        }
+                        .accessibilityIdentifier("ProfileMenuCustomizeButton")
+                    }
 
                     if source.canLock, let active = source.activeProfile {
                         Button { source.lock(active) } label: {

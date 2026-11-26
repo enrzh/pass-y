@@ -193,6 +193,9 @@ struct PassYCountdownRing: View {
 
     @Environment(\.passYCountdownClock) private var clock
 
+    /// The page's code options (Customize: ring and seconds can be switched off).
+    @Environment(\.passYCodeOptions) private var options
+
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
 
     // MARK: View
@@ -202,26 +205,38 @@ struct PassYCountdownRing: View {
         let side = PassYDesign.IconSize.scaled(size, by: scale)
         let color = countdown.tone.color
         ZStack {
-            Circle()
-                .stroke(color.opacity(0.2), lineWidth: 3)
-            Circle()
-                .trim(from: 0, to: countdown.fractionRemaining)
-                .stroke(color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                // One tick per second, swept linearly: a smooth ring from a 1 Hz clock.
-                .animation(countdown.secondsRemaining == period ? .snappy : .linear(duration: 1), value: countdown.date)
-            Text("\(countdown.secondsRemaining)")
-                .font(.caption2.weight(.semibold))
-                .monospacedDigit()
-                .foregroundStyle(countdown.tone == .normal ? AnyShapeStyle(.secondary) : AnyShapeStyle(color))
-                .minimumScaleFactor(0.6)
-                .contentTransition(.numericText(countsDown: true))
-                .animation(.default, value: countdown.secondsRemaining)
+            if options.showsRing {
+                Circle()
+                    .stroke(color.opacity(0.2), lineWidth: 3)
+                Circle()
+                    .trim(from: 0, to: countdown.fractionRemaining)
+                    .stroke(color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    // One tick per second, swept linearly: a smooth ring from a 1 Hz clock.
+                    .animation(
+                        countdown.secondsRemaining == period ? .snappy : .linear(duration: 1),
+                        value: countdown.date,
+                    )
+            }
+            if options.showsSeconds {
+                secondsText(countdown, color: color)
+            }
         }
         .frame(width: side, height: side)
         .animation(.easeInOut(duration: 0.3), value: countdown.tone)
         .accessibilityHidden(true)
         .accessibilityIdentifier("CountdownRing")
+    }
+
+    /// The seconds left inside the ring.
+    private func secondsText(_ countdown: PassYCountdown, color: Color) -> some View {
+        Text("\(countdown.secondsRemaining)")
+            .font(.caption2.weight(.semibold))
+            .monospacedDigit()
+            .foregroundStyle(countdown.tone == .normal ? AnyShapeStyle(.secondary) : AnyShapeStyle(color))
+            .minimumScaleFactor(0.6)
+            .contentTransition(.numericText(countsDown: true))
+            .animation(.default, value: countdown.secondsRemaining)
     }
 }
 

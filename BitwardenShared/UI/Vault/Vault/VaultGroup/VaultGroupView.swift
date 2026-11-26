@@ -31,6 +31,8 @@ struct VaultGroupView: View {
 
     var body: some View {
         content
+            // Customize: the device's row and code preferences for the group page and its search results.
+            .passYLayoutEnvironment()
             .toolbar { selectToolbar }
             .passYSearchTarget(
                 id: ObjectIdentifier(store),

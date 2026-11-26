@@ -34,6 +34,9 @@ protocol AppSettingsStore: AnyObject {
     /// The data used by the flight recorder for the active and any inactive logs.
     var flightRecorderData: FlightRecorderData? { get set }
 
+    /// Pass-Y: the on-device layout preferences (Customize). Per device, never synced, no vault data.
+    var passYLayoutPreferences: PassYLayoutPreferences? { get set }
+
     /// Whether the intro carousel screen has been shown.
     var introCarouselShown: Bool { get set }
 
@@ -976,6 +979,7 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
         // swiftlint:disable:next identifier_name
         case organizationUserNotificationBannerDismissal(userId: String)
         case passwordGenerationOptions(userId: String)
+        case passYLayoutPreferences
         case pendingAppIntentActions
         case pinProtectedUserKey(userId: String) // Replaced by `pinProtectedUserKeyEnvelope`.
         case pinProtectedUserKeyEnvelope(userId: String)
@@ -1116,6 +1120,8 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
                 "rememberedOrgIdentifier"
             case .reviewPromptData:
                 "reviewPromptData"
+            case .passYLayoutPreferences:
+                "passYLayoutPreferences"
             case let .serverConfig(userId):
                 "serverConfig_\(userId)"
             case let .shouldTrustDevice(userId):
@@ -1236,6 +1242,11 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
     var rememberedOrgIdentifier: String? {
         get { fetch(for: .rememberedOrgIdentifier) }
         set { store(newValue, for: .rememberedOrgIdentifier) }
+    }
+
+    var passYLayoutPreferences: PassYLayoutPreferences? {
+        get { fetch(for: .passYLayoutPreferences) }
+        set { store(newValue, for: .passYLayoutPreferences) }
     }
 
     var reviewPromptData: ReviewPromptData? {
