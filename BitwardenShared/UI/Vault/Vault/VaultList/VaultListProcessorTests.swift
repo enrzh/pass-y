@@ -984,7 +984,7 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
         let navigate = try XCTUnwrap(vaultItemMoreOptionsHelper.performActionHandlePremiumUpgrade)
         await navigate()
 
-        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `perform(_:)` with `.refreshed` requests a fetch sync update, but does not force a sync.

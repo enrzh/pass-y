@@ -1140,7 +1140,7 @@ class ViewItemProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
         XCTAssertNotNil(vaultItemActionHelper.archiveReceivedArguments?.handleNavigateToPremiumUpgrade)
 
         await vaultItemActionHelper.archiveReceivedArguments?.handleNavigateToPremiumUpgrade()
-        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `perform(_:)` with `.archivedPressed` handles completion.

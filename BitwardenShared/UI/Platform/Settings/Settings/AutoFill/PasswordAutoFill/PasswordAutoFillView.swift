@@ -107,7 +107,9 @@ struct PasswordAutoFillView: View {
             .frame(width: 88, height: 88)
             .overlay {
                 Image(systemName: "key.viewfinder")
-                    .font(.system(size: 44, weight: .semibold))
+                    .font(.largeTitle.weight(.semibold))
+                    .imageScale(.large)
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                     .foregroundStyle(.white)
             }
             .accessibilityHidden(true)
