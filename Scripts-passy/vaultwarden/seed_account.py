@@ -14,8 +14,9 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDFExpand
 
 SERVER = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8088"
 EMAIL = os.environ.get("PASSY_EMAIL", "passy-test@example.test")
-PASSWORD = "PassY-Test-Only-2026!"
+PASSWORD = os.environ.get("PASSY_PASSWORD", "PassY-Test-Only-2026!")
 ITER = 600000
+NAME = os.environ.get("PASSY_NAME", "PassY Test")
 
 b64 = lambda b: base64.b64encode(b).decode()
 
@@ -37,7 +38,7 @@ priv = rsa.generate_private_key(65537, 2048)
 priv_der = priv.private_bytes(serialization.Encoding.DER, serialization.PrivateFormat.PKCS8, serialization.NoEncryption())
 pub_der = priv.public_key().public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)
 body = {
-    "email": EMAIL, "name": "PassY Test", "masterPasswordHash": pw_hash, "masterPasswordHint": None,
+    "email": EMAIL, "name": NAME, "masterPasswordHash": pw_hash, "masterPasswordHint": None,
     "key": enc_key, "kdf": 0, "kdfIterations": ITER,
     "keys": {"publicKey": b64(pub_der), "encryptedPrivateKey": enc_string(sym, priv_der)},
 }
@@ -47,7 +48,7 @@ def post(path, payload, accept=None):
     return urllib.request.urlopen(urllib.request.Request(SERVER + path, json.dumps(payload).encode(), h))
 
 token = json.loads(post("/identity/accounts/register/send-verification-email",
-                        {"email": EMAIL, "name": "PassY Test"}, "application/json").read())
+                        {"email": EMAIL, "name": NAME}, "application/json").read())
 body["emailVerificationToken"] = token
 req = urllib.request.Request(SERVER + "/identity/accounts/register/finish", json.dumps(body).encode(),
                              {"Content-Type": "application/json"})
