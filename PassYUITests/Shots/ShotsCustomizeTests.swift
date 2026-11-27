@@ -15,6 +15,9 @@ final class ShotsCustomizeTests: PassYUITestCase {
                 XCTAssertTrue(app.buttons["AddItemFloatingActionButton"].waitForExistence(timeout: 15))
                 sleep(1)
                 shot(app, mode, 80 + index, name)
+                if preset == "default" || preset == "filled" {
+                    folderAsCard(app, mode, preset == "default" ? 84 : 85, "\(name)-folder-card")
+                }
                 if preset == "default" {
                     goTo(app, "Settings")
                     app.buttons["CustomizeSettingsButton"].tap()
@@ -36,5 +39,29 @@ final class ShotsCustomizeTests: PassYUITestCase {
         let app = launchApp(extraArguments: ["-PassYLayoutPreset", "default"])
         app.terminate()
         setPassYAppearance(.light)
+    }
+
+    /// Switches the first folder row to a card through its long-press menu (shot of the row menu, then of the home with
+    /// the folder card). Nothing happens when the vault has no folder.
+    private func folderAsCard(_ app: XCUIApplication, _ mode: String, _ n: Int, _ name: String) {
+        let row = app.buttons.matching(NSPredicate(
+            format: "identifier == 'VaultListItemRowButton' AND label CONTAINS 'Folder'",
+        )).firstMatch
+        let bar = app.searchFields.firstMatch
+        for _ in 0 ..< 8 where !(row.exists && row.isHittable && row.frame.maxY <= bar.frame.minY - 4) {
+            app.swipeUp(velocity: .slow)
+        }
+        guard row.exists else { return }
+        row.press(forDuration: 1.0)
+        sleep(1)
+        shot(app, mode, n + 10, "home-row-menu")
+        let asCard = app.buttons["Show as Card"]
+        guard asCard.waitForExistence(timeout: 5) else { return }
+        asCard.tap()
+        for _ in 0 ..< 8 where !app.buttons["CategoryTile_login"].isHittable { app.swipeDown() }
+        sleep(1)
+        app.swipeUp(velocity: .slow)
+        sleep(1)
+        shot(app, mode, n, name)
     }
 }
