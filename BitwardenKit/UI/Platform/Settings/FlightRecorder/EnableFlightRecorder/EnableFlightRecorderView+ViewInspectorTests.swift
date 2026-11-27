@@ -1,6 +1,7 @@
 // swiftlint:disable:this file_name
 import BitwardenKitMocks
 import BitwardenResources
+import ViewInspector
 import ViewInspectorTestHelpers
 import XCTest
 
@@ -44,8 +45,8 @@ class EnableFlightRecorderViewTests: BitwardenTestCase {
     @MainActor
     func test_loggingDurationMenu_updateValue() throws {
         processor.state.loggingDuration = .twentyFourHours
-        let menuField = try subject.inspect().find(bitwardenMenuField: Localizations.loggingDuration)
-        try menuField.select(newValue: FlightRecorderLoggingDuration.oneHour)
+        let picker = try subject.inspect().find(ViewType.Picker.self)
+        try picker.select(value: FlightRecorderLoggingDuration.oneHour)
         XCTAssertEqual(processor.dispatchedActions.last, .loggingDurationChanged(.oneHour))
     }
 
