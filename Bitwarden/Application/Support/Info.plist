@@ -120,13 +120,13 @@
 	<key>MinimumOSVersion</key>
 	<string>26.0</string>
 	<key>NFCReaderUsageDescription</key>
-	<string>Use Yubikeys for two-factor authentication.</string>
+	<string>Pass-Y reads YubiKeys over NFC for two-step login.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Scan QR codes and payment cards</string>
+	<string>Pass-Y uses the camera to scan QR codes and payment cards.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Use Face ID to unlock your vault.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library in order to share files.</string>
+	<string>Pass-Y uses your photo library only when you choose photos to attach or share.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>ASCredentialExchangeActivityType</string>

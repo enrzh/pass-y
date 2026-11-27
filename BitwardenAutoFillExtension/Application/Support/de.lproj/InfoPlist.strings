@@ -1,0 +1,2 @@
+/* Permission prompt of the extension (Info.plist usage description). */
+"NSFaceIDUsageDescription" = "Mit Face ID deinen Tresor entsperren.";

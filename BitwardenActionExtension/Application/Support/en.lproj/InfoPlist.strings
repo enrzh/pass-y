@@ -1,0 +1,2 @@
+/* Permission prompt of the extension (Info.plist usage description). */
+"NSFaceIDUsageDescription" = "Use Face ID to unlock your vault.";
