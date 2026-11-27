@@ -40,6 +40,14 @@ class VaultSettingsViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .exportVaultTapped)
     }
 
+    /// The encrypted backup row shows "Off" and dispatches `.encryptedBackupTapped`.
+    @MainActor
+    func test_encryptedBackupButton_tap() throws {
+        XCTAssertNoThrow(try subject.inspect().find(text: Localizations.off))
+        try subject.inspect().find(button: Localizations.encryptedBackup).tap()
+        XCTAssertEqual(processor.dispatchedActions.last, .encryptedBackupTapped)
+    }
+
     /// Tapping the folders button dispatches the `.foldersTapped` action.
     @MainActor
     func test_foldersButton_tap() throws {

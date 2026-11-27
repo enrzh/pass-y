@@ -6,6 +6,9 @@ enum VaultSettingsAction {
     /// Clears the URL.
     case clearUrl
 
+    /// The encrypted backup row was tapped.
+    case encryptedBackupTapped
+
     /// The export vault button was tapped.
     case exportVaultTapped
 

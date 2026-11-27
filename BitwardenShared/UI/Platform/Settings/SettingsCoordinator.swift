@@ -79,6 +79,7 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
         & HasBiometricsRepository
         & HasConfigService
         & HasDeviceAPIService
+        & HasEncryptedBackupService
         & HasEnvironmentService
         & HasErrorAlertServices.ErrorAlertServices
         & HasErrorReporter
@@ -189,6 +190,10 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
             } else {
                 stackNavigator?.dismiss(completion: completion)
             }
+        case .encryptedBackup:
+            showEncryptedBackup()
+        case let .encryptedBackupSetup(mode):
+            showEncryptedBackupSetup(mode: mode, delegate: context as? EncryptedBackupSetupDelegate)
         case .exportVault:
             showExportVault()
         case .exportVaultToApp:
@@ -381,6 +386,31 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
             state: DeviceManagementState(),
         )
         stackNavigator?.present(DeviceManagementView(store: Store(processor: processor)))
+    }
+
+    /// Shows the encrypted backup page.
+    ///
+    private func showEncryptedBackup() {
+        let processor = EncryptedBackupProcessor(coordinator: asAnyCoordinator(), services: services)
+        let viewController = UIHostingController(rootView: EncryptedBackupView(store: Store(processor: processor)))
+        viewController.navigationItem.largeTitleDisplayMode = .never
+        stackNavigator?.push(viewController, navigationTitle: Localizations.encryptedBackup)
+    }
+
+    /// Shows the setup sheet of the encrypted backup.
+    ///
+    /// - Parameters:
+    ///   - mode: What the sheet sets up.
+    ///   - delegate: The delegate told when the setup completed.
+    ///
+    private func showEncryptedBackupSetup(mode: EncryptedBackupSetupMode, delegate: EncryptedBackupSetupDelegate?) {
+        let processor = EncryptedBackupSetupProcessor(
+            coordinator: asAnyCoordinator(),
+            delegate: delegate,
+            mode: mode,
+            services: services,
+        )
+        stackNavigator?.present(EncryptedBackupSetupView(store: Store(processor: processor)))
     }
 
     /// Shows the export vault screen.

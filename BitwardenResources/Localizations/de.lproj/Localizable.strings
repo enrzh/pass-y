@@ -1419,3 +1419,61 @@
 "SpecificPeopleNotAvailableDescriptionLong" = "Das Teilen mit bestimmten Personen ist für dieses Konto nicht verfügbar.";
 /* Alert: verification codes unavailable for the account. */
 "TOTPNotAvailableDescriptionLong" = "Bestätigungscodes (TOTP) sind für dieses Konto nicht verfügbar.";
+/* Settings > Vault: title of the automatic encrypted backup page and its switch. */
+"EncryptedBackup" = "Verschlüsselte Sicherung";
+/* Encrypted backup: footer of the switch. */
+"EncryptedBackupDescription" = "Speichert einmal am Tag eine passwortgeschützte Kopie deines Tresors in einem Ordner deiner Wahl, wenn sich etwas geändert hat.";
+/* Encrypted backup: footer of the page (what is missing, forgotten password). */
+"EncryptedBackupFooter" = "Nicht enthalten: Anhänge, Sends, Papierkorb und Einträge von Organisationen. Ohne das Sicherungspasswort lassen sich die Dateien nicht öffnen.";
+/* Encrypted backup: notice when an organization policy disables the vault export. */
+"EncryptedBackupPolicyDisabled" = "Deine Organisation erlaubt keinen Tresor-Export, daher sind Sicherungen nicht verfügbar.";
+/* Encrypted backup: row with the destination folder. */
+"BackupFolder" = "Ordner";
+/* Encrypted backup: folder row before a folder is chosen. */
+"ChooseFolder" = "Ordner wählen";
+/* Encrypted backup: row with the time of the last successful backup. */
+"LastBackup" = "Letzte Sicherung";
+/* Encrypted backup: button that writes a backup right away. */
+"BackUpNow" = "Jetzt sichern";
+/* Encrypted backup: shown while a backup is written. */
+"BackingUp" = "Wird gesichert …";
+/* Encrypted backup: toast after a successful backup. */
+"BackupSaved" = "Sicherung gespeichert";
+/* Encrypted backup: row and screen that change the backup password. */
+"ChangeBackupPassword" = "Sicherungspasswort ändern";
+/* Encrypted backup: screen that changes the destination folder. */
+"ChangeBackupFolder" = "Ordner ändern";
+/* Encrypted backup: password field. */
+"BackupPassword" = "Sicherungspasswort";
+/* Encrypted backup: password confirmation field. */
+"ConfirmBackupPassword" = "Sicherungspasswort bestätigen";
+/* Encrypted backup: footer of the password fields. */
+"BackupPasswordDescription" = "Mindestens 12 Zeichen. Du brauchst es zum Importieren einer Sicherung.";
+/* Encrypted backup: validation error of a short password. */
+"BackupPasswordTooShort" = "Das Sicherungspasswort muss mindestens 12 Zeichen haben.";
+/* Encrypted backup: validation error without a folder. */
+"ChooseABackupFolder" = "Wähle einen Ordner für die Sicherungen.";
+/* Encrypted backup: footer of the master password field of the setup. */
+"EncryptedBackupMasterPasswordDescription" = "Gib zur Bestätigung dein Masterpasswort ein.";
+/* Encrypted backup: button that turns the backup on. */
+"TurnOn" = "Einschalten";
+/* Encrypted backup: button that turns the backup off. */
+"TurnOff" = "Ausschalten";
+/* Encrypted backup: title of the alert before turning the backup off. */
+"TurnOffEncryptedBackupQuestion" = "Verschlüsselte Sicherung ausschalten?";
+/* Encrypted backup: message of the alert before turning the backup off. */
+"TurnOffEncryptedBackupMessage" = "Vorhandene Sicherungsdateien bleiben im Ordner.";
+/* Encrypted backup error: the export failed. */
+"BackupErrorExportFailed" = "Der Tresor konnte nicht exportiert werden. Versuche es später erneut.";
+/* Encrypted backup error: the folder is gone. */
+"BackupErrorFolderUnavailable" = "Der Ordner wurde nicht gefunden. Wähle den Ordner erneut.";
+/* Encrypted backup error: no permission for the folder. */
+"BackupErrorNoAccess" = "Kein Zugriff auf den Ordner. Wähle den Ordner erneut.";
+/* Encrypted backup error: out of space. */
+"BackupErrorNoSpace" = "Nicht genug Speicherplatz. Gib Speicher frei und sichere dann erneut.";
+/* Encrypted backup error: the backup password is not on this device. */
+"BackupErrorPasswordMissing" = "Das Sicherungspasswort fehlt auf diesem Gerät. Lege es neu fest.";
+/* Encrypted backup error: an organization policy disables the export. */
+"BackupErrorDisabledByPolicy" = "Deine Organisation erlaubt keinen Tresor-Export.";
+/* Encrypted backup error: writing failed. Parameter: the system error. */
+"BackupErrorWriteFailedX" = "Die Sicherung konnte nicht gespeichert werden (%1$@). Prüfe den Ordner und sichere dann erneut.";

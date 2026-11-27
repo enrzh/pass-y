@@ -41,6 +41,16 @@ public enum SettingsRoute: Equatable, Hashable {
     ///
     case dismiss(_ action: DismissAction? = nil)
 
+    /// A route to the encrypted backup page (Settings > Vault > Encrypted backup).
+    case encryptedBackup
+
+    /// A route to the setup sheet of the encrypted backup (turn on, change password, change folder). The context is
+    /// the `EncryptedBackupSetupDelegate`.
+    ///
+    /// - Parameter mode: What the sheet sets up.
+    ///
+    case encryptedBackupSetup(EncryptedBackupSetupMode)
+
     /// A route to the export vault settings view or export to file view depending on feature flag.
     case exportVault
 

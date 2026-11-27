@@ -1401,3 +1401,61 @@
 "SpecificPeopleNotAvailableDescriptionLong" = "Sharing with specific people is not available for this account.";
 /* Alert: verification codes unavailable for the account. */
 "TOTPNotAvailableDescriptionLong" = "Verification codes (TOTP) are not available for this account.";
+/* Settings > Vault: title of the automatic encrypted backup page and its switch. */
+"EncryptedBackup" = "Encrypted backup";
+/* Encrypted backup: footer of the switch. */
+"EncryptedBackupDescription" = "Saves a password-protected copy of your vault to a folder you choose, once a day if something changed.";
+/* Encrypted backup: footer of the page (what is missing, forgotten password). */
+"EncryptedBackupFooter" = "Not included: attachments, Sends, trash and organization items. Without the backup password, the files can’t be opened.";
+/* Encrypted backup: notice when an organization policy disables the vault export. */
+"EncryptedBackupPolicyDisabled" = "Your organization doesn’t allow vault exports, so backups are not available.";
+/* Encrypted backup: row with the destination folder. */
+"BackupFolder" = "Folder";
+/* Encrypted backup: folder row before a folder is chosen. */
+"ChooseFolder" = "Choose folder";
+/* Encrypted backup: row with the time of the last successful backup. */
+"LastBackup" = "Last backup";
+/* Encrypted backup: button that writes a backup right away. */
+"BackUpNow" = "Back up now";
+/* Encrypted backup: shown while a backup is written. */
+"BackingUp" = "Backing up…";
+/* Encrypted backup: toast after a successful backup. */
+"BackupSaved" = "Backup saved";
+/* Encrypted backup: row and screen that change the backup password. */
+"ChangeBackupPassword" = "Change backup password";
+/* Encrypted backup: screen that changes the destination folder. */
+"ChangeBackupFolder" = "Change folder";
+/* Encrypted backup: password field. */
+"BackupPassword" = "Backup password";
+/* Encrypted backup: password confirmation field. */
+"ConfirmBackupPassword" = "Confirm backup password";
+/* Encrypted backup: footer of the password fields. */
+"BackupPasswordDescription" = "At least 12 characters. You need it to import a backup.";
+/* Encrypted backup: validation error of a short password. */
+"BackupPasswordTooShort" = "The backup password must have at least 12 characters.";
+/* Encrypted backup: validation error without a folder. */
+"ChooseABackupFolder" = "Choose a folder for the backups.";
+/* Encrypted backup: footer of the master password field of the setup. */
+"EncryptedBackupMasterPasswordDescription" = "Enter your master password to confirm.";
+/* Encrypted backup: button that turns the backup on. */
+"TurnOn" = "Turn on";
+/* Encrypted backup: button that turns the backup off. */
+"TurnOff" = "Turn off";
+/* Encrypted backup: title of the alert before turning the backup off. */
+"TurnOffEncryptedBackupQuestion" = "Turn off encrypted backup?";
+/* Encrypted backup: message of the alert before turning the backup off. */
+"TurnOffEncryptedBackupMessage" = "Existing backup files stay in the folder.";
+/* Encrypted backup error: the export failed. */
+"BackupErrorExportFailed" = "The vault could not be exported. Try again later.";
+/* Encrypted backup error: the folder is gone. */
+"BackupErrorFolderUnavailable" = "The folder can’t be found. Choose the folder again.";
+/* Encrypted backup error: no permission for the folder. */
+"BackupErrorNoAccess" = "No access to the folder. Choose the folder again.";
+/* Encrypted backup error: out of space. */
+"BackupErrorNoSpace" = "Not enough storage. Free up space, then back up again.";
+/* Encrypted backup error: the backup password is not on this device. */
+"BackupErrorPasswordMissing" = "The backup password is missing on this device. Set it again.";
+/* Encrypted backup error: an organization policy disables the export. */
+"BackupErrorDisabledByPolicy" = "Your organization doesn’t allow vault exports.";
+/* Encrypted backup error: writing failed. Parameter: the system error. */
+"BackupErrorWriteFailedX" = "The backup could not be saved (%1$@). Check the folder, then back up again.";

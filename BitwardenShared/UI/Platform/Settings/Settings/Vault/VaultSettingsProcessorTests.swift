@@ -9,6 +9,7 @@ class VaultSettingsProcessorTests: BitwardenTestCase {
     // MARK: Properties
 
     var coordinator: MockCoordinator<SettingsRoute, SettingsEvent>!
+    var encryptedBackupService: MockEncryptedBackupService!
     var environmentService: MockEnvironmentService!
     var errorReporter: MockErrorReporter!
     var stateService: MockStateService!
@@ -20,6 +21,7 @@ class VaultSettingsProcessorTests: BitwardenTestCase {
         super.setUp()
 
         coordinator = MockCoordinator<SettingsRoute, SettingsEvent>()
+        encryptedBackupService = MockEncryptedBackupService()
         environmentService = MockEnvironmentService()
         errorReporter = MockErrorReporter()
         stateService = MockStateService()
@@ -27,6 +29,7 @@ class VaultSettingsProcessorTests: BitwardenTestCase {
         subject = VaultSettingsProcessor(
             coordinator: coordinator.asAnyCoordinator(),
             services: ServiceContainer.withMocks(
+                encryptedBackupService: encryptedBackupService,
                 environmentService: environmentService,
                 errorReporter: errorReporter,
                 stateService: stateService,
@@ -39,6 +42,7 @@ class VaultSettingsProcessorTests: BitwardenTestCase {
         super.tearDown()
 
         coordinator = nil
+        encryptedBackupService = nil
         environmentService = nil
         errorReporter = nil
         stateService = nil
@@ -46,6 +50,34 @@ class VaultSettingsProcessorTests: BitwardenTestCase {
     }
 
     // MARK: Tests
+
+    /// `perform(_:)` with `.loadEncryptedBackupStatus` loads the status of the active account (row value and badge).
+    @MainActor
+    func test_perform_loadEncryptedBackupStatus() async {
+        stateService.activeAccount = .fixture()
+        encryptedBackupService.statusByUserId["1"] = EncryptedBackupStatus(
+            isEnabled: true,
+            folderName: "Backups",
+            lastFailure: .noSpace,
+        )
+
+        await subject.perform(.loadEncryptedBackupStatus)
+
+        XCTAssertEqual(subject.state.encryptedBackupValue, Localizations.on)
+        XCTAssertEqual(subject.state.encryptedBackupBadge, "!")
+
+        encryptedBackupService.statusByUserId["1"]?.lastFailure = nil
+        await subject.perform(.loadEncryptedBackupStatus)
+        XCTAssertNil(subject.state.encryptedBackupBadge)
+    }
+
+    /// `receive(_:)` with `.encryptedBackupTapped` opens the encrypted backup page.
+    @MainActor
+    func test_receive_encryptedBackupTapped() {
+        subject.receive(.encryptedBackupTapped)
+
+        XCTAssertEqual(coordinator.routes.last, .encryptedBackup)
+    }
 
     /// `perform(_:)` with `.dismissImportLoginsActionCard` sets the user's import logins setup
     /// progress to complete.
