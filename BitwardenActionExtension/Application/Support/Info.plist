@@ -96,8 +96,6 @@
 		<key>arm64</key>
 		<true/>
 	</dict>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Use Face ID to unlock your vault.</string>
 	<key>NSExtension</key>
