@@ -115,4 +115,8 @@ add(4, "Alex Miller", "Personal", identity={
     "company": e("Northwind")})
 add(2, "Wi-Fi at home", "Personal", notes="Network: Sample-Home\nPassword: demo-only-1234", secureNote={"type": 0})
 add(2, "Travel checklist", "Travel", notes="Passport, tickets, adapter.", secureNote={"type": 0})
+add(5, "Build server key", "Work", sshKey={
+    "privateKey": e("-----BEGIN OPENSSH PRIVATE KEY-----\ndemo only, not a key\n-----END OPENSSH PRIVATE KEY-----"),
+    "publicKey": e("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDemoOnlyNotARealKey alex@example.com"),
+    "keyFingerprint": e("SHA256:DemoOnlyNotARealFingerprint0000000000000000")})
 print("demo items ready for", EMAIL)
