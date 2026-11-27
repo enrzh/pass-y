@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Mae URLs yr amgylchedd wedi'u cadw.";
 "IdentityUrl" = "URL gweinydd hunaniaeth";
 "SelfHostedEnvironment" = "Amgylchedd hunan-gynnal";
-"SelfHostedEnvironmentFooter" = "Nodwch URL sylfaenol eich gosodiad Pass-Y a gynhelir ar eich safle.";
 "ServerUrl" = "URL gweinydd";
 "WebVaultUrl" = "URL gweinydd cwpwrdd gwe";
 "CustomFields" = "Meysydd addasedig";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Parhau i'r polisi preifatrwydd?";
 "ContinueToAppStore" = "Parhau i'r siop apiau?";
 "ContinueWithoutSyncing" = "Parhau heb gydamseru";
-"TwoStepLoginDescriptionLong" = "Gallwch wneud eich cyfrif yn fwy diogel drwy alluogi mewngofnodi dau gam yn ap gwe Pass-Y.";
 "YouCanImportDataToYourVaultOnX" = "Gallwch fewnforio data i'ch cwpwrdd ar %1$@.";
-"PrivacyPolicyDescriptionLong" = "Edrychwch ar ein polisi preifatrwydd ar bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Archwiliwch fwy o nodweddion eich cyfrif Pass-Y ar y cymhwysiad gwe.";
-"LearnAboutOrganizationsDescriptionLong" = "Mae Pass-Y yn caniatáu i chi rannu eich eitemau cwpwrdd ag eraill trwy ddefnyddio sefydliad. Dysgwch fwy ar wefan bitwarden.com.";
 "RateAppDescriptionLong" = "Helpwch eraill i ddarganfod a yw Pass-Y yn addas iddyn nhw. Ewch i'r siop apiau a gadewch sgôr nawr.";
 "CreatedX" = "Wedi'i greu %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Diweddarwyd caniatadau eich sefydliad, sy'n gofyn i chi osod cyfrinair meistr.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Uwchraddio'ch mewngofnodiadau";
 "IntroCarouselPage3Message" = "Defnyddiwch y cynhyrchydd i greu a chadw cyfrineiriau cryf, unigryw ar gyfer eich holl gyfrifon.";
 "IntroCarouselPage4Title" = "Eich data, pan a lle bynnag y mae ei angen arnoch";
-"IntroCarouselPage4Message" = "Cadwch gyfrineiriau diderfyn ar draws dyfeisiau diderfyn gyda Pass-Y symudol, porwr, ac apiau bwrdd gwaith.";
 "AccountSetup" = "Sefydlu cyfrif";
 "SetUpUnlock" = "Sefydlu datgloi";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Sefydlwch fiometreg neu dewiswch god PIN i gael mynediad cyflym i'ch cwpwrdd a llenwi'ch mewngofnodiadau yn awtomatig.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Byddwch yn dileu'r ffeil hon ar ôl i'r mewnforio ddod i ben.";
 "NeedHelpCheckOutImportHelp" = "Angen cymorth? Edrychwch ar **[cymorth mewnforio](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Ar eich cyfrifiadur, agorwch dab porwr newydd ac **ewch i %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Mewngofnodwch i ap gwe Pass-Y.**";
 "ImportLoginsToBitwarden" = "Mewnforio mewngofnodiadau i Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Yn llywio Pass-Y, **dewch o hyd i'r opsiwn Offer** a **dewiswch Mewnforio data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Llenwch y ffurflen a **mewnforiwch eich ffeil cyfrineiriau wedi'u cadw.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Dewiswch Mewnforio data** yn yr ap gwe, yna **Done** i orffen cydamseru.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Er eich diogelwch, gwnewch yn siŵr i **ddileu eich ffeil cyfrineiriau wedi'u cadw.**";
-"BitwardenTools" = "Offer Pass-Y";
 "ImportSuccessful" = "Mewnforio'n llwyddiannus!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Rheolwch eich mewngofnodiadau o unrhyw le gydag offer Pass-Y ar gyfer gwe a bwrdd gwaith.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Rheolwch eich cynllun tanysgrifiad yn ap gwe Pass-Y.";
 "DownloadTheBrowserExtension" = "Lawrlwythwch estyniad y porwr";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Ewch i bitwarden.com/download i integreiddio Pass-Y i'ch porwr ffafriol am brofiad di-dor.";
-"UseTheWebApp" = "Defnyddiwch yr ap gwe";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Mewngofnodwch yn bitwarden.com i reoli'ch cyfrif yn hawdd a diweddaru gosodiadau.";
 "AutofillPasswords" = "Llenwi cyfrineiriau yn awtomatig";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Sefydlwch lenwi awtomatig ar eich holl ddyfeisiau i fewngofnodi gydag un tapiad unrhyw le.";
 "GoBack" = "Mynd yn ôl";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Ni ddarganfuwyd cyfrif. Mewngofnodwch eto os byddwch yn parhau i weld y gwall hwn.";
 "ImportError" = "Gwall mewnforio";
 "NoLoginsWereImported" = "Ni fewnforiwyd unrhyw fewngofnodiadau";
-"ThisIsNotARecognizedServerDescriptionLong" = "Nid yw hwn yn weinydd Pass-Y adnabyddus. Efallai y bydd angen i chi wirio gyda'ch darparwr neu ddiweddaru'ch gweinydd.";
 "LoginsImported" = "Mewngofnodiadau wedi'u mewnforio";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Cofiwch ddileu eich ffeil cyfrineiriau wedi'u mewnforio o'ch cyfrifiadur.";
 "SomethingWentWrong" = "Aeth rhywbeth o'i le";
@@ -963,7 +947,6 @@
 "LastEdited" = "Golygwyd ddiwethaf: %1$@";
 "PasswordLastUpdated" = "Cyfrinair wedi'i ddiweddaru ddiwethaf: %1$@";
 "DecryptionError" = "Gwall dadgryptio";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Ni allai Pass-Y ddadgryptio'r eitem cwpwrdd hon. Copïwch a rhannwch yr adroddiad gwall hwn gyda llwyddiant cwsmeriaid i osgoi colli data ychwanegol.";
 "CopyErrorReport" = "Copïo adroddiad gwall";
 "ErrorCannotDecrypt" = "[gwall: ni ellir dadgryptio]";
 "AccountsSyncedFromBitwardenApp" = "Cyfrifon wedi'u cydamseru o ap Pass-Y";

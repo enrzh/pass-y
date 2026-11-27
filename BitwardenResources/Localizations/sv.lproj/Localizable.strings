@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Miljö-URL:er har sparats.";
 "IdentityUrl" = "Identitetsserver-URL";
 "SelfHostedEnvironment" = "Egen-hostad miljö";
-"SelfHostedEnvironmentFooter" = "Ange bas-URL:en för din \"on-premise\"-hostade Pass-Y-installation.";
 "ServerUrl" = "Server-URL";
 "WebVaultUrl" = "Webbvalvsserver-URL";
 "CustomFields" = "Anpassade fält";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Fortsätt till Integritetspolicy?";
 "ContinueToAppStore" = "Fortsätt till appbutiken?";
 "ContinueWithoutSyncing" = "Fortsätt utan att synkronisera";
-"TwoStepLoginDescriptionLong" = "Gör ditt konto säkrare genom att konfigurera tvåstegsverifiering i Pass-Ys webbapp.";
 "YouCanImportDataToYourVaultOnX" = "Du kan importera data till ditt valv på %1$@.";
-"PrivacyPolicyDescriptionLong" = "Kolla in vår integritetspolicy på bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Utforska fler funktioner i ditt Pass-Y-konto i webbappen.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y låter dig dela objekt i ditt valv med andra med hjälp av en organisation. Läs mer på webbplatsen bitwarden.com.";
 "RateAppDescriptionLong" = "Hjälp andra att ta reda på om Pass-Y är rätt för dem. Besök appbutiken och lämna en recension nu.";
 "CreatedX" = "Skapade %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Din organisations behörigheter har uppdaterats, vilket kräver att du anger ett huvudlösenord.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Levla upp dina inloggningar";
 "IntroCarouselPage3Message" = "Använd generatorn för att skapa och spara starka, unika lösenord för alla dina konton.";
 "IntroCarouselPage4Title" = "Din data, när och var du behöver det";
-"IntroCarouselPage4Message" = "Spara obegränsat antal lösenord på obegränsat antal enheter med Pass-Y-appar för mobiler, webbläsare och datorer.";
 "AccountSetup" = "Kontoinställningar";
 "SetUpUnlock" = "Ställ in upplåsning";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Ställ in biometri eller välj en PIN-kod för att snabbt komma åt ditt valv och autofyll dina inloggningar.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Du kommer att radera den här filen när importen är klar.";
 "NeedHelpCheckOutImportHelp" = "Behöver du hjälp? Kolla in **[importera hjälp](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Öppna en ny webbläsarflik på din dator och **gå till %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Logga in på Pass-Ys webbapp.**";
 "ImportLoginsToBitwarden" = "Importera inloggningar till Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "I Pass-Y-navigeringen **hittar du alternativet Verktyg** och **väljer Importera data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Fyll i formuläret och **importera din sparade lösenordsfil.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Välj Importera data** i webbappen och sedan **Färdig** för att avsluta synkroniseringen.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "För din egen säkerhet, se till att **radera din sparade lösenordsfil.**";
-"BitwardenTools" = "Pass-Y-verktyg";
 "ImportSuccessful" = "Importen lyckades!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Hantera dina inloggningar var som helst med Pass-Y-verktyg för webben och skrivbordet.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Hantera din prenumeration i Pass-Y-webbappen.";
 "DownloadTheBrowserExtension" = "Hämta ner webbläsartillägget";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Gå till bitwarden.com/download för att integrera Pass-Y i din favoritwebbläsare och få en smidig upplevelse.";
-"UseTheWebApp" = "Använd webbappen";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Logga in på bitwarden.com för att enkelt hantera ditt konto och uppdatera inställningar.";
 "AutofillPasswords" = "Autofyll lösenord";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Ställ in autofyll på alla dina enheter för att logga in med ett enda tryck var som helst.";
 "GoBack" = "Gå tillbaka";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Inget konto hittades. Logga in igen om du fortsätter att se det här felet.";
 "ImportError" = "Fel vid import";
 "NoLoginsWereImported" = "Inga inloggningar importerades";
-"ThisIsNotARecognizedServerDescriptionLong" = "Detta är inte en erkänd Pass-Y-server. Du kan behöva kontrollera med din leverantör eller uppdatera din server.";
 "LoginsImported" = "Inloggningar importerade";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Kom ihåg att ta bort den importerade lösenordsfilen från datorn.";
 "SomethingWentWrong" = "Något gick fel";
@@ -963,7 +947,6 @@
 "LastEdited" = "Senast redigerad: %1$@";
 "PasswordLastUpdated" = "Lösenord senast uppdaterat: %1$@";
 "DecryptionError" = "Dekrypteringsfel";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y kunde inte avkryptera detta valvobjekt. Kopiera och dela denna felrapport med kundtjänst för att undvika ytterligare dataförlust.";
 "CopyErrorReport" = "Kopiera felrapport";
 "ErrorCannotDecrypt" = "[fel: kan inte dekryptera]";
 "AccountsSyncedFromBitwardenApp" = "Konton synkroniserade från Pass-Y-appen";

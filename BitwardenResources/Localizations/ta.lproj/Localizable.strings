@@ -199,7 +199,6 @@
 "EnvironmentSaved" = "சுற்றுசூழல் உரலிகள் சேமிக்கப்பட்டன.";
 "IdentityUrl" = "அடையாள தேக்க உரலி";
 "SelfHostedEnvironment" = "சுய-வழங்கப்பட்ட சுற்றுசூழல்";
-"SelfHostedEnvironmentFooter" = "உம் வளாகத்திலேயே வழங்கியுள்ள Pass-Y நிறுவலின் அடித்தள உரலியைக் குறிப்பிடு.";
 "ServerUrl" = "தேக்க உரலி";
 "WebVaultUrl" = "வலைப்பெட்டக தேக்க உரலி";
 "CustomFields" = "தனிப்பயன் புலங்கள்";
@@ -640,11 +639,7 @@
 "ContinueToPrivacyPolicy" = "தனியுரிமை கொள்கைக்குத் தொடரவா?";
 "ContinueToAppStore" = "ஆப் ஸ்டோருக்குத் தொடரவா?";
 "ContinueWithoutSyncing" = "ஒத்திசைக்காமல் தொடரவும்";
-"TwoStepLoginDescriptionLong" = "Pass-Y வலைச்செயலியில் இரு-படி உள்நுழைவை அமைத்து உமது கணக்கின் பாதுகாப்பை அதிகரி.";
 "YouCanImportDataToYourVaultOnX" = "%1$@-இல் உமது பெட்டகத்திற்குத் தரவை இறக்குமதி செய்யலாம்.";
-"PrivacyPolicyDescriptionLong" = "bitwarden.com இல் உள்ள எங்கள் தனியுரிமைக் கொள்கையைப் பார்க்கவும்.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "இணைய செயலியில் உங்கள் Pass-Y கணக்கின் கூடுதல் அம்சங்களை ஆராயுங்கள்.";
-"LearnAboutOrganizationsDescriptionLong" = "ஒரு நிறுவனத்தைப் பயன்படுத்தி உங்கள் பெட்டக உருப்படிகளை மற்றவர்களுடன் பகிர்ந்து கொள்ள Pass-Y உங்களை அனுமதிக்கிறது. bitwarden.com இணையதளத்தில் மேலும் அறிக.";
 "RateAppDescriptionLong" = "Pass-Y தங்களுக்கு சரியானதா என்பதைக் கண்டறிய மற்றவர்களுக்கு உதவுங்கள். ஆப் ஸ்டோருக்குச் சென்று இப்போது ஒரு மதிப்பீட்டை வழங்கவும்.";
 "CreatedX" = "உருவாக்கப்பட்டது %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "உங்கள் நிறுவனத்தின் அனுமதிகள் புதுப்பிக்கப்பட்டன, நீங்கள் ஒரு முதன்மை கடவுச்சொல்லை அமைக்க வேண்டும்.";
@@ -689,7 +684,6 @@
 "IntroCarouselPage3Title" = "உங்கள் உள்நுழைவுகளை மேம்படுத்துங்கள்";
 "IntroCarouselPage3Message" = "உங்கள் எல்லா கணக்குகளுக்கும் வலுவான, தனித்துவமான கடவுச்சொற்களை உருவாக்கவும் சேமிக்கவும் ஜெனரேட்டரைப் பயன்படுத்தவும்.";
 "IntroCarouselPage4Title" = "உங்கள் தரவு, உங்களுக்குத் தேவைப்படும்போது மற்றும் எங்கு வேண்டுமானாலும்";
-"IntroCarouselPage4Message" = "பிட்வார்டன் மொபைல், உலாவி மற்றும் டெஸ்க்டாப் பயன்பாடுகளுடன் வரம்பற்ற சாதனங்களில் வரம்பற்ற கடவுச்சொற்களை சேமிக்கவும்.";
 "AccountSetup" = "கணக்கு அமைப்பு";
 "SetUpUnlock" = "திறப்பு அமை";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "உங்கள் பெட்டகத்தை விரைவாக அணுகவும், உங்கள் உள்நுழைவுகளை தானாக நிரப்பவும் பயோமெட்ரிக்ஸை அமைக்கவும் அல்லது ஒரு PIN குறியீட்டைத் தேர்ந்தெடுக்கவும்.";
@@ -800,20 +794,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "இறக்குமதி முடிந்த பிறகு நீங்கள் இந்த கோப்பை நீக்குவீர்கள்.";
 "NeedHelpCheckOutImportHelp" = "உதவி தேவையா? **[இறக்குமதி உதவி](%1$@)** ஐ சரிபார்க்கவும்";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "உங்கள் கணினியில், ஒரு புதிய உலாவி தாவலைத் திறந்து **%1$@ க்குச் செல்லவும்**.";
-"LogInToTheBitwardenWebApp" = "**பிட்வார்டன் இணைய பயன்பாட்டில் உள்நுழையவும்.**";
 "ImportLoginsToBitwarden" = "பிட்வார்டனில் உள்நுழைவுகளை இறக்குமதி செய்";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "பிட்வார்டன் வழிசெலுத்தலில், **கருவிகள் விருப்பத்தைக் கண்டுபிடித்து, இறக்குமதி தரவு என்பதைத் தேர்ந்தெடுக்கவும்.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "படிவத்தை நிரப்பி, **உங்கள் சேமிக்கப்பட்ட கடவுச்சொல் கோப்பை இறக்குமதி செய்யுங்கள்.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "இணைய பயன்பாட்டில் **இறக்குமதி தரவைத் தேர்ந்தெடுத்து,** ஒத்திசைவை முடிக்க **முடிந்தது** என்பதைத் தேர்ந்தெடுக்கவும்.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "உங்கள் பாதுகாப்பிற்காக, **உங்கள் சேமிக்கப்பட்ட கடவுச்சொல் கோப்பை நீக்குவதை உறுதிப்படுத்திக் கொள்ளுங்கள்.**";
-"BitwardenTools" = "பிட்வார்டன் கருவிகள்";
 "ImportSuccessful" = "இறக்குமதி வெற்றிகரமாக முடிந்தது!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "இணையம் மற்றும் டெஸ்க்டாப்பிற்கான பிட்வார்டன் கருவிகளுடன் எங்கிருந்தும் உங்கள் உள்நுழைவுகளை நிர்வகிக்கவும்.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Pass-Y இணைய பயன்பாட்டில் உங்கள் சந்தா திட்டத்தை நிர்வகிக்கவும்.";
 "DownloadTheBrowserExtension" = "உலாவி நீட்டிப்பைப் பதிவிறக்கு";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "தடையற்ற அனுபவத்திற்காக பிட்வார்டனை உங்களுக்கு பிடித்த உலாவியில் ஒருங்கிணைக்க bitwarden.com/download க்குச் செல்லவும்.";
-"UseTheWebApp" = "இணைய பயன்பாட்டைப் பயன்படுத்தவும்";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "உங்கள் கணக்கை எளிதாக நிர்வகிக்கவும், அமைப்புகளைப் புதுப்பிக்கவும் bitwarden.com இல் உள்நுழையவும்.";
 "AutofillPasswords" = "கடவுச்சொற்களை தானாக நிரப்பு";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "எங்கிருந்தும் ஒற்றை தட்டலில் உள்நுழைய, உங்கள் எல்லா சாதனங்களிலும் தானாக நிரப்புதலை அமைக்கவும்.";
 "GoBack" = "திரும்பிச் செல்";
@@ -829,7 +814,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "கணக்கு எதுவும் கிடைக்கவில்லை. இந்த பிழையை நீங்கள் தொடர்ந்து கண்டால் மீண்டும் உள்நுழையவும்.";
 "ImportError" = "இறக்குமதி பிழை";
 "NoLoginsWereImported" = "உள்நுழைவுகள் எதுவும் இறக்குமதி செய்யப்படவில்லை";
-"ThisIsNotARecognizedServerDescriptionLong" = "இது அங்கீகரிக்கப்பட்ட பிட்வார்டன் சேவையகம் அல்ல. நீங்கள் உங்கள் வழங்குநருடன் சரிபார்க்க வேண்டும் அல்லது உங்கள் சேவையகத்தைப் புதுப்பிக்க வேண்டும்.";
 "LoginsImported" = "உள்நுழைவுகள் இறக்குமதி செய்யப்பட்டன";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "உங்கள் கணினியிலிருந்து உங்கள் இறக்குமதி செய்யப்பட்ட கடவுச்சொல் கோப்பை நீக்க நினைவில் கொள்ளுங்கள்.";
 "SomethingWentWrong" = "ஏதோ தவறு நடந்தது";
@@ -964,7 +948,6 @@
 "LastEdited" = "கடைசியாக திருத்தப்பட்டது: %1$@";
 "PasswordLastUpdated" = "கடவுச்சொல் கடைசியாக புதுப்பிக்கப்பட்டது: %1$@";
 "DecryptionError" = "மறையாக்கத் திறத்தல் பிழை";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "பிட்வார்டனால் இந்த பெட்டகப் பொருளை மறையாக்கத் திறக்க முடியவில்லை. கூடுதல் தரவு இழப்பைத் தவிர்க்க இந்த பிழை அறிக்கையை நகலெடுத்து வாடிக்கையாளர் வெற்றியுடன் பகிரவும்.";
 "CopyErrorReport" = "பிழை அறிக்கையை நகலெடு";
 "ErrorCannotDecrypt" = "[பிழை: மறையாக்கத் திறக்க முடியாது]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y பயன்பாட்டிலிருந்து ஒத்திசைக்கப்பட்ட கணக்குகள்";

@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "URL-urile mediului au fost salvate.";
 "IdentityUrl" = "URL server de identificare";
 "SelfHostedEnvironment" = "Mediul găzduit local";
-"SelfHostedEnvironmentFooter" = "Specificați URL-ul de bază al instalării Pass-Y.";
 "ServerUrl" = "URL server";
 "WebVaultUrl" = "URL server seif Web";
 "CustomFields" = "Câmpuri particularizate";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Continuați la politica de confidențialitate?";
 "ContinueToAppStore" = "Continuați la magazinul de aplicații?";
 "ContinueWithoutSyncing" = "Continuă fără sincronizare";
-"TwoStepLoginDescriptionLong" = "Faceți contul dvs. mai sigur prin configurarea autentificării în doi pași în aplicația web Pass-Y.";
 "YouCanImportDataToYourVaultOnX" = "Poți importa date în seif pe %1$@.";
-"PrivacyPolicyDescriptionLong" = "Consultați politica noastră de confidențialitate pe bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Explorați mai multe caracteristici ale contului dvs. Pass-Y pe aplicația web.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y vă permite să partajați elementele din seif cu alte persoane utilizând o organizație. Aflați mai multe pe site-ul bitwarden.com.";
 "RateAppDescriptionLong" = "Ajutați-i pe alții să afle dacă Pass-Y este potrivit pentru ei. Vizitați magazinul de aplicații și lăsați un rating acum.";
 "CreatedX" = "Creat %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Permisiunile organizației dvs. au fost actualizate, fiind necesar să setați o parolă principală.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Îmbunătățește-ți autentificările";
 "IntroCarouselPage3Message" = "Folosește generatorul pentru a crea și salva parole puternice și unice pentru toate conturile tale.";
 "IntroCarouselPage4Title" = "Datele tale, când și unde ai nevoie de ele";
-"IntroCarouselPage4Message" = "Salvează parole nelimitate pe dispozitive nelimitate cu aplicațiile Pass-Y pentru mobil, browser și desktop.";
 "AccountSetup" = "Configurare cont";
 "SetUpUnlock" = "Configurează deblocarea";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Configurează datele biometrice sau alege un cod PIN pentru a accesa rapid seiful și a completa automat autentificările.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Vei șterge acest fișier după finalizarea importului.";
 "NeedHelpCheckOutImportHelp" = "Ai nevoie de ajutor? Vezi **[ajutor pentru import](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Pe computerul tău, deschide o filă nouă în browser și **accesează %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Autentifică-te în aplicația web Pass-Y.**";
 "ImportLoginsToBitwarden" = "Importă autentificări în Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "În navigația Pass-Y, **găsește opțiunea Tools** și **selectează Import data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Completează formularul și **importă fișierul cu parolele salvate.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Selectează Import data** în aplicația web, apoi **Done** pentru a finaliza sincronizarea.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Pentru siguranța ta, asigură-te că **ștergi fișierul cu parolele salvate.**";
-"BitwardenTools" = "Instrumente Pass-Y";
 "ImportSuccessful" = "Import reușit!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Gestionați-vă autentificările de oriunde cu instrumentele Pass-Y pentru web și desktop.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Gestionați-vă planul de abonament în aplicația web Pass-Y.";
 "DownloadTheBrowserExtension" = "Descarcă extensia pentru browser";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Accesează bitwarden.com/download pentru a integra Pass-Y în browserul tău preferat pentru o experiență perfectă.";
-"UseTheWebApp" = "Folosește aplicația web";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Autentifică-te pe bitwarden.com pentru a-ți gestiona cu ușurință contul și a actualiza setările.";
 "AutofillPasswords" = "Completează automat parolele";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Configurează completarea automată pe toate dispozitivele tale pentru a te autentifica cu o singură atingere oriunde.";
 "GoBack" = "Înapoi";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Nu s-a găsit niciun cont. Te rugăm să te autentifici din nou dacă această eroare persistă.";
 "ImportError" = "Eroare de importare";
 "NoLoginsWereImported" = "Nu au fost importate autentificări";
-"ThisIsNotARecognizedServerDescriptionLong" = "Acesta nu este un server Pass-Y recunoscut. Poate fi necesar să verifici cu furnizorul tău sau să îți actualizezi serverul.";
 "LoginsImported" = "Autentificări importate";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Nu uita să ștergi fișierul cu parolele importat de pe computer.";
 "SomethingWentWrong" = "Ceva nu a funcționat";
@@ -963,7 +947,6 @@
 "LastEdited" = "Ultima editare: %1$@";
 "PasswordLastUpdated" = "Parola actualizată ultima dată: %1$@";
 "DecryptionError" = "Eroare de decriptare";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y nu a putut decripta acest element al seifului. Copiază și distribuie acest raport de eroare către departamentul de succes al clienților pentru a evita pierderea suplimentară de date.";
 "CopyErrorReport" = "Copiază raportul de eroare";
 "ErrorCannotDecrypt" = "[eroare: nu se poate decripta]";
 "AccountsSyncedFromBitwardenApp" = "Conturi sincronizate din aplicația Pass-Y";

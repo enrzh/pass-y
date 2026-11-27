@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "გარემოს URL-ები შენახულია.";
 "IdentityUrl" = "იდენტობის სერვერის URL";
 "SelfHostedEnvironment" = "საკუთარ სერვერზე განთავსებული გარემო";
-"SelfHostedEnvironmentFooter" = "მიუთითეთ თქვენი ლოკალური Pass-Y ინსტალაციის ძირითადი URL.";
 "ServerUrl" = "სერვერის URL";
 "WebVaultUrl" = "ვებ-სეიფის სერვერის URL";
 "CustomFields" = "მორგებული ველები";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "კონფიდენციალურობის პოლიტიკაზე გადასვლა?";
 "ContinueToAppStore" = "აპლიკაციების მაღაზიაში გაგრძელება?";
 "ContinueWithoutSyncing" = "სინქრონიზაციის გარეშე გაგრძელება";
-"TwoStepLoginDescriptionLong" = "გახადეთ თქვენი ანგარიში უფრო უსაფრთხო ორსაფეხურიანი შესვლის დაყენებით Pass-Y-ის ვებ-აპში.";
 "YouCanImportDataToYourVaultOnX" = "თქვენ შეგიძლიათ მონაცემების იმპორტი თქვენს სეიფში %1$@-ზე.";
-"PrivacyPolicyDescriptionLong" = "გაეცანით ჩვენს კონფიდენციალურობის პოლიტიკას bitwarden.com-ზე.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "გაეცანით თქვენი Pass-Y ანგარიშის მეტ ფუნქციას ვებ-აპში.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y საშუალებას გაძლევთ გაუზიაროთ თქვენი სეიფის ჩანაწერები სხვებს ორგანიზაციის გამოყენებით. გაიგეთ მეტი bitwarden.com ვებსაიტზე.";
 "RateAppDescriptionLong" = "დაეხმარეთ სხვებს გაიგონ, არის თუ არა Pass-Y მათთვის შესაფერისი. ეწვიეთ აპლიკაციების მაღაზიას და დატოვეთ შეფასება ახლავე.";
 "CreatedX" = "შეიქმნა %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "თქვენი ორგანიზაციის ნებართვები განახლდა, რაც მოითხოვს მთავარი პაროლის დაყენებას.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "გააუმჯობესეთ თქვენი შესვლები";
 "IntroCarouselPage3Message" = "გამოიყენეთ გენერატორი ძლიერი, უნიკალური პაროლების შესაქმნელად და შესანახად ყველა თქვენი ანგარიშისთვის.";
 "IntroCarouselPage4Title" = "თქვენი მონაცემები, როცა და სადაც გჭირდებათ";
-"IntroCarouselPage4Message" = "შეინახეთ შეუზღუდავი პაროლები შეუზღუდავ მოწყობილობაზე Pass-Y-ის მობილური, ბრაუზერის და დესკტოპის აპლიკაციებით.";
 "AccountSetup" = "ანგარიშის დაყენება";
 "SetUpUnlock" = "განბლოკვის დაყენება";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "დააყენეთ ბიომეტრია ან აირჩიეთ PIN კოდი თქვენს სეიფზე სწრაფი წვდომისა და შესვლების ავტომატური შევსებისთვის.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "თქვენ წაშლით ამ ფაილს იმპორტის დასრულების შემდეგ.";
 "NeedHelpCheckOutImportHelp" = "გჭირდებათ დახმარება? გაეცანით **[იმპორტის დახმარებას](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "თქვენს კომპიუტერზე, გახსენით ბრაუზერის ახალი ჩანართი და **გადადით %1$@-ზე**.";
-"LogInToTheBitwardenWebApp" = "**შედით Pass-Y-ის ვებ-აპში.**";
 "ImportLoginsToBitwarden" = "Pass-Y-ში შესვლების იმპორტი";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Y-ის ნავიგაციაში, **იპოვეთ Tools ვარიანტი** და **აირჩიეთ Import data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "შეავსეთ ფორმა და **შემოიტანეთ თქვენი შენახული პაროლის ფაილი.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "ვებ-აპში **აირჩიეთ Import data**, შემდეგ **Done** სინქრონიზაციის დასასრულებლად.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "თქვენი უსაფრთხოებისთვის, დარწმუნდით, რომ **წაშალეთ თქვენი შენახული პაროლის ფაილი.**";
-"BitwardenTools" = "Pass-Y-ის ხელსაწყოები";
 "ImportSuccessful" = "იმპორტი წარმატებულია!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "მართეთ თქვენი შესვლები ნებისმიერი ადგილიდან Pass-Y-ის ვებ და დესკტოპ ხელსაწყოებით.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "მართეთ თქვენი გამოწერის გეგმა Pass-Y-ის ვებ-აპში.";
 "DownloadTheBrowserExtension" = "ბრაუზერის გაფართოების ჩამოტვირთვა";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "გადადით bitwarden.com/download-ზე, რათა Pass-Y ინტეგრირდეს თქვენს საყვარელ ბრაუზერში უწყვეტი გამოცდილებისთვის.";
-"UseTheWebApp" = "ვებ-აპის გამოყენება";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "შედით bitwarden.com-ზე, რათა მარტივად მართოთ თქვენი ანგარიში და განაახლოთ პარამეტრები.";
 "AutofillPasswords" = "პაროლების ავტოშევსება";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "დააყენეთ ავტოშევსება ყველა თქვენს მოწყობილობაზე, რათა შეხვიდეთ ერთი შეხებით ნებისმიერ ადგილას.";
 "GoBack" = "უკან დაბრუნება";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "ანგარიში არ მოიძებნა. გთხოვთ, ხელახლა შეხვიდეთ, თუ ეს შეცდომა კვლავ გამოჩნდება.";
 "ImportError" = "შემოტანის შეცდომა";
 "NoLoginsWereImported" = "არც ერთი შესვლა არ იქნა იმპორტირებული";
-"ThisIsNotARecognizedServerDescriptionLong" = "ეს არ არის აღიარებული Pass-Y სერვერი. შესაძლოა, დაგჭირდეთ თქვენს პროვაიდერთან შემოწმება ან სერვერის განახლება.";
 "LoginsImported" = "შესვლები იმპორტირებულია";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "გახსოვდეთ, რომ წაშალოთ იმპორტირებული პაროლის ფაილი თქვენი კომპიუტერიდან.";
 "SomethingWentWrong" = "რაღაც არასწორად მოხდა";
@@ -963,7 +947,6 @@
 "LastEdited" = "ბოლო რედაქტირება: %1$@";
 "PasswordLastUpdated" = "პაროლი ბოლოს განახლდა: %1$@";
 "DecryptionError" = "გაშიფვრის შეცდომა";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y-მა ვერ შეძლო ამ სეიფის ჩანაწერის გაშიფვრა. მონაცემთა დამატებითი დაკარგვის თავიდან ასაცილებლად, დააკოპირეთ და გააზიარეთ ეს შეცდომის ანგარიში მომხმარებლის მხარდაჭერასთან.";
 "CopyErrorReport" = "შეცდომის ანგარიშის კოპირება";
 "ErrorCannotDecrypt" = "[შეცდომა: გაშიფვრა შეუძლებელია]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y აპიდან სინქრონიზებული ანგარიშები";

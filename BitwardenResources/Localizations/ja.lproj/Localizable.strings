@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "環境 URL を保存しました。";
 "IdentityUrl" = "ID サーバー URL";
 "SelfHostedEnvironment" = "セルフホスティング環境";
-"SelfHostedEnvironmentFooter" = "セルフホスティングしている Pass-Y のベース URL を指定してください。";
 "ServerUrl" = "サーバー URL";
 "WebVaultUrl" = "ウェブ保管庫サーバー URL";
 "CustomFields" = "カスタムフィールド";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "プライバシーポリシーを確認しますか？";
 "ContinueToAppStore" = "アプリストアに進みますか?";
 "ContinueWithoutSyncing" = "同期せずに続行";
-"TwoStepLoginDescriptionLong" = "Pass-Y ウェブアプリで2段階認証を設定すると、アカウントがより安全になります。";
 "YouCanImportDataToYourVaultOnX" = "%1$@ の保管庫にデータをインポートできます。";
-"PrivacyPolicyDescriptionLong" = "bitwarden.com でプライバシーポリシーをご覧ください。";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Pass-Y アカウントの機能をウェブアプリでご確認ください。";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y は組織を使って保管庫アイテムを他の人と共有することができます。詳細は bitwarden.com ウェブサイトをご覧ください。";
 "RateAppDescriptionLong" = "Pass-Y の使いやすさを他のユーザーにも知ってもらいましょう。アプリストアでレビューをしてください。";
 "CreatedX" = "作成日 %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "組織の権限が更新され、マスターパスワードの設定が必要になりました。";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "ログインをレベルアップ";
 "IntroCarouselPage3Message" = "パスワード生成を使用して、すべてのアカウントで強力な一意のパスワードを作成して保存できます。";
 "IntroCarouselPage4Title" = "必要なデータを、いつでもどこでも";
-"IntroCarouselPage4Message" = "Pass-Y モバイルアプリ、ブラウザ、デスクトップアプリで、デバイスやパスワード数の制限なしに保存できます。";
 "AccountSetup" = "アカウントのセットアップ";
 "SetUpUnlock" = "ロック解除を設定";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "生体認証を設定するか、PIN コードを選択して保管庫にすばやくアクセスし、ログインを自動入力します。";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "インポートが完了したら、このファイルを削除します。";
 "NeedHelpCheckOutImportHelp" = "ヘルプが必要ですか？ **[インポートのヘルプ](%1$@)** をチェックしてください";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "お使いのコンピュータで、新しいブラウザタブを開き、 **%1$@** に移動します。";
-"LogInToTheBitwardenWebApp" = "**Pass-Y ウェブアプリにログインします。**";
 "ImportLoginsToBitwarden" = "Pass-Y にログイン情報をインポート";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Yのナビゲーションで、**「ツール」オプションを見つけ**、**「データをインポート」を選択します。**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "フォームに入力し、**保存したパスワードファイルをインポートします。**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "ウェブアプリで**「データをインポート」を選択**し、**「完了」** を選択して同期を完了します。";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "セキュリティのため、必ず**保存したパスワードファイルを削除してください。**";
-"BitwardenTools" = "Pass-Y ツール";
 "ImportSuccessful" = "インポート成功！";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Pass-Y ツールでログイン情報をどこからでも管理できます。";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Pass-Y ウェブアプリでサブスクリプションプランを管理します。";
 "DownloadTheBrowserExtension" = "ブラウザーの拡張機能をダウンロード";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "bitwarden.com/download にアクセスして、Pass-Y をお気に入りのブラウザから利用しましょう。";
-"UseTheWebApp" = "Webアプリを使用する";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "bitwarden.com にログインして、アカウントと設定を簡単に管理します。";
 "AutofillPasswords" = "パスワードの自動入力";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "すべてのデバイスで自動入力を設定して、ワンタップでどこにでもログインできます。";
 "GoBack" = "戻る";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "アカウントが見つかりません。このエラーが表示され続ける場合は、再度ログインしてください。";
 "ImportError" = "インポートエラー";
 "NoLoginsWereImported" = "ログイン情報がインポートされませんでした";
-"ThisIsNotARecognizedServerDescriptionLong" = "これは認識された Pass-Y サーバーではありません。プロバイダーに確認するか、サーバーを更新する必要があるかもしれません。";
 "LoginsImported" = "ログイン情報をインポートしました";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "インポートが済んだパスワードファイルをコンピュータから削除することを忘れないでください。";
 "SomethingWentWrong" = "何らかのエラーが発生しました";
@@ -963,7 +947,6 @@
 "LastEdited" = "最終編集: %1$@";
 "PasswordLastUpdated" = "パスワードの最終更新: %1$@";
 "DecryptionError" = "復号エラー";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Yはこのボールトアイテムを復号化できませんでした。このエラーレポートをコピーしてカスタマーサクセスと共有し、さらなるデータ損失を防いでください。";
 "CopyErrorReport" = "エラーレポートをコピー";
 "ErrorCannotDecrypt" = "[エラー: 復号できません]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y アプリからアカウントが同期されました";

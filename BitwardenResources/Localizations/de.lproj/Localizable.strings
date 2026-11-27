@@ -198,7 +198,7 @@
 "EnvironmentSaved" = "Die URLs der Umgebung wurden gespeichert.";
 "IdentityUrl" = "URL des Identitätsservers";
 "SelfHostedEnvironment" = "Selbst gehostete Umgebung";
-"SelfHostedEnvironmentFooter" = "Bitte gebe die Basis-URL deiner selbst gehosteten Pass-Y-Installation an.";
+"SelfHostedEnvironmentFooter" = "Gib die Basis-URL deines selbst gehosteten Servers an, zum Beispiel Vaultwarden.";
 "ServerUrl" = "Server URL";
 "WebVaultUrl" = "URL des Web-Tresor-Servers";
 "CustomFields" = "Benutzerdefinierte Felder";
@@ -639,11 +639,9 @@
 "ContinueToPrivacyPolicy" = "Weiter zur Datenschutzerklärung?";
 "ContinueToAppStore" = "Weiter zum App Store?";
 "ContinueWithoutSyncing" = "Ohne Synchronisierung fortfahren";
-"TwoStepLoginDescriptionLong" = "Mache dein Konto sicherer, indem du eine Zwei-Faktor-Authentifizierung in der Pass-Y Web-App einrichtest.";
+"TwoStepLoginDescriptionLong" = "Mache dein Konto sicherer, indem du die zweistufige Anmeldung im Web-Tresor deines Servers einrichtest.";
 "YouCanImportDataToYourVaultOnX" = "Du kannst Daten in deinem Tresor auf %1$@ importieren.";
-"PrivacyPolicyDescriptionLong" = "Lies unsere Datenschutzerklärung auf bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Entdecke mehr Funktionen deines Pass-Y-Kontos in der Web-App.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y erlaubt es dir, deine Tresor-Einträge mit anderen zu teilen, indem du eine Organisation verwendest. Erfahre mehr auf der bitwarden.com Website.";
+"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Entdecke weitere Funktionen deines Kontos im Web-Tresor deines Servers.";
 "RateAppDescriptionLong" = "Hilf anderen herauszufinden, ob Pass-Y das Richtige für sie ist. Besuche den App Store und hinterlasse jetzt eine Bewertung.";
 "CreatedX" = "%1$@ erstellt";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Deine Organisationsberechtigungen wurden aktualisiert und verlangen, dass du ein Master-Passwort festlegen musst.";
@@ -688,7 +686,7 @@
 "IntroCarouselPage3Title" = "Optimiere deine Zugangsdaten";
 "IntroCarouselPage3Message" = "Verwende den Generator, um einzigartige Passwörter für alle deine Konten zu erstellen und zu speichern.";
 "IntroCarouselPage4Title" = "Deine Daten, wann und wo du sie brauchst";
-"IntroCarouselPage4Message" = "Speicher eine unbegrenzte Anzahl von Passwörter auf unbegrenzt vielen Geräten mit Pass-Y-Apps für Smartphones, Browser und Desktop.";
+"IntroCarouselPage4Message" = "Speichere beliebig viele Passwörter auf deinem eigenen Server und nutze sie auf allen deinen Geräten.";
 "AccountSetup" = "Konto-Einrichtung";
 "SetUpUnlock" = "Entsperren einrichten";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Richte Biometrie ein oder lege einen PIN-Code fest, um schnell auf deinen Tresor zuzugreifen und deinen Zugangsdaten automatisch auszufüllen.";
@@ -799,20 +797,19 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Du musst diese Datei nach Abschluss des Imports löschen.";
 "NeedHelpCheckOutImportHelp" = "Brauchst du Hilfe? Schau dir die **[Importhilfe](%1$@)** an";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Öffne auf deinem Computer einen neuen Browser-Tab und **gehe zu %1$@**";
-"LogInToTheBitwardenWebApp" = "**Melde dich bei der Pass-Y Web-App an.**";
+"LogInToTheBitwardenWebApp" = "**Melde dich im Web-Tresor deines Servers an.**";
 "ImportLoginsToBitwarden" = "Zugangsdaten in Pass-Y importieren";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Suche in der Pass-Y-Navigation die **Werkzeuge-Option** und **wähle Daten importieren aus**";
+"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Suche in der Navigation des Web-Tresors die **Werkzeuge-Option** und **wähle Daten importieren aus.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Fülle das Formular aus und **importiere deine gespeicherte Passwortdatei.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Wähle Daten importieren** in der Web-App aus, dann **Fertig**, um die Synchronisierung abzuschließen.";
+"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Wähle Daten importieren** im Web-Tresor aus, dann **Fertig**, um die Synchronisierung abzuschließen.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Zu deiner eigenen Sicherheit solltest du **deine gespeicherte Passwortdatei löschen.**";
-"BitwardenTools" = "Pass-Y-Werkzeuge";
+"BitwardenTools" = "Nächste Schritte";
 "ImportSuccessful" = "Import erfolgreich!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Verwalte deine Zugangsdaten von überall aus mit Pass-Y-Werkzeugen für Web und Desktop.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Verwalte dein Abonnement in der Pass-Y Web-App.";
+"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Deine Zugangsdaten liegen in deinem Tresor auf deinem Server: Nutze sie in Pass-Y auf allen deinen Geräten und verwalte sie im Web-Tresor deines Servers.";
+"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Verwalte dein Abonnement im Web-Tresor deines Servers.";
 "DownloadTheBrowserExtension" = "Die Browser-Erweiterung herunterladen";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Gehe zu bitwarden.com/download, um Pass-Y für eine nahtlose Benutzererfahrung in deinen bevorzugten Browser zu integrieren.";
-"UseTheWebApp" = "Verwende die Web-App";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Melde dich bei bitwarden.com an, um dein Konto einfach zu verwalten und Einstellungen zu aktualisieren";
+"UseTheWebApp" = "Web-Tresor deines Servers verwenden";
+"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Melde dich im Web-Tresor deines Servers an, um dein Konto und die Einstellungen zu verwalten.";
 "AutofillPasswords" = "Passwörter automatisch ausfüllen";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Richte Auto-Ausfüllen auf all deinen Geräten ein, um dich mit einem einzigen Fingertipp überall anzumelden.";
 "GoBack" = "Geh zurück";
@@ -828,7 +825,7 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Kein Konto gefunden. Bitte melde dich erneut an, wenn du diesen Fehler weiterhin siehst.";
 "ImportError" = "Importfehler";
 "NoLoginsWereImported" = "Es wurden keine Zugangsdaten importiert";
-"ThisIsNotARecognizedServerDescriptionLong" = "Dies ist kein anerkannter Pass-Y-Server. Möglicherweise musst du dich bei deinem Anbieter erkundigen oder deinen Server aktualisieren.";
+"ThisIsNotARecognizedServerDescriptionLong" = "Dieser Server wird nicht erkannt. Möglicherweise musst du dich bei deinem Anbieter erkundigen oder deinen Server aktualisieren.";
 "LoginsImported" = "Zugangsdaten importiert";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Vergiss nicht, deine importierte Passwortdatei von deinem Computer zu löschen.";
 "SomethingWentWrong" = "Etwas ist schiefgelaufen";
@@ -963,7 +960,7 @@
 "LastEdited" = "Zuletzt bearbeitet: %1$@";
 "PasswordLastUpdated" = "Passwort zuletzt aktualisiert: %1$@";
 "DecryptionError" = "Entschlüsselungsfehler";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y konnte diesen Tresor-Eintrag nicht entschlüsseln. Kopiere und teile diesen Fehlerbericht mit dem Kundensupport, um zusätzlichen Datenverlust zu vermeiden.";
+"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y konnte diesen Tresor-Eintrag nicht entschlüsseln. Kopiere diesen Fehlerbericht und sende ihn an den Pass-Y-Support (support@aiity.de), um weiteren Datenverlust zu vermeiden.";
 "CopyErrorReport" = "Fehlerbericht kopieren";
 "ErrorCannotDecrypt" = "[Fehler: Kann nicht entschlüsseln]";
 "AccountsSyncedFromBitwardenApp" = "Konten über Pass-Y App synchronisiert";
@@ -1408,3 +1405,5 @@
 "RustLibrariesInTheSDK" = "Rust-Bibliotheken im SDK";
 /* Licenses: footer of the Rust crate list; the argument is the source revision of the SDK. */
 "RustLibrariesFooter" = "Das SDK wird aus diesen Rust-Bibliotheken gebaut (Revision %1$@). Die Liste enthält auch Bibliotheken, die nur beim Bauen verwendet werden.";
+/* Import logins: title of the step that signs in to the server's web vault. */
+"LogInToYourWebVault" = "Im Web-Tresor anmelden";

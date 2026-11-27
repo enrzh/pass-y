@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Os URLs de ambiente foram guardados.";
 "IdentityUrl" = "URL do servidor de identidade";
 "SelfHostedEnvironment" = "Ambiente auto-hospedado";
-"SelfHostedEnvironmentFooter" = "Especifique o URL de base da sua instalação local do Pass-Y.";
 "ServerUrl" = "URL do servidor";
 "WebVaultUrl" = "URL do servidor do cofre web";
 "CustomFields" = "Campos personalizados";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Continuar para a política de privacidade?";
 "ContinueToAppStore" = "Continuar para a loja de aplicações?";
 "ContinueWithoutSyncing" = "Continuar sem sincronizar";
-"TwoStepLoginDescriptionLong" = "Torne a sua conta mais segura configurando a verificação de dois passos na aplicação web Pass-Y.";
 "YouCanImportDataToYourVaultOnX" = "Pode importar dados para o seu cofre em %1$@.";
-"PrivacyPolicyDescriptionLong" = "Consulte a nossa política de privacidade em bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Explore mais funcionalidades da sua conta Pass-Y na aplicação web.";
-"LearnAboutOrganizationsDescriptionLong" = "O Pass-Y permite-lhe partilhar os seus itens do cofre com outras pessoas através da utilização de uma organização. Saiba mais no site bitwarden.com.";
 "RateAppDescriptionLong" = "Ajude outras pessoas a descobrir se o Pass-Y lhes é adequado. Visite a loja de aplicações e deixe uma classificação agora.";
 "CreatedX" = "Criado a %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "As permissões da sua organização foram atualizadas, exigindo a definição de uma palavra-passe mestra.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Eleve o nível das suas credenciais";
 "IntroCarouselPage3Message" = "Utilize o gerador para criar e guardar palavras-passe fortes e únicas para todas as suas contas.";
 "IntroCarouselPage4Title" = "Os seus dados, quando e onde precisar";
-"IntroCarouselPage4Message" = "Guarde palavras-passe ilimitadas em dispositivos ilimitados com as apps Pass-Y para telemóvel, navegador e computador.";
 "AccountSetup" = "Configuração da conta";
 "SetUpUnlock" = "Configurar o desbloqueio";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Configure a biometria ou escolha um código PIN para aceder rapidamente ao seu cofre e preencher automaticamente as suas credenciais.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Eliminará este ficheiro após concluir a importação.";
 "NeedHelpCheckOutImportHelp" = "Precisa de ajuda? Consulte a **[ajuda com a importação](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "No seu computador, abra um novo separador do navegador e **vá a %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Iniciar sessão na aplicação web do Pass-Y.**";
 "ImportLoginsToBitwarden" = "Importar credenciais para o Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Na navegação do Pass-Y, **encontre a opção Ferramentas** e **selecione Importar dados.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Preencha o formulário e **importe o seu ficheiro de palavras-passe guardado.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Selecione Importar dados** na aplicação web e, em seguida, **Concluído** para terminar a sincronização.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Para sua segurança, certifique-se de que **elimina o ficheiro de palavras-passe guardadas.**";
-"BitwardenTools" = "Ferramentas do Pass-Y";
 "ImportSuccessful" = "Importação bem-sucedida!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Gira as suas credenciais a partir de qualquer lugar com as ferramentas do Pass-Y para a web e computador.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Faça a gestão do seu plano de subscrição na aplicação web do Pass-Y.";
 "DownloadTheBrowserExtension" = "Transferir a extensão do navegador";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Vá a bitwarden.com/download para integrar o Pass-Y no seu navegador favorito para uma experiência perfeita.";
-"UseTheWebApp" = "Utilize a aplicação web";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Inicie sessão em bitwarden.com para gerir facilmente a sua conta e atualizar as definições.";
 "AutofillPasswords" = "Preenchimento automático de palavras-passe";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Configure o preenchimento automático em todos os seus dispositivos para iniciar sessão com um simples toque em qualquer lugar.";
 "GoBack" = "Voltar atrás";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Não foi encontrada nenhuma conta. Inicie sessão novamente se continuar a ver este erro.";
 "ImportError" = "Erro de importação";
 "NoLoginsWereImported" = "Não foram importadas credenciais";
-"ThisIsNotARecognizedServerDescriptionLong" = "Este não é um servidor Pass-Y reconhecido. Poderá ter de verificar com o seu fornecedor ou atualizar o seu servidor.";
 "LoginsImported" = "Credenciais importadas";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Lembre-se de eliminar o ficheiro da palavra-passe importada do seu computador.";
 "SomethingWentWrong" = "Ocorreu um problema";
@@ -963,7 +947,6 @@
 "LastEdited" = "Última edição: %1$@";
 "PasswordLastUpdated" = "Última atualização da palavra-passe: %1$@";
 "DecryptionError" = "Erro de desencriptação";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "O Pass-Y não conseguiu desencriptar este item do cofre. Copie e partilhe este relatório de erro com o serviço de apoio ao cliente para evitar perdas de dados adicionais.";
 "CopyErrorReport" = "Copiar relatório de erros";
 "ErrorCannotDecrypt" = "[erro: não é possível desencriptar]";
 "AccountsSyncedFromBitwardenApp" = "Contas sincronizadas a partir da app Pass-Y";

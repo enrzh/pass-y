@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Ortam URL'leri kaydedildi.";
 "IdentityUrl" = "Kimlik sunucu URL'si";
 "SelfHostedEnvironment" = "Şirket içinde barındırılan ortam";
-"SelfHostedEnvironmentFooter" = "Kurum içinde barındırılan Pass-Y kurulumunuzun taban URL'sini belirtin.";
 "ServerUrl" = "Sunucu URL'si";
 "WebVaultUrl" = "Web kasası sunucu URL'si";
 "CustomFields" = "Özel alanlar";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Gizlilik ilkelerine gidilsin mi?";
 "ContinueToAppStore" = "App Store'a gitmek ister misiniz?";
 "ContinueWithoutSyncing" = "Eşitleme yapmadan devam et";
-"TwoStepLoginDescriptionLong" = "Pass-Y web uygulamasında iki aşamalı girişi ayarlayarak hesabınızın güvenliğini artırabilirsiniz.";
 "YouCanImportDataToYourVaultOnX" = "Verilerinizi %1$@ adresinden kasanıza aktarabilirsiniz.";
-"PrivacyPolicyDescriptionLong" = "Gizlilik ilkelerimizi bitwarden.com'da bulabilirsiniz.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Web uygulamasında Pass-Y hesabınızın diğer özelliklerini keşfedin.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y'ın kuruluş özelliğini kullanarak kasanızdaki kayıtları başkalarıyla paylaşabilirsiniz. Daha fazla bilgi için bitwarden.com sitesini ziyaret edin.";
 "RateAppDescriptionLong" = "Pass-Y'ı başkalarına da tanımak ister misiniz? Uygulama mağazasını ziyaret edip Pass-Y'ı değerlendirin.";
 "CreatedX" = "Oluşturulma: %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Kuruluş izinleriniz güncellendi ve bir ana parola belirlemeniz gerekiyor.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Hesaplarınızı güçlendirin";
 "IntroCarouselPage3Message" = "Hesaplarınız için güçlü ve benzersiz parolalar oluşturmak amacıyla üreteci kullanabilirsiniz.";
 "IntroCarouselPage4Title" = "Verilerinize her zaman, her yerden ulaşın";
-"IntroCarouselPage4Message" = "Pass-Y mobil, tarayıcı ve masaüstü uygulamalarıyla istediğiniz kadar cihaza istediğiniz kadar parola kaydedebilirsiniz.";
 "AccountSetup" = "Hesap kurulumu";
 "SetUpUnlock" = "Kilit açmayı ayarla";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Kasanıza hızlıca erişmek ve hesaplarınızı otomatik doldurmak için biyometrik girişi ayarlayın ve PIN kodu belirleyin.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "İçe aktarma tamamlandıktan sonra bu dosyayı silmelisiniz.";
 "NeedHelpCheckOutImportHelp" = "Yardıma mı ihtiyacınız var? **[İçe aktarma yardımını](%1$@)** inceleyin";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Bilgisayarınızda yeni bir tarayıcı sekmesi açın ve **%1$@** adresine gidin.";
-"LogInToTheBitwardenWebApp" = "**Pass-Y web uygulamasına giriş yapın.**";
 "ImportLoginsToBitwarden" = "Hesapları Pass-Y'a aktarın";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Y navigasyonunda, **Araçlar** seçeneğini bulun ve **Verileri içe aktar** seçeneğini seçin";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Formu doldurun ve **kaydedilmiş parola dosyanızı içe aktarın.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "Web uygulamasında **Verileri içe aktar** öğesini seçin, ardından senkronizasyonu tamamlamak için **Bitti** öğesini seçin.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Güvenliğiniz için, **kayıtlı parola dosyanızı sildiğinizden emin olun.**";
-"BitwardenTools" = "Pass-Y araçları";
 "ImportSuccessful" = "İçe aktarma başarılı!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Hesaplarınızı Pass-Y web ve masaüstü araçlarıyla her yerden yönetebilirsiniz.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Abonelik paketinizi Pass-Y web uygulamasından yönetebilirsiniz.";
 "DownloadTheBrowserExtension" = "Tarayıcı uzantısını indirin";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Daha rahat kullanım için Pass-Y'ı en sevdiğiniz tarayıcınıza entegre etmek isterseniz bitwarden.com/download adresine gidin.";
-"UseTheWebApp" = "Web uygulamasını kullanın";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Hesabınızı kolayca yönetmek ve ayarlarınızı güncellemek isterseniz bitwarden.com adresine giriş yapın.";
 "AutofillPasswords" = "Parolaları otomatik doldurun";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Her yere tek dokunuşla giriş yapmak için tüm cihazlarınızda otomatik doldurmayı etkinleştirin.";
 "GoBack" = "Geri dönüp";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Hesap bulunamadı. Bu hatayı görmeye devam ederseniz lütfen yeniden giriş yapın.";
 "ImportError" = "İçe aktarma hatası";
 "NoLoginsWereImported" = "Hiç hesap aktarılmadı";
-"ThisIsNotARecognizedServerDescriptionLong" = "Bu Pass-Y sunucusu tanınmıyor. Servis sağlayıcınızdan bilgi alın veya sunucunuzu güncelleyin.";
 "LoginsImported" = "Hesaplar içe aktarıldı";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "İçe aktardığınız parola dosyasını bilgisayarınızdan silmeyi unutmayın.";
 "SomethingWentWrong" = "Bir sorun oluştu";
@@ -963,7 +947,6 @@
 "LastEdited" = "Son düzenleme: %1$@";
 "PasswordLastUpdated" = "Son parola güncellemesi: %1$@";
 "DecryptionError" = "Deşifre hatası";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y, bu kasa öğesinin şifresini çözemedi. Ek veri kaybını önlemek için bu hata raporunu kopyalayıp müşteri başarı ekibiyle paylaşın.";
 "CopyErrorReport" = "Hata raporunu kopyala";
 "ErrorCannotDecrypt" = "[hata: deşifre edilemiyor]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y uygulamasından senkronize edilen hesaplar";

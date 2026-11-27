@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Nai-save ang mga URL ng environment.";
 "IdentityUrl" = "URL ng identity server";
 "SelfHostedEnvironment" = "Self-hosted na environment";
-"SelfHostedEnvironmentFooter" = "Itakda ang base URL ng on-premise hosted Pass-Y installation mo.";
 "ServerUrl" = "URL ng server";
 "WebVaultUrl" = "URL ng web vault server";
 "CustomFields" = "Ipinasadyang mga field";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Magpatuloy sa patakaran sa privacy?";
 "ContinueToAppStore" = "Magpatuloy sa app store?";
 "ContinueWithoutSyncing" = "Magpatuloy nang hindi nagsi-sync";
-"TwoStepLoginDescriptionLong" = "Gawing mas secure ang iyong account sa pamamagitan ng pag-set up ng two-step login sa Pass-Y web app.";
 "YouCanImportDataToYourVaultOnX" = "Maaari kang mag-import ng data sa iyong baul sa %1$@.";
-"PrivacyPolicyDescriptionLong" = "Tingnan ang aming patakaran sa privacy sa bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Tuklasin ang higit pang mga feature ng iyong Pass-Y account sa web app.";
-"LearnAboutOrganizationsDescriptionLong" = "Pinapayagan ka ng Pass-Y na ibahagi ang iyong mga item sa baul sa iba sa pamamagitan ng paggamit ng isang organisasyon. Matuto pa sa website ng bitwarden.com.";
 "RateAppDescriptionLong" = "Tulungan ang iba na malaman kung ang Pass-Y ay angkop para sa kanila. Bisitahin ang app store at mag-iwan ng rating ngayon.";
 "CreatedX" = "Nilikha %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Ang iyong mga pahintulot sa organisasyon ay na-update, na nangangailangan sa iyo na magtakda ng master password.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Pagandahin ang iyong mga login";
 "IntroCarouselPage3Message" = "Gamitin ang generator upang lumikha at mag-save ng malalakas at natatanging mga password para sa lahat ng iyong mga account.";
 "IntroCarouselPage4Title" = "Ang iyong data, kailan at saan mo kailangan";
-"IntroCarouselPage4Message" = "I-save ang walang limitasyong mga password sa walang limitasyong mga device gamit ang Pass-Y mobile, browser, at desktop apps.";
 "AccountSetup" = "Pag-set up ng account";
 "SetUpUnlock" = "I-set up ang pag-unlock";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Mag-set up ng biometrics o pumili ng PIN code upang mabilis na ma-access ang iyong baul at i-autofill ang iyong mga login.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Buburahin mo ang file na ito pagkatapos makumpleto ang pag-import.";
 "NeedHelpCheckOutImportHelp" = "Kailangan ng tulong? Tingnan ang **[tulong sa pag-import](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Sa iyong computer, magbukas ng bagong browser tab at **pumunta sa %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Mag-log in sa Pass-Y web app.**";
 "ImportLoginsToBitwarden" = "Mag-import ng mga login sa Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Sa navigation ng Pass-Y, **hanapin ang Tools option** at **piliin ang Import data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Punan ang form at **i-import ang iyong naka-save na file ng password.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Piliin ang Import data** sa web app, pagkatapos ay **Done** upang tapusin ang pag-sync.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Para sa iyong seguridad, tiyaking **burahin ang iyong naka-save na file ng password.**";
-"BitwardenTools" = "Mga tool ng Pass-Y";
 "ImportSuccessful" = "Matagumpay ang pag-import!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Pamahalaan ang iyong mga login mula saanman gamit ang mga tool ng Pass-Y para sa web at desktop.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Pamahalaan ang iyong subscription plan sa Pass-Y web app.";
 "DownloadTheBrowserExtension" = "I-download ang browser extension";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Pumunta sa bitwarden.com/download upang isama ang Pass-Y sa iyong paboritong browser para sa isang tuloy-tuloy na karanasan.";
-"UseTheWebApp" = "Gamitin ang web app";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Mag-log in sa bitwarden.com upang madaling pamahalaan ang iyong account at i-update ang mga setting.";
 "AutofillPasswords" = "Autofill ng mga password";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "I-set up ang autofill sa lahat ng iyong device upang mag-log in sa isang tap kahit saan.";
 "GoBack" = "Bumalik";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Walang nakitang account. Mangyaring mag-log in muli kung patuloy mong makita ang error na ito.";
 "ImportError" = "Nagkaproblema sa pag-i-import";
 "NoLoginsWereImported" = "Walang mga login na na-import";
-"ThisIsNotARecognizedServerDescriptionLong" = "Ito ay hindi isang kinikilalang Pass-Y server. Maaaring kailanganin mong suriin sa iyong provider o i-update ang iyong server.";
 "LoginsImported" = "Na-import ang mga login";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Tandaan na burahin ang iyong na-import na file ng password mula sa iyong computer.";
 "SomethingWentWrong" = "May nangyaring mali";
@@ -963,7 +947,6 @@
 "LastEdited" = "Huling na-edit: %1$@";
 "PasswordLastUpdated" = "Huling na-update ang password: %1$@";
 "DecryptionError" = "Error sa pag-decrypt";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Hindi ma-decrypt ng Pass-Y ang item ng baul na ito. Kopyahin at ibahagi ang ulat ng error na ito sa customer success upang maiwasan ang karagdagang pagkawala ng data.";
 "CopyErrorReport" = "Kopyahin ang ulat ng error";
 "ErrorCannotDecrypt" = "[error: hindi ma-decrypt]";
 "AccountsSyncedFromBitwardenApp" = "Mga account na na-sync mula sa Pass-Y app";

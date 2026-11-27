@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "URL-ovi okoline su spremljeni.";
 "IdentityUrl" = "URL id poslužitelja";
 "SelfHostedEnvironment" = "Vlastito poslužiteljsko okruženje";
-"SelfHostedEnvironmentFooter" = "Navedi osnovni URL svoje lokalno smještene Pass-Y instalacije.";
 "ServerUrl" = "URL poslužitelja";
 "WebVaultUrl" = "URL poslužitelja web trezora";
 "CustomFields" = "Prilagođena polja";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Nastavi na politiku privatnosti?";
 "ContinueToAppStore" = "Nastavi u trgovinu aplikacijama?";
 "ContinueWithoutSyncing" = "Nastavi bez sinkronizacije";
-"TwoStepLoginDescriptionLong" = "Učini svoj račun sigurnijim uključivanjem prijave dvofaktorskom autentifikacijom u Pass-Y web aplikaciji.";
 "YouCanImportDataToYourVaultOnX" = "Svoje podatke možeš uvesti u trezor na %1$@.";
-"PrivacyPolicyDescriptionLong" = "Pogledaj našu politiku privatnosti na bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Pronađi viđe značajki svojeg Pass-Y računa u web aplikaciji.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y omogućuje dijeljenje trezora s drugima pomoću organizacijskog računa. Za više informacija posjeti bitwarden.com.";
 "RateAppDescriptionLong" = "Želiš preporučiti Pass-Y drugima? Posjeti app store i ostavi recenziju.";
 "CreatedX" = "Stvoreno %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Moraš postaviti glavnu lozinku jer su dopuštenja tvoje organizacije ažurirana.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Podigni svoje prijave na višu razinu";
 "IntroCarouselPage3Message" = "Koristi generator za stvaranje i spremanje jakih, jedinstvenih lozinki za sve svoje račune.";
 "IntroCarouselPage4Title" = "Tvoji podaci kada god i gdje god su ti potrebni";
-"IntroCarouselPage4Message" = "Spremi neograničen broj lozinki na neograničenom broju uređaja s Pass-Y mobilnom aplikacijom, proširenjem za preglednik i aplikacijom za stolna računala.";
 "AccountSetup" = "Postavljanje računa";
 "SetUpUnlock" = "Postavi otključavanje";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Postavi biometriju ili odaberi PIN za brzu auto-ispunu prijava i pristup trezoru.";
@@ -747,7 +741,6 @@
 "TurnOnLater" = "Uključi kasnije";
 "TurnOnAutoFillLaterQuestion" = "Kasnije uključi auto-ispunu?";
 "YouCanReturnToCompleteThisStepAnytimeInSettings" = "Kasnije se možeš vratiti u Postavke i dovršiti ovaj korak.";
-"ContinueToBitwarden" = "Nastavi na bitwarden.com?";
 "BackToSettings" = "Povratak na Postavke";
 "YoureAllSet" = "Sve je spremno!";
 "AutoFillActivatedDescriptionLong" = "Sada možeš koristiti auto-ispunu za prijavu u aplikacije i web stranice koristeći svoje spremljene lozinke. Istraži sve ostalo što Pass-Y nudi.";
@@ -799,20 +792,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Ovu datoteku ćeš izbrisati nakon uvoza.";
 "NeedHelpCheckOutImportHelp" = "Trebaš pomoć? Pogledaj **[pomoć auto-ispune](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Na računalu, u pregledniku, otvori novu karticu i **posjeti %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Prijavi se u Pass-Y web aplikaciju.**";
 "ImportLoginsToBitwarden" = "Uvezi prijave u Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Odaberi **Alati**, a zatim **Uvezi podatke**.";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Ispuni obrazac i **uvezi svoju datoteku spremljenih lozinki.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "Odaberi **Uvezi podatake** u web aplikaciji, a potom **Gotovo** za završetak sinkronizacije.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Za svoju sigurnost, **obriši datoteku spremljenih lozinki.**";
-"BitwardenTools" = "Pass-Y alati";
 "ImportSuccessful" = "Uvoz uspješan!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Upravljaj svojim prijavama bilo gdje s Pass-Y alatima za web i stolna računala.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Manage your subscription plan in the Pass-Y web app.";
 "DownloadTheBrowserExtension" = "Preuzmi proširenje za preglednik";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Posjeti bitwarden.com/download za integraciju Pass-Ya u svoj omiljeni preglednik za besprijekorno iskustvo.";
-"UseTheWebApp" = "Koristi web aplikaciju";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Prijavi se na bitwarden.com za jednostavno upravljanje svojim računom i ažuriranjem postavki.";
 "AutofillPasswords" = "Auto-ispuni lozinke";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Na svim svojim uređajima uključi auto-ispunu za prijavu jednim dodirom.";
 "GoBack" = "Nazad";
@@ -828,7 +812,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Nije pronađen račun. Ako nastaviš viđati grešku, prijavi e ponovno.";
 "ImportError" = "Greška prilikom uvoza";
 "NoLoginsWereImported" = "Nije uvezena niti jedna prijava";
-"ThisIsNotARecognizedServerDescriptionLong" = "Ovo nije prepoznati Pass-Y poslužitelj. Možda ćeš morati provjeriti kod svog davatelja usluga ili ažurirati svoj poslužitelj.";
 "LoginsImported" = "Prijave uvezene";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Ne zaboravi izbrisati datoteku uvezenih lozinki sa svog računala.";
 "SomethingWentWrong" = "Dogodila se greška";
@@ -963,7 +946,6 @@
 "LastEdited" = "Zadnje uređeno: %1$@";
 "PasswordLastUpdated" = "Zadnje ažuriranje lozinke: %1$@";
 "DecryptionError" = "Pogreška pri dešifriranju";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y nije mogao dešifrirati ovu stavku trezora. Kopiraj i podijeli ovu grešku s odjelom korisničke podrške za izbjegavanje dodatnog gubitka podataka.";
 "CopyErrorReport" = "Kopiraj izvješće o pogrešci";
 "ErrorCannotDecrypt" = "[greška: dešifriranje nije moguće]";
 "AccountsSyncedFromBitwardenApp" = "Računi sinkronizirani iz Pass-Y aplikacije";

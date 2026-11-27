@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Чөйрөнүн URL даректери сакталды.";
 "IdentityUrl" = "Иденттүүлүк серверинин URL дареги";
 "SelfHostedEnvironment" = "Өзүн өзү камсыздоочу чөйрө";
-"SelfHostedEnvironmentFooter" = "Өзүңүздүн ички сервериңизде жайгашкан Pass-Y орнотмосунун базалык URL дарегин көрсөтүңүз.";
 "ServerUrl" = "Сервердин URL дареги";
 "WebVaultUrl" = "Веб купч серверинин URL дареги";
 "CustomFields" = "Ыңгайлаштырылган талаалар";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Купуялык саясатына улантуу?";
 "ContinueToAppStore" = "Колдонмолор дүкөнүнө улантуу?";
 "ContinueWithoutSyncing" = "Синхрондоштуруусуз улантуу";
-"TwoStepLoginDescriptionLong" = "Pass-Y веб колдонмосунда эки кадамдуу кирүүнү орнотуу менен аккаунтуңузду коопсуз кылыңыз.";
 "YouCanImportDataToYourVaultOnX" = "Сиз %1$@ купчулуңузга маалыматтарды импорттой аласыз.";
-"PrivacyPolicyDescriptionLong" = "bitwarden.com сайтындагы купуялык саясатыбыз менен таанышыңыз.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Pass-Y аккаунтуңуздун дагы көп функцияларын веб колдонмодо изилдеңиз.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y уюмду колдонуу менен купчул элементтериңизди башкалар менен бөлүшүүгө мүмкүнчүлүк берет. bitwarden.com веб-сайтында көбүрөөк билип алыңыз.";
 "RateAppDescriptionLong" = "Башкаларга Pass-Y аларга туура келеби же жокпу билүүгө жардам бериңиз. Колдонмолор дүкөнүнө барып, азыр баа коюңуз.";
 "CreatedX" = "%1$@ түзүлгөн";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Уюмуңуздун уруксаттары жаңыртылып, сизден башкы сырсөз коюу талап кылынат.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Кирүүлөрүңүздү жакшыртыңыз";
 "IntroCarouselPage3Message" = "Бардык эсептериңиз үчүн күчтүү, уникалдуу сырсөздөрдү түзүү жана сактоо үчүн генераторду колдонуңуз.";
 "IntroCarouselPage4Title" = "Сиздин маалыматтарыңыз, керек болгон убакта жана жерде";
-"IntroCarouselPage4Message" = "Pass-Y мобилдик, браузер жана иш такта колдонмолору менен чектөөсүз түзмөктөрдө чектөөсүз сырсөздөрдү сактаңыз.";
 "AccountSetup" = "Аккаунтту орнотуу";
 "SetUpUnlock" = "Ачууну орнотуу";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Купчулуңузга тез кирүү жана кирүүлөрүңүздү автолуктоо үчүн биометрияны орнотуңуз же PIN кодду тандаңыз.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Сиз импорт аяктагандан кийин бул файлды өчүрөсүз.";
 "NeedHelpCheckOutImportHelp" = "Жардам керекпи? **[импортко жардам](%1$@)** бөлүмүн карап көрүңүз";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Компьютериңизде, жаңы браузер баракчасын ачып, **%1$@ дарегине өтүңүз.**";
-"LogInToTheBitwardenWebApp" = "**Pass-Y веб колдонмосуна кириңиз.**";
 "ImportLoginsToBitwarden" = "Кирүүлөрдү Pass-Yге импорттоо";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Y навигациясында, **Куралдар параметрин табыңыз** жана **Маалыматтарды импорттоону тандаңыз.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Форманы толтуруп, **сакталган сырсөз файлыңызды импорттоңуз.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "Веб колдонмодо **Маалыматтарды импорттоону тандаңыз**, андан кийин синхрондоштурууну аяктоо үчүн **Бүттү** дегенди басыңыз.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Коопсуздугуңуз үчүн, **сакталган сырсөз файлыңызды өчүрүүнү** унутпаңыз.";
-"BitwardenTools" = "Pass-Y куралдары";
 "ImportSuccessful" = "Импорт ийгиликтүү!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Веб жана иш такта үчүн Pass-Y куралдары менен кирүүлөрүңүздү каалаган жерден башкарыңыз.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Жазылуу планыңызды Pass-Y веб-колдонмосунда башкарыңыз.";
 "DownloadTheBrowserExtension" = "Браузер кошумча мүмкүнчүлүгүн жүктөп алуу";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Үзгүлтүксүз тажрыйба үчүн Pass-Yди сүйүктүү браузериңизге интеграциялоо үчүн bitwarden.com/download дарегине өтүңүз.";
-"UseTheWebApp" = "Веб колдонмону колдонуу";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Аккаунтуңузду оңой башкаруу жана орнотууларды жаңыртуу үчүн bitwarden.com сайтына кириңиз.";
 "AutofillPasswords" = "Сырсөздөрдү автолуктоо";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Кайсы жерде болбосун бир басуу менен кирүү үчүн бардык түзмөктөрүңүздө автолуктоону орнотуңуз.";
 "GoBack" = "Артка кайтуу";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Аккаунт табылган жок. Эгерде бул катны көрө берсеңиз, кайра кириңиз.";
 "ImportError" = "Импорттоо катасы";
 "NoLoginsWereImported" = "Эч кандай кирүүлөр импорттолгон жок";
-"ThisIsNotARecognizedServerDescriptionLong" = "Бул таанылган Pass-Y сервери эмес. Провайдериңизден текшеришиңиз же сервериңизди жаңыртышыңыз керек болушу мүмкүн.";
 "LoginsImported" = "Кирүүлөр импорттолду";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Импорттолгон сырсөз файлын компьютериңизден өчүрүүнү унутпаңыз.";
 "SomethingWentWrong" = "Бир нерсе туура эмес кетти";
@@ -963,7 +947,6 @@
 "LastEdited" = "Акыркы түзөтүү: %1$@";
 "PasswordLastUpdated" = "Сырсөз акыркы жаңыртуу: %1$@";
 "DecryptionError" = "Чечүү катасы";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y бул купчул элементин чече албай калды. Кошумча маалымат жоготууну болтурбоо үчүн бул ката отчетун көчүрүп, кардарларды тейлөө бөлүмү менен бөлүшүңүз.";
 "CopyErrorReport" = "Ката отчетун көчүрүү";
 "ErrorCannotDecrypt" = "[ката: чечүү мүмкүн эмес]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y колдонмосунан синхрондоштурулган аккаунттар";

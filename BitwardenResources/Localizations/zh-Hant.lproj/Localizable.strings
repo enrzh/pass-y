@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "已儲存環境 URL。";
 "IdentityUrl" = "身分伺服器 URL";
 "SelfHostedEnvironment" = "自行部署環境";
-"SelfHostedEnvironmentFooter" = "指定您內部部署的 Pass-Y 安裝之基礎 URL。";
 "ServerUrl" = "伺服器 URL";
 "WebVaultUrl" = "網頁版密碼庫伺服器 URL";
 "CustomFields" = "自訂欄位";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "繼續前往隱私權政策？";
 "ContinueToAppStore" = "接下來前往 App Store 嗎？";
 "ContinueWithoutSyncing" = "不進行同步並繼續";
-"TwoStepLoginDescriptionLong" = "在 Pass-Y Web 應用程式中設定兩步驟登入，讓您的帳戶更加安全。";
 "YouCanImportDataToYourVaultOnX" = "您可以將資料匯入到 %1$@ 上的密碼庫。";
-"PrivacyPolicyDescriptionLong" = "在 bitwarden.com 上查看我們的隱私權政策。";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "在 Web 應用程式上探索 Pass-Y 帳戶的更多功能。";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y 可讓您透過組織與其他人共用您的密碼庫項目。請造訪 bitwarden.com 網站以了解更多資訊。";
 "RateAppDescriptionLong" = "幫助其他人了解 Pass-Y 是否適合他們。立即造訪 App Store 並留下評分。";
 "CreatedX" = "建立於 %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "您的組織的權限已更新，因此您必須設定主密碼。";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "升級您的登入體驗";
 "IntroCarouselPage3Message" = "使用密碼產生器來建立及儲存高強度、唯一的密碼，來保護您所有的帳號。";
 "IntroCarouselPage4Title" = "您的資料，隨時隨地都垂手可得";
-"IntroCarouselPage4Message" = "使用 Pass-Y 行動應用程式、瀏覽器及桌面應用程式在無限制的裝置來儲存無上限的密碼。";
 "AccountSetup" = "帳號設定";
 "SetUpUnlock" = "設定解鎖";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "設定生物辨識解鎖或選擇一組 PIN 碼來快速存取您的密碼庫和自動填入您的登入資訊。";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "您稍後在匯入完成後可以刪除此檔案。";
 "NeedHelpCheckOutImportHelp" = "需要協助嗎？檢查我們的**[匯入幫助](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "使用您的電腦，開啟新的瀏覽器分頁並**瀏覽到%1$@**";
-"LogInToTheBitwardenWebApp" = "**登入到 Pass-Y 網頁應用程式。**";
 "ImportLoginsToBitwarden" = "匯入登入資訊到 Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "在 Pass-Y 選單中，**找到工具選項**並**選擇匯入資料**。";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "填入表單並**匯入您的密碼檔案**。";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "在網頁應用程式中**選擇匯入的資料**，然後在下面**完成**同步。";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "為了您的安全，記得**刪除先前匯出的密碼檔案**。";
-"BitwardenTools" = "Pass-Y 工具";
 "ImportSuccessful" = "匯入成功!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "在任何地方使用 Pass-Y 網頁或桌面應用程式來管理您的登入資訊。";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "請在 Pass-Y 網頁版中管理您的訂閱方案。";
 "DownloadTheBrowserExtension" = "下載瀏覽器擴充套件";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "瀏覽到 bitwarden.com/download 來結合 Pass-Y 到您最愛的瀏覽器提供最好的體驗。";
-"UseTheWebApp" = "使用網頁應用程式";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "登入到 bitwarden.com 來輕易管理您的帳號及更新偏好設定。";
 "AutofillPasswords" = "自動填入密碼";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "在您所有裝置上設定一鍵自動填入登入";
 "GoBack" = "返回";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "找不到帳號。若您持續看到此錯誤，請重試登入。";
 "ImportError" = "匯入時發生錯誤";
 "NoLoginsWereImported" = "沒有匯入任何登入資訊";
-"ThisIsNotARecognizedServerDescriptionLong" = "這不是一個 Pass-Y 伺服器。您可能需要聯繫您的提供商或更新您的伺服器。";
 "LoginsImported" = "登入資訊已匯入";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "請記得要刪除您電腦內匯入的密碼檔案。";
 "SomethingWentWrong" = "出了點問題";
@@ -963,7 +947,6 @@
 "LastEdited" = "最後編輯於：%1$@";
 "PasswordLastUpdated" = "密碼最後更新於：%1$@";
 "DecryptionError" = "解密發生錯誤";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y 無法解密此保險庫項目。請複製並將此錯誤報告提供給客服團隊，以避免進一步的資料遺失。";
 "CopyErrorReport" = "複製錯誤報告";
 "ErrorCannotDecrypt" = "[錯誤：無法解密]";
 "AccountsSyncedFromBitwardenApp" = "從 Pass-Y 應用程式同步的帳戶";

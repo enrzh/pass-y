@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Средата с адресите е запазена.";
 "IdentityUrl" = "Адрес на сървъра със самоличности";
 "SelfHostedEnvironment" = "Собствена среда";
-"SelfHostedEnvironmentFooter" = "Укажете базовия адрес за собствената ви инсталирана среда на Битуорден.";
 "ServerUrl" = "Адрес на сървъра";
 "WebVaultUrl" = "Адрес на сървъра с трезора в уеб";
 "CustomFields" = "Допълнителни полета";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Продължаване към Политиката за поверителност?";
 "ContinueToAppStore" = "Продължаване към магазина за приложения?";
 "ContinueWithoutSyncing" = "Продължаване без синхронизиране";
-"TwoStepLoginDescriptionLong" = "Подобрете защитата на регистрацията си, като настроите двустепенното удостоверяване в уеб приложението на Битуорден.";
 "YouCanImportDataToYourVaultOnX" = "Може да внесете данни в трезора си на %1$@.";
-"PrivacyPolicyDescriptionLong" = "Прегледайте нашата Политика за поверителност на bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Разгледайте още от възможностите на регистрацията си в Битуорден в уеб приложението.";
-"LearnAboutOrganizationsDescriptionLong" = "Битуорден позволява да споделяте части от трезора си чрез използването на организация. Научете повече на сайта bitwarden.com.";
 "RateAppDescriptionLong" = "Помогнете на другите да разберат дали Битуорден е подходящ за тях. Посетете магазина за приложения и дайте оценка още сега.";
 "CreatedX" = "Създадено: %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Правата Ви в организацията бяха променени, необходимо е да зададете главна парола.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Подобрете данните си за вписване";
 "IntroCarouselPage3Message" = "Използвайте генератора, за да създавате и запазвате сложни, уникални пароли за всичките си регистрации.";
 "IntroCarouselPage4Title" = "Вашите данни – когато и където Ви потрябват";
-"IntroCarouselPage4Message" = "Съхранявайте неограничен брой пароли на множество устройства – с приложенията на Битуорден за мобилни телефони, браузър и компютър.";
 "AccountSetup" = "Настройка на регистрацията";
 "SetUpUnlock" = "Настройте отключването";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Настройте достъп чрез биометрични данни или изберете ПИН код, с който лесно да отключвате трезора си и да попълвате автоматично данните си за вписване.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Ще можете да изтриете този файл, след като завърши внасянето.";
 "NeedHelpCheckOutImportHelp" = "Имате ли нужда от помощ? Прегледайте **[помощта за внасяне на данни](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Отворете нов раздел в браузъра на компютъра си и **отидете в %1$@**";
-"LogInToTheBitwardenWebApp" = "**Впишете се в приложението по уеб на Битуорден.**";
 "ImportLoginsToBitwarden" = "Внасяне на данните за вписване в Битуорден";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "В навигацията на Биуорден **намерете раздела Инструменти** и **изберете функцията за Внасяне на данни**.";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Попълнете формуляра и **внесете файла със запазените пароли**.";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Изберете възможността за Внасяне на данни** в приложението по уеб, а след това натиснете **Готово**, за да завършите синхронизирането.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "За по-сигурно **изтрийте файла със запазените пароли**.";
-"BitwardenTools" = "Инструменти на Битуорден";
 "ImportSuccessful" = "Внасянето е успешно!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Управлявайте данните си за вписване, където и да се намирате, с инструментите на Битуорден налични в уеб и настолното приложение.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Управлявайте абонаментния си план в приложението по уеб на Битоурден.";
 "DownloadTheBrowserExtension" = "Свалете добавката за браузър";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Посетете bitwarden.com/download, за да вградите Битуорден в любимия си браузър и да използвате възможностите му по-лесно.";
-"UseTheWebApp" = "Използвайте приложението по уеб";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Впишете се в bitwarden.com, където можете лесно да управлявате регистрацията си и да променяте настройки";
 "AutofillPasswords" = "Автоматично попълване на пароли";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Настройте автоматичното попълвана на всички свои устройства, за да се вписвате навсякъде с едно докосване.";
 "GoBack" = "Връщане назад";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Не е намерена регистрация. Впишете се отново, ако продължавате да виждате тази грешка.";
 "ImportError" = "Грешка при внасянето";
 "NoLoginsWereImported" = "Не бяха внесени никакви елементи за вписване";
-"ThisIsNotARecognizedServerDescriptionLong" = "Това не изглежда да е познат сървър на Битуорден. Може да се наложи да го проверите при доставчика си или да обновите сървъра си.";
 "LoginsImported" = "Данните за вписване са внесени";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Не забравяйте да изтриете файла с паролите за внасяне от компютъра си.";
 "SomethingWentWrong" = "Нещо се обърка";
@@ -963,7 +947,6 @@
 "LastEdited" = "Последна редакция: %1$@";
 "PasswordLastUpdated" = "Последна промяна на паролата: %1$@";
 "DecryptionError" = "Грешка при дешифриране";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Битуорден не може да дешифрира този елемент от трезора. Копирайте доклада за грешката и го изпратете на поддръжката, за да избегнете загубата на данни.";
 "CopyErrorReport" = "Копиране на доклада за грешката";
 "ErrorCannotDecrypt" = "[грешка: не може да се дешифрира]";
 "AccountsSyncedFromBitwardenApp" = "Акаунтите са синхронизирани от приложението на Битуорден";

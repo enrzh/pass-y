@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "บันทึก URL สภาพแวดล้อมแล้ว";
 "IdentityUrl" = "URL เซิร์ฟเวอร์ระบุตัวตน";
 "SelfHostedEnvironment" = "สภาพแวดล้อมแบบโฮสต์เอง";
-"SelfHostedEnvironmentFooter" = "ระบุ Base URL ของการติดตั้ง Pass-Y แบบ On-premise ที่คุณโฮสต์";
 "ServerUrl" = "URL เซิร์ฟเวอร์";
 "WebVaultUrl" = "URL เซิร์ฟเวอร์ตู้นิรภัยเว็บ";
 "CustomFields" = "ฟิลด์กำหนดเอง";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "ดำเนินการต่อไปยังนโยบายความเป็นส่วนตัวหรือไม่";
 "ContinueToAppStore" = "ดำเนินการต่อไปยัง App Store หรือไม่";
 "ContinueWithoutSyncing" = "ดำเนินการต่อโดยไม่ซิงค์";
-"TwoStepLoginDescriptionLong" = "ทำให้บัญชีของคุณปลอดภัยยิ่งขึ้นโดยการตั้งค่าการยืนยันตัวตนสองขั้นตอนในเว็บแอป Pass-Y";
 "YouCanImportDataToYourVaultOnX" = "คุณสามารถนำเข้าข้อมูลไปยังตู้นิรภัยของคุณได้บน %1$@";
-"PrivacyPolicyDescriptionLong" = "ดูนโยบายความเป็นส่วนตัวของเราได้ที่ bitwarden.com";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "สำรวจฟีเจอร์เพิ่มเติมของบัญชี Pass-Y ของคุณได้บนเว็บแอป";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y อนุญาตให้คุณแชร์รายการในตู้นิรภัยกับผู้อื่นโดยใช้องค์กร เรียนรู้เพิ่มเติมได้ที่เว็บไซต์ bitwarden.com";
 "RateAppDescriptionLong" = "ช่วยให้ผู้อื่นรู้ว่า Pass-Y เหมาะกับพวกเขาหรือไม่ ไปที่ App Store และให้คะแนนเลย";
 "CreatedX" = "สร้างเมื่อ %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "สิทธิ์องค์กรของคุณได้รับการอัปเดต โดยกำหนดให้คุณต้องตั้งรหัสผ่านหลัก";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "ยกระดับข้อมูลเข้าสู่ระบบ";
 "IntroCarouselPage3Message" = "ใช้ตัวสร้างเพื่อสร้างและบันทึกรหัสผ่านที่รัดกุมและไม่ซ้ำใครสำหรับทุกบัญชีของคุณ";
 "IntroCarouselPage4Title" = "ข้อมูลของคุณ ทุกที่ทุกเวลาที่คุณต้องการ";
-"IntroCarouselPage4Message" = "บันทึกรหัสผ่านไม่จำกัดบนอุปกรณ์ไม่จำกัดด้วยแอปมือถือ เบราว์เซอร์ และเดสก์ท็อปของ Pass-Y";
 "AccountSetup" = "การตั้งค่าบัญชี";
 "SetUpUnlock" = "ตั้งค่าการปลดล็อก";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "ตั้งค่าไบโอเมตริกหรือเลือกรหัส PIN เพื่อเข้าถึงตู้นิรภัยและป้อนข้อมูลเข้าสู่ระบบอัตโนมัติอย่างรวดเร็ว";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "คุณจะลบไฟล์นี้หลังจากนำเข้าเสร็จสมบูรณ์";
 "NeedHelpCheckOutImportHelp" = "ต้องการความช่วยเหลือไหม ดู **[ความช่วยเหลือเกี่ยวกับการนำเข้า](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "บนคอมพิวเตอร์ของคุณ เปิดแท็บเบราว์เซอร์ใหม่และ **ไปที่ %1$@**";
-"LogInToTheBitwardenWebApp" = "**เข้าสู่ระบบเว็บแอป Pass-Y**";
 "ImportLoginsToBitwarden" = "นำเข้าข้อมูลเข้าสู่ระบบไปยัง Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "ในการนำทางของ Pass-Y **หาตัวเลือกเครื่องมือ** และ **เลือกนำเข้าข้อมูล**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "กรอกแบบฟอร์มและ **นำเข้าไฟล์รหัสผ่านที่บันทึกไว้ของคุณ**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**เลือกนำเข้าข้อมูล** ในเว็บแอป แล้วกด **เสร็จสิ้น** เพื่อจบการซิงค์";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "เพื่อความปลอดภัยของคุณ อย่าลืม **ลบไฟล์รหัสผ่านที่บันทึกไว้ของคุณ**";
-"BitwardenTools" = "เครื่องมือ Pass-Y";
 "ImportSuccessful" = "นำเข้าสำเร็จ!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "จัดการข้อมูลเข้าสู่ระบบของคุณได้จากทุกที่ด้วยเครื่องมือ Pass-Y สำหรับเว็บและเดสก์ท็อป";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "จัดการแผนการสมัครสมาชิกของคุณในเว็บแอป Pass-Y";
 "DownloadTheBrowserExtension" = "ดาวน์โหลดส่วนขยายเบราว์เซอร์";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "ไปที่ bitwarden.com/download เพื่อรวม Pass-Y เข้ากับเบราว์เซอร์โปรดของคุณเพื่อประสบการณ์ที่ราบรื่น";
-"UseTheWebApp" = "ใช้เว็บแอป";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "เข้าสู่ระบบที่ bitwarden.com เพื่อจัดการบัญชีและอัปเดตการตั้งค่าของคุณได้อย่างง่ายดาย";
 "AutofillPasswords" = "ป้อนรหัสผ่านอัตโนมัติ";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "ตั้งค่าการป้อนอัตโนมัติบนอุปกรณ์ทั้งหมดของคุณเพื่อเข้าสู่ระบบด้วยการแตะเพียงครั้งเดียวจากทุกที่";
 "GoBack" = "กลับ";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "ไม่พบบัญชี โปรดเข้าสู่ระบบอีกครั้งหากยังพบข้อผิดพลาดนี้";
 "ImportError" = "ข้อผิดพลาดในการนำเข้า";
 "NoLoginsWereImported" = "ไม่มีข้อมูลเข้าสู่ระบบที่ถูกนำเข้า";
-"ThisIsNotARecognizedServerDescriptionLong" = "นี่ไม่ใช่เซิร์ฟเวอร์ Pass-Y ที่รู้จัก คุณอาจต้องตรวจสอบกับผู้ให้บริการของคุณหรืออัปเดตเซิร์ฟเวอร์";
 "LoginsImported" = "นำเข้าข้อมูลเข้าสู่ระบบแล้ว";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "อย่าลืมลบไฟล์รหัสผ่านที่นำเข้าจากคอมพิวเตอร์ของคุณ";
 "SomethingWentWrong" = "มีบางอย่างผิดปกติ";
@@ -963,7 +947,6 @@
 "LastEdited" = "แก้ไขล่าสุด: %1$@";
 "PasswordLastUpdated" = "อัปเดตรหัสผ่านล่าสุด: %1$@";
 "DecryptionError" = "ข้อผิดพลาดในการถอดรหัส";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y ไม่สามารถถอดรหัสรายการในตู้นิรภัยนี้ได้ คัดลอกและแชร์รายงานข้อผิดพลาดนี้กับฝ่ายดูแลลูกค้าเพื่อหลีกเลี่ยงการสูญเสียข้อมูลเพิ่มเติม";
 "CopyErrorReport" = "คัดลอกรายงานข้อผิดพลาด";
 "ErrorCannotDecrypt" = "[ข้อผิดพลาด: ไม่สามารถถอดรหัสได้]";
 "AccountsSyncedFromBitwardenApp" = "บัญชีที่ซิงค์จากแอป Pass-Y";
