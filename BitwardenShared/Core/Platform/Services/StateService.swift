@@ -2024,6 +2024,16 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
             appSettingsStore.setOrganizationUserNotificationBannerDismissal(nil, userId: knownUserId)
         }
 
+        // Pass-Y: the automatic encrypted backup ends with the session (logout, timeout logout, account deletion):
+        // its configuration and its password go; the backup files in the user's folder stay. A keychain error must
+        // not stop the logout.
+        appSettingsStore.setEncryptedBackupSettings(nil, userId: knownUserId)
+        do {
+            try await keychainRepository.deleteUserAuthKey(for: .encryptedBackupPassword(userId: knownUserId))
+        } catch {
+            errorReporter.log(error: error)
+        }
+
         try await keychainRepository.clearLocalUserDataKeyStates(userId: knownUserId)
 
         try await dataStore.deleteDataForUser(userId: knownUserId)

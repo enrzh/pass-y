@@ -637,6 +637,8 @@ extension AppProcessor {
                 }
                 await handleNeverTimeOutAccountBecameActive()
                 await completeAutofillAccountSetupIfEnabled()
+                // Delayed and off the main path; a no-op while locked, off, not due or in an extension.
+                services.encryptedBackupService.scheduleAutomaticBackup()
                 #if DEBUG
                 debugWillEnterForeground?()
                 #endif
@@ -750,6 +752,9 @@ extension AppProcessor: NotificationServiceDelegate {
 
 extension AppProcessor: SyncServiceDelegate {
     func onFetchSyncSucceeded(userId: String) async {
+        // First, since the once-after-login part below returns early. Fire and forget: delayed and off the main path.
+        services.encryptedBackupService.scheduleAutomaticBackup()
+
         // Refresh the cached subscription status on every sync so it always reflects the current
         // state without making a live API call where it is read.
         await services.billingService.refreshSubscriptionStatus(subscription: nil)

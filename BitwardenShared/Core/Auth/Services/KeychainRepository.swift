@@ -27,6 +27,10 @@ enum BitwardenKeychainItem: Equatable, KeychainItem {
     /// The keychain item for device key.
     case deviceKey(userId: String)
 
+    /// The keychain item for the password of a user's automatic encrypted backup (Settings > Vault > Encrypted
+    /// backup). This device only, readable only while the device is unlocked, never synced.
+    case encryptedBackupPassword(userId: String)
+
     /// The keychain item for the fill-assist cached-rules integrity fingerprint.
     case fillAssistRulesFingerprint(userId: String)
 
@@ -72,6 +76,7 @@ enum BitwardenKeychainItem: Equatable, KeychainItem {
              .clientCertificateIdentity,
              .deviceAuthKeyMetadata,
              .deviceKey,
+             .encryptedBackupPassword,
              .fillAssistRulesFingerprint,
              .lastActiveBootEpoch,
              .lastActiveMonotonicTime,
@@ -97,6 +102,7 @@ enum BitwardenKeychainItem: Equatable, KeychainItem {
              .deviceAuthKey,
              .deviceAuthKeyMetadata,
              .deviceKey,
+             .encryptedBackupPassword,
              .lastActiveBootEpoch,
              .lastActiveMonotonicTime,
              .lastActiveTime,
@@ -134,6 +140,8 @@ enum BitwardenKeychainItem: Equatable, KeychainItem {
             "deviceAuthKey_" + id
         case let .deviceAuthKeyMetadata(userId: id):
             "deviceAuthKeyMetadata_" + id
+        case let .encryptedBackupPassword(userId):
+            "encryptedBackupPassword_\(userId)"
         case let .fillAssistRulesFingerprint(userId):
             "fillAssistRulesFingerprint_\(userId)"
         case let .lastActiveBootEpoch(userId):
@@ -366,6 +374,7 @@ extension DefaultKeychainRepository {
             .accessToken(userId: userId),
             .authenticatorVaultKey(userId: userId),
             .biometrics(userId: userId),
+            .encryptedBackupPassword(userId: userId),
             // Exclude `deviceKey` since it is used to log back into an account.
             // Also exclude `deviceAuthKey` and `deviceAuthKeyMetadata` since they are used to log back into an account.
             .lastActiveBootEpoch(userId: userId),

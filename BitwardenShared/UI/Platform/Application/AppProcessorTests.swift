@@ -26,6 +26,7 @@ class AppProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_body
     var clientService: MockClientService!
     var configService: MockConfigService!
     var coordinator: MockCoordinator<AppRoute, AppEvent>!
+    var encryptedBackupService: MockEncryptedBackupService!
     var environmentService: MockEnvironmentService!
     var errorReporter: MockErrorReporter!
     var fido2UserInterfaceHelper: MockFido2UserInterfaceHelper!
@@ -69,6 +70,7 @@ class AppProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_body
         coordinator = MockCoordinator()
         appModule.authRouter = router
         appModule.appCoordinator = coordinator
+        encryptedBackupService = MockEncryptedBackupService()
         environmentService = MockEnvironmentService()
         errorReporter = MockErrorReporter()
         fido2UserInterfaceHelper = MockFido2UserInterfaceHelper()
@@ -101,6 +103,7 @@ class AppProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_body
                 billingService: billingService,
                 clientService: clientService,
                 configService: configService,
+                encryptedBackupService: encryptedBackupService,
                 environmentService: environmentService,
                 errorReporter: errorReporter,
                 eventService: eventService,
@@ -143,6 +146,7 @@ class AppProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_body
         clientService = nil
         configService = nil
         coordinator = nil
+        encryptedBackupService = nil
         environmentService = nil
         errorReporter = nil
         fido2UserInterfaceHelper = nil
@@ -222,6 +226,18 @@ class AppProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_body
     }
 
     /// `init()` subscribes to will enter foreground events and handles an active user timeout.
+    /// Coming to the foreground schedules the automatic encrypted backup (delayed and off the main path).
+    @MainActor
+    func test_init_appForeground_schedulesEncryptedBackup() {
+        waitFor(willEnterForegroundCalled == 1)
+        let initialCount = encryptedBackupService.scheduleAutomaticBackupCount
+
+        notificationCenterService.willEnterForegroundSubject.send()
+
+        waitFor(willEnterForegroundCalled == 2)
+        XCTAssertEqual(encryptedBackupService.scheduleAutomaticBackupCount, initialCount + 1)
+    }
+
     @MainActor
     func test_init_appForeground_activeUserTimeout() {
         // The processor checks for account timeouts when entering the foreground. Wait for the
@@ -1406,8 +1422,13 @@ class AppProcessorTests: BitwardenTestCase { // swiftlint:disable:this type_body
     func test_onFetchSyncSucceeded_doesNotClearPinsWhenNotFirstTimeSyncAfterLogin() async throws {
         await stateService.addAccount(.fixture())
         stateService.hasPerformedSyncAfterLogin["1"] = true
+        try await waitForAsync { self.willEnterForegroundCalled == 1 }
+        let initialCount = encryptedBackupService.scheduleAutomaticBackupCount
 
         await subject.onFetchSyncSucceeded(userId: "1")
+
+        // Every successful sync (not only the first after login) schedules the automatic encrypted backup.
+        XCTAssertEqual(encryptedBackupService.scheduleAutomaticBackupCount, initialCount + 1)
 
         XCTAssertTrue(policyService.policyAppliesToUserPolicies.isEmpty)
         XCTAssertFalse(authRepository.clearPinsCalled)
