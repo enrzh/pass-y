@@ -43,7 +43,8 @@ server URL and your vault stays on your server. Pass-Y is a fork of the [Bitward
 Login with two-step verification, vault with category tiles, lists, folders and search (select mode, bulk delete/move), item
 view (tap a row to copy, reveal, favorites), add/edit for login, card, identity, secure note, SSH key and (server flag
 `pm-32009-new-item-types`) bank account, passport and driver's license, TOTP, attachments, Send, password generator, import and
-export, organizations and collections, Face ID/PIN unlock, offline cache, AutoFill, passkeys, Action and Share extensions, pending
+export, automatic encrypted backup to a folder you choose (password-protected Bitwarden JSON, importable into any
+Bitwarden/Vaultwarden web vault), organizations and collections, Face ID/PIN unlock, offline cache, AutoFill, passkeys, Action and Share extensions, pending
 login requests, Dynamic Type up to AX-XXXL, light and dark mode.
 
 <p align="center">

@@ -4,6 +4,25 @@ Condensed history, newest first. Versions are git tags (`git tag -l 'v1.*'`); ea
 validator whose verdict is linked (all in [Docs/verdicts](Docs/verdicts/README.md)). Screenshots of older rounds are no longer
 in the working tree; they stay in git history (`git log --stat -- Docs/screenshots`).
 
+## v1.29.0 (2026-11-27) - Encrypted backup
+Version 1.29.0 (build 4); not tagged yet, no validator verdict yet.
+
+- Settings > Vault > Encrypted backup, off by default, per account: an automatic password-protected copy of the vault
+  in a folder you pick with the system document picker (iCloud Drive or any Files provider). The file is the encrypted
+  JSON export of Export vault (Bitwarden SDK, "Bitwarden (json)" with a file password), so any Vaultwarden/Bitwarden
+  web vault can import it; nothing unencrypted is ever written.
+- Turning it on, changing the password and changing the folder ask for the master password (or a verification code)
+  like the export; the backup password needs at least 12 characters, is entered twice with the strength indicator and
+  is kept only in the keychain (this device, while unlocked). Logout, timeout logout and account deletion remove the
+  password, folder and status; the files stay.
+- Runs off the main path 20 s after a successful sync or the return to the foreground, only while the vault is
+  unlocked, at most once a day and only when items or folders changed; "Back up now" any time. Keeps the newest 5 files
+  of its own name pattern (`passy-backup-<account tag>-<UTC time>.json`); other files in the folder are never touched.
+- Errors (folder gone, no access, no space, provider error, missing password, export policy) are shown on the page with
+  what to do, and as a badge on the Vault row; a failed run never deletes older backups.
+- Not included (as in Export vault): attachments, Sends, the trash and organization items. An organization policy that
+  disables the personal export disables the backup. Restore: SUPPORT.md, "Restore from a backup".
+
 ## v1.28.0 (2026-11-27) - Apple polish round, App Review preparation
 Version 1.28.0 (build 2), first App Review submission; not tagged yet, no validator verdict yet.
 

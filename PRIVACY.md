@@ -33,6 +33,12 @@ These happen only when you use the feature:
 
 Each of these services has its own privacy policy.
 
+## Encrypted backup
+
+Off by default. If you switch on Settings > Vault > Encrypted backup, Pass-Y writes a copy of your vault only to the
+folder you pick (on your device, in iCloud Drive or another Files provider you choose). The file is encrypted with the
+backup password you set; nothing else receives it. The backup password stays in this device's keychain.
+
 ## On your device
 
 Camera, NFC, Face ID and Touch ID are used only for scanning codes and cards, security keys and unlocking. This data
@@ -79,6 +85,11 @@ Website-Symbole fragt die App bei deinem Server an; dieser kann dafür einen ext
 - **iCloud:** Bei aktivem „Layout in iCloud sichern" werden die Anpassen-Einstellungen (Reihenfolge der Karten,
   Bereiche, Farben, Ordner-Kennungen, ob Website-Symbole angezeigt werden) in deiner eigenen iCloud gespeichert. Passwörter, Tresoreinträge und Kontodaten
   werden dort nie gespeichert. Jederzeit abschaltbar.
+
+**Verschlüsselte Sicherung:** Standardmäßig aus. Schaltest du sie ein, schreibt Pass-Y eine Kopie deines Tresors nur
+in den Ordner, den du wählst (auf dem Gerät, in iCloud Drive oder bei einem anderen Dateien-Anbieter). Die Datei ist
+mit deinem Sicherungspasswort verschlüsselt; niemand sonst erhält sie. Das Passwort bleibt im Schlüsselbund dieses
+Geräts.
 
 **Auf dem Gerät:** Kamera, NFC, Face ID und Touch ID dienen nur zum Scannen, für Sicherheitsschlüssel und zum
 Entsperren. Diese Daten verlassen das Gerät nicht. Diagnoseprotokolle bleiben auf dem Gerät, außer du teilst sie
