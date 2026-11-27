@@ -60,19 +60,78 @@ struct VaultItemIconTile: View {
     private func websiteOrLetterTile(name: String, item: VaultListItem?) -> some View {
         if showWebIcons, let iconBaseURL, let data = item?.cipherDecorativeIconDataView,
            let url = IconImageHelper.getIconImage(for: data, from: iconBaseURL) {
-            CipherIconAsyncImage(url: url) { image in
-                PassYIconTile {
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .padding(PassYDesign.Spacing.small - 1)
-                }
-            } placeholder: {
-                PassYIconTile(letter: name)
-            }
+            CipherIconAsyncImage(
+                url: url,
+                uiImageContent: { image in
+                    // A dark logo on transparency (e.g. chatgpt.com) gets a white tile: visible in dark mode too.
+                    PassYIconTile(style: image.passYIsDarkOnTransparency ? .light : .plain) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .padding(PassYDesign.Spacing.small - 1)
+                    }
+                },
+                placeholder: { PassYIconTile(letter: name) },
+            )
         } else {
             PassYIconTile(letter: name)
         }
+    }
+}
+
+// MARK: - UIImage + dark logo
+
+extension UIImage {
+    /// The images already measured (a web icon is measured once, not per row body).
+    private static let darkOnTransparencyCache = NSCache<UIImage, NSNumber>()
+
+    /// Whether the image is a dark logo on a transparent background: at least a fifth of it is transparent and its
+    /// visible pixels are dark on average (luminance below 0.3). Such an icon disappears on a dark tile; colourful icons
+    /// and icons with their own background are not affected.
+    var passYIsDarkOnTransparency: Bool {
+        if let cached = Self.darkOnTransparencyCache.object(forKey: self) { return cached.boolValue }
+        let result = Self.measureDarkOnTransparency(self)
+        Self.darkOnTransparencyCache.setObject(NSNumber(value: result), forKey: self)
+        return result
+    }
+
+    /// Draws the image into 16 x 16 RGBA pixels and measures transparency and the luminance of the visible pixels.
+    static func measureDarkOnTransparency(_ image: UIImage) -> Bool {
+        guard let cgImage = image.cgImage else { return false }
+        let side = 16
+        var pixels = [UInt8](repeating: 0, count: side * side * 4)
+        let drawn: Bool = pixels.withUnsafeMutableBytes { buffer in
+            guard let context = CGContext(
+                data: buffer.baseAddress,
+                width: side,
+                height: side,
+                bitsPerComponent: 8,
+                bytesPerRow: side * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
+            ) else { return false }
+            context.draw(cgImage, in: CGRect(x: 0, y: 0, width: side, height: side))
+            return true
+        }
+        guard drawn else { return false }
+        var transparent = 0
+        var luminance = 0.0
+        var weight = 0.0
+        for index in stride(from: 0, to: pixels.count, by: 4) {
+            let alpha = Double(pixels[index + 3]) / 255
+            if alpha < 0.1 {
+                transparent += 1
+                continue
+            }
+            // Premultiplied: divide by alpha for the colour itself.
+            let red = Double(pixels[index]) / 255 / alpha
+            let green = Double(pixels[index + 1]) / 255 / alpha
+            let blue = Double(pixels[index + 2]) / 255 / alpha
+            luminance += (0.2126 * red + 0.7152 * green + 0.0722 * blue) * alpha
+            weight += alpha
+        }
+        guard weight > 0, transparent * 5 >= side * side else { return false }
+        return luminance / weight < 0.3
     }
 }
 

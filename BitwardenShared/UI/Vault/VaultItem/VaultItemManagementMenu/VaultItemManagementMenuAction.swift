@@ -14,6 +14,12 @@ enum VaultItemManagementMenuAction: Equatable {
     /// The move to organization option was tapped.
     case moveToOrganization
 
+    /// A folder was chosen in "Move to folder" (`nil`: no folder).
+    case moveToFolder(String?)
+
+    /// "New folder…" was chosen in "Move to folder".
+    case moveToNewFolder
+
     /// The restore option was tapped.
     case restore
 }

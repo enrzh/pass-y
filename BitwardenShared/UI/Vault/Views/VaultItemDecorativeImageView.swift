@@ -92,7 +92,7 @@ struct VaultItemDecorativeImageView<PlaceholderContent: View>: View {
 /// user's mTLS client certificate. `content` draws a loaded image (the Pass-Y row tile puts it on a neutral tile).
 struct CipherIconAsyncImage<Content: View, Placeholder: View>: View {
     let url: URL?
-    let content: (Image) -> Content
+    let content: (UIImage) -> Content
     let placeholder: () -> Placeholder
 
     @SwiftUI.State private var image: UIImage?
@@ -102,8 +102,17 @@ struct CipherIconAsyncImage<Content: View, Placeholder: View>: View {
         @ViewBuilder content: @escaping (Image) -> Content,
         @ViewBuilder placeholder: @escaping () -> Placeholder,
     ) {
+        self.init(url: url, uiImageContent: { content(Image(uiImage: $0)) }, placeholder: placeholder)
+    }
+
+    /// Creates the image with content drawn from the loaded `UIImage` (e.g. to look at its pixels).
+    init(
+        url: URL?,
+        @ViewBuilder uiImageContent: @escaping (UIImage) -> Content,
+        @ViewBuilder placeholder: @escaping () -> Placeholder,
+    ) {
         self.url = url
-        self.content = content
+        content = uiImageContent
         self.placeholder = placeholder
         // A cache hit is shown in the first frame (no placeholder flash, no state change after appearing).
         _image = SwiftUI.State(initialValue: url.flatMap { CipherIconImageLoader.shared.cachedImage(for: $0) })
@@ -115,7 +124,7 @@ struct CipherIconAsyncImage<Content: View, Placeholder: View>: View {
     var body: some View {
         Group {
             if let image {
-                content(Image(uiImage: image))
+                content(image)
                     .accessibilityHidden(true)
             } else {
                 placeholder()

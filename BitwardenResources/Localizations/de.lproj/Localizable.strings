@@ -1372,3 +1372,13 @@
 "LayoutPreview" = "Vorschau";
 /* Home section with the rows of the sections hidden from the home screen. */
 "PassYMore" = "Mehr";
+/* VoiceOver: one second left of a verification code. */
+"OneSecondLeft" = "noch 1 Sekunde";
+/* VoiceOver: seconds left of a verification code. */
+"XSecondsLeft" = "noch %1$d Sekunden";
+/* Item menus: submenu that moves the item into a folder. */
+"MoveToFolder" = "In Ordner verschieben";
+/* Item menus: creates a folder and moves the item into it. */
+"NewFolderEllipsis" = "Neuer Ordner…";
+/* Toast after an item was moved into a folder. */
+"MovedToX" = "Verschoben nach „%1$@“";

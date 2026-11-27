@@ -31,6 +31,14 @@ Not tagged and not version-bumped yet; no validator verdict yet.
   type colour, white content at 4.5:1 or more; monochrome removed). The countdown ring / seconds switches left
   Customize; digit grouping explains itself (123 456 / 123456). Preferences version 2: hidden tiles of version 1
   become rows, removed options are ignored, the countdown is switched back on.
+- Verification codes: one shared countdown ring for the page (beside the large title, in the bar once the title has
+  collapsed) instead of a ring per row; rows get that width back; codes with another period (e.g. 60 s) keep a small
+  ring of their own. VoiceOver reads "noch N Sekunden".
+- "In Ordner verschieben" (Move to folder) in every item menu (long press, swipe "More", the item view's "…"): "Kein
+  Ordner", the folders with a checkmark on the current one, "Neuer Ordner…"; not offered for items in the trash, items
+  the user may not edit or that failed to decrypt, and in the autofill/extension lists.
+- Website icons that are a dark logo on transparency (e.g. chatgpt.com) sit on a white tile, so they stay visible in
+  dark mode.
 - New logo (solid shield with a Y knocked out) and an Icon Composer app icon (`PassY.icon`, light / dark / tinted).
 - Minimum iOS 26 (deployment target and Info.plist).
 - Unlock: the vault list is warmed up (decrypted off the main actor) while the shell is built, and the unlock waits up

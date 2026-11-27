@@ -24,6 +24,15 @@ struct ViewItemState: Equatable, Sendable {
         loadingState.data?.cipher.deletedDate == nil
     }
 
+    /// Whether the item can be moved into a folder ("Move to folder" of the "…" menu): editable and not deleted.
+    var canMoveToFolder: Bool {
+        guard let cipher = loadingState.data?.cipher else { return false }
+        return cipher.deletedDate == nil && cipher.edit
+    }
+
+    /// The user's folders ("Move to folder").
+    var folders = [FolderView]()
+
     /// The current state. If this state is not `.loading`, this value will contain an associated value with the
     /// appropriate internal state.
     var loadingState: LoadingState<CipherItemState> = .loading(nil)

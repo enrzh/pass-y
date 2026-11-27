@@ -1,4 +1,5 @@
 import BitwardenKit
+import BitwardenResources
 import Observation
 import SwiftUI
 
@@ -68,6 +69,11 @@ struct PassYCountdown: Equatable {
     /// The colour step.
     var tone: Tone {
         Self.tone(secondsRemaining: secondsRemaining)
+    }
+
+    /// The seconds left as VoiceOver reads them ("14 seconds left", German "noch 14 Sekunden").
+    static func spokenSecondsLeft(_ seconds: Int) -> String {
+        seconds == 1 ? Localizations.oneSecondLeft : Localizations.xSecondsLeft(seconds)
     }
 
     /// The colour step for the seconds left.
@@ -178,7 +184,8 @@ private struct PassYCountdownClockModifier: ViewModifier {
 
 /// A small circular countdown: a ring that empties over the period with the seconds left inside, tinted by
 /// `PassYCountdown.Tone`. It reads the page clock (`passYCountdownClock`); without one it shows the moment given.
-/// Hidden from VoiceOver: the row's label reads the seconds left.
+/// Hidden from VoiceOver unless `speaksSeconds` is set (a row's label reads the seconds left; the page's shared ring,
+/// `PassYSharedCountdown`, reads them itself).
 struct PassYCountdownRing: View {
     // MARK: Properties
 
@@ -191,10 +198,13 @@ struct PassYCountdownRing: View {
     /// The side length before Dynamic Type scaling.
     var size: CGFloat = 30
 
-    @Environment(\.passYCountdownClock) private var clock
+    /// Whether VoiceOver reads the ring ("14 seconds left"); hidden otherwise.
+    var speaksSeconds = false
 
-    /// The page's code options (Customize: ring and seconds can be switched off).
-    @Environment(\.passYCodeOptions) private var options
+    /// The accessibility identifier.
+    var identifier = "CountdownRing"
+
+    @Environment(\.passYCountdownClock) private var clock
 
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
 
@@ -204,28 +214,27 @@ struct PassYCountdownRing: View {
         let countdown = PassYCountdown(period: period, date: clock?.now ?? fallbackDate)
         let side = PassYDesign.IconSize.scaled(size, by: scale)
         let color = countdown.tone.color
+        let lineWidth = max(2, (3 * side / 30).rounded())
         ZStack {
-            if options.showsRing {
-                Circle()
-                    .stroke(color.opacity(0.2), lineWidth: 3)
-                Circle()
-                    .trim(from: 0, to: countdown.fractionRemaining)
-                    .stroke(color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    // One tick per second, swept linearly: a smooth ring from a 1 Hz clock.
-                    .animation(
-                        countdown.secondsRemaining == period ? .snappy : .linear(duration: 1),
-                        value: countdown.date,
-                    )
-            }
-            if options.showsSeconds {
-                secondsText(countdown, color: color)
-            }
+            Circle()
+                .stroke(color.opacity(0.2), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: countdown.fractionRemaining)
+                .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                // One tick per second, swept linearly: a smooth ring from a 1 Hz clock.
+                .animation(
+                    countdown.secondsRemaining == period ? .snappy : .linear(duration: 1),
+                    value: countdown.date,
+                )
+            secondsText(countdown, color: color)
         }
         .frame(width: side, height: side)
         .animation(.easeInOut(duration: 0.3), value: countdown.tone)
-        .accessibilityHidden(true)
-        .accessibilityIdentifier("CountdownRing")
+        .accessibilityHidden(!speaksSeconds)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(speaksSeconds ? PassYCountdown.spokenSecondsLeft(countdown.secondsRemaining) : "")
+        .accessibilityIdentifier(identifier)
     }
 
     /// The seconds left inside the ring.
