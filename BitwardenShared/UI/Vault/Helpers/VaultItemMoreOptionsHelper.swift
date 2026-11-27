@@ -28,6 +28,34 @@ protocol VaultItemMoreOptionsHelper {
         handleNavigateToPremiumUpgrade: @escaping () async -> Void,
         handleOpenURL: @escaping (URL) -> Void,
     ) async
+
+    /// Moves an item into a folder (its "Move to folder" menu): master password re-prompt if the item requires it,
+    /// then the update and a toast; errors show the error alert.
+    ///
+    /// - Parameters:
+    ///   - item: The item (a cipher row or a code row).
+    ///   - folderId: The folder, `nil` for no folder.
+    ///   - handleDisplayToast: A closure called to handle displaying a toast.
+    ///
+    func moveToFolder(
+        _ item: VaultListItem,
+        folderId: String?,
+        handleDisplayToast: @escaping (Toast) -> Void,
+    ) async
+
+    /// Creates a folder and moves an item into it ("New folder…" of its "Move to folder" menu): master password
+    /// re-prompt if the item requires it, the folder name alert, then the folder, the move and a toast.
+    ///
+    /// - Parameters:
+    ///   - item: The item (a cipher row or a code row).
+    ///   - handleDisplayToast: A closure called to handle displaying a toast.
+    ///   - onFolderCreated: Called after the folder was created (the page reloads its folders).
+    ///
+    func moveToNewFolder(
+        _ item: VaultListItem,
+        handleDisplayToast: @escaping (Toast) -> Void,
+        onFolderCreated: @escaping () async -> Void,
+    ) async
 }
 
 // MARK: - DefaultVaultItemMoreOptionsHelper
@@ -43,6 +71,7 @@ class DefaultVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
         & HasErrorReporter
         & HasEventService
         & HasPasteboardService
+        & HasSettingsRepository
         & HasStateService
         & HasVaultRepository
 
@@ -111,7 +140,83 @@ class DefaultVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
         }
     }
 
+    func moveToFolder(
+        _ item: VaultListItem,
+        folderId: String?,
+        handleDisplayToast: @escaping (Toast) -> Void,
+    ) async {
+        guard let cipher = await movableCipher(for: item), cipher.folderId != folderId else { return }
+        await masterPasswordRepromptHelper.repromptForMasterPasswordIfNeeded(cipherView: cipher) {
+            let name: String
+            if let folderId {
+                name = (try? await self.services.vaultRepository.fetchFolder(withId: folderId))?.name
+                    ?? Localizations.folder
+            } else {
+                name = Localizations.folderNone
+            }
+            await self.move(cipher, folderId: folderId, folderName: name, handleDisplayToast: handleDisplayToast)
+        }
+    }
+
+    func moveToNewFolder(
+        _ item: VaultListItem,
+        handleDisplayToast: @escaping (Toast) -> Void,
+        onFolderCreated: @escaping () async -> Void,
+    ) async {
+        guard let cipher = await movableCipher(for: item) else { return }
+        await masterPasswordRepromptHelper.repromptForMasterPasswordIfNeeded(cipherView: cipher) {
+            self.coordinator.showAlert(.newFolderName { name in
+                do {
+                    let folder = try await self.services.settingsRepository.addFolder(name: name)
+                    await onFolderCreated()
+                    await self.move(
+                        cipher,
+                        folderId: folder.id,
+                        folderName: folder.name,
+                        handleDisplayToast: handleDisplayToast,
+                    )
+                } catch {
+                    self.services.errorReporter.log(error: error)
+                    await self.coordinator.showErrorAlert(error: error)
+                }
+            })
+        }
+    }
+
     // MARK: Private Methods
+
+    /// The cipher of a row to move (a code row's cipher for a code row), `nil` (error alert shown) when it cannot be
+    /// fetched.
+    private func movableCipher(for item: VaultListItem) async -> CipherView? {
+        guard let cipherId = (item.totpCipherItem ?? item).cipherId else { return nil }
+        do {
+            guard let cipher = try await services.vaultRepository.fetchCipher(withId: cipherId) else {
+                coordinator.showAlert(.defaultAlert(title: Localizations.anErrorHasOccurred))
+                return nil
+            }
+            return cipher
+        } catch {
+            services.errorReporter.log(error: error)
+            coordinator.showAlert(.defaultAlert(title: Localizations.anErrorHasOccurred))
+            return nil
+        }
+    }
+
+    /// Saves the cipher in the folder and shows the "Moved to …" toast.
+    private func move(
+        _ cipher: CipherView,
+        folderId: String?,
+        folderName: String,
+        handleDisplayToast: @escaping (Toast) -> Void,
+    ) async {
+        await performOperationAndShowToast(
+            handleDisplayToast: handleDisplayToast,
+            loadingTitle: Localizations.saving,
+            toastTitle: Localizations.movedToX(folderName),
+        ) {
+            try await services.vaultRepository.updateCipher(cipher.update(folderId: folderId))
+        }
+    }
 
     /// Archives a cipher.
     ///
@@ -269,5 +374,39 @@ class DefaultVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
             await coordinator.showErrorAlert(error: error)
             services.errorReporter.log(error: error)
         }
+    }
+}
+
+// MARK: - Alert + new folder
+
+extension Alert {
+    /// Asks for the name of a new folder ("New folder…" of the "Move to folder" menu).
+    ///
+    /// - Parameter completion: Called with the entered name.
+    ///
+    static func newFolderName(completion: @MainActor @escaping (String) async -> Void) -> Alert {
+        Alert(
+            title: Localizations.addFolder,
+            message: nil,
+            alertActions: [
+                AlertAction(
+                    title: Localizations.save,
+                    style: .default,
+                    handler: { _, alertTextFields in
+                        guard let name = alertTextFields.first(where: { $0.id == "name" })?.text
+                            .trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return }
+                        await completion(name)
+                    },
+                    shouldEnableAction: { textFields in
+                        guard let text = textFields.first(where: { $0.id == "name" })?.text else { return false }
+                        return !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    },
+                ),
+                AlertAction(title: Localizations.cancel, style: .cancel),
+            ],
+            alertTextFields: [
+                AlertTextField(id: "name", autocapitalizationType: .words, placeholder: Localizations.name),
+            ],
+        )
     }
 }

@@ -176,4 +176,84 @@ final class ItemListActionsTests: PassYUITestCase {
         XCTAssertTrue(app.alerts.buttons["Yes"].waitForExistence(timeout: 5)); app.alerts.buttons["Yes"].tap()
         XCTAssertTrue(waitForDisappearance(of: last, timeout: 15), "swipe delete on a search result")
     }
+
+    // MARK: Move to folder
+    /// The row menus offer "Move to folder" as a submenu of the folders: moving the seeded Bank login from its long-press
+    /// menu shows the "Moved to" toast and puts it into the folder page; from there it moves back to "No Folder". The
+    /// More swipe menu and the code rows offer the same submenu.
+    func test_moveToFolderFromRowMenu() {
+        setPassYAppearance(.light)
+        let folder = "PassY Move Folder"
+        let app = launchApp()
+        ensureUnlockedVault(app)
+        if !scrollToFolder(app, folder) {
+            createFolder(app, folder)
+        }
+        XCTAssertTrue(returnToRoot(app), "back on the vault home")
+        openLoginList(app)
+        let bank = app.buttons.matching(NSPredicate(format: "identifier == 'VaultListItemRowButton' AND label BEGINSWITH 'Bank'")).firstMatch
+        XCTAssertTrue(bank.waitForExistence(timeout: 8), "the Bank row")
+
+        // The More swipe menu has the submenu too.
+        bank.swipeLeft()
+        let more = app.buttons["More options"].firstMatch
+        XCTAssertTrue(more.waitForExistence(timeout: 5), "swipe offers More options")
+        more.tap()
+        XCTAssertTrue(menuEntry(app, "Move to folder").waitForExistence(timeout: 5), "More offers Move to folder")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.15)).tap()
+        waitUntil(5) { !self.menuEntry(app, "Move to folder").exists }
+        for _ in 0 ..< 2 where app.buttons["Delete"].exists { bank.swipeRight(); sleep(1) }
+
+        // Long press > Move to folder > the folder.
+        bank.press(forDuration: 1.2)
+        let move = menuEntry(app, "Move to folder")
+        XCTAssertTrue(move.waitForExistence(timeout: 5), "context menu offers Move to folder")
+        move.tap()
+        let target = menuEntry(app, folder)
+        XCTAssertTrue(target.waitForExistence(timeout: 5), "the submenu lists the folder")
+        XCTAssertTrue(menuEntry(app, "No Folder").exists, "the submenu offers No Folder")
+        XCTAssertTrue(menuEntry(app, "New folder…").exists, "the submenu offers New folder…")
+        shot(app, 40, "move-to-folder-submenu")
+        target.tap()
+        let toast = app.descendants(matching: .any)["ToastElement"].firstMatch
+        XCTAssertTrue(toast.waitForExistence(timeout: 8), "toast after the move")
+        XCTAssertTrue(toast.label.contains("Moved to"), "toast text '\(toast.label)'")
+        XCTAssertTrue(toast.label.contains(folder), "toast names the folder '\(toast.label)'")
+
+        // The folder page lists it; move it back to No Folder from there.
+        XCTAssertTrue(returnToRoot(app), "back on the vault home")
+        XCTAssertTrue(scrollToFolder(app, folder), "folder row")
+        app.buttons.matching(NSPredicate(format: "identifier == 'VaultListItemRowButton' AND label CONTAINS %@", folder)).firstMatch.tap()
+        XCTAssertTrue(app.navigationBars.staticTexts[folder].waitForExistence(timeout: 5), "folder page")
+        let moved = app.buttons.matching(NSPredicate(format: "identifier == 'VaultListItemRowButton' AND label BEGINSWITH 'Bank'")).firstMatch
+        XCTAssertTrue(moved.waitForExistence(timeout: 8), "Bank is in the folder")
+        moved.press(forDuration: 1.2)
+        XCTAssertTrue(menuEntry(app, "Move to folder").waitForExistence(timeout: 5), "folder page row: Move to folder")
+        menuEntry(app, "Move to folder").tap()
+        XCTAssertTrue(menuEntry(app, "No Folder").waitForExistence(timeout: 5), "No Folder entry")
+        menuEntry(app, "No Folder").tap()
+        XCTAssertTrue(waitForDisappearance(of: moved, timeout: 10), "Bank left the folder")
+        XCTAssertTrue(returnToRoot(app), "back on the vault home")
+
+        // Code rows offer it as well.
+        let codes = app.buttons["CategoryTile_totp"]
+        for _ in 0 ..< 4 where !codes.isHittable { app.swipeDown() }
+        codes.tap()
+        let github = app.buttons.matching(NSPredicate(format: "identifier == 'VaultListItemRowButton' AND label BEGINSWITH 'GitHub'")).firstMatch
+        XCTAssertTrue(github.waitForExistence(timeout: 10), "the GitHub code row")
+        github.press(forDuration: 1.2)
+        XCTAssertTrue(menuEntry(app, "Move to folder").waitForExistence(timeout: 5), "code row menu offers Move to folder")
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.2)).tap()
+        waitUntil(5) { !self.menuEntry(app, "Move to folder").exists }
+    }
+
+    /// A menu entry, as a button or a menu item.
+    private func menuEntry(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+        app.descendants(matching: .any).matching(NSPredicate(
+            format: "(elementType == %d OR elementType == %d) AND label == %@",
+            XCUIElement.ElementType.menuItem.rawValue,
+            XCUIElement.ElementType.button.rawValue,
+            label,
+        )).firstMatch
+    }
 }

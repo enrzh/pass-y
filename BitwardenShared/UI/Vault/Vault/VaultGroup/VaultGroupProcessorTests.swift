@@ -1331,4 +1331,26 @@ class VaultGroupProcessorTests: BitwardenTestCase { // swiftlint:disable:this ty
         await subject.perform(.moveItems([item], folderId: "folder-1"))
         XCTAssertEqual(vaultRepository.updateCipherCiphers.map(\.folderId), ["folder-1"])
     }
+
+    /// `perform(_:)` with `.moveItemToFolder` moves the item through the more-options helper; its toast is shown.
+    @MainActor
+    func test_perform_moveItemToFolder() async throws {
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        await subject.perform(.moveItemToFolder(item, folderId: "f1"))
+        XCTAssertEqual(vaultItemMoreOptionsHelper.moveToFolderItem, item)
+        XCTAssertEqual(vaultItemMoreOptionsHelper.moveToFolderId, "f1")
+        vaultItemMoreOptionsHelper.moveToFolderHandleDisplayToast?(Toast(title: "Moved"))
+        XCTAssertEqual(subject.state.toast, Toast(title: "Moved"))
+    }
+
+    /// `perform(_:)` with `.moveItemToNewFolder` starts the new folder flow and reloads the folders once it is created.
+    @MainActor
+    func test_perform_moveItemToNewFolder_reloadsFolders() async throws {
+        let item = try XCTUnwrap(VaultListItem(cipherListView: .fixture(id: "1", name: "A")))
+        await subject.perform(.moveItemToNewFolder(item))
+        XCTAssertEqual(vaultItemMoreOptionsHelper.moveToNewFolderItem, item)
+        vaultRepository.fetchFoldersResult = .success([.fixture(id: "new", name: "Travel")])
+        await vaultItemMoreOptionsHelper.moveToNewFolderOnFolderCreated?()
+        XCTAssertEqual(subject.state.folders.map(\.id), ["new"])
+    }
 }

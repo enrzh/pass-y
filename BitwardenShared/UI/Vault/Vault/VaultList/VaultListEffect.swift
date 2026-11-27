@@ -59,6 +59,13 @@ enum VaultListEffect: Equatable {
     /// Move the given search results to a folder (`nil` = no folder).
     case moveItems(_ items: [VaultListItem], folderId: String?)
 
+    /// Move one item into a folder (`nil` = no folder) from its "Move to folder" menu (master password re-prompt,
+    /// toast).
+    case moveItemToFolder(_ item: VaultListItem, folderId: String?)
+
+    /// Create a folder (name alert) and move one item into it from its "Move to folder" menu.
+    case moveItemToNewFolder(_ item: VaultListItem)
+
     /// Searches based on the keyword.
     case search(String)
 

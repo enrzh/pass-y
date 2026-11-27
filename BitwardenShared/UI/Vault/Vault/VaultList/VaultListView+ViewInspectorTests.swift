@@ -366,15 +366,32 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         XCTAssertEqual(processor.effects.last, .itemPressed(item))
     }
 
-    /// Tapping a category tile (type group) dispatches the `.itemPressed` effect.
+    /// Tapping a category tile (type group; a menu button whose primary action opens it) dispatches the
+    /// `.itemPressed` effect.
     @MainActor
     func test_categoryTile_tap() throws {
         let item = VaultListItem(id: "1", itemType: .group(.login, 123))
         processor.state.loadingState = .data([VaultListSection(id: "1", items: [item], name: "Types")])
-        let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "CategoryTile_login").button()
-        try button.tap()
+        let menu = try subject.inspect().find(viewWithAccessibilityIdentifier: "CategoryTile_login").find(ViewType.Menu.self)
+        try menu.callPrimaryAction()
         waitFor(processor.effects.last != nil)
         XCTAssertEqual(processor.effects.last, .itemPressed(item))
+    }
+
+    /// The long-press menu of a card offers the moves, Show as Folder Row and Customize…, which opens Customize.
+    @MainActor
+    func test_categoryTile_menu() throws {
+        let items = [
+            VaultListItem(id: "1", itemType: .group(.totp, 1)),
+            VaultListItem(id: "2", itemType: .group(.login, 2)),
+        ]
+        processor.state.loadingState = .data([VaultListSection(id: "1", items: items, name: "Types")])
+        let menu = try subject.inspect().find(viewWithAccessibilityIdentifier: "CategoryTile_totp").find(ViewType.Menu.self)
+        XCTAssertNoThrow(try menu.find(button: Localizations.moveLater))
+        XCTAssertThrowsError(try menu.find(button: Localizations.moveEarlier), "first card: no move earlier")
+        XCTAssertNoThrow(try menu.find(button: Localizations.showAsFolderRow))
+        try menu.find(button: Localizations.customizeEllipsis).tap()
+        XCTAssertEqual(processor.dispatchedActions.last, .customizePressed)
     }
 
     /// Tapping the vault item copy totp button dispatches the `.copyTOTPCode` action.

@@ -203,7 +203,9 @@ The vault home, group pages, search results, Send and folders share one construc
 the vault-only parts are in [View+PassYVaultList.swift](../BitwardenShared/UI/Vault/Views/View+PassYVaultList.swift):
 `passYVaultRow` (row insets and the
 Delete / More swipe actions), `passYSelectEditMode` and `PassYSelectModeButtons` (Select mode). Row options are native
-menus (`VaultItemOptionsMenuContent`), shared by the context menu and the More swipe action. The minimum is iOS 26: the
+menus (`VaultItemOptionsMenuContent`), shared by the context menu and the More swipe action; their "Move to folder"
+submenu (`VaultMoveToFolderMenu`, also in the item view's "…" menu) reads the page's folders from the environment
+(`vaultFolderMove`), so the rows are not rebuilt for it. The minimum is iOS 26: the
 UI and app layers have no `#available` checks or fallbacks for earlier versions (left: the Core layer, the 26.2 / 27
 checks, `ReviewModifier` and a multi-platform test).
 
@@ -229,6 +231,7 @@ component, each with a `#Preview`, in
 | `PassYButtonStyles` | `passYButtonStyle(.primary / .secondary / .destructive)` on the system glass styles. |
 | `PassYCodeRow` | Verification code row: large two-group code, `PassYCountdownRing`, accessibility-size layout; `PassYOneTimeCode` (grouping, spoken digits, label). |
 | `PassYCountdown` | Countdown maths and tone (orange at 5 s, red at 2 s), `PassYCountdownClock` (one 1 Hz clock per page via `passYCountdownClock`), `PassYCountdownRing`. |
+| `PassYSharedCountdown` | One countdown ring per page of codes (`passYSharedCountdown`): beside the large title (`.largeSubtitle` toolbar item, the system title stays), in the bar once the title collapsed (scroll geometry); `passYSharedCountdownPeriod` tells `PassYCodeRow` to drop its own ring for that period. |
 | `PassYSettingsRow` | The settings row (iOS Settings style): small tinted symbol tile, title, value, red count badge, accessory (disclosure, external, checkmark, none), destructive role; one button with the system row highlight, value under the title at accessibility sizes. `PassYSettingsRowLabel` is the same content for `Picker`/`Menu` labels. Navigation stays with the coordinators (the row sends the processor action). |
 | `PassYToggleRow` | Settings switch: optional tile, title, explanation, system `Toggle` (identifier on the toggle). |
 | `PassYValueRow` | Read-only `LabeledContent` row (optional tile, selectable value). |
@@ -261,20 +264,30 @@ the performance boundary) and `VaultItemIconTile`; Send and folder rows use `Pas
 #### Customize (on-device layout preferences)
 
 [Customize/](../BitwardenShared/UI/Platform/Customize) holds the user's layout choices of this device:
-`PassYLayoutPreferences` (Codable, `version`, lenient field-by-field decoding; tiles keyed by
-`VaultListGroup.tileIdentifier`, sections by vault list section id; no vault data) stored in `AppSettingsStore`
-(`passYLayoutPreferences`, app group defaults, never synced). The defaults are "no override", so they draw today's look.
-`PassYLayoutStore` (`@Observable`, `shared`) exposes three slices (home, rows, codes) that invalidate independently.
-Every page is its own hosting controller, so list pages apply them with `passYLayoutEnvironment()` (vault home, group
-pages, their search results); rows read only small environment values: `passYRowOptions` (`PassYRow`, `PassYCodeRow`:
-density, subtitle, icon), `passYBadgeOptions` (vault row badges), `passYTileColors` (`PassYIconTile`, home tiles),
-`passYCodeOptions` (digit grouping, countdown ring / seconds), `passYHomeLayout` (the home only, part of its
-`EquatableContent` key). `PassYHomeArrangement` applies order and visibility; hidden tiles and the rows of hidden
-Folders / Shared folders sections move to a collapsible "More" section, so nothing becomes unreachable. Sections marked
+`PassYLayoutPreferences` (Codable, `version` 2, lenient field-by-field decoding; home elements keyed by
+`passYHomeElementId`: the type tiles' `VaultListGroup.tileIdentifier`, `folder:<id>`, `noFolder`; sections by vault list
+section id; no vault data but folder ids) stored in `AppSettingsStore` (`passYLayoutPreferences`, app group defaults,
+never synced). The defaults are "no override", so they draw today's look. `PassYLayoutStore` (`@Observable`, `shared`)
+exposes three slices (home, rows, codes) that invalidate independently. Every page is its own hosting controller, so
+list pages apply them with `passYLayoutEnvironment()` (vault home, group pages, their search results); rows read only
+small environment values: `passYRowOptions` (`PassYRow`, `PassYCodeRow`: subtitle, icon), `passYBadgeOptions` (vault
+row badges), `passYCodeOptions` (digit grouping; countdown ring / seconds stay in the model for the code rows but have
+no switch since version 2); the home slice is part of the home's `EquatableContent` key. Nothing disappears from the
+home: every element is a card or a folder row (`tileRows`: type tiles shown as rows, `folderCards`: folders shown as
+cards). `PassYHomeArrangement` builds the cards (types and folder cards in the user's order), a "Types" section
+(`PassYTypes`) for the type rows, the folder rows without the folder cards and a "More" section only for the rows of
+hidden Types / Folders / Shared folders sections; unknown folder ids are ignored. Cards are drawn by `CategoryTilesView`
+in "Bunt" (tinted symbol tile) or "Vollfarbig" (`filledCardColor`, white content at 4.5:1 or more, unit-tested). A card is a
+`Menu` with a primary action: a tap opens it, a long press opens its native menu from the card (move to front /
+earlier / later / to end, Show as Folder Row, Customize…); a `contextMenu` per card does not work because all cards
+share one list row and a list row has one context menu. Type and folder rows have a context menu with Show as Card and
+Customize… (group rows have no inner row menu). Sections marked
 "collapsed when opened" are added to the persisted chevron state when the home stream starts. `CustomizeView` (plain
-grouped `List`, live preview, `onMove` in `EditMode`, Reset) is pushed in the Settings stack from Settings and from the
-avatar menu ("Customize home…"); its website icons switch is the existing `StateService` setting. DEBUG only:
-`-PassYLayoutPreset default|wide|list|minimal` seeds a configuration for screenshots.
+grouped `List`, live preview, card switches for every type and top-level folder with `onMove` in `EditMode`, Reset;
+folders read through `PassYCustomizeFolders` while the screen is shown) is pushed in the Settings stack from Settings
+(its own first section) and from the home menus ("Customize…"); its website icons switch is the existing
+`StateService` setting. DEBUG only: `-PassYLayoutPreset default|filled|rows|minimal` seeds a configuration for
+screenshots.
 
 #### Pass-Y diagnostics (DEBUG only)
 

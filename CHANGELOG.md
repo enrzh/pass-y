@@ -18,12 +18,27 @@ Not tagged and not version-bumped yet; no validator verdict yet.
   button 44 pt like the neighbouring glass buttons.
 - Toasts: Liquid Glass capsule with an SF Symbol (copied / success / failure), snappy transition, haptic feedback,
   dismiss after about 3 s.
-- Customize ("Anpassen", Settings and avatar menu "Customize home…"): per device, not synced. Home: show/hide,
-  reorder (drag) and layout of the tiles (cards, wide cards, compact list); show/hide, order and "collapsed when
-  opened" of Favorites, folders, No Folder and shared folders; hidden entries stay reachable under "More" at the end of
-  the home. Rows: density, user names, icons (website icons: the existing switch), favourite / shared / attachment
-  marks, colourful or monochrome tiles. Verification codes: digit grouping, countdown ring and seconds. Live preview and
-  Reset to defaults; the defaults are the previous look.
+- Customize ("Anpassen", from Settings): per device, not synced. Home: cards and folder rows (see round 2 below);
+  show/hide, order and "collapsed when opened" of the sections; rows of hidden sections stay reachable under "More" at
+  the end of the home. Rows: user names, icons (website icons: the existing switch), favourite / shared / attachment
+  marks. Verification codes: digit grouping. Live preview and Reset to defaults; the defaults are the previous look.
+- Customize, home round 2: long press on a home card opens its native menu from the card (Move to Front /
+  Earlier / Later / to End, Show as Folder Row, Customize…); type and folder rows offer Show as Card and Customize…;
+  the avatar menu has no Customize entry any more and Settings lists "Anpassen" first, above Kontosicherheit. Nothing
+  disappears: every type and folder is a card or a folder row (types switched off are rows of a "Types" section,
+  folders switched on are cards that open the folder, ordered with the other cards). Cards only (tile layouts
+  removed), comfortable rows only (density removed), card colours "Bunt" or "Vollfarbig" (the whole card in a deep
+  type colour, white content at 4.5:1 or more; monochrome removed). The countdown ring / seconds switches left
+  Customize; digit grouping explains itself (123 456 / 123456). Preferences version 2: hidden tiles of version 1
+  become rows, removed options are ignored, the countdown is switched back on.
+- Verification codes: one shared countdown ring for the page (beside the large title, in the bar once the title has
+  collapsed) instead of a ring per row; rows get that width back; codes with another period (e.g. 60 s) keep a small
+  ring of their own. VoiceOver reads "noch N Sekunden".
+- "In Ordner verschieben" (Move to folder) in every item menu (long press, swipe "More", the item view's "…"): "Kein
+  Ordner", the folders with a checkmark on the current one, "Neuer Ordner…"; not offered for items in the trash, items
+  the user may not edit or that failed to decrypt, and in the autofill/extension lists.
+- Website icons that are a dark logo on transparency (e.g. chatgpt.com) sit on a white tile, so they stay visible in
+  dark mode.
 - New logo (solid shield with a Y knocked out) and an Icon Composer app icon (`PassY.icon`, light / dark / tinted).
 - Minimum iOS 26 (deployment target and Info.plist).
 - Unlock: the vault list is warmed up (decrypted off the main actor) while the shell is built, and the unlock waits up

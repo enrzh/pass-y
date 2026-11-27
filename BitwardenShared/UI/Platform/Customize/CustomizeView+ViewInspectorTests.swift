@@ -29,6 +29,7 @@ class CustomizeViewTests: BitwardenTestCase {
         subject = CustomizeView(
             layout: layout,
             webIcons: PassYWebIconsSetting(isOn: true, read: { true }, write: { [weak self] in self?.storedWebIcons.append($0) }),
+            folders: PassYCustomizeFolders(elements: [.init(id: "folder:f1", name: "Work")]),
         )
     }
 
@@ -41,25 +42,36 @@ class CustomizeViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// Every tile has a show/hide switch; switching one off hides it from the home (and persists it).
+    /// Every type and folder has a card switch: off turns a type into a folder row, on turns a folder into a card
+    /// (and persists it).
     @MainActor
-    func test_tileToggle_hidesTile() throws {
-        for id in PassYLayoutPreferences.knownTiles {
+    func test_cardToggles_switchTypesAndFolders() throws {
+        for id in PassYLayoutPreferences.knownTiles + ["folder:f1"] {
             XCTAssertNoThrow(try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileToggle_\(id)"))
         }
-        let toggle = try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileToggle_sshKey").toggle()
-        try toggle.tap()
-        XCTAssertEqual(layout.home.hiddenTiles, ["sshKey"])
-        XCTAssertEqual(appSettingsStore.passYLayoutPreferences?.home.hiddenTiles, ["sshKey"])
+        let sshKey = try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileToggle_sshKey").toggle()
+        XCTAssertTrue(try sshKey.isOn())
+        try sshKey.tap()
+        XCTAssertEqual(layout.home.tileRows, ["sshKey"])
+        XCTAssertEqual(appSettingsStore.passYLayoutPreferences?.home.tileRows, ["sshKey"])
+        let folder = try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileToggle_folder:f1").toggle()
+        XCTAssertFalse(try folder.isOn())
+        try folder.tap()
+        XCTAssertEqual(layout.home.folderCards, ["folder:f1"])
     }
 
-    /// Dragging a tile (onMove) stores the new order.
+    /// Dragging an element (onMove) stores the new order, folders included.
     @MainActor
-    func test_tiles_onMove_reorders() throws {
-        let tiles = try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileToggle_totp")
+    func test_elements_onMove_reorders() throws {
+        let elements = try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileToggle_totp")
             .find(ViewType.ForEach.self, relation: .parent)
-        try tiles.callOnMove(IndexSet(integer: 0), 2)
+        try elements.callOnMove(IndexSet(integer: 0), 2)
         XCTAssertEqual(Array(layout.preferences.orderedTiles.prefix(2)), ["login", "totp"])
+        let last = PassYLayoutPreferences.knownTiles.count
+        try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileToggle_totp")
+            .find(ViewType.ForEach.self, relation: .parent)
+            .callOnMove(IndexSet(integer: last), 0)
+        XCTAssertEqual(layout.preferences.orderedElements(folders: ["folder:f1"]).first, "folder:f1")
     }
 
     /// Sections: show/hide, collapsed when opened, order.
@@ -71,22 +83,20 @@ class CustomizeViewTests: BitwardenTestCase {
         XCTAssertEqual(layout.home.collapsedSections, ["Folders"])
         let sections = try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeSectionToggle_NoFolder")
             .find(ViewType.ForEach.self, relation: .parent)
-        try sections.callOnMove(IndexSet(integer: 2), 0)
+        try sections.callOnMove(IndexSet(integer: 3), 0)
         XCTAssertEqual(layout.preferences.orderedSections.first, "NoFolder")
     }
 
-    /// The tile layout, density and tile colour pickers.
+    /// The card colours picker (Colorful / Filled); no layout or density option any more.
     @MainActor
-    func test_pickers() throws {
-        try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileLayoutPicker").picker()
-            .select(value: PassYLayoutPreferences.TileLayout.list)
-        XCTAssertEqual(layout.home.tileLayout, .list)
-        try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeDensityPicker").picker()
-            .select(value: PassYLayoutPreferences.Density.compact)
-        XCTAssertEqual(layout.rows.density, .compact)
-        try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeTileColorsPicker").picker()
-            .select(value: PassYLayoutPreferences.TileColors.monochrome)
-        XCTAssertEqual(layout.rows.tileColors, .monochrome)
+    func test_cardColorsPicker() throws {
+        try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeCardColorsPicker").picker()
+            .select(value: PassYLayoutPreferences.CardColors.filled)
+        XCTAssertEqual(layout.home.cardColors, .filled)
+        for removed in ["CustomizeTileLayoutPicker", "CustomizeDensityPicker", "CustomizeTileColorsPicker",
+                        "CustomizeCountdownRingToggle", "CustomizeCountdownSecondsToggle"] {
+            XCTAssertThrowsError(try subject.inspect().find(viewWithAccessibilityIdentifier: removed), removed)
+        }
     }
 
     /// The row and code switches.
@@ -99,8 +109,6 @@ class CustomizeViewTests: BitwardenTestCase {
             ("CustomizeSharedBadgeToggle", { $0.rows.showsSharedBadge }),
             ("CustomizeAttachmentBadgeToggle", { $0.rows.showsAttachmentBadge }),
             ("CustomizeGroupDigitsToggle", { $0.codes.groupsDigits }),
-            ("CustomizeCountdownRingToggle", { $0.codes.showsCountdownRing }),
-            ("CustomizeCountdownSecondsToggle", { $0.codes.showsCountdownSeconds }),
         ]
         for (identifier, value) in expectations {
             XCTAssertTrue(value(layout), identifier)
@@ -121,8 +129,8 @@ class CustomizeViewTests: BitwardenTestCase {
     @MainActor
     func test_reset() throws {
         XCTAssertTrue(try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeResetButton").isDisabled())
-        layout.home.hiddenTiles = ["trash"]
-        layout.rows.density = .compact
+        layout.home.tileRows = ["trash"]
+        layout.home.cardColors = .filled
         let button = try subject.inspect().find(viewWithAccessibilityIdentifier: "CustomizeResetButton").button()
         XCTAssertFalse(button.isDisabled())
         try button.tap()
@@ -130,7 +138,8 @@ class CustomizeViewTests: BitwardenTestCase {
         XCTAssertEqual(appSettingsStore.passYLayoutPreferences, .default)
     }
 
-    /// The Settings row and the avatar menu entry open Customize.
+    /// The Settings row opens Customize; the avatar menu has no Customize entry any more (the home's long-press
+    /// menus have it).
     @MainActor
     func test_entryPoints() throws {
         let processor = MockProcessor<SettingsState, SettingsAction, SettingsEffect>(state: SettingsState())
@@ -138,7 +147,6 @@ class CustomizeViewTests: BitwardenTestCase {
         try settings.inspect().find(button: Localizations.customize).tap()
         XCTAssertEqual(processor.dispatchedActions.last, .customizePressed)
 
-        var customized = false
         let model = PassYShellModel.shared
         model.profileMenu = PassYProfileMenuSource(
             activeProfile: nil,
@@ -148,10 +156,19 @@ class CustomizeViewTests: BitwardenTestCase {
             serverURL: "",
             showsPlaceholder: true,
             sync: {},
-            customize: { customized = true },
         )
-        try PassYAvatarMenu().inspect().find(button: Localizations.customizeHome).tap()
-        XCTAssertTrue(customized)
+        XCTAssertThrowsError(try PassYAvatarMenu().inspect().find(viewWithAccessibilityIdentifier: "ProfileMenuCustomizeButton"))
+        XCTAssertNoThrow(try PassYAvatarMenu().inspect().find(viewWithAccessibilityIdentifier: "ProfileMenuSyncButton"))
         model.profileMenu = nil
+    }
+
+    /// The folders reader loads the folders when the screen appears.
+    @MainActor
+    func test_folders_load() async {
+        let folders = PassYCustomizeFolders(read: { [.init(id: "folder:a", name: "A")] })
+        await folders.load()
+        XCTAssertEqual(folders.ids, ["folder:a"])
+        XCTAssertEqual(folders.name(of: "folder:a"), "A")
+        XCTAssertNil(folders.name(of: "folder:b"))
     }
 }

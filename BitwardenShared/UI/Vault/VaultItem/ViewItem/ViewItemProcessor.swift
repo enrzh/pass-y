@@ -19,6 +19,7 @@ final class ViewItemProcessor: StateProcessor<ViewItemState, ViewItemAction, Vie
         & HasEventService
         & HasPasteboardService
         & HasRehydrationHelper
+        & HasSettingsRepository
         & HasStateService
         & HasVaultRepository
 
@@ -154,6 +155,7 @@ final class ViewItemProcessor: StateProcessor<ViewItemState, ViewItemAction, Vie
             streamCipherDetailsTask = Task {
                 await streamCipherDetails()
             }
+            await loadFolders()
         case .checkPasswordPressed:
             do {
                 guard let password = state.loadingState.data?.cipher.login?.password else { return }
@@ -551,6 +553,14 @@ private extension ViewItemProcessor {
             coordinator.navigate(to: .editCollections(cipher), context: self)
         case .moveToOrganization:
             coordinator.navigate(to: .moveToOrganization(cipher), context: self)
+        case let .moveToFolder(folderId):
+            Task {
+                await moveToFolder(cipher, folderId: folderId)
+            }
+        case .moveToNewFolder:
+            coordinator.showAlert(.newFolderName { [weak self] name in
+                await self?.moveToNewFolder(cipher, name: name)
+            })
         case .restore:
             showRestoreItemConfirmation()
         }
@@ -694,10 +704,58 @@ private extension ViewItemProcessor {
                 // Carry over any toast, so that a toast shown in response to saving the item isn't
                 // cleared out from under the user by the cipher update that the save triggers.
                 newState.toast = state.toast
+                newState.folders = state.folders
                 state = newState
             }
         } catch {
             services.errorReporter.log(error: error)
+        }
+    }
+
+    /// Loads the user's folders ("Move to folder" of the "…" menu).
+    private func loadFolders() async {
+        do {
+            state.folders = try await services.vaultRepository.fetchFolders()
+        } catch {
+            services.errorReporter.log(error: error)
+        }
+    }
+
+    /// Moves the item into a folder (`nil`: no folder) and shows the "Moved to" toast.
+    ///
+    /// - Parameters:
+    ///   - cipher: The item.
+    ///   - folderId: The folder, `nil` for no folder.
+    ///
+    private func moveToFolder(_ cipher: CipherView, folderId: String?) async {
+        guard cipher.folderId != folderId else { return }
+        do {
+            try await services.vaultRepository.updateCipher(cipher.update(folderId: folderId))
+            let name = folderId.map { id in state.folders.first { $0.id == id }?.name ?? Localizations.folder }
+            state.toast = Toast(title: Localizations.movedToX(name ?? Localizations.folderNone))
+        } catch {
+            services.errorReporter.log(error: error)
+            coordinator.showAlert(.defaultAlert(title: Localizations.anErrorHasOccurred))
+        }
+    }
+
+    /// Creates a folder and moves the item into it ("New folder…").
+    ///
+    /// - Parameters:
+    ///   - cipher: The item.
+    ///   - name: The name of the new folder.
+    ///
+    private func moveToNewFolder(_ cipher: CipherView, name: String) async {
+        do {
+            let folder = try await services.settingsRepository.addFolder(name: name)
+            await loadFolders()
+            if !state.folders.contains(where: { $0.id == folder.id }) {
+                state.folders.append(folder)
+            }
+            await moveToFolder(cipher, folderId: folder.id)
+        } catch {
+            services.errorReporter.log(error: error)
+            coordinator.showAlert(.defaultAlert(title: Localizations.anErrorHasOccurred))
         }
     }
 

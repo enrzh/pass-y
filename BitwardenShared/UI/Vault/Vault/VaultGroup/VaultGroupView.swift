@@ -27,6 +27,9 @@ struct VaultGroupView: View {
     /// Whether the list itself is in edit mode (follows `isSelecting`, delayed when leaving).
     @SwiftUI.State private var listIsEditing = false
 
+    /// The folders and move handlers of the rows' "Move to folder" menus.
+    @SwiftUI.State private var folderMove = VaultFolderMove()
+
     // MARK: View
 
     var body: some View {
@@ -45,6 +48,14 @@ struct VaultGroupView: View {
             .navigationTitle(store.state.group.navigationTitle)
             .passYItemCountSubtitle(itemCountSubtitle)
             .navigationBarTitleDisplayMode(.large)
+            .vaultFolderMove(
+                folderMove,
+                folders: store.state.folders,
+                move: { [weak store] item, folderId in
+                    Task { await store?.perform(.moveItemToFolder(item, folderId: folderId)) }
+                },
+                moveToNewFolder: { [weak store] item in Task { await store?.perform(.moveItemToNewFolder(item)) } },
+            )
             // The page color of the shell (the floating bottom bar area shows it too: a different color here drew a seam).
             .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
             .task {
@@ -172,6 +183,8 @@ struct VaultGroupView: View {
             }
         }
             .readableContentWidth(760)
+            // The verification codes page has one shared countdown ring (rows with its period show none).
+            .environment(\.passYSharedCountdownPeriod, sharedCodePeriod)
             // One countdown clock for all code rows of the page (verification codes and their search results).
             .passYCountdownClock(timeProvider: timeProvider, isActive: store.state.group == .totp)
             .onChange(of: store.state.url) { newValue in
@@ -313,6 +326,23 @@ struct VaultGroupView: View {
             }
         }
         .passYSelectEditMode(isSelecting: isSelecting, listIsEditing: $listIsEditing)
+        .passYSharedCountdown(
+            period: sharedCodePeriod,
+            subtitle: itemCountSubtitle,
+            isCompact: store.state.isSearching,
+        )
+    }
+
+    /// The period of the verification codes page's shared countdown ring: the one most codes use (30 s until the
+    /// codes are loaded), `nil` on other pages and on an empty codes page.
+    private var sharedCodePeriod: Int? {
+        guard store.state.group == .totp else { return nil }
+        if case .data([]) = store.state.loadingState { return nil }
+        let periods = allItems.compactMap { item -> Int? in
+            guard case let .totp(_, model) = item.itemType else { return nil }
+            return Int(model.totpCode.period)
+        }
+        return PassYSharedCountdown.dominantPeriod(periods)
     }
 
     /// A list row for the item with its selection tag and swipe actions (Delete, More menu).

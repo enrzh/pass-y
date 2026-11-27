@@ -109,6 +109,8 @@ struct ViewItemView: View {
                     isMoveToOrganizationEnabled: isMoveToOrganizationEnabled,
                     isRestoreEnabled: isRestoredEnabled,
                     isUnarchiveEnabled: isUnarchiveEnabled,
+                    moveFolders: store.state.canMoveToFolder ? store.state.folders : nil,
+                    currentFolderId: store.state.loadingState.data?.cipher.folderId,
                     store: store.child(
                         state: { _ in },
                         mapAction: { .morePressed($0) },

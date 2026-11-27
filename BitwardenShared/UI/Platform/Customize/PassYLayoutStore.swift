@@ -10,7 +10,7 @@ import SwiftUI
 ///
 /// Pages are separate hosting controllers (there is no single SwiftUI root), so every list page applies the
 /// preferences with `passYLayoutEnvironment()`; rows then read only the small value they need from the environment
-/// (`passYRowOptions`, `passYTileColors`, `passYCodeOptions`); the vault home reads the home slice from the store itself.
+/// (`passYRowOptions`, `passYBadgeOptions`, `passYCodeOptions`); the vault home reads the home slice from the store itself.
 ///
 @MainActor
 @Observable
@@ -93,7 +93,7 @@ final class PassYLayoutStore {
 
     #if DEBUG
     /// UI tests and screenshots: `-PassYLayoutPreset <name>` sets a known configuration at launch (`default`,
-    /// `wide`, `list`, `minimal`).
+    /// `filled`, `rows`, `minimal`).
     func applyLaunchPreset(_ arguments: [String]) {
         guard let index = arguments.firstIndex(of: "-PassYLayoutPreset"), arguments.indices.contains(index + 1),
               let preset = PassYLayoutPreferences.preset(named: arguments[index + 1]) else { return }
@@ -110,16 +110,14 @@ extension PassYLayoutPreferences {
         switch name {
         case "default":
             break
-        case "wide":
-            preferences.home.tileLayout = .wide
-            preferences.home.hiddenTiles = ["archive", "trash"]
-            preferences.rows.tileColors = .monochrome
-        case "list":
-            preferences.home.tileLayout = .list
+        case "filled":
+            preferences.home.cardColors = .filled
+        case "rows":
+            // Archive and Trash as folder rows, the cards in another order.
+            preferences.home.tileRows = ["archive", "trash"]
             preferences.home.tileOrder = ["login", "totp", "card", "identity", "secureNote", "sshKey"]
-            preferences.rows.density = .compact
         case "minimal":
-            preferences.home.hiddenTiles = ["card", "identity", "driversLicense", "passport", "sshKey", "bankAccount"]
+            preferences.home.tileRows = ["card", "identity", "driversLicense", "passport", "sshKey", "bankAccount"]
             preferences.home.hiddenSections = ["Favorites"]
             preferences.rows.showsSubtitle = false
             preferences.rows.showsIcon = false
@@ -135,24 +133,17 @@ extension PassYLayoutPreferences {
 
 /// The row options of a list page (`PassYRow`, `PassYCodeRow`).
 struct PassYRowOptions: Equatable, Sendable {
-    /// The row density.
-    var density: PassYLayoutPreferences.Density = .comfortable
-
     /// Whether subtitles are shown.
     var showsSubtitle = true
 
     /// Whether the leading icon tile is shown.
     var showsIcon = true
 
-    /// The minimum height of a row.
-    var minHeight: CGFloat {
-        density == .compact ? 44 : PassYDesign.Row.minHeight
-    }
+    /// The minimum height of a row (one comfortable density since version 2 of the preferences).
+    var minHeight: CGFloat { PassYDesign.Row.minHeight }
 
     /// The vertical padding of a row's content.
-    var verticalPadding: CGFloat {
-        density == .compact ? PassYDesign.Spacing.xSmall : PassYDesign.Row.verticalPadding
-    }
+    var verticalPadding: CGFloat { PassYDesign.Row.verticalPadding }
 }
 
 /// The badges a vault row shows.
@@ -175,9 +166,6 @@ extension EnvironmentValues {
 
     /// The badge options of the page.
     @Entry var passYBadgeOptions = PassYBadgeOptions()
-
-    /// The icon tile colours of the page.
-    @Entry var passYTileColors: PassYLayoutPreferences.TileColors = .colorful
 
     /// The code options of the page.
     @Entry var passYCodeOptions = PassYCodeOptions()
@@ -202,7 +190,6 @@ private struct PassYLayoutEnvironmentModifier: ViewModifier {
         let codes = store.codes
         content
             .environment(\.passYRowOptions, PassYRowOptions(
-                density: rows.density,
                 showsSubtitle: rows.showsSubtitle,
                 showsIcon: rows.showsIcon,
             ))
@@ -211,7 +198,6 @@ private struct PassYLayoutEnvironmentModifier: ViewModifier {
                 shared: rows.showsSharedBadge,
                 attachments: rows.showsAttachmentBadge,
             ))
-            .environment(\.passYTileColors, rows.tileColors)
             .environment(\.passYCodeOptions, PassYCodeOptions(
                 groupsDigits: codes.groupsDigits,
                 showsRing: codes.showsCountdownRing,
