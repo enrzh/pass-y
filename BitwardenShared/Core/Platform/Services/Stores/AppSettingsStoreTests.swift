@@ -1389,6 +1389,26 @@ class AppSettingsStoreTests: BitwardenTestCase { // swiftlint:disable:this type_
         XCTAssertFalse(userDefaults.bool(forKey: "bwPreferencesStorage:usesKeyConnector_2"))
     }
 
+    /// `passYLayoutCloudSyncEnabled` is off by default and persisted in user defaults.
+    func test_passYLayoutCloudSyncEnabled() {
+        XCTAssertFalse(subject.passYLayoutCloudSyncEnabled)
+        subject.passYLayoutCloudSyncEnabled = true
+        XCTAssertTrue(subject.passYLayoutCloudSyncEnabled)
+        XCTAssertTrue(userDefaults.bool(forKey: "bwPreferencesStorage:passYLayoutCloudSyncEnabled"))
+        subject.passYLayoutCloudSyncEnabled = false
+        XCTAssertFalse(subject.passYLayoutCloudSyncEnabled)
+    }
+
+    /// `passYLayoutModifiedAt` persists the exact date.
+    func test_passYLayoutModifiedAt() {
+        XCTAssertNil(subject.passYLayoutModifiedAt)
+        let date = Date(timeIntervalSinceReferenceDate: 817_000_000.123456)
+        subject.passYLayoutModifiedAt = date
+        XCTAssertEqual(subject.passYLayoutModifiedAt, date)
+        subject.passYLayoutModifiedAt = nil
+        XCTAssertNil(subject.passYLayoutModifiedAt)
+    }
+
     /// `rememberedOrgIdentifier` returns `nil` if there isn't a previously stored value.
     func test_rememberedOrgIdentifier_isInitiallyNil() {
         XCTAssertNil(subject.rememberedOrgIdentifier)

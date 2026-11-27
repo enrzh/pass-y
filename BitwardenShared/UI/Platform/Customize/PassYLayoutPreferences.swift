@@ -2,10 +2,11 @@ import Foundation
 
 // MARK: - PassYLayoutPreferences
 
-/// The on-device layout preferences of Pass-Y ("Customize"): what the vault home shows as cards and as folder rows and
+/// The layout preferences of Pass-Y ("Customize"): what the vault home shows as cards and as folder rows and
 /// in which order, how list rows look and how verification codes are drawn. Stored per device in the app settings
 /// (`AppSettingsStore`), never synced to the server and never containing vault data: only fixed element and section
-/// identifiers (folders by their id), enums and flags.
+/// identifiers (folders by their id), enums and flags. Only if the user switches it on, they are mirrored into the
+/// user's iCloud key-value store (`PassYLayoutCloudSync`).
 ///
 /// The defaults are "no override" (empty orders, type tiles as cards, folders as rows), so the default preferences
 /// draw exactly the look of the app without them. Orders and sets are keyed by stable identifiers

@@ -38,6 +38,21 @@ class PassYAppHygieneTests: BitwardenTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("BitwardenWatchShared").path))
     }
 
+    /// The iCloud key-value entitlement (layout sync) belongs to the main app only.
+    func test_iCloudKeyValueEntitlement_mainAppOnly() throws {
+        let key = "com.apple.developer.ubiquity-kvstore-identifier"
+        let app = try read("Bitwarden/Application/Support/Bitwarden.entitlements")
+        XCTAssertTrue(app.contains("<key>\(key)</key>\n\t<string>$(TeamIdentifierPrefix)$(BASE_BUNDLE_ID)</string>"))
+        for path in [
+            "BitwardenActionExtension/Application/Support/BitwardenActionExtension.entitlements",
+            "BitwardenAutoFillExtension/Application/Support/BitwardenAutoFill.entitlements",
+            "BitwardenNotificationExtension/Application/Support/BitwardenNotificationExtension.entitlements",
+            "BitwardenShareExtension/Application/Support/BitwardenShareExtension.entitlements",
+        ] {
+            XCTAssertFalse(try read(path).contains(key), path)
+        }
+    }
+
     /// The diagnostics (perf signposts and counters, animation dump, navigation probe) live in one folder and exist only
     /// in DEBUG builds: every file is one `#if DEBUG` block without an `#else` (no release stubs, no release symbols).
     func test_diagnostics_onlyInDebug() throws {

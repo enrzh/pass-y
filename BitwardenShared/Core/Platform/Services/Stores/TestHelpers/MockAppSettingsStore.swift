@@ -36,6 +36,8 @@ class MockAppSettingsStore: AppSettingsStore { // swiftlint:disable:this type_bo
     var preAuthServerConfig: ServerConfig?
     var rememberedEmail: String?
     var rememberedOrgIdentifier: String?
+    var passYLayoutCloudSyncEnabled = false
+    var passYLayoutModifiedAt: Date?
     var passYLayoutPreferences: PassYLayoutPreferences?
     var reviewPromptData: BitwardenShared.ReviewPromptData?
 

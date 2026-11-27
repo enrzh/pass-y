@@ -76,6 +76,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         #endif
 
         UNUserNotificationCenter.current().delegate = self
+        // Pass-Y "Sync layout with iCloud" runs in the main app only (does nothing unless switched on).
+        PassYLayoutCloudSync.shared.start()
 
         let services = ServiceContainer.shared(
             application: UIApplication.shared,

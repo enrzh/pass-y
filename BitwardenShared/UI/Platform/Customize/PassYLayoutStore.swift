@@ -19,16 +19,19 @@ final class PassYLayoutStore {
 
     /// The store of the app (the app group settings, like the rest of the app settings).
     static let shared: PassYLayoutStore = {
-        let store = PassYLayoutStore(
-            appSettingsStore: DefaultAppSettingsStore(
-                userDefaults: UserDefaults(suiteName: Bundle.main.groupIdentifier) ?? .standard,
-            ),
-        )
+        let store = PassYLayoutStore(appSettingsStore: appGroupSettingsStore())
         #if DEBUG
         store.applyLaunchPreset(ProcessInfo.processInfo.arguments)
         #endif
         return store
     }()
+
+    /// The app settings in the app group.
+    static func appGroupSettingsStore() -> DefaultAppSettingsStore {
+        DefaultAppSettingsStore(
+            userDefaults: UserDefaults(suiteName: Bundle.main.groupIdentifier) ?? .standard,
+        )
+    }
 
     // MARK: Properties
 
@@ -46,6 +49,9 @@ final class PassYLayoutStore {
     var codes: PassYLayoutPreferences.Codes {
         didSet { if codes != oldValue { save() } }
     }
+
+    /// Called after a change was written (the iCloud mirror, `PassYLayoutCloudSync`).
+    @ObservationIgnored var onChange: (() -> Void)?
 
     /// Where the preferences are stored.
     @ObservationIgnored private let appSettingsStore: (any AppSettingsStore)?
@@ -89,6 +95,7 @@ final class PassYLayoutStore {
     /// Writes the current preferences.
     private func save() {
         appSettingsStore?.passYLayoutPreferences = preferences
+        onChange?()
     }
 
     #if DEBUG
