@@ -7,6 +7,7 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 ## v1.28.0 (2026-11-27) - Apple polish round, App Review preparation
 Version 1.28.0 (build 2), first App Review submission; not tagged yet, no validator verdict yet.
 
+- Share sheet: "Autofill with Pass-Y" shows the shield as a plain template glyph instead of the app icon.
 - App Review preparation: About opens Pass-Y's privacy policy (PRIVACY.md) directly; help and every "learn more",
   terms and help link open SUPPORT.md; new rows Contact support (support@aiity.de, copies the address without a mail
   app), Source code and Licenses (GPLv3 notice, "Based on Bitwarden iOS", full GPL text, notices of the Bitwarden SDK,
