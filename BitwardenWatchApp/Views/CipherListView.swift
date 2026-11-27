@@ -75,8 +75,10 @@ struct CipherListView: View {
                 .foregroundColor(.white)
                 .frame(width: .infinity, height: 33)
                 .placeholder(when: viewModel.searchTerm.isEmpty) {
-                    Text("Search").foregroundColor(.white)
+                    // "Search" is a key of the watch app's Localizable.strings.
+                    Text(LocalizedStringKey("Search")).foregroundColor(.white)
                 }
+                .accessibilityLabel(Text(LocalizedStringKey("Search")))
         }
     }
 
