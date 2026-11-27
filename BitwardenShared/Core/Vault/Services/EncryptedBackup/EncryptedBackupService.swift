@@ -236,9 +236,10 @@ actor DefaultEncryptedBackupService: EncryptedBackupService {
     }
 
     func disable(userId: String) async throws {
+        // The password first: if the keychain fails, the backup stays visibly on instead of leaving an orphan.
+        try await passwordStore.deletePassword(userId: userId)
         appSettingsStore.setEncryptedBackupSettings(nil, userId: userId)
         statusSubject.send(userId)
-        try await passwordStore.deletePassword(userId: userId)
     }
 
     func enable(password: String, folderURL: URL, userId: String) async throws {
