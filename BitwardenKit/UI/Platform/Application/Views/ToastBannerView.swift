@@ -27,43 +27,50 @@ struct ToastBannerView<ButtonContent: View>: View {
     var body: some View {
         if isVisible {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "record.circle")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.red)
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(title)
-                            .styleGuide(
-                                .headline,
-                                weight: .semibold,
-                                includeLinePadding: false,
-                                includeLineSpacing: false,
-                            )
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
                         Text(subtitle)
-                            .styleGuide(.callout)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
-                    .foregroundStyle(SharedAsset.Colors.textReversed.swiftUIColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     Button {
                         isVisible = false
                     } label: {
-                        Image(asset: SharedAsset.Icons.close16, label: Text(Localizations.close))
-                            .imageStyle(.accessoryIcon16(color: SharedAsset.Colors.iconReversed.swiftUIColor))
-                            .padding(16) // Add padding to increase tappable area...
+                        Image(systemName: "xmark")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
-                    .padding(-16) // ...but remove it to not affect layout.
+                    .accessibilityLabel(Localizations.close)
+                    .padding(-12) // Keeps the 44 pt tap area without growing the banner.
                 }
 
                 buttonContent
-                    .buttonStyle(.secondary(isReversed: true, shouldFillWidth: false, size: .small))
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .font(.footnote.weight(.semibold))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 16)
-            .background(SharedAsset.Colors.backgroundAlert.swiftUIColor)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 4)
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
+            .glassEffect(.regular, in: .rect(cornerRadius: 24))
+            .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+            .frame(maxWidth: 440)
+            .frame(maxWidth: .infinity)
             .accessibilityIdentifier("ToastElement")
             .accessibilityElement(children: .combine)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 16)
         }
     }
 
