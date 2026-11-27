@@ -6,6 +6,12 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 
 ## Unreleased
 
+- Settings, under "Anpassen": "Layout in iCloud sichern" (Sync layout with iCloud), off by default. Mirrors only the
+  Customize layout preferences (home, rows, codes; no passwords, vault items or account data; the website icons switch
+  is not part of it) into the user's iCloud key-value store. Switching it on applies a layout already in iCloud,
+  otherwise uploads this device's; afterwards the newer change wins. The app needs the iCloud key-value storage
+  capability on its App ID (main app only). Not yet verified on a device or between two devices.
+
 ## v1.28.0 (2026-11-24) - Apple polish round
 Not tagged and not version-bumped yet; no validator verdict yet.
 

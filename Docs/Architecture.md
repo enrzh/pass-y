@@ -267,7 +267,10 @@ the performance boundary) and `VaultItemIconTile`; Send and folder rows use `Pas
 `PassYLayoutPreferences` (Codable, `version` 2, lenient field-by-field decoding; home elements keyed by
 `passYHomeElementId`: the type tiles' `VaultListGroup.tileIdentifier`, `folder:<id>`, `noFolder`; sections by vault list
 section id; no vault data but folder ids) stored in `AppSettingsStore` (`passYLayoutPreferences`, app group defaults,
-never synced). The defaults are "no override", so they draw today's look. `PassYLayoutStore` (`@Observable`, `shared`)
+never synced to the server). `PassYLayoutCloudSync` optionally mirrors them into the user's iCloud key-value store
+(Settings, "Sync layout with iCloud": off by default, per device, main app only, who wins is documented on the type;
+entitlement `com.apple.developer.ubiquity-kvstore-identifier` on the app target only). The defaults are
+"no override", so they draw today's look. `PassYLayoutStore` (`@Observable`, `shared`)
 exposes three slices (home, rows, codes) that invalidate independently. Every page is its own hosting controller, so
 list pages apply them with `passYLayoutEnvironment()` (vault home, group pages, their search results); rows read only
 small environment values: `passYRowOptions` (`PassYRow`, `PassYCodeRow`: subtitle, icon), `passYBadgeOptions` (vault

@@ -25,6 +25,9 @@ enum SettingsAction: Equatable {
     /// The close button was tapped.
     case dismiss
 
+    /// The "Sync layout with iCloud" switch was changed.
+    case layoutCloudSyncChanged(Bool)
+
     /// The "Learn more" button on the Upgraded to Premium action card was tapped.
     case learnMoreAboutPremium
 

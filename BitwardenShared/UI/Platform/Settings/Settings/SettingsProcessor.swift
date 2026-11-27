@@ -42,6 +42,9 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
     /// A delegate of the processor that is notified when the settings tab badge needs to be updated.
     private weak var delegate: SettingsProcessorDelegate?
 
+    /// The "Sync layout with iCloud" setting.
+    private let layoutCloudSync: any PassYLayoutCloudSyncing
+
     /// The helper used to navigate to the Premium upgrade flow.
     lazy var premiumUpgradeHelper: PremiumUpgradeHelper = DefaultPremiumUpgradeHelper(
         services: services,
@@ -60,19 +63,23 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
     ///   - coordinator: The `Coordinator` that handles navigation.
     ///   - delegate: A delegate of the processor that is notified when the settings tab badge needs
     ///     to be updated.
+    ///   - layoutCloudSync: The "Sync layout with iCloud" setting (`nil`: the app's).
     ///   - services: The services used by the processor.
     ///   - state: The initial state of the processor.
     ///
     init(
         coordinator: AnyCoordinator<SettingsRoute, SettingsEvent>,
         delegate: SettingsProcessorDelegate,
+        layoutCloudSync: (any PassYLayoutCloudSyncing)? = nil,
         services: Services,
         state: SettingsState,
     ) {
         self.coordinator = coordinator
         self.delegate = delegate
+        self.layoutCloudSync = layoutCloudSync ?? PassYLayoutCloudSync.shared
         self.services = services
         super.init(state: state)
+        self.state.isLayoutCloudSyncEnabled = self.layoutCloudSync.isEnabled
 
         // Kick off this task in init so that the tab bar badge will be updated immediately when
         // the tab bar is shown vs once the user navigates to the settings tab. Badge updates
@@ -157,6 +164,9 @@ final class SettingsProcessor: StateProcessor<SettingsState, SettingsAction, Set
             state.url = nil
         case .dismiss:
             coordinator.navigate(to: .dismiss())
+        case let .layoutCloudSyncChanged(isOn):
+            layoutCloudSync.setEnabled(isOn)
+            state.isLayoutCloudSyncEnabled = layoutCloudSync.isEnabled
         case .learnMoreAboutPremium:
             state.url = ExternalLinksConstants.learnMoreAboutPremium
             state.shouldShowUpgradedToPremiumActionCard = false

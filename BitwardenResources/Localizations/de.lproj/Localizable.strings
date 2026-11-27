@@ -1311,7 +1311,7 @@
 /* Title of the Pass-Y Customize screen (on-device layout preferences). */
 "Customize" = "Anpassen";
 /* Footer of the Customize preview. */
-"CustomizeDescription" = "Änderungen gelten nur für dieses Gerät und werden nicht synchronisiert.";
+"CustomizeDescription" = "Änderungen werden auf diesem Gerät gespeichert. Um sie auch in iCloud zu sichern, aktiviere in den Einstellungen „Layout in iCloud sichern“.";
 /* Customize: section title for the vault home. */
 "HomeScreen" = "Startseite";
 /* Customize: footer of the card / folder row switches. */
@@ -1382,3 +1382,7 @@
 "NewFolderEllipsis" = "Neuer Ordner…";
 /* Toast after an item was moved into a folder. */
 "MovedToX" = "Verschoben nach „%1$@“";
+/* Settings: switch that mirrors the Customize layout into iCloud. */
+"SyncLayoutWithICloud" = "Layout in iCloud sichern";
+/* Settings: footer of the iCloud layout switch. */
+"SyncLayoutWithICloudDescription" = "Speichert nur deine Anpassen-Einstellungen und das Layout der Tresor-Seite in deiner iCloud, damit andere Geräte und eine Neuinstallation sie übernehmen. Ein Layout, das schon in iCloud liegt, ersetzt das auf diesem Gerät. Passwörter, Tresor-Einträge und Kontodaten werden nie in iCloud hochgeladen.";

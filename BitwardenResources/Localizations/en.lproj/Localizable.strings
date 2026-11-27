@@ -1293,7 +1293,7 @@
 /* Title of the Pass-Y Customize screen (on-device layout preferences). */
 "Customize" = "Customize";
 /* Footer of the Customize preview. */
-"CustomizeDescription" = "Changes apply to this device only and are not synced.";
+"CustomizeDescription" = "Changes are saved on this device. To keep them in iCloud too, turn on “Sync layout with iCloud” in Settings.";
 /* Customize: section title for the vault home. */
 "HomeScreen" = "Home screen";
 /* Customize: footer of the card / folder row switches. */
@@ -1364,3 +1364,7 @@
 "NewFolderEllipsis" = "New folder…";
 /* Toast after an item was moved into a folder. */
 "MovedToX" = "Moved to %1$@";
+/* Settings: switch that mirrors the Customize layout into iCloud. */
+"SyncLayoutWithICloud" = "Sync layout with iCloud";
+/* Settings: footer of the iCloud layout switch. */
+"SyncLayoutWithICloudDescription" = "Saves only your Customize settings and the layout of the vault page in your iCloud, so your other devices and a reinstall get them. A layout already in iCloud replaces the one on this device. Passwords, vault items and account data are never uploaded to iCloud.";

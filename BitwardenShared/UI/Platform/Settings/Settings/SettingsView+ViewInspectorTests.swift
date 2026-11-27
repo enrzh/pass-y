@@ -75,6 +75,22 @@ class SettingsViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .dismiss)
     }
 
+    /// The iCloud layout switch has its description and dispatches `.layoutCloudSyncChanged`.
+    @MainActor
+    func test_layoutCloudSyncToggle() throws {
+        XCTAssertNoThrow(try subject.inspect().find(text: Localizations.syncLayoutWithICloud))
+        XCTAssertNoThrow(try subject.inspect().find(text: Localizations.syncLayoutWithICloudDescription))
+        try subject.inspect().find(viewWithAccessibilityIdentifier: "LayoutCloudSyncToggle").toggle().tap()
+        XCTAssertEqual(processor.dispatchedActions.last, .layoutCloudSyncChanged(true))
+    }
+
+    /// The iCloud layout switch is not offered before the login.
+    @MainActor
+    func test_layoutCloudSyncToggle_preLogin() throws {
+        processor.state.presentationMode = .preLogin
+        XCTAssertThrowsError(try subject.inspect().find(text: Localizations.syncLayoutWithICloud))
+    }
+
     /// Tapping the other button dispatches the `.otherPressed` action.
     @MainActor
     func test_otherButton_tap() throws {

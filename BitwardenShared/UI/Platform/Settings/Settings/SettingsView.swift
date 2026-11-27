@@ -77,6 +77,9 @@ struct SettingsView: View {
                 row(Localizations.customize, symbol: "slider.horizontal.3", id: "CustomizeSettingsButton") {
                     store.send(.customizePressed)
                 }
+                layoutCloudSyncToggle
+            } footer: {
+                Text(Localizations.syncLayoutWithICloudDescription)
             }
             Section {
                 row(
@@ -120,6 +123,17 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    /// "Sync layout with iCloud": mirrors the Customize settings into the user's iCloud.
+    private var layoutCloudSyncToggle: some View {
+        Toggle(isOn: store.binding(
+            get: \.isLayoutCloudSyncEnabled,
+            send: SettingsAction.layoutCloudSyncChanged,
+        )) {
+            PassYSettingsRowLabel(title: Localizations.syncLayoutWithICloud, systemImage: "icloud.fill", tint: .cyan)
+        }
+        .accessibilityIdentifier("LayoutCloudSyncToggle")
     }
 
     /// The account row at the top (like the Apple ID row): avatar, e-mail, and a menu to switch, lock or log out.
