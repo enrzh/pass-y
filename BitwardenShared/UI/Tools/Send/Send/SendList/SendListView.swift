@@ -131,9 +131,15 @@ private struct MainSendListView: View {
     private func list(sections: [SendListSection]) -> some View {
         List {
             if store.state.isSendDisabled, !sections.isEmpty {
-                InfoContainer(Localizations.sendDisabledWarning)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
-                    .listRowBackground(Color.clear)
+                Section {
+                    Label {
+                        Text(Localizations.sendDisabledWarning)
+                            .font(.subheadline)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                }
             }
 
             ForEach(sections) { section in
