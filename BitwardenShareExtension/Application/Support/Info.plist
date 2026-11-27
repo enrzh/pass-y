@@ -27,7 +27,7 @@
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPrincipalClass</key>
-		<string>Pass-YShareExtension.ShareViewController</string>
+		<string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
 		<key>NSExtensionAttributes</key>
@@ -119,7 +119,5 @@
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<true/>
-	<key>ITSEncryptionExportComplianceCode</key>
-	<string>ecf076d3-4824-4d7b-b716-2a9a47d7d296</string>
 </dict>
 </plist>

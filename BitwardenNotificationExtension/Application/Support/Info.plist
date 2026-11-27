@@ -89,8 +89,6 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<true/>
-	<key>ITSEncryptionExportComplianceCode</key>
-	<string>ecf076d3-4824-4d7b-b716-2a9a47d7d296</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPointIdentifier</key>

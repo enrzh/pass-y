@@ -98,8 +98,6 @@
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<true/>
-	<key>ITSEncryptionExportComplianceCode</key>
-	<string>ecf076d3-4824-4d7b-b716-2a9a47d7d296</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Use Face ID to unlock your vault.</string>
 	<key>NSExtension</key>
