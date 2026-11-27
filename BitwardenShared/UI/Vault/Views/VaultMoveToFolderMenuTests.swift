@@ -31,6 +31,7 @@ struct VaultMoveToFolderMenuTests {
             edit: true,
         )))
         #expect(failed.folderMoveCipher == nil)
-        #expect(VaultListItem.fixtureGroup().folderMoveCipher == nil)
+        let group = VaultListItem(id: "group", itemType: .group(.login, 1))
+        #expect(group.folderMoveCipher == nil)
     }
 }
