@@ -1,0 +1,21 @@
+Pass-Y is a native client for self-hosted Vaultwarden (and other Bitwarden-compatible) servers. It needs an account on such a server; we do not host user accounts. For review we run a demo server with fictitious data.
+
+How to sign in:
+1. On the first screens, tap through the intro, then open the server selection on the login screen and choose "Self-hosted".
+2. Server URL: https://vault.aiity.de/appledemo  (save)
+3. Enter the demo e-mail address from the sign-in information above, continue, and enter the demo master password.
+No two-factor code or e-mail verification is required.
+
+What to try: vault home (cards and folders, long press a card), item details, verification codes, password generator, Send, Settings > Customize, Settings > "Sync layout with iCloud" (stores only layout settings in the user's iCloud), Settings > AutoFill (enable Pass-Y under iOS Settings > General > AutoFill & Passwords).
+
+Account deletion is available in Settings > Account security > Delete account. Please do not delete the shared demo account, or the demo sign-in stops working; self-registration is closed on the demo server. Registration depends on the server the user chooses.
+
+Apple Watch: shows verification codes after enabling Settings > Other > Connect to Watch.
+
+NFC is only used to read YubiKey security keys for two-step login. The camera is only used to scan QR codes and cards.
+
+No in-app purchases, no ads, no tracking, no analytics. The app uses standard encryption (AES, RSA, Argon2, PBKDF2) to protect the user's own data.
+
+Pass-Y is open source (GPLv3), based on the Bitwarden iOS client: https://github.com/enrzh/pass-y . It is an independent project and is not affiliated with Bitwarden, Inc. or the Vaultwarden project. "Vaultwarden" describes the server software the app connects to.
+
+Contact: support@aiity.de
