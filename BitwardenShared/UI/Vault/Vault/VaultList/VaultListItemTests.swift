@@ -523,7 +523,7 @@ class VaultListItemTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     /// `subtitle` returns Premium subscription required for archive group when Premium is required.
     func test_subtitle_archiveGroup_premiumRequired() {
         let item = VaultListItem(id: "test", hasPremium: false, itemType: .group(.archive, 0))
-        XCTAssertEqual(item.subtitle, Localizations.premiumSubscriptionRequired)
+        XCTAssertEqual(item.subtitle, Localizations.notAvailableForThisAccount)
     }
 
     /// `subtitle` returns nil for archive group when user has archived items.

@@ -1389,3 +1389,15 @@
 "RustLibrariesFooter" = "The SDK is compiled from these Rust libraries (revision %1$@). The list also contains libraries that are only used while compiling.";
 /* Import logins: title of the step that signs in to the server's web vault. */
 "LogInToYourWebVault" = "Log in to your web vault";
+/* Title of the alerts for features the account cannot use (no upgrade is offered). */
+"NotAvailableForThisAccount" = "Not available for this account";
+/* Alert: archive unavailable for the account. */
+"ArchiveNotAvailableDescriptionLong" = "Archiving items is not available for this account.";
+/* Alert: attachments unavailable for the account. */
+"AttachmentsNotAvailableDescriptionLong" = "Attachments are not available for this account.";
+/* Alert: file Send unavailable for the account. */
+"FileSendNotAvailableDescriptionLong" = "This account can only send text. Sending files is not available.";
+/* Alert: Send to specific people unavailable for the account. */
+"SpecificPeopleNotAvailableDescriptionLong" = "Sharing with specific people is not available for this account.";
+/* Alert: verification codes unavailable for the account. */
+"TOTPNotAvailableDescriptionLong" = "Verification codes (TOTP) are not available for this account.";

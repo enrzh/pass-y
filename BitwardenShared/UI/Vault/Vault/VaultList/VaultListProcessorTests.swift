@@ -983,9 +983,8 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
 
         let navigate = try XCTUnwrap(vaultItemMoreOptionsHelper.performActionHandlePremiumUpgrade)
         await navigate()
-        try await waitForAsync { self.premiumUpgradeHelper.navigateToPremiumUpgradeCalled }
 
-        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `perform(_:)` with `.refreshed` requests a fetch sync update, but does not force a sync.
@@ -1859,7 +1858,7 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
 
         await subject.perform(.itemPressed(archiveItem))
 
-        XCTAssertEqual(coordinator.alertShown.last, .archiveUnavailable(action: {}))
+        XCTAssertEqual(coordinator.alertShown.last, .archiveUnavailable())
         XCTAssertTrue(coordinator.routes.isEmpty)
     }
 
@@ -1873,13 +1872,14 @@ class VaultListProcessorTests: BitwardenTestCase { // swiftlint:disable:this typ
         await subject.perform(.itemPressed(archiveItem))
 
         let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, Localizations.premiumSubscriptionRequired)
-        XCTAssertEqual(alert.message, Localizations.archivingItemsIsAPremiumFeatureDescriptionLong)
+        XCTAssertEqual(alert.title, Localizations.notAvailableForThisAccount)
+        XCTAssertEqual(alert.message, Localizations.archiveNotAvailableDescriptionLong)
 
-        try await alert.tapAction(title: Localizations.upgradeToPremium)
-        try await waitForAsync { self.premiumUpgradeHelper.navigateToPremiumUpgradeCalled }
+        XCTAssertEqual(alert.alertActions.map(\.title), [Localizations.ok])
 
-        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        try await alert.tapAction(title: Localizations.ok)
+
+        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `perform(_:)` with `.itemPressed` navigates to archive when user has Premium.

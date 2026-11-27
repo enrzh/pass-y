@@ -1140,7 +1140,7 @@ class ViewItemProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
         XCTAssertNotNil(vaultItemActionHelper.archiveReceivedArguments?.handleNavigateToPremiumUpgrade)
 
         await vaultItemActionHelper.archiveReceivedArguments?.handleNavigateToPremiumUpgrade()
-        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `perform(_:)` with `.archivedPressed` handles completion.
@@ -1870,27 +1870,17 @@ class ViewItemProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
     @MainActor
     func test_receive_premiumSubscriptionRequiredTapped_showsAlert() {
         subject.receive(.premiumSubscriptionRequiredTapped)
-        XCTAssertEqual(coordinator.alertShown.last?.title, Localizations.premiumSubscriptionRequired)
-        XCTAssertEqual(coordinator.alertShown.last?.message, Localizations.premiumRequiredTOTPDescriptionLong)
+        XCTAssertEqual(coordinator.alertShown.last?.title, Localizations.notAvailableForThisAccount)
+        XCTAssertEqual(coordinator.alertShown.last?.message, Localizations.totpNotAvailableDescriptionLong)
     }
 
-    /// `receive` with `.premiumSubscriptionRequiredTapped` navigates to Premium upgrade when
-    /// "Upgrade to Premium" is tapped in the alert.
+    /// `receive` with `.premiumSubscriptionRequiredTapped` offers no upgrade: OK only, nothing navigates.
     @MainActor
-    func test_receive_premiumSubscriptionRequiredTapped_upgradeToPremium() async throws {
+    func test_receive_premiumSubscriptionRequiredTapped_noUpgrade() async throws {
         subject.receive(.premiumSubscriptionRequiredTapped)
         let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.upgradeToPremium)
-        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
-    }
-
-    /// `receive` with `.premiumSubscriptionRequiredTapped` does not navigate to Premium upgrade
-    /// when Cancel is tapped.
-    @MainActor
-    func test_receive_premiumSubscriptionRequiredTapped_cancel() async throws {
-        subject.receive(.premiumSubscriptionRequiredTapped)
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapCancel()
+        XCTAssertEqual(alert.alertActions.map(\.title), [Localizations.ok])
+        try await alert.tapAction(title: Localizations.ok)
         XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 

@@ -1407,3 +1407,15 @@
 "RustLibrariesFooter" = "Das SDK wird aus diesen Rust-Bibliotheken gebaut (Revision %1$@). Die Liste enthält auch Bibliotheken, die nur beim Bauen verwendet werden.";
 /* Import logins: title of the step that signs in to the server's web vault. */
 "LogInToYourWebVault" = "Im Web-Tresor anmelden";
+/* Title of the alerts for features the account cannot use (no upgrade is offered). */
+"NotAvailableForThisAccount" = "Für dieses Konto nicht verfügbar";
+/* Alert: archive unavailable for the account. */
+"ArchiveNotAvailableDescriptionLong" = "Das Archivieren von Einträgen ist für dieses Konto nicht verfügbar.";
+/* Alert: attachments unavailable for the account. */
+"AttachmentsNotAvailableDescriptionLong" = "Anhänge sind für dieses Konto nicht verfügbar.";
+/* Alert: file Send unavailable for the account. */
+"FileSendNotAvailableDescriptionLong" = "Dieses Konto kann nur Text senden. Das Senden von Dateien ist nicht verfügbar.";
+/* Alert: Send to specific people unavailable for the account. */
+"SpecificPeopleNotAvailableDescriptionLong" = "Das Teilen mit bestimmten Personen ist für dieses Konto nicht verfügbar.";
+/* Alert: verification codes unavailable for the account. */
+"TOTPNotAvailableDescriptionLong" = "Bestätigungscodes (TOTP) sind für dieses Konto nicht verfügbar.";

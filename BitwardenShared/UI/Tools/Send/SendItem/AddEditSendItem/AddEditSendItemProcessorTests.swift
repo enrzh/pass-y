@@ -528,7 +528,7 @@ class AddEditSendItemProcessorTests: BitwardenTestCase { // swiftlint:disable:th
 
         XCTAssertTrue(coordinator.loadingOverlaysShown.isEmpty)
         XCTAssertNil(sendRepository.addTextSendSendView)
-        XCTAssertEqual(coordinator.alertShown, [.fileSendPremiumRequired {}])
+        XCTAssertEqual(coordinator.alertShown, [.fileSendPremiumRequired()])
     }
 
     /// `perform(_:)` with `.savePressed` tapping "Upgrade to Premium" in the Premium required
@@ -543,10 +543,9 @@ class AddEditSendItemProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         await subject.perform(.savePressed)
 
         let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.upgradeToPremium)
-
-        try await waitForAsync { self.premiumUpgradeHelper.navigateToPremiumUpgradeCalled }
-        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        XCTAssertEqual(alert.alertActions.map(\.title), [Localizations.ok])
+        try await alert.tapAction(title: Localizations.ok)
+        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `perform(_:)` with `.savePressed` and valid file input saves the file Send.
@@ -1157,8 +1156,8 @@ class AddEditSendItemProcessorTests: BitwardenTestCase { // swiftlint:disable:th
 
         // Alert should be shown
         let alert = try XCTUnwrap(coordinator.alertShown.last)
-        XCTAssertEqual(alert.title, Localizations.premiumSubscriptionRequired)
-        XCTAssertEqual(alert.message, Localizations.sharingWithSpecificPeopleIsPremiumFeatureDescriptionLong)
+        XCTAssertEqual(alert.title, Localizations.notAvailableForThisAccount)
+        XCTAssertEqual(alert.message, Localizations.specificPeopleNotAvailableDescriptionLong)
     }
 
     /// `receive(_:)` with `.accessTypeChanged` to specific people triggers the Premium upgrade
@@ -1170,10 +1169,10 @@ class AddEditSendItemProcessorTests: BitwardenTestCase { // swiftlint:disable:th
         subject.receive(.accessTypeChanged(.specificPeople))
 
         let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.upgradeToPremium)
-        try await waitForAsync { self.premiumUpgradeHelper.navigateToPremiumUpgradeCalled }
+        XCTAssertEqual(alert.alertActions.map(\.title), [Localizations.ok])
+        try await alert.tapAction(title: Localizations.ok)
 
-        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `receive(_:)` with `.addRecipientEmail` adds an empty email to the list and focuses it.

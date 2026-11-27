@@ -84,7 +84,7 @@ class SendListProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
         subject.state.type = .file
         await subject.perform(.addItemPressed(.file))
 
-        XCTAssertEqual(coordinator.alertShown, [.fileSendPremiumRequired {}])
+        XCTAssertEqual(coordinator.alertShown, [.fileSendPremiumRequired()])
         XCTAssertTrue(coordinator.routes.isEmpty)
     }
 
@@ -96,10 +96,9 @@ class SendListProcessorTests: BitwardenTestCase { // swiftlint:disable:this type
         await subject.perform(.addItemPressed(.file))
 
         let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.upgradeToPremium)
-
-        try await waitForAsync { self.premiumUpgradeHelper.navigateToPremiumUpgradeCalled }
-        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        XCTAssertEqual(alert.alertActions.map(\.title), [Localizations.ok])
+        try await alert.tapAction(title: Localizations.ok)
+        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `perform(_:)` with `.addItemPressed` navigates to the `.addItem` route.
