@@ -267,7 +267,9 @@ the performance boundary) and `VaultItemIconTile`; Send and folder rows use `Pas
 `PassYLayoutPreferences` (Codable, `version` 2, lenient field-by-field decoding; home elements keyed by
 `passYHomeElementId`: the type tiles' `VaultListGroup.tileIdentifier`, `folder:<id>`, `noFolder`; sections by vault list
 section id; no vault data but folder ids) stored in `AppSettingsStore` (`passYLayoutPreferences`, app group defaults,
-never synced to the server). `PassYLayoutCloudSync` optionally mirrors them into the user's iCloud key-value store
+never synced to the server). `PassYLayoutCloudSync` optionally mirrors them, together with the app-wide "Show website icons" switch (an optional
+payload field: older payloads without it leave the local value alone; applied through `StateService`, whose
+`setShowWebIcons` posts `passYShowWebIconsDidChange`), into the user's iCloud key-value store
 (Settings, "Sync layout with iCloud": off by default, per device, main app only, who wins is documented on the type;
 entitlement `com.apple.developer.ubiquity-kvstore-identifier` on the app target only). The defaults are
 "no override", so they draw today's look. `PassYLayoutStore` (`@Observable`, `shared`)

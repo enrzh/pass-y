@@ -409,6 +409,145 @@ class PassYLayoutCloudSyncTests: BitwardenTestCase {
         XCTAssertEqual(payload.layout.version, PassYLayoutPreferences.currentVersion)
     }
 
+    // MARK: Tests - Website icons
+
+    /// Posts the state service's "Show website icons changed" notification after storing the value like it does.
+    @MainActor
+    private func changeWebIcons(_ show: Bool) {
+        appSettingsStore.disableWebIcons = !show
+        notificationCenter.post(
+            name: .passYShowWebIconsDidChange,
+            object: nil,
+            userInfo: [PassYLayoutCloudSync.showWebIconsKey: show],
+        )
+    }
+
+    /// Stores a payload in the fake iCloud with a website icons value.
+    private func putCloud(_ preferences: PassYLayoutPreferences, at seconds: TimeInterval, showWebIcons: Bool) throws {
+        cloud.values[PassYLayoutCloudSync.key] = try JSONEncoder().encode(PassYLayoutCloudPayload(
+            modifiedAt: Date(timeIntervalSinceReferenceDate: seconds),
+            layout: preferences,
+            showWebIcons: showWebIcons,
+        ))
+    }
+
+    /// The website icons switch is uploaded with the layout, also when it is the only change (default layout).
+    @MainActor
+    func test_webIcons_uploadedWithLayout() {
+        appSettingsStore.disableWebIcons = true
+
+        subject.setEnabled(true)
+
+        XCTAssertEqual(cloudPayload?.layout, .default)
+        XCTAssertEqual(cloudPayload?.showWebIcons, false)
+    }
+
+    /// While on, switching website icons (Customize or Appearance) dates the change and uploads it.
+    @MainActor
+    func test_webIcons_localChange_uploads() {
+        layout.preferences = minimal
+        subject.setEnabled(true)
+        XCTAssertEqual(cloudPayload?.showWebIcons, true)
+
+        date = Date(timeIntervalSinceReferenceDate: 3000)
+        changeWebIcons(false)
+
+        XCTAssertEqual(cloudPayload?.showWebIcons, false)
+        XCTAssertEqual(cloudPayload?.layout, minimal)
+        XCTAssertEqual(cloudPayload?.modifiedAt, date)
+        XCTAssertEqual(appSettingsStore.passYLayoutModifiedAt, date)
+    }
+
+    /// While off, a website icons change is dated but nothing touches iCloud.
+    @MainActor
+    func test_webIcons_off_changeDated() {
+        changeWebIcons(false)
+
+        XCTAssertEqual(appSettingsStore.passYLayoutModifiedAt, date)
+        XCTAssertEqual(cloudStoresMade, 0)
+    }
+
+    /// A newer payload with the switch applies it through the state service (open screens update), and the change
+    /// notification that comes back is not uploaded again.
+    @MainActor
+    func test_webIcons_payloadApplied_echoNotUploaded() throws {
+        var applied: [Bool] = []
+        subject.applyShowWebIcons = { applied.append($0) }
+        try putCloud(filled, at: 10, showWebIcons: false)
+
+        subject.setEnabled(true)
+
+        XCTAssertEqual(layout.preferences, filled)
+        XCTAssertEqual(applied, [false])
+        XCTAssertFalse(appSettingsStore.disableWebIcons, "written by the state service, not directly")
+
+        changeWebIcons(false) // The state service's notification for the applied value.
+        XCTAssertEqual(cloud.writes, 0)
+        XCTAssertEqual(appSettingsStore.passYLayoutModifiedAt, Date(timeIntervalSinceReferenceDate: 10))
+    }
+
+    /// Without the state service connected the stored setting is written directly; a newer payload from another
+    /// device (server change) applies its value too.
+    @MainActor
+    func test_webIcons_payloadApplied_directly() throws {
+        subject.setEnabled(true)
+        try putCloud(filled, at: 5000, showWebIcons: false)
+
+        postChange(NSUbiquitousKeyValueStoreServerChange)
+
+        XCTAssertTrue(appSettingsStore.disableWebIcons)
+        XCTAssertEqual(layout.preferences, filled)
+    }
+
+    /// A payload of an earlier build (no website icons value) applies the layout and leaves the local switch alone.
+    @MainActor
+    func test_webIcons_oldPayload_localValueKept() throws {
+        var applied: [Bool] = []
+        subject.applyShowWebIcons = { applied.append($0) }
+        appSettingsStore.disableWebIcons = true
+        try putCloud(filled, at: 10)
+        XCTAssertNil(cloudPayload?.showWebIcons)
+
+        subject.setEnabled(true)
+
+        XCTAssertEqual(layout.preferences, filled)
+        XCTAssertTrue(appSettingsStore.disableWebIcons)
+        XCTAssertEqual(applied, [])
+    }
+
+    /// The payload of an earlier build decodes without the field; the field is written only when present.
+    func test_webIcons_payloadCoding() throws {
+        let json = #"{"schema":1,"modifiedAt":1,"layout":{"version":2,"home":{},"rows":{},"codes":{}}}"#
+        guard case let .payload(old) = PassYLayoutCloudValue(data: Data(json.utf8)) else {
+            return XCTFail("not read")
+        }
+        XCTAssertNil(old.showWebIcons)
+
+        let encoded = try JSONEncoder().encode(PassYLayoutCloudPayload(modifiedAt: .now, layout: .default))
+        XCTAssertFalse(String(decoding: encoded, as: UTF8.self).contains("showWebIcons"))
+        let withIcons = try JSONEncoder().encode(
+            PassYLayoutCloudPayload(modifiedAt: .now, layout: .default, showWebIcons: false),
+        )
+        guard case let .payload(new) = PassYLayoutCloudValue(data: withIcons) else { return XCTFail("not read") }
+        XCTAssertEqual(new.showWebIcons, false)
+    }
+
+    /// A payload of a newer app never changes the website icons switch.
+    @MainActor
+    func test_webIcons_newerPayload_untouched() {
+        var applied: [Bool] = []
+        subject.applyShowWebIcons = { applied.append($0) }
+        let data = Data(#"{"schema":1,"modifiedAt":9000,"showWebIcons":false,"layout":{"version":3}}"#.utf8)
+        cloud.values[PassYLayoutCloudSync.key] = data
+
+        subject.setEnabled(true)
+        postChange(NSUbiquitousKeyValueStoreServerChange)
+
+        XCTAssertFalse(appSettingsStore.disableWebIcons)
+        XCTAssertEqual(applied, [])
+        XCTAssertEqual(cloud.values[PassYLayoutCloudSync.key], data)
+    }
+
     /// App extensions get no iCloud store; the app gets the system's.
     @MainActor
     func test_systemStore_onlyOutsideExtensions() {

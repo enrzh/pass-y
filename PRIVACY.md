@@ -27,8 +27,8 @@ These happen only when you use the feature:
 - **Email alias services** (for example addy.io or SimpleLogin): only if you set up the username generator with your
   own API key for such a service. The key and the alias request go to that service.
 - **Sign-in providers** (for example Duo or your single sign-on provider): when your account uses them.
-- **iCloud**: if you switch on "Sync layout with iCloud", the layout settings of the app (card order, sections,
-  colours, folder identifiers) are stored in your own iCloud account. Passwords, vault items and account data are never
+- **iCloud**: if you switch on "Sync layout with iCloud", the Customize settings of the app (card order, sections,
+  colours, folder identifiers, whether website icons are shown) are stored in your own iCloud account. Passwords, vault items and account data are never
   stored there. You can switch it off at any time.
 
 Each of these services has its own privacy policy.
@@ -76,8 +76,8 @@ Website-Symbole fragt die App bei deinem Server an; dieser kann dafür einen ext
 - **E-Mail-Alias-Dienste** (etwa addy.io oder SimpleLogin): nur mit deinem eigenen API-Schlüssel im
   Benutzernamen-Generator.
 - **Anmeldedienste** (etwa Duo oder Single Sign-on), wenn dein Konto sie verwendet.
-- **iCloud:** Bei aktivem „Layout in iCloud sichern" werden die Layout-Einstellungen (Reihenfolge der Karten,
-  Bereiche, Farben, Ordner-Kennungen) in deiner eigenen iCloud gespeichert. Passwörter, Tresoreinträge und Kontodaten
+- **iCloud:** Bei aktivem „Layout in iCloud sichern" werden die Anpassen-Einstellungen (Reihenfolge der Karten,
+  Bereiche, Farben, Ordner-Kennungen, ob Website-Symbole angezeigt werden) in deiner eigenen iCloud gespeichert. Passwörter, Tresoreinträge und Kontodaten
   werden dort nie gespeichert. Jederzeit abschaltbar.
 
 **Auf dem Gerät:** Kamera, NFC, Face ID und Touch ID dienen nur zum Scannen, für Sicherheitsschlüssel und zum

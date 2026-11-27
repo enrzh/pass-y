@@ -20,6 +20,14 @@ protocol PassYUbiquitousStore: AnyObject {
 
 extension NSUbiquitousKeyValueStore: PassYUbiquitousStore {}
 
+// MARK: - Notification.Name
+
+extension Notification.Name {
+    /// The app-wide "Show website icons" setting changed (`StateService.setShowWebIcons`); the new value is in the
+    /// user info under `PassYLayoutCloudSync.showWebIconsKey`.
+    static let passYShowWebIconsDidChange = Notification.Name("passYShowWebIconsDidChange")
+}
+
 // MARK: - PassYLayoutCloudSyncing
 
 /// The "Sync layout with iCloud" setting of this device.
@@ -34,8 +42,8 @@ protocol PassYLayoutCloudSyncing: AnyObject {
 
 // MARK: - PassYLayoutCloudPayload
 
-/// What is stored in iCloud: the layout preferences and when they were last changed by the user. No vault data
-/// and no account data (see `PassYLayoutPreferences`).
+/// What is stored in iCloud: the Customize settings (the layout preferences and the "Show website icons" switch) and
+/// when they were last changed by the user. No vault data and no account data (see `PassYLayoutPreferences`).
 struct PassYLayoutCloudPayload: Codable, Equatable {
     /// The version of this envelope written by this app.
     static let currentSchema = 1
@@ -48,6 +56,10 @@ struct PassYLayoutCloudPayload: Codable, Equatable {
 
     /// The layout.
     var layout: PassYLayoutPreferences
+
+    /// The app-wide "Show website icons" switch (also on the Customize page). `nil` in payloads of earlier builds:
+    /// then the local value is left alone.
+    var showWebIcons: Bool?
 }
 
 // MARK: - PassYLayoutCloudValue
@@ -97,8 +109,9 @@ enum PassYLayoutCloudValue: Equatable {
 
 // MARK: - PassYLayoutCloudSync
 
-/// Mirrors the layout preferences (`PassYLayoutStore`, which stays what the UI reads, backed by the app group
-/// settings) into the user's iCloud key-value store. Off by default; the switch is per device. Only the main app
+/// Mirrors the Customize settings into the user's iCloud key-value store: the layout preferences (`PassYLayoutStore`,
+/// which stays what the UI reads, backed by the app group settings) and the app-wide "Show website icons" switch
+/// (`StateService`, shown on Customize and in Appearance). Off by default; the switch is per device. Only the main app
 /// starts it, and app extensions get no iCloud store at all.
 ///
 /// Who wins:
@@ -106,8 +119,10 @@ enum PassYLayoutCloudValue: Equatable {
 ///   applied to this device. Without one, this device's layout is uploaded.
 /// - While on (launch, foreground, changes from other devices): the newer modification date wins; an older iCloud
 ///   layout is replaced by this device's.
-/// - A layout the user never touched (the defaults without a modification date) is never uploaded: it holds nothing
-///   and must not replace a real layout of another device.
+/// - A layout the user never touched (the defaults without a modification date, website icons on) is never uploaded:
+///   it holds nothing and must not replace a real layout of another device.
+/// - Website icons travel with the layout and its date. A payload without the switch (an earlier build) leaves the
+///   local value alone.
 /// - A layout of a newer app is left alone in both directions.
 /// - The local layout is never removed. Switching off leaves both copies as they are.
 ///
@@ -117,6 +132,9 @@ public final class PassYLayoutCloudSync: PassYLayoutCloudSyncing {
 
     /// The key of the layout in the iCloud key-value store.
     nonisolated static let key = "passYLayout"
+
+    /// The user info key of the value in `passYShowWebIconsDidChange`.
+    nonisolated static let showWebIconsKey = "showWebIcons"
 
     /// The sync of the app.
     public static let shared = PassYLayoutCloudSync(
@@ -132,8 +150,12 @@ public final class PassYLayoutCloudSync: PassYLayoutCloudSyncing {
 
     // MARK: Properties
 
-    /// Where the switch and the modification date are stored.
+    /// Where the switch, the modification date and the website icons setting are stored.
     private let appSettingsStore: any AppSettingsStore
+
+    /// Writes a website icons value from iCloud through the app's state service, so open screens update. Without
+    /// it (tests, before `start(services:)`) the stored setting is written directly.
+    var applyShowWebIcons: ((Bool) -> Void)?
 
     /// Whether a layout from iCloud is being written into the local store (not a change of the user).
     private var isApplyingRemote = false
@@ -155,6 +177,9 @@ public final class PassYLayoutCloudSync: PassYLayoutCloudSyncing {
 
     /// The notification observers while the sync is on.
     private var observers: [any NSObjectProtocol] = []
+
+    /// The observer of the website icons setting (always: a change is dated even while the sync is off).
+    private var webIconsObserver: (any NSObjectProtocol)?
 
     // MARK: Initialization
 
@@ -180,14 +205,37 @@ public final class PassYLayoutCloudSync: PassYLayoutCloudSyncing {
         self.notificationCenter = notificationCenter
         self.now = now
         layout.onChange = { [weak self] in self?.localLayoutDidChange() }
+        webIconsObserver = notificationCenter.addObserver(
+            forName: .passYShowWebIconsDidChange,
+            object: nil,
+            queue: .main,
+        ) { [weak self] notification in
+            guard let value = notification.userInfo?[Self.showWebIconsKey] as? Bool else { return }
+            MainActor.assumeIsolated {
+                self?.localWebIconsDidChange(value)
+            }
+        }
     }
 
     // MARK: Methods
 
     var isEnabled: Bool { appSettingsStore.passYLayoutCloudSyncEnabled }
 
-    /// Call once when the main app launches: resumes the sync if it is switched on, otherwise does nothing.
-    public func start() {
+    /// Call once when the main app launches, after the services exist: connects the website icons setting and resumes
+    /// the sync if it is switched on (otherwise it only listens for local changes).
+    ///
+    /// - Parameter services: The app's services.
+    ///
+    public func start(services: ServiceContainer) {
+        let stateService = services.stateService
+        applyShowWebIcons = { value in
+            Task { await stateService.setShowWebIcons(value) }
+        }
+        start()
+    }
+
+    /// Resumes the sync if it is switched on, otherwise does nothing.
+    func start() {
         guard isEnabled else { return }
         observe()
         refresh()
@@ -251,15 +299,33 @@ public final class PassYLayoutCloudSync: PassYLayoutCloudSyncing {
         defer { isApplyingRemote = false }
         appSettingsStore.passYLayoutModifiedAt = payload.modifiedAt
         layout.preferences = payload.layout
+        // An earlier build's payload has no website icons value: the local one stays.
+        if let showWebIcons = payload.showWebIcons, showWebIcons != self.showWebIcons {
+            if let applyShowWebIcons {
+                // Asynchronous (state service): its change notification comes back later and is recognized as
+                // the value iCloud already holds (`localWebIconsDidChange`).
+                applyShowWebIcons(showWebIcons)
+            } else {
+                appSettingsStore.disableWebIcons = !showWebIcons
+            }
+        }
     }
+
+    /// The local website icons setting.
+    private var showWebIcons: Bool { !appSettingsStore.disableWebIcons }
 
     /// Writes this device's layout to iCloud (unless the user never touched it).
     private func upload() {
-        guard let cloudStore, appSettingsStore.passYLayoutModifiedAt != nil || !layout.isDefault else { return }
+        guard let cloudStore,
+              appSettingsStore.passYLayoutModifiedAt != nil || !layout.isDefault || !showWebIcons else { return }
         // A layout customized before the date was recorded counts from now.
         let modifiedAt = appSettingsStore.passYLayoutModifiedAt ?? now()
         appSettingsStore.passYLayoutModifiedAt = modifiedAt
-        let payload = PassYLayoutCloudPayload(modifiedAt: modifiedAt, layout: layout.preferences)
+        let payload = PassYLayoutCloudPayload(
+            modifiedAt: modifiedAt,
+            layout: layout.preferences,
+            showWebIcons: showWebIcons,
+        )
         do {
             try cloudStore.set(JSONEncoder().encode(payload), forKey: Self.key)
         } catch {
@@ -280,6 +346,18 @@ public final class PassYLayoutCloudSync: PassYLayoutCloudSyncing {
         if isEnabled, cloud != .newer {
             upload()
         }
+    }
+
+    /// A change of the website icons setting (Customize or Appearance). The value iCloud already holds is not a new
+    /// change: it is the echo of a value applied from iCloud, or nothing to upload.
+    private func localWebIconsDidChange(_ value: Bool) {
+        guard !isApplyingRemote else { return }
+        if isEnabled, let cloudStore,
+           case let .payload(payload) = PassYLayoutCloudValue(data: cloudStore.data(forKey: Self.key)),
+           payload.showWebIcons == value {
+            return
+        }
+        localLayoutDidChange()
     }
 
     /// Observes changes from iCloud and the app coming to the foreground.

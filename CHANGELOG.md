@@ -7,8 +7,9 @@ in the working tree; they stay in git history (`git log --stat -- Docs/screensho
 ## Unreleased
 
 - Settings, under "Anpassen": "Layout in iCloud sichern" (Sync layout with iCloud), off by default. Mirrors only the
-  Customize layout preferences (home, rows, codes; no passwords, vault items or account data; the website icons switch
-  is not part of it) into the user's iCloud key-value store. Switching it on applies a layout already in iCloud,
+  Customize settings (home, rows, codes and the website icons switch shown on Customize; no passwords, vault items or
+  account data) into the user's iCloud key-value store. A payload of an earlier build without the website icons value
+  leaves the local switch alone. Switching it on applies a layout already in iCloud,
   otherwise uploads this device's; afterwards the newer change wins. The app needs the iCloud key-value storage
   capability on its App ID (main app only). Not yet verified on a device or between two devices.
 
