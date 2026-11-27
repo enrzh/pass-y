@@ -12,8 +12,8 @@ options:
     "icon":
       file: true 
 settings:
-  MARKETING_VERSION: 1.27.0    # Pass-Y scheme MAJOR.MINOR.PATCH, see Docs/Releasing.md.
-  CURRENT_PROJECT_VERSION: 1
+  MARKETING_VERSION: 1.28.0    # Pass-Y scheme MAJOR.MINOR.PATCH, see Docs/Releasing.md.
+  CURRENT_PROJECT_VERSION: 2
 projectReferences:
   BitwardenKit:
     path: BitwardenKit.xcodeproj

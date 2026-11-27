@@ -4,18 +4,28 @@ Condensed history, newest first. Versions are git tags (`git tag -l 'v1.*'`); ea
 validator whose verdict is linked (all in [Docs/verdicts](Docs/verdicts/README.md)). Screenshots of older rounds are no longer
 in the working tree; they stay in git history (`git log --stat -- Docs/screenshots`).
 
-## Unreleased
+## v1.28.0 (2026-11-27) - Apple polish round, App Review preparation
+Version 1.28.0 (build 2), first App Review submission; not tagged yet, no validator verdict yet.
 
+- App Review preparation: About opens Pass-Y's privacy policy (PRIVACY.md) directly; help and every "learn more",
+  terms and help link open SUPPORT.md; new rows Contact support (support@aiity.de, copies the address without a mail
+  app), Source code and Licenses (GPLv3 notice, "Based on Bitwarden iOS", full GPL text, notices of the Bitwarden SDK,
+  its 410 Rust crates, SwiftUI-Introspect and the Inter font). "Learn about organizations" and the "Submit crash
+  logs" switch (nothing was ever sent) are gone. Copyright "Pass-Y © 2026 aiity" plus the upstream notice.
+- Removed the legacy App extension screen; the Password AutoFill page (settings, onboarding) shows numbered steps
+  instead of GIFs with the Bitwarden logo. No Bitwarden logo or wordmark is left in the bundled images.
+- Strings: no bitwarden.com, no Pass-Y web/browser/desktop apps, no customer success team (en, de reworded; other
+  locales fall back to English for those keys). Alerts for features an account cannot use say "Not available for
+  this account" and offer no upgrade.
+- Release hygiene: no `remote-notification` background mode, the notification service extension is not embedded,
+  permission prompts in English and German, the watch's template notification scene is gone; earlier today the Share
+  extension class name, the upstream export compliance code and the privacy manifests were fixed.
 - Settings, under "Anpassen": "Layout in iCloud sichern" (Sync layout with iCloud), off by default. Mirrors only the
   Customize settings (home, rows, codes and the website icons switch shown on Customize; no passwords, vault items or
   account data) into the user's iCloud key-value store. A payload of an earlier build without the website icons value
   leaves the local switch alone. Switching it on applies a layout already in iCloud,
   otherwise uploads this device's; afterwards the newer change wins. The app needs the iCloud key-value storage
   capability on its App ID (main app only). Not yet verified on a device or between two devices.
-
-## v1.28.0 (2026-11-24) - Apple polish round
-Not tagged and not version-bumped yet; no validator verdict yet.
-
 - Lists as cards: vault home, group pages, search results, Send and folders are native inset-grouped lists (rounded
   cards on the grouped page colour, system separators aligned to the item name); group pages open fully formed (no
   spinner, the title and "N Items" subtitle are there from the first frame, no title jump).
@@ -25,7 +35,7 @@ Not tagged and not version-bumped yet; no validator verdict yet.
   button 44 pt like the neighbouring glass buttons.
 - Toasts: Liquid Glass capsule with an SF Symbol (copied / success / failure), snappy transition, haptic feedback,
   dismiss after about 3 s.
-- Customize ("Anpassen", from Settings): per device, not synced. Home: cards and folder rows (see round 2 below);
+- Customize ("Anpassen", from Settings): per device (optionally mirrored to iCloud, see above). Home: cards and folder rows (see round 2 below);
   show/hide, order and "collapsed when opened" of the sections; rows of hidden sections stay reachable under "More" at
   the end of the home. Rows: user names, icons (website icons: the existing switch), favourite / shared / attachment
   marks. Verification codes: digit grouping. Live preview and Reset to defaults; the defaults are the previous look.
