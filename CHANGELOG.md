@@ -18,12 +18,10 @@ Not tagged and not version-bumped yet; no validator verdict yet.
   button 44 pt like the neighbouring glass buttons.
 - Toasts: Liquid Glass capsule with an SF Symbol (copied / success / failure), snappy transition, haptic feedback,
   dismiss after about 3 s.
-- Customize ("Anpassen", Settings and avatar menu "Customize home…"): per device, not synced. Home: show/hide,
-  reorder (drag) and layout of the tiles (cards, wide cards, compact list); show/hide, order and "collapsed when
-  opened" of Favorites, folders, No Folder and shared folders; hidden entries stay reachable under "More" at the end of
-  the home. Rows: density, user names, icons (website icons: the existing switch), favourite / shared / attachment
-  marks, colourful or monochrome tiles. Verification codes: digit grouping, countdown ring and seconds. Live preview and
-  Reset to defaults; the defaults are the previous look.
+- Customize ("Anpassen", from Settings): per device, not synced. Home: cards and folder rows (see round 2 below);
+  show/hide, order and "collapsed when opened" of the sections; rows of hidden sections stay reachable under "More" at
+  the end of the home. Rows: user names, icons (website icons: the existing switch), favourite / shared / attachment
+  marks. Verification codes: digit grouping. Live preview and Reset to defaults; the defaults are the previous look.
 - Customize, home round 2: long press on a home card opens its native menu from the card (Move to Front /
   Earlier / Later / to End, Show as Folder Row, Customize…); type and folder rows offer Show as Card and Customize…;
   the avatar menu has no Customize entry any more and Settings lists "Anpassen" first, above Kontosicherheit. Nothing

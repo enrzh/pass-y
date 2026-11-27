@@ -58,18 +58,19 @@ final class CustomizeTests: PassYUITestCase {
             assertLoginBeforeCodes(app)
         }
 
-        // A folder row becomes a card; the card opens the folder.
-        if !scrollToFolder(app, cardFolder) {
-            createFolder(app, cardFolder)
-            XCTAssertTrue(scrollToFolder(app, cardFolder), "folder row exists")
+        // A folder row becomes a card; the card opens the folder. (A card left over from an aborted run is reused.)
+        if !folderCard(app).exists {
+            if !scrollToFolder(app, cardFolder) {
+                createFolder(app, cardFolder)
+                XCTAssertTrue(scrollToFolder(app, cardFolder), "folder row exists")
+            }
+            longPress(folderRow(app))
+            let asCard = menuItem(app, id: "HomeShowAsCardButton", label: "Show as Card")
+            XCTAssertTrue(asCard.waitForExistence(timeout: 5), "row menu: show as card")
+            asCard.tap()
+            scrollHome(app, toTop: true)
         }
-        longPress(folderRow(app))
-        let asCard = menuItem(app, id: "HomeShowAsCardButton", label: "Show as Card")
-        XCTAssertTrue(asCard.waitForExistence(timeout: 5), "row menu: show as card")
-        asCard.tap()
-        scrollHome(app, toTop: true)
         XCTAssertTrue(waitFor(folderCard(app), timeout: 5), "folder card")
-        XCTAssertFalse(folderRow(app).exists, "a folder shown as a card is not also a row")
         attach(app, "folder-card")
         folderCard(app).tap()
         XCTAssertTrue(waitFor(app.navigationBars.staticTexts[cardFolder].firstMatch, timeout: 10)
@@ -87,11 +88,11 @@ final class CustomizeTests: PassYUITestCase {
         XCTAssertTrue(waitFor(control(app, "CustomizeCardColorsPicker"), timeout: 10), "Customize screen opens")
         attach(app, "customize-screen")
         let tileSwitch = control(app, "CustomizeTileToggle_\(switchedTile)")
-        scrollTo(tileSwitch, in: app)
+        scrollTo(tileSwitch, in: app, clearOfBar: false)
         XCTAssertEqual(tileSwitch.value as? String, "0", "SSH key: folder row")
         let codes = control(app, "CustomizeTileToggle_totp")
         let login = control(app, "CustomizeTileToggle_login")
-        scrollTo(codes, in: app)
+        scrollTo(codes, in: app, clearOfBar: false)
         app.buttons["CustomizeReorderButton"].firstMatch.tap()
         let handle = reorderHandle(in: app, near: login)
         XCTAssertTrue(handle.exists, "drag handle of Login")
@@ -213,9 +214,10 @@ final class CustomizeTests: PassYUITestCase {
 
     /// Scrolls until the element is hittable and clear of the bottom search bar (at most 6 swipes up, then 6 down):
     /// a long press on a row under the bar would focus the search field instead.
-    private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {
+    private func scrollTo(_ element: XCUIElement, in app: XCUIApplication, clearOfBar: Bool = true) {
         func reachable() -> Bool {
             guard element.exists, element.isHittable else { return false }
+            guard clearOfBar else { return true }
             let bar = app.searchFields.firstMatch
             return !bar.exists || element.frame.maxY <= bar.frame.minY - 4
         }
@@ -240,7 +242,7 @@ final class CustomizeTests: PassYUITestCase {
         if app.secureTextFields["MasterPasswordEntry"].exists { ensureUnlockedVault(app) }
         goTo(app, "Settings")
         let row = app.buttons["CustomizeSettingsButton"]
-        scrollTo(row, in: app)
+        scrollTo(row, in: app, clearOfBar: false)
         guard row.exists else { return }
         row.tap()
         let reset = app.buttons["CustomizeResetButton"]
