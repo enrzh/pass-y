@@ -100,34 +100,37 @@ private struct SearchableVaultListView: View {
 
     // MARK: Private Properties
 
-    /// A view that displays the empty vault interface.
+    /// A view that displays the empty vault interface: a list with the action card and the vault filter (if any), the
+    /// empty state below them on the page background.
     @ViewBuilder private var emptyVault: some View {
-        VStack(spacing: 24) {
-            Group {
-                actionCard
+        List {
+            actionCardSection
 
-                vaultFilterRow
-            }
-
-            Spacer()
-
-            PassYEmptyState(
-                Localizations.saveAndProtectYourData,
-                systemImage: "lock.shield",
-                message: Localizations
-                    .theVaultProtectsMoreThanJustPasswordsStoreSecureLoginsIdsCardsAndNotesSecurelyHere,
-            ) {
-                Button(Localizations.addLogin, systemImage: "plus") {
-                    store.send(.addItemPressed(.login))
+            if !store.state.vaultFilterState.vaultFilterOptions.isEmpty {
+                Section {
+                    vaultFilterRow
                 }
-                .passYButtonStyle(.primary)
             }
 
-            Spacer()
+            Section {
+                PassYEmptyState(
+                    Localizations.saveAndProtectYourData,
+                    systemImage: "lock.shield",
+                    message: Localizations
+                        .theVaultProtectsMoreThanJustPasswordsStoreSecureLoginsIdsCardsAndNotesSecurelyHere,
+                ) {
+                    Button(Localizations.addLogin, systemImage: "plus") {
+                        store.send(.addItemPressed(.login))
+                    }
+                    .passYButtonStyle(.primary)
+                }
+                .padding(.top, PassYDesign.Spacing.xLarge)
+                .passYPlainListRow()
+            }
         }
+        .passYCardList()
         .animation(.easeInOut, value: store.state.importLoginsSetupProgress == .setUpLater)
         .animation(.easeInOut, value: store.state.importLoginsSetupProgress == .complete)
-        .scrollView(centerContentVertically: true)
     }
 
     /// A view that displays the search interface, including search results, an empty search
@@ -140,7 +143,6 @@ private struct SearchableVaultListView: View {
                     Section {
                         searchVaultFilterRow
                     }
-                    .listRowInsets(EdgeInsets())
                 }
 
                 Section {
@@ -159,15 +161,23 @@ private struct SearchableVaultListView: View {
             .passYCountdownClock(timeProvider: timeProvider)
         } else {
             SearchNoResultsView {
-                searchVaultFilterRow
+                searchVaultFilterRow(isCard: true)
             }
         }
     }
 
     /// Displays the vault filter for search row if the user is a member of any org.
     private var searchVaultFilterRow: some View {
+        searchVaultFilterRow(isCard: false)
+    }
+
+    /// Displays the vault filter for search row if the user is a member of any org.
+    ///
+    /// - Parameter isCard: Whether the row draws its own card (outside a list).
+    ///
+    private func searchVaultFilterRow(isCard: Bool) -> some View {
         SearchVaultFilterRowView(
-            hasDivider: false, store: store.child(
+            hasDivider: false, isCard: isCard, store: store.child(
                 state: \.searchVaultFilterState,
                 mapAction: { action in
                     switch action {
@@ -216,7 +226,6 @@ private struct SearchableVaultListView: View {
                 mapEffect: nil,
             ),
         )
-        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     // MARK: Private Methods
@@ -227,25 +236,15 @@ private struct SearchableVaultListView: View {
     ///
     @ViewBuilder
     private func errorViewWithRetry(errorMessage: String) -> some View {
-        VStack(spacing: 24) {
-            Text(errorMessage)
-                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .styleGuide(.body)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 12)
-
+        PassYEmptyState(errorMessage, systemImage: "exclamationmark.triangle") {
             AsyncButton {
                 await store.perform(.tryAgainTapped)
             } label: {
                 Text(Localizations.tryAgain)
             }
-            .buttonStyle(
-                .primary(
-                    shouldFillWidth: false,
-                ),
-            )
+            .passYButtonStyle(.primary)
         }
-        .scrollView(centerContentVertically: true)
+        .passYEmptyListState()
     }
 
     /// The vault as a native inset-grouped `List`: action card, vault filter, category tiles and one collapsible section per
@@ -260,19 +259,13 @@ private struct SearchableVaultListView: View {
         let (tileItems, listSections) = splitCache.split(sections)
         let home = PassYHomeArrangement(tiles: tileItems, sections: listSections, layout: homeLayout)
         List {
-            if store.state.activeActionCard != nil, store.state.activeActionCard != .introducingArchive {
-                Section {
-                    actionCard
-                }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-            }
+            actionCardSection
 
-            Section {
-                vaultFilterRow
+            if !store.state.vaultFilterState.vaultFilterOptions.isEmpty {
+                Section {
+                    vaultFilterRow
+                }
             }
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
 
             if !home.cards.isEmpty {
                 Section {
@@ -697,17 +690,21 @@ final class TileSplitCache {
 // MARK: - Action Cards
 
 extension SearchableVaultListView {
-    /// The active action card, rendered based on priority. Only one card is shown at a time.
-    @ViewBuilder private var actionCard: some View {
+    /// The active action card as a list section, rendered based on priority. Only one card is shown at a time. The
+    /// reachable cards are `PassYSetupSection`s; the Premium cards (unreachable in Pass-Y: the upgrade path is off)
+    /// keep the legacy card.
+    @ViewBuilder private var actionCardSection: some View {
         switch store.state.activeActionCard {
         case .importItems:
-            ActionCard(
+            PassYSetupSection(
                 title: Localizations.importSavedLogins,
                 message: Localizations.importSavedLoginsDescriptionLong,
-                actionButtonState: ActionCard.ButtonState(title: Localizations.getStarted) {
+                systemImage: "square.and.arrow.down.fill",
+                tint: .blue,
+                action: .init(title: Localizations.getStarted) {
                     store.send(.showImportLogins)
                 },
-                dismissButtonState: ActionCard.ButtonState(title: Localizations.dismiss) {
+                dismiss: .init(title: Localizations.dismiss) {
                     await store.perform(.dismissImportLoginsActionCard)
                 },
             )
@@ -715,23 +712,36 @@ extension SearchableVaultListView {
             // Pass-Y does not show feature promotions.
             EmptyView()
         case let .organizationBanner(data):
-            ActionCard(
-                title: data.headerText,
-                message: data.description,
-                actionButtonState: data.buttonText.map { text in
-                    ActionCard.ButtonState(title: text) {
+            PassYSetupSection(
+                title: data.headerText ?? data.description,
+                message: data.headerText == nil ? nil : data.description,
+                systemImage: "building.2.fill",
+                tint: .indigo,
+                action: data.buttonText.map { text in
+                    PassYSetupSection.Row(title: text) {
                         await store.perform(.dismissOrganizationBanner(fromActionButton: true))
                     }
                 },
-                dismissButtonState: data.buttonText == nil
-                    ? ActionCard.ButtonState(title: Localizations.dismiss) {
+                dismiss: data.buttonText == nil
+                    ? PassYSetupSection.Row(title: Localizations.dismiss) {
                         await store.perform(.dismissOrganizationBanner(fromActionButton: false))
                     }
                     : nil,
-            ) {
-                SharedAsset.Icons.informationCircle24.swiftUIImage
-                    .foregroundStyle(SharedAsset.Colors.iconSecondary.swiftUIColor)
+            )
+        case .subscriptionNeedsAttention, .upgradedToPremium, .upgradeNeeded:
+            Section {
+                legacyPremiumCard
             }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+        case nil:
+            EmptyView()
+        }
+    }
+
+    /// The Premium cards (unreachable in Pass-Y, see `actionCardSection`).
+    @ViewBuilder private var legacyPremiumCard: some View {
+        switch store.state.activeActionCard {
         case .subscriptionNeedsAttention:
             ActionCard(
                 title: Localizations.subscriptionNeedsAttention,
@@ -756,7 +766,7 @@ extension SearchableVaultListView {
                     await store.perform(.dismissPremiumUpgradeActionCard)
                 },
             )
-        case nil:
+        default:
             EmptyView()
         }
     }

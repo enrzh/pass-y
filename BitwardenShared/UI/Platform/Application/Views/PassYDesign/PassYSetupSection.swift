@@ -49,8 +49,8 @@ struct PassYSetupSection: View {
     /// The colour of the headline tile.
     var tint: Color = .accentColor
 
-    /// The primary action row (for example "Turn on now").
-    let action: Row
+    /// The primary action row (for example "Turn on now"), `nil` for a notice with only a dismiss row.
+    let action: Row?
 
     /// An optional secondary action row (for example "Learn more").
     var secondary: Row?
@@ -78,8 +78,10 @@ struct PassYSetupSection: View {
             }
             .padding(.vertical, PassYDesign.Spacing.xSmall)
 
-            rowButton(action, identifier: "SetupSectionActionButton") { title in
-                Text(title).fontWeight(.semibold)
+            if let action {
+                rowButton(action, identifier: "SetupSectionActionButton") { title in
+                    Text(title).fontWeight(.semibold)
+                }
             }
 
             if let secondary {
