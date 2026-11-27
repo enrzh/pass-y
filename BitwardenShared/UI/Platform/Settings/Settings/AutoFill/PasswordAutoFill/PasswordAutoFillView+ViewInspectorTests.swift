@@ -49,4 +49,11 @@ class PasswordAutoFillViewTests: BitwardenTestCase {
         processor.state.mode = .settings
         XCTAssertThrowsError(try subject.inspect().find(button: Localizations.turnOnLater))
     }
+
+    /// The page explains the setup in three numbered steps (no animation with third-party art).
+    @MainActor
+    func test_steps_shown() throws {
+        XCTAssertNoThrow(try subject.inspect().find(viewWithAccessibilityIdentifier: "PasswordAutoFillSteps"))
+        XCTAssertEqual(processor.state.steps.count, 3)
+    }
 }

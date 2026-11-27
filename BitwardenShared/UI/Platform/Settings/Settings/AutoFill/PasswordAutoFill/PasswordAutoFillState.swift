@@ -42,6 +42,15 @@ struct PasswordAutoFillState: Equatable {
         Localizations.autofillWithBitwardenDescriptionLong
     }
 
+    /// The steps to turn on AutoFill in the system settings (markdown).
+    var steps: [String] {
+        [
+            Localizations.fromYourDeviceSettingsToggleOnAutoFillPasswordsAndPasskeys,
+            Localizations.toggleOnBitwardenToUseYourSavedPasswordsToLogIntoYourAccounts,
+            Localizations.toggleOffICloudToMakeBitwardenYourDefaultAutoFillSource,
+        ]
+    }
+
     /// The url to open in the device's web browser.
     var url: URL?
 }

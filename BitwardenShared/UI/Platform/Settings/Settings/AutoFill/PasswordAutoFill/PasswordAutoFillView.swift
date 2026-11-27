@@ -17,14 +17,8 @@ struct PasswordAutoFillView: View {
         PasswordAutoFillEffect,
     >
 
-    /// An object used to determine the current color scheme.
-    @Environment(\.colorScheme) var colorScheme
-
     /// An object used to open urls from this view.
     @Environment(\.openURL) private var openURL
-
-    /// An environment variable for getting the vertical size class of the view.
-    @Environment(\.verticalSizeClass) var verticalSizeClass
 
     // MARK: View
 
@@ -52,14 +46,8 @@ struct PasswordAutoFillView: View {
     private var contentView: some View {
         ScrollView {
             VStack(spacing: PassYDesign.Spacing.xLarge) {
-                dynamicStackView {
-                    ZStack {
-                        gifViewPlaceholder
-
-                        gifView
-                    }
-                    .frame(width: 230, height: 278)
-                    .accessibilityHidden(true)
+                VStack(spacing: PassYDesign.Spacing.large) {
+                    illustration
 
                     VStack(spacing: PassYDesign.Spacing.medium) {
                         Text(store.state.title)
@@ -74,6 +62,8 @@ struct PasswordAutoFillView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.top, PassYDesign.Spacing.medium)
+
+                steps
 
                 Text(
                     LocalizedStringKey(
@@ -110,45 +100,51 @@ struct PasswordAutoFillView: View {
         .passYGroupedBackground()
     }
 
-    @ViewBuilder private var gifView: some View {
-        switch colorScheme {
-        case .light:
-            GifView(gif: Asset.Images.autofillIosLight)
-        case .dark:
-            GifView(gif: Asset.Images.autofillIosDark)
-        @unknown default:
-            GifView(gif: Asset.Images.autofillIosLight)
-        }
+    /// The illustration: the AutoFill key in a Pass-Y tile (SF Symbols only, no screenshots).
+    private var illustration: some View {
+        RoundedRectangle(cornerRadius: PassYDesign.Radius.tile(side: 88), style: .continuous)
+            .fill(Color.green.gradient)
+            .frame(width: 88, height: 88)
+            .overlay {
+                Image(systemName: "key.viewfinder")
+                    .font(.system(size: 44, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .accessibilityHidden(true)
     }
 
-    /// The placeholder image to present while the gif loads.
-    @ViewBuilder private var gifViewPlaceholder: some View {
-        switch colorScheme {
-        case .light:
-            Image(decorative: Asset.Images.autofillIosLightPlaceholder)
-                .resizable()
-                .scaledToFit()
-        case .dark:
-            Image(decorative: Asset.Images.autofillIosDarkPlaceholder)
-                .resizable()
-                .scaledToFit()
-        @unknown default:
-            Image(decorative: Asset.Images.autofillIosLightPlaceholder)
-                .resizable()
-                .scaledToFit()
-        }
-    }
+    /// The numbered steps to turn on AutoFill in the system settings.
+    private var steps: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(store.state.steps.enumerated()), id: \.offset) { index, step in
+                if index > 0 {
+                    Divider().padding(.leading, 52)
+                }
+                HStack(alignment: .firstTextBaseline, spacing: PassYDesign.Spacing.medium) {
+                    Text(verbatim: "\(index + 1)")
+                        .font(.subheadline.weight(.bold).monospacedDigit())
+                        .foregroundStyle(.white)
+                        .frame(width: 28, height: 28)
+                        .background(Circle().fill(Color.accentColor))
+                        .accessibilityHidden(true)
 
-    /// A dynamic stack view that lays out content vertically when in a regular vertical size class
-    /// and horizontally for the compact vertical size class.
-    @ViewBuilder
-    private func dynamicStackView(@ViewBuilder content: () -> some View) -> some View {
-        if verticalSizeClass == .regular {
-            VStack(spacing: 24, content: content)
-        } else {
-            HStack(spacing: 24, content: content)
-                .padding(.horizontal, 80)
+                    Text(LocalizedStringKey(step))
+                        .font(.body)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, PassYDesign.Spacing.large)
+                .padding(.vertical, PassYDesign.Spacing.medium)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(Localizations.stepXOfY(index + 1, store.state.steps.count))
+                .accessibilityValue(Text(LocalizedStringKey(step)))
+            }
         }
+        .background(
+            RoundedRectangle(cornerRadius: PassYDesign.Radius.large, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground)),
+        )
+        .accessibilityIdentifier("PasswordAutoFillSteps")
     }
 }
 
