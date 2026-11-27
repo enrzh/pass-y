@@ -173,10 +173,6 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
             showAppearance()
         case .customize:
             showCustomize()
-        case .appExtension:
-            showAppExtension()
-        case .appExtensionSetup:
-            showAppExtensionSetup(delegate: context as? AppExtensionSetupDelegate)
         case .autoFill:
             showAutoFill()
         case .deleteAccount:
@@ -335,42 +331,6 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
         let viewController = UIHostingController(rootView: view)
         viewController.navigationItem.largeTitleDisplayMode = .never
         stackNavigator?.push(viewController, navigationTitle: Localizations.appearance)
-    }
-
-    /// Shows the app extension screen.
-    ///
-    private func showAppExtension() {
-        let processor = AppExtensionProcessor(
-            coordinator: asAnyCoordinator(),
-            state: AppExtensionState(),
-        )
-        let view = AppExtensionView(store: Store(processor: processor))
-        let viewController = UIHostingController(rootView: view)
-        viewController.navigationItem.largeTitleDisplayMode = .never
-        stackNavigator?.push(viewController, navigationTitle: Localizations.appExtension)
-    }
-
-    /// Shows the app extension setup screen.
-    ///
-    /// - Parameter delegate: The `AppExtensionSetupDelegate` to notify when the user interacts with
-    ///     the extension.
-    ///
-    private func showAppExtensionSetup(delegate: AppExtensionSetupDelegate?) {
-        let extensionItem = NSExtensionItem()
-        extensionItem.attachments = [
-            NSItemProvider(
-                item: "" as NSString,
-                typeIdentifier: Constants.UTType.appExtensionSetup,
-            ),
-        ]
-        let viewController = UIActivityViewController(activityItems: [extensionItem], applicationActivities: nil)
-        viewController.completionWithItemsHandler = { activityType, completed, _, _ in
-            delegate?.didDismissExtensionSetup(
-                enabled: completed &&
-                    activityType?.rawValue == Bundle.main.appExtensionIdentifier,
-            )
-        }
-        stackNavigator?.present(viewController)
     }
 
     /// Navigates to the specified auth coordinator route within the existing navigator.

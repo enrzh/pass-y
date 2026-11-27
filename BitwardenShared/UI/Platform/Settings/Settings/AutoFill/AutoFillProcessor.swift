@@ -61,8 +61,6 @@ final class AutoFillProcessor: StateProcessor<AutoFillState, AutoFillAction, Aut
 
     override func receive(_ action: AutoFillAction) {
         switch action {
-        case .appExtensionTapped:
-            coordinator.navigate(to: .appExtension)
         case .clearUrl:
             state.url = nil
         case let .defaultUriMatchTypeChanged(newValue):

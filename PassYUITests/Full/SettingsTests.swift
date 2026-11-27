@@ -113,8 +113,9 @@ final class SettingsTests: PassYUITestCase {
         back()
 
         app.buttons["AboutSettingsButton"].tap(); sleep(2)
-        XCTAssertTrue(app.switches["SubmitCrashLogsSwitch"].waitForExistence(timeout: 5), "About has the crash logs switch")
-        XCTAssertTrue(app.switches["FlightRecorderSwitch"].exists, "About has the flight recorder switch")
+        XCTAssertTrue(app.switches["FlightRecorderSwitch"].waitForExistence(timeout: 5), "About has the flight recorder switch")
+        XCTAssertFalse(app.switches["SubmitCrashLogsSwitch"].exists, "no crash log switch (nothing is sent)")
+        XCTAssertTrue(app.buttons["LicensesButton"].exists, "About has the licences row")
         attach(app, "16-about"); noOptional("about")
         let privacy = app.buttons["Privacy Policy"]
         XCTAssertTrue(privacy.exists, "About has the privacy policy row")

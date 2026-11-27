@@ -33,14 +33,6 @@ class AutoFillViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// Tapping the app extension button dispatches the `.appExtensionTapped` action.
-    @MainActor
-    func test_appExtensionButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.appExtension)
-        try button.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .appExtensionTapped)
-    }
-
     /// Updating the value of the default URI match type sends the `.defaultUriMatchTypeChanged` action.
     @MainActor
     func test_defaultUriMatchTypeChanged_updateValue() throws {

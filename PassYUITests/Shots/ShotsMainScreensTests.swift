@@ -121,12 +121,6 @@ final class ShotsMainScreensTests: PassYUITestCase {
                 if row.waitForExistence(timeout: 5) {
                     row.tap(); sleep(2)
                     shot(app, mode, n, "settings-\(name)"); n += 1
-                    if name == "autofill", app.buttons["AppExtensionLabel"].exists || app.buttons["App extension"].exists {
-                        let ext = app.buttons["AppExtensionLabel"].exists ? app.buttons["AppExtensionLabel"] : app.buttons["App extension"]
-                        ext.tap(); sleep(2)
-                        shot(app, mode, n, "settings-app-extension"); n += 1
-                        back(app)
-                    }
                     back(app)
                 }
             }
