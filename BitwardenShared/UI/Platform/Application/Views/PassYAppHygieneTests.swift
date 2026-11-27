@@ -38,6 +38,15 @@ class PassYAppHygieneTests: BitwardenTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("BitwardenWatchShared").path))
     }
 
+    /// Push is off, so the app declares no background mode and does not embed the notification service extension.
+    func test_noRemoteNotificationBackgroundMode_noNotificationExtensionEmbedded() throws {
+        let plist = try read("Bitwarden/Application/Support/Info.plist")
+        XCTAssertFalse(plist.contains("UIBackgroundModes"))
+        XCTAssertFalse(plist.contains("remote-notification"))
+        let spec = try read("project-pm.yml")
+        XCTAssertFalse(spec.contains("      - target: BitwardenNotificationExtension\n"), "not embedded in the app")
+    }
+
     /// The iCloud key-value entitlement (layout sync) belongs to the main app only.
     func test_iCloudKeyValueEntitlement_mainAppOnly() throws {
         let key = "com.apple.developer.ubiquity-kvstore-identifier"

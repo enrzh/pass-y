@@ -38,7 +38,7 @@ The iOS repository contains two main apps: Bitwarden Password Manager and Bitwar
 - `Bitwarden`: The main iOS Password Manager app.
 - `BitwardenActionExtension`: An [Action extension](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/Action.html) that can be accessed via the system share sheet "Autofill with Bitwarden" option.
 - `BitwardenAutoFillExtension`: An AutoFill Credential Provider extension which allows Bitwarden to offer up credentials for [Password AutoFill](https://developer.apple.com/documentation/security/password_autofill/).
-- `BitwardenNotificationExtension`: A [UNNotificationServiceExtension](https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension) that is used to update the content of push notifications.
+- `BitwardenNotificationExtension`: A [UNNotificationServiceExtension](https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension) that is used to update the content of push notifications. Pass-Y does not embed it in the app (push is off, there is no relay); the target is kept so the code still compiles.
 - `BitwardenShareExtension`: A [Share extension](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/Share.html) that allows creating text or file sends via the system share sheet.
 - `BitwardenShared`: The main Password Manager framework containing the Core and UI layers shared between the app and extensions.
 

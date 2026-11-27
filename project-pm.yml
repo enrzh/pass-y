@@ -197,7 +197,7 @@ targets:
       - target: BitwardenShared
       - target: BitwardenActionExtension
       - target: BitwardenAutoFillExtension
-      - target: BitwardenNotificationExtension
+      # The notification service extension is not embedded: push is off (no relay), so it would never run.
       - target: BitwardenShareExtension
       - target: BitwardenWatchApp
       - target: BitwardenKit/AuthenticatorBridgeKit
