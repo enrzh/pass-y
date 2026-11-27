@@ -1386,3 +1386,25 @@
 "SyncLayoutWithICloud" = "Layout in iCloud sichern";
 /* Settings: footer of the iCloud layout switch. */
 "SyncLayoutWithICloudDescription" = "Speichert nur deine Anpassen-Einstellungen und das Layout der Tresor-Seite in deiner iCloud, damit andere Geräte und eine Neuinstallation sie übernehmen. Ein Layout, das schon in iCloud liegt, ersetzt das auf diesem Gerät. Passwörter, Tresor-Einträge und Kontodaten werden nie in iCloud hochgeladen.";
+/* About: row that writes an email to Pass-Y support. */
+"ContactSupport" = "Support kontaktieren";
+/* About: toast when no mail app is set up; the argument is the support email address. */
+"NoMailAppXCopied" = "Keine Mail-App eingerichtet. %1$@ wurde kopiert.";
+/* About: row that opens the source code of Pass-Y. */
+"SourceCode" = "Quellcode";
+/* About: row and title of the software licences screen ("Licenses" alone is used for driver's licenses). */
+"SoftwareLicenses" = "Lizenzen";
+/* Licenses: Pass-Y's licence notice. */
+"PassYLicenseNotice" = "Pass-Y ist freie Software: Du darfst sie unter den Bedingungen der GNU General Public License, Version 3, weitergeben und verändern. Sie wird ohne jede Gewährleistung bereitgestellt.";
+/* Licenses: attribution of the upstream project. */
+"BasedOnBitwardenIOS" = "Basiert auf Bitwarden iOS © Bitwarden Inc. (GPLv3)";
+/* Licenses: row that shows the full licence text. */
+"GNUGeneralPublicLicenseV3" = "GNU General Public License v3";
+/* Licenses: header of the third-party components. */
+"ThirdPartySoftware" = "Software von Dritten";
+/* Licenses: footer of the third-party components. */
+"ThirdPartySoftwareFooter" = "Diese Komponenten sind Teil der App. Tippe auf eine, um ihre Lizenz zu lesen.";
+/* Licenses: row and title of the list of Rust crates compiled into the SDK. */
+"RustLibrariesInTheSDK" = "Rust-Bibliotheken im SDK";
+/* Licenses: footer of the Rust crate list; the argument is the source revision of the SDK. */
+"RustLibrariesFooter" = "Das SDK wird aus diesen Rust-Bibliotheken gebaut (Revision %1$@). Die Liste enthält auch Bibliotheken, die nur beim Bauen verwendet werden.";

@@ -53,7 +53,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -71,7 +72,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: Unknown
@@ -94,7 +96,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -120,7 +123,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -140,7 +144,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -159,7 +164,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -197,7 +203,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -228,7 +235,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -273,7 +281,8 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         XCTAssertEqual(
             result,
             """
-            © Bitwarden Inc. 2015–2025
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -312,12 +321,12 @@ class AppInfoServiceTests: BitwardenTestCase { // swiftlint:disable:this type_bo
         )
     }
 
-    /// `copyrightString` returns the app's formatted copyright string.
+    /// `copyrightString` names Pass-Y first and keeps the upstream notice (GPLv3).
     func test_copyrightString() {
-        XCTAssertEqual(subject.copyrightString, "© Bitwarden Inc. 2015–2025")
-
-        timeProvider.timeConfig = .mockTime(Date(year: 2020, month: 1, day: 2))
-        XCTAssertEqual(subject.copyrightString, "© Bitwarden Inc. 2015–2020")
+        XCTAssertEqual(
+            subject.copyrightString,
+            "Pass-Y © 2026 aiity\nBased on Bitwarden iOS © Bitwarden Inc. (GPLv3)",
+        )
     }
 
     /// `isBetaBuild` is `false` for production bundle identifiers.

@@ -62,11 +62,9 @@ class AboutProcessorTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// `init` sets the correct crash logs setting and app info.
+    /// `init` sets the app info.
     @MainActor
     func test_init_loadsValues() {
-        errorReporter.isEnabled = true
-
         subject = AboutProcessor(
             coordinator: coordinator.asAnyCoordinator(),
             services: ServiceContainer.withMocks(
@@ -79,9 +77,8 @@ class AboutProcessorTests: BitwardenTestCase {
 
         XCTAssertEqual(
             subject.state.copyrightText,
-            "© Bitwarden Inc. 2015\(String.enDash)\(Calendar.current.component(.year, from: Date.now))",
+            "Pass-Y © 2026 aiity\nBased on Bitwarden iOS © Bitwarden Inc. (GPLv3)",
         )
-        XCTAssertTrue(subject.state.isSubmitCrashLogsToggleOn)
         XCTAssertEqual(subject.state.version, "1.0 (1)")
     }
 
@@ -93,7 +90,8 @@ class AboutProcessorTests: BitwardenTestCase {
         XCTAssertEqual(
             pasteboardService.copyReceivedString,
             """
-            © Bitwarden Inc. 2015\(String.enDash)\(Calendar.current.component(.year, from: Date.now))
+            Pass-Y © 2026 aiity
+            Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
             📝 Bitwarden 1.0 (1)
             📦 Bundle: com.8bit.bitwarden
@@ -174,33 +172,69 @@ class AboutProcessorTests: BitwardenTestCase {
         XCTAssertEqual(coordinator.routes, [.flightRecorder(.flightRecorderLogs)])
     }
 
-    /// `receive(_:)` with `.helpCenterTapped` set the URL to open in the state.
+    /// `receive(_:)` with `.helpCenterTapped` opens Pass-Y's support page.
     @MainActor
     func test_receive_helpCenterTapped() {
         subject.receive(.helpCenterTapped)
         XCTAssertEqual(subject.state.url, ExternalLinksConstants.helpAndFeedback)
+        XCTAssertEqual(subject.state.url?.absoluteString, "https://github.com/enrzh/pass-y/blob/main/SUPPORT.md")
     }
 
-    /// `receive(_:)` with `.learnAboutOrganizationsTapped` shows an alert for navigating to the website
-    /// When `Continue` is tapped on the alert, sets the URL to open in the state.
+    /// `receive(_:)` with `.privacyPolicyTapped` opens Pass-Y's privacy policy directly (no alert).
     @MainActor
-    func test_receive_learnAboutOrganizationsTapped() async throws {
-        subject.receive(.learnAboutOrganizationsTapped)
-
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.continue)
-        XCTAssertEqual(subject.state.url, ExternalLinksConstants.aboutOrganizations)
-    }
-
-    /// `receive(_:)` with `.privacyPolicyTapped` shows an alert for navigating to the Privacy Policy
-    /// When `Continue` is tapped on the alert, sets the URL to open in the state.
-    @MainActor
-    func test_receive_privacyPolicyTapped() async throws {
+    func test_receive_privacyPolicyTapped() {
         subject.receive(.privacyPolicyTapped)
 
-        let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.continue)
+        XCTAssertTrue(coordinator.alertShown.isEmpty)
         XCTAssertEqual(subject.state.url, ExternalLinksConstants.privacyPolicy)
+        XCTAssertEqual(subject.state.url?.absoluteString, "https://github.com/enrzh/pass-y/blob/main/PRIVACY.md")
+    }
+
+    /// `receive(_:)` with `.contactSupportTapped` hands the support mail link to the view.
+    @MainActor
+    func test_receive_contactSupportTapped() {
+        subject.receive(.contactSupportTapped)
+
+        XCTAssertEqual(subject.state.mailURL?.absoluteString, "mailto:support@aiity.de")
+        XCTAssertNil(subject.state.url)
+    }
+
+    /// `receive(_:)` with `.mailURLOpened(opened: true)` clears the link and copies nothing.
+    @MainActor
+    func test_receive_mailURLOpened_opened() {
+        subject.state.mailURL = ExternalLinksConstants.supportEmail
+
+        subject.receive(.mailURLOpened(opened: true))
+
+        XCTAssertNil(subject.state.mailURL)
+        XCTAssertNil(pasteboardService.copyReceivedString)
+        XCTAssertNil(subject.state.toast)
+    }
+
+    /// `receive(_:)` with `.mailURLOpened(opened: false)` (no mail app) copies the address and says so.
+    @MainActor
+    func test_receive_mailURLOpened_noMailApp() {
+        subject.state.mailURL = ExternalLinksConstants.supportEmail
+
+        subject.receive(.mailURLOpened(opened: false))
+
+        XCTAssertNil(subject.state.mailURL)
+        XCTAssertEqual(pasteboardService.copyReceivedString, "support@aiity.de")
+        XCTAssertEqual(subject.state.toast, Toast(title: Localizations.noMailAppXCopied("support@aiity.de")))
+    }
+
+    /// `receive(_:)` with `.sourceCodeTapped` opens the source code.
+    @MainActor
+    func test_receive_sourceCodeTapped() {
+        subject.receive(.sourceCodeTapped)
+        XCTAssertEqual(subject.state.url?.absoluteString, "https://github.com/enrzh/pass-y")
+    }
+
+    /// `receive(_:)` with `.licensesTapped` opens the licences screen.
+    @MainActor
+    func test_receive_licensesTapped() {
+        subject.receive(.licensesTapped)
+        XCTAssertEqual(coordinator.routes, [.licenses(.overview)])
     }
 
     /// `receive(_:)` with `.rateTheAppTapped` shows an alert for navigating to the app store.
@@ -227,17 +261,4 @@ class AboutProcessorTests: BitwardenTestCase {
         subject.receive(.toastShown(nil))
         XCTAssertNil(subject.state.toast)
     }
-
-    /// `receive(_:)` with action `.isSubmitCrashLogsToggleOn` updates the toggle value in the state.
-    @MainActor
-    func test_receive_toggleSubmitCrashLogs() {
-        errorReporter.isEnabled = false
-        XCTAssertFalse(subject.state.isSubmitCrashLogsToggleOn)
-
-        subject.receive(.toggleSubmitCrashLogs(true))
-
-        XCTAssertTrue(subject.state.isSubmitCrashLogsToggleOn)
-        XCTAssertTrue(errorReporter.isEnabled)
-    }
-
 }

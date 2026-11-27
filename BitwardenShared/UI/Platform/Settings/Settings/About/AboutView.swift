@@ -19,8 +19,6 @@ struct AboutView: View {
 
     var body: some View {
         Form {
-            submitCrashLogs
-
             flightRecorderSection
 
             miscSection
@@ -38,6 +36,12 @@ struct AboutView: View {
             guard let url = newValue else { return }
             openURL(url)
             store.send(.clearURL)
+        }
+        .onChange(of: store.state.mailURL) { newValue in
+            guard let url = newValue else { return }
+            openURL(url) { opened in
+                store.send(.mailURLOpened(opened: opened))
+            }
         }
         .onChange(of: store.state.appReviewUrl) { newValue in
             guard let url = newValue else { return }
@@ -65,15 +69,47 @@ struct AboutView: View {
     @ViewBuilder private var miscSection: some View {
         Section {
             externalLinkRow(
-                Localizations.bitwardenHelpCenter,
+                Localizations.help,
                 symbol: "questionmark.circle.fill",
                 tint: .blue,
+                identifier: "HelpButton",
                 action: .helpCenterTapped,
             )
 
-            externalLinkRow(Localizations.privacyPolicy, symbol: "hand.raised.fill", tint: .blue, action: .privacyPolicyTapped)
+            externalLinkRow(
+                Localizations.contactSupport,
+                symbol: "envelope.fill",
+                tint: .blue,
+                identifier: "ContactSupportButton",
+                action: .contactSupportTapped,
+            )
 
-            externalLinkRow(Localizations.learnOrg, symbol: "building.2.fill", tint: .gray, action: .learnAboutOrganizationsTapped)
+            externalLinkRow(
+                Localizations.privacyPolicy,
+                symbol: "hand.raised.fill",
+                tint: .blue,
+                identifier: "PrivacyPolicyButton",
+                action: .privacyPolicyTapped,
+            )
+        }
+
+        Section {
+            externalLinkRow(
+                Localizations.sourceCode,
+                symbol: "chevron.left.forwardslash.chevron.right",
+                tint: .gray,
+                identifier: "SourceCodeButton",
+                action: .sourceCodeTapped,
+            )
+
+            PassYSettingsRow(
+                Localizations.softwareLicenses,
+                systemImage: "doc.text.fill",
+                tint: .gray,
+                identifier: "LicensesButton",
+            ) {
+                store.send(.licensesTapped)
+            }
         }
 
         Section {
@@ -92,33 +128,24 @@ struct AboutView: View {
         }
     }
 
-    /// The submit crash logs toggle.
-    private var submitCrashLogs: some View {
-        Section {
-            PassYToggleRow(
-                Localizations.submitCrashLogs,
-                systemImage: "ladybug.fill",
-                tint: .red,
-                isOn: store.binding(
-                    get: \.isSubmitCrashLogsToggleOn,
-                    send: AboutAction.toggleSubmitCrashLogs,
-                ),
-                identifier: "SubmitCrashLogsSwitch",
-            )
-        }
-    }
-
     /// Returns a native row configured for an external web link.
     ///
     /// - Parameters:
     ///   - name: The localized name of the row.
     ///   - symbol: The SF Symbol of the row tile.
     ///   - tint: The colour of the row tile.
+    ///   - identifier: The accessibility identifier of the row.
     ///   - action: An action to send when the row is tapped.
     /// - Returns: A row configured for an external web link.
     ///
-    private func externalLinkRow(_ name: String, symbol: String, tint: Color, action: AboutAction) -> some View {
-        PassYSettingsRow(name, systemImage: symbol, tint: tint, accessory: .external) {
+    private func externalLinkRow(
+        _ name: String,
+        symbol: String,
+        tint: Color,
+        identifier: String,
+        action: AboutAction,
+    ) -> some View {
+        PassYSettingsRow(name, systemImage: symbol, tint: tint, accessory: .external, identifier: identifier) {
             store.send(action)
         }
     }

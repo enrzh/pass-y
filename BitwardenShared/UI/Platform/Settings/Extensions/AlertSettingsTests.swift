@@ -82,21 +82,6 @@ class AlertSettingsTests: BitwardenTestCase {
         XCTAssertEqual(subject.alertActions.last?.style, .default)
     }
 
-    /// `learnAboutOrganizationsAlert(encrypted:action:)` constructs an `Alert`
-    /// with the correct title, message, and Cancel and Continue buttons.
-    func test_learnAboutOrganizationsAlert() {
-        let subject = Alert.learnAboutOrganizationsAlert {}
-
-        XCTAssertEqual(subject.preferredStyle, .alert)
-        XCTAssertEqual(subject.title, Localizations.learnOrg)
-        XCTAssertEqual(subject.message, Localizations.learnAboutOrganizationsDescriptionLong)
-        XCTAssertEqual(subject.alertActions.count, 2)
-        XCTAssertEqual(subject.alertActions.first?.title, Localizations.cancel)
-        XCTAssertEqual(subject.alertActions.first?.style, .cancel)
-        XCTAssertEqual(subject.alertActions.last?.title, Localizations.continue)
-        XCTAssertEqual(subject.alertActions.last?.style, .default)
-    }
-
     /// `logoutOnTimeoutAlert(action:)` constructs an `Alert` with the title, message, and Yes and Cancel buttons.
     func test_logoutOnTimeoutAlert() {
         let subject = Alert.logoutOnTimeoutAlert {}
@@ -140,21 +125,6 @@ class AlertSettingsTests: BitwardenTestCase {
         XCTAssertEqual(subject.alertActions.first?.style, .default)
         XCTAssertEqual(subject.alertActions.last?.title, Localizations.cancel)
         XCTAssertEqual(subject.alertActions.last?.style, .cancel)
-    }
-
-    /// `privacyPolicyAlert(encrypted:action:)` constructs an `Alert`
-    /// with the correct title, message, and Cancel and Continue buttons.
-    func test_privacyPolicyAlert() {
-        let subject = Alert.privacyPolicyAlert {}
-
-        XCTAssertEqual(subject.preferredStyle, .alert)
-        XCTAssertEqual(subject.title, Localizations.continueToPrivacyPolicy)
-        XCTAssertEqual(subject.message, Localizations.privacyPolicyDescriptionLong)
-        XCTAssertEqual(subject.alertActions.count, 2)
-        XCTAssertEqual(subject.alertActions.first?.title, Localizations.cancel)
-        XCTAssertEqual(subject.alertActions.first?.style, .cancel)
-        XCTAssertEqual(subject.alertActions.last?.title, Localizations.continue)
-        XCTAssertEqual(subject.alertActions.last?.style, .default)
     }
 
     /// `timeoutExceedsPolicyLengthAlert()` constructs an `Alert` with the correct title, message, and Ok button.

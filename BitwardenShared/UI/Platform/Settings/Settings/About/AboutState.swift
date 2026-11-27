@@ -9,7 +9,7 @@ import Foundation
 struct AboutState {
     // MARK: Properties
 
-    /// The URL for Bitwarden's app review page in the app store.
+    /// The URL for the app review page in the app store.
     var appReviewUrl: URL?
 
     /// The copyright text.
@@ -18,8 +18,8 @@ struct AboutState {
     /// The state for the Flight Recorder feature.
     var flightRecorderState = FlightRecorderSettingsSectionState()
 
-    /// Whether the submit crash logs toggle is on.
-    var isSubmitCrashLogsToggleOn: Bool = false
+    /// The mail link to hand to the system (contact support).
+    var mailURL: URL?
 
     /// A toast message to show in the view.
     var toast: Toast?

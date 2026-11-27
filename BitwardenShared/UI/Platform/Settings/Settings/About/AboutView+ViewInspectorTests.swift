@@ -9,7 +9,7 @@ import XCTest
 class AboutViewTests: BitwardenTestCase {
     // MARK: Properties
 
-    let copyrightText = "© Bitwarden Inc. 2015-2023" // No need to be dynamic
+    let copyrightText = "Pass-Y © 2026 aiity"
     let version = "Version: 1.0.0 (1)"
 
     var processor: MockProcessor<AboutState, AboutAction, AboutEffect>!
@@ -38,7 +38,7 @@ class AboutViewTests: BitwardenTestCase {
     /// Tapping the help center button dispatches the `.helpCenterTapped` action.
     @MainActor
     func test_helpCenterButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.bitwardenHelpCenter)
+        let button = try subject.inspect().find(button: Localizations.help)
         try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .helpCenterTapped)
     }
@@ -79,12 +79,35 @@ class AboutViewTests: BitwardenTestCase {
         XCTAssertEqual(processor.dispatchedActions.last, .privacyPolicyTapped)
     }
 
-    /// Tapping the learn about organizations button dispatches the `.learnAboutOrganizationsTapped` action.
+    /// Tapping the contact support button dispatches the `.contactSupportTapped` action.
     @MainActor
-    func test_learnAboutOrganizationsButton_tap() throws {
-        let button = try subject.inspect().find(button: Localizations.learnOrg)
+    func test_contactSupportButton_tap() throws {
+        let button = try subject.inspect().find(button: Localizations.contactSupport)
         try button.tap()
-        XCTAssertEqual(processor.dispatchedActions.last, .learnAboutOrganizationsTapped)
+        XCTAssertEqual(processor.dispatchedActions.last, .contactSupportTapped)
+    }
+
+    /// Tapping the source code button dispatches the `.sourceCodeTapped` action.
+    @MainActor
+    func test_sourceCodeButton_tap() throws {
+        let button = try subject.inspect().find(button: Localizations.sourceCode)
+        try button.tap()
+        XCTAssertEqual(processor.dispatchedActions.last, .sourceCodeTapped)
+    }
+
+    /// Tapping the licenses button dispatches the `.licensesTapped` action.
+    @MainActor
+    func test_licensesButton_tap() throws {
+        let button = try subject.inspect().find(button: Localizations.softwareLicenses)
+        try button.tap()
+        XCTAssertEqual(processor.dispatchedActions.last, .licensesTapped)
+    }
+
+    /// The About page has no "Learn about organizations" row and no crash log switch (nothing is ever sent).
+    @MainActor
+    func test_noOrganizationsRow_noCrashLogSwitch() {
+        XCTAssertThrowsError(try subject.inspect().find(button: Localizations.learnOrg))
+        XCTAssertThrowsError(try subject.inspect().find(viewWithAccessibilityIdentifier: "SubmitCrashLogsSwitch"))
     }
 
     /// Tapping the version button performs the `.copyVersionInfo` effect.

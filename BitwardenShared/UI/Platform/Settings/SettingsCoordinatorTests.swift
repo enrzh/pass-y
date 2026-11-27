@@ -68,6 +68,21 @@ class SettingsCoordinatorTests: BitwardenTestCase { // swiftlint:disable:this ty
         XCTAssertTrue(action.view is UIHostingController<AboutView>)
     }
 
+    /// `navigate(to:)` with `.licenses` pushes the licences pages onto the stack navigator.
+    @MainActor
+    func test_navigateTo_licenses() throws {
+        subject.navigate(to: .licenses(.overview))
+        XCTAssertTrue(try XCTUnwrap(stackNavigator.actions.last).view is UIHostingController<LicensesView>)
+
+        subject.navigate(to: .licenses(.crates))
+        XCTAssertTrue(try XCTUnwrap(stackNavigator.actions.last).view is UIHostingController<LicenseCratesView>)
+
+        subject.navigate(to: .licenses(.text(title: "GPL", texts: [0])))
+        let action = try XCTUnwrap(stackNavigator.actions.last)
+        XCTAssertEqual(action.type, .pushed)
+        XCTAssertTrue(action.view is UIHostingController<LicenseTextView>)
+    }
+
     /// `navigate(to:)` with `.addAccount` asks the delegate to add an account.
     @MainActor
     func test_navigateTo_addAccount() {

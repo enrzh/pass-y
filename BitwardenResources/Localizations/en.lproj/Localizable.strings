@@ -1368,3 +1368,25 @@
 "SyncLayoutWithICloud" = "Sync layout with iCloud";
 /* Settings: footer of the iCloud layout switch. */
 "SyncLayoutWithICloudDescription" = "Saves only your Customize settings and the layout of the vault page in your iCloud, so your other devices and a reinstall get them. A layout already in iCloud replaces the one on this device. Passwords, vault items and account data are never uploaded to iCloud.";
+/* About: row that writes an email to Pass-Y support. */
+"ContactSupport" = "Contact support";
+/* About: toast when no mail app is set up; the argument is the support email address. */
+"NoMailAppXCopied" = "No mail app is set up. %1$@ was copied.";
+/* About: row that opens the source code of Pass-Y. */
+"SourceCode" = "Source code";
+/* About: row and title of the software licences screen ("Licenses" alone is used for driver's licenses). */
+"SoftwareLicenses" = "Licenses";
+/* Licenses: Pass-Y's licence notice. */
+"PassYLicenseNotice" = "Pass-Y is free software: you can redistribute and modify it under the terms of the GNU General Public License, version 3. It comes without any warranty.";
+/* Licenses: attribution of the upstream project. */
+"BasedOnBitwardenIOS" = "Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)";
+/* Licenses: row that shows the full licence text. */
+"GNUGeneralPublicLicenseV3" = "GNU General Public License v3";
+/* Licenses: header of the third-party components. */
+"ThirdPartySoftware" = "Third-party software";
+/* Licenses: footer of the third-party components. */
+"ThirdPartySoftwareFooter" = "These components are part of the app. Tap one to read its license.";
+/* Licenses: row and title of the list of Rust crates compiled into the SDK. */
+"RustLibrariesInTheSDK" = "Rust libraries in the SDK";
+/* Licenses: footer of the Rust crate list; the argument is the source revision of the SDK. */
+"RustLibrariesFooter" = "The SDK is compiled from these Rust libraries (revision %1$@). The list also contains libraries that are only used while compiling.";

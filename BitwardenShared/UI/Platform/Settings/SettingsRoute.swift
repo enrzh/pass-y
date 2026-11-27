@@ -65,6 +65,12 @@ public enum SettingsRoute: Equatable, Hashable {
     /// A route to the import logins screen.
     case importLogins
 
+    /// A route to a page of About > Licenses.
+    ///
+    /// - Parameter page: The page to show.
+    ///
+    case licenses(LicensesPage)
+
     /// A route to view a login request.
     ///
     /// - Parameter loginRequest: The login request to display.
