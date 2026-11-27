@@ -1364,7 +1364,7 @@
 /* Settings: switch that mirrors the Customize layout into iCloud. */
 "SyncLayoutWithICloud" = "Sync layout with iCloud";
 /* Settings: footer of the iCloud layout switch. */
-"SyncLayoutWithICloudDescription" = "Saves only your Customize settings and the layout of the vault page in your iCloud, so your other devices and a reinstall get them. A layout already in iCloud replaces the one on this device. Passwords, vault items and account data are never uploaded to iCloud.";
+"SyncLayoutWithICloudDescription" = "Syncs only your vault layout. Never passwords.";
 /* About: row that writes an email to Pass-Y support. */
 "ContactSupport" = "Contact support";
 /* About: toast when no mail app is set up; the argument is the support email address. */

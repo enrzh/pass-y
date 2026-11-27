@@ -1382,7 +1382,7 @@
 /* Settings: switch that mirrors the Customize layout into iCloud. */
 "SyncLayoutWithICloud" = "Layout in iCloud sichern";
 /* Settings: footer of the iCloud layout switch. */
-"SyncLayoutWithICloudDescription" = "Speichert nur deine Anpassen-Einstellungen und das Layout der Tresor-Seite in deiner iCloud, damit andere Geräte und eine Neuinstallation sie übernehmen. Ein Layout, das schon in iCloud liegt, ersetzt das auf diesem Gerät. Passwörter, Tresor-Einträge und Kontodaten werden nie in iCloud hochgeladen.";
+"SyncLayoutWithICloudDescription" = "Sichert nur dein Tresor-Layout. Nie Passwörter.";
 /* About: row that writes an email to Pass-Y support. */
 "ContactSupport" = "Support kontaktieren";
 /* About: toast when no mail app is set up; the argument is the support email address. */
