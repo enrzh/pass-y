@@ -73,15 +73,37 @@ struct PassYSliderRow: View {
             .font(.body)
             .accessibilityElement(children: .combine)
 
-            Slider(value: $value, in: range, step: step) {
+            // No `step:` on the system slider: iOS 26 draws a tick mark per step under the track. The binding
+            // rounds to the step instead.
+            Slider(value: steppedValue, in: range) {
                 Text(title)
             } onEditingChanged: { editing in
                 onEditingChanged?(editing)
             }
             .accessibilityIdentifier(identifier ?? title)
             .accessibilityValue("\(Int(value))")
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: steppedValue.wrappedValue = value + step
+                case .decrement: steppedValue.wrappedValue = value - step
+                @unknown default: break
+                }
+            }
         }
         .padding(.vertical, PassYDesign.Spacing.xSmall)
+    }
+
+    /// `value`, rounded to the step and kept in the range; unchanged values are not written back.
+    private var steppedValue: Binding<Double> {
+        Binding(
+            get: { value },
+            set: { newValue in
+                let steps = ((newValue - range.lowerBound) / step).rounded()
+                let rounded = min(max(range.lowerBound + steps * step, range.lowerBound), range.upperBound)
+                guard rounded != value else { return }
+                value = rounded
+            },
+        )
     }
 }
 
