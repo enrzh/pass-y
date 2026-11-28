@@ -5,7 +5,7 @@ validator whose verdict is linked (all in [Docs/verdicts](Docs/verdicts/README.m
 in the working tree; they stay in git history (`git log --stat -- Docs/screenshots`).
 
 ## v1.28.0 (2026-11-27) - Apple polish round, App Review preparation
-Version 1.28.0 (build 3), first App Review submission; not tagged yet, no validator verdict yet.
+Version 1.28.0 (build 4), first App Review submission; not tagged yet, no validator verdict yet.
 
 - Servers get the upstream compatibility version (2026.9.1) as the client version instead of 1.28.0: Vaultwarden
   withheld SSH keys from the app. "Select" is localized.
@@ -14,6 +14,7 @@ Version 1.28.0 (build 3), first App Review submission; not tagged yet, no valida
 - AutoFill lists (including "insert text") and the add-key item picker are native card lists with a "+" in the bar
   instead of the floating button; the account switcher button and card, the no-results page and the search field follow
   the app's design.
+- Watch: item list and search are native rows, no old search bar or placeholder artwork; setup logo without a tile.
 - Share sheet: "Autofill with Pass-Y" shows the shield as a plain template glyph instead of the app icon.
 - App Review preparation: About opens Pass-Y's privacy policy (PRIVACY.md) directly; help and every "learn more",
   terms and help link open SUPPORT.md; new rows Contact support (support@aiity.de, copies the address without a mail
