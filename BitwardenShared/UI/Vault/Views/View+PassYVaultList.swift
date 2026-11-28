@@ -93,7 +93,7 @@ struct PassYSelectModeButtons: View {
             .accessibilityLabel(Localizations.delete)
             .accessibilityIdentifier("SelectDeleteButton")
         }
-        Button(isSelecting ? Localizations.done : "Select", action: toggle)
+        Button(isSelecting ? Localizations.done : Localizations.select, action: toggle)
             .accessibilityIdentifier("SelectButton")
     }
 }

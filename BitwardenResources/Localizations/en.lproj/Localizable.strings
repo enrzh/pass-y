@@ -1401,3 +1401,5 @@
 "SpecificPeopleNotAvailableDescriptionLong" = "Sharing with specific people is not available for this account.";
 /* Alert: verification codes unavailable for the account. */
 "TOTPNotAvailableDescriptionLong" = "Verification codes (TOTP) are not available for this account.";
+"NoEntries" = "No items";
+"Select" = "Select";
