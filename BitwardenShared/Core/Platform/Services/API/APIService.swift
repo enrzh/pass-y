@@ -83,7 +83,7 @@ class APIService {
         httpServiceBuilder = HTTPServiceBuilder(
             client: client,
             defaultHeadersRequestHandler: DefaultHeadersRequestHandler(
-                appVersion: Bundle.main.appVersion,
+                appVersion: Constants.serverCompatibilityVersion,
                 userAgentBuilder: userAgentBuilder,
             ),
             deviceIdentifierRequestHandler: DeviceIdentifierRequestHandler(appIDService: appIDService),
