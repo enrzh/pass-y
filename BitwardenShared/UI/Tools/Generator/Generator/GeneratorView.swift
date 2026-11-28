@@ -31,7 +31,7 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
                     }
                     .pickerStyle(.segmented)
                     .accessibilityIdentifier("GeneratorTypePicker")
-                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                    .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
             }
@@ -45,8 +45,13 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
 
             ForEach(store.state.formSections) { section in
                 sectionView(section)
+                if section.containsGeneratedValue {
+                    actionSection
+                }
             }
         }
+        .listSectionSpacing(PassYDesign.Spacing.large)
+        .contentMargins(.top, PassYDesign.Spacing.small, for: .scrollContent)
         .passYReadableWidth()
         .navigationTitle(Localizations.generator)
         .navigationBarTitleDisplayMode(store.state.presentationMode == .tab ? .large : .inline)
@@ -93,17 +98,35 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
         store.state.availableGeneratorTypes.filter { !store.state.isGeneratorTypeDisabled($0) }
     }
 
-    /// The full-width button that fills the generated value
-    /// into the field the user came from, when presented in place.
-    @ViewBuilder var fillButton: some View {
-        Button(store.state.generatorType.fillButtonTitle) {
-            store.send(.fillGeneratedValue)
+    /// The page action below the generated value: "Use this ..." when presented in place, "New login" in the tab.
+    /// It is its own borderless section, so the value card above keeps its shape.
+    @ViewBuilder private var actionSection: some View {
+        if store.state.presentationMode.isFillButtonVisible {
+            PassYActionStack {
+                Button {
+                    store.send(.fillGeneratedValue)
+                } label: {
+                    Text(store.state.generatorType.fillButtonTitle)
+                        .frame(maxWidth: .infinity)
+                }
+                .passYButtonStyle(.primary, fillsWidth: true)
+                .accessibilityIdentifier("FillGeneratedValueButton")
+            }
         }
-        .passYButtonStyle(.primary)
-        .frame(maxWidth: .infinity)
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets())
-        .accessibilityIdentifier("FillGeneratedValueButton")
+
+        if store.state.presentationMode.isCreateLoginButtonVisible {
+            PassYActionStack {
+                Button {
+                    Task { await store.perform(.createLoginPressed) }
+                } label: {
+                    Text(Localizations.createLogin)
+                        .frame(maxWidth: .infinity)
+                }
+                .passYButtonStyle(.primary, fillsWidth: true)
+                .disabled(!store.state.hasGeneratedValue)
+                .accessibilityIdentifier("CreateLoginButton")
+            }
+        }
     }
 
     /// Returns a view for displaying a section of items in the form.
@@ -283,22 +306,6 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
             .accessibilityIdentifier("CopyValueIconButton")
         }
         .padding(.vertical, PassYDesign.Spacing.xSmall)
-
-        if store.state.presentationMode.isFillButtonVisible {
-            fillButton
-        }
-
-        if store.state.presentationMode.isCreateLoginButtonVisible {
-            Button(Localizations.createLogin) {
-                Task { await store.perform(.createLoginPressed) }
-            }
-            .passYButtonStyle(.primary)
-            .frame(maxWidth: .infinity)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
-            .disabled(!store.state.hasGeneratedValue)
-            .accessibilityIdentifier("CreateLoginButton")
-        }
     }
 
     /// Returns a view for displaying a menu for selecting the username type
@@ -317,6 +324,20 @@ struct GeneratorView: View { // swiftlint:disable:this type_body_length
             }
             .buttonStyle(.borderless)
             .accessibilityLabel(Localizations.learnMore)
+        }
+    }
+}
+
+// MARK: - FormSection + generated value
+
+private extension GeneratorState.FormSection where State == GeneratorState {
+    /// Whether this is the section that shows the generated value.
+    var containsGeneratedValue: Bool {
+        groups.contains { group in
+            group.fields.contains { field in
+                if case .generatedValue = field.fieldType { return true }
+                return false
+            }
         }
     }
 }

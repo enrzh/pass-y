@@ -1477,3 +1477,5 @@
 "BackupErrorDisabledByPolicy" = "Deine Organisation erlaubt keinen Tresor-Export.";
 /* Encrypted backup error: writing failed. Parameter: the system error. */
 "BackupErrorWriteFailedX" = "Die Sicherung konnte nicht gespeichert werden (%1$@). Prüfe den Ordner und sichere dann erneut.";
+"NoEntries" = "Keine Einträge";
+"Select" = "Auswählen";

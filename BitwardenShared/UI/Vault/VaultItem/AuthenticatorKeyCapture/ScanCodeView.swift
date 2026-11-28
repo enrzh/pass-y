@@ -23,7 +23,7 @@ struct ScanCodeView: View {
 
     var body: some View {
         content
-            .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
+            .background(Color.black.ignoresSafeArea())
             .navigationTitle(Localizations.scanQrTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -50,28 +50,25 @@ struct ScanCodeView: View {
     }
 
     var informationContent: some View {
-        VStack(alignment: .center, spacing: 0) {
+        VStack(alignment: .center, spacing: 16) {
             Text(Localizations.pointYourCameraAtTheQRCode)
-                .styleGuide(.body)
+                .font(.headline)
                 .multilineTextAlignment(.center)
-                .dynamicTypeSize(...maxDynamicTypeSize)
-            Spacer()
-            Button(
-                action: { store.send(.manualEntryPressed) },
-                label: {
-                    Group {
-                        Text(Localizations.cannotScanQRCode + " ")
-                            + Text(Localizations.enterKeyManually)
-                            .foregroundColor(SharedAsset.Colors.textInteraction.swiftUIColor)
-                    }
-                    .styleGuide(.body)
+            Spacer(minLength: 0)
+            VStack(spacing: 8) {
+                Text(Localizations.cannotScanQRCode)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .dynamicTypeSize(...maxDynamicTypeSize)
-                },
-            )
-            .buttonStyle(InlineButtonStyle())
+                Button(Localizations.enterKeyManually, systemImage: "keyboard") {
+                    store.send(.manualEntryPressed)
+                }
+                .buttonStyle(.glass)
+                .controlSize(.large)
+            }
         }
-        .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+        .dynamicTypeSize(...maxDynamicTypeSize)
+        .foregroundStyle(.white)
         .environment(\.colorScheme, .dark)
     }
 
@@ -133,7 +130,7 @@ struct ScanCodeView: View {
     private func qrCornerGuides(length: CGFloat) -> some View {
         CornerBorderShape(cornerLength: length * 0.1, lineWidth: 3)
             .stroke(lineWidth: 3)
-            .foregroundColor(SharedAsset.Colors.iconSecondary.swiftUIColor)
+            .foregroundStyle(.white)
             .frame(
                 width: length * 0.65,
                 height: length * 0.65,

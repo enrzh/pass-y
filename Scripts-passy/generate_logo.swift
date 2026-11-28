@@ -148,10 +148,12 @@ write(png(size: 1024, palette: light), "BitwardenWatchWidgetExtension/Assets.xca
 write(png(size: 50, palette: light), "BitwardenWatchWidgetExtension/Icon-50.png")
 write(png(size: 100, palette: light), "BitwardenWatchApp/Assets.xcassets/ComplicationIcon.imageset/Icon-100.png")
 write(png(size: 100, palette: light), "BitwardenWatchWidgetExtension/Assets.xcassets/ComplicationIcon.imageset/Icon-100.png")
-for f in ["BitwardenWatchApp/Assets.xcassets/BitwardenImagetype.imageset/passy-logo-1.pdf",
-          "BitwardenWatchApp/Assets.xcassets/BitwardenImagetype.imageset/passy-logo-2.pdf",
-          "BitwardenWatchApp/Assets.xcassets/BitwardenImagetype.imageset/passy-logo-3.pdf",
-          "BitwardenWatchApp/Assets.xcassets/ComplicationIcon.imageset/passy-logo.pdf",
+// The mark on the watch app's setup page: white shield, Y punched out, no tile (PNG: PDF cannot punch holes).
+let whiteMark = Palette(bg: nil, fg: (1, 1, 1), hole: (0, 0, 0))
+for n in 1 ... 3 {
+    write(png(size: 128 * n, palette: whiteMark), "BitwardenWatchApp/Assets.xcassets/BitwardenImagetype.imageset/passy-logo-\(n).png")
+}
+for f in ["BitwardenWatchApp/Assets.xcassets/ComplicationIcon.imageset/passy-logo.pdf",
           "BitwardenWatchWidgetExtension/Assets.xcassets/AccentedComplicationIcon.imageset/passy-logo.pdf"] {
     write(pdf(palette: light), f)
 }

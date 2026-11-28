@@ -42,6 +42,7 @@ struct VaultAutofillListView: View {
                 profileSwitcher
             }
         }
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationBar(title: store.state.group?.navigationTitle ?? Localizations.items, titleDisplayMode: .inline)
         .if(store.state.excludedCredentialIdFound == nil && !store.state.isAutofillingTextToInsertList) { view in
             view.searchable(
@@ -66,6 +67,18 @@ struct VaultAutofillListView: View {
                         mapEffect: VaultAutofillListEffect.profileSwitcher,
                     ),
                 )
+            }
+            .sharedBackgroundVisibility(.hidden)
+
+            ToolbarItem(placement: .topBarTrailing) {
+                if store.state.showAddItemButton {
+                    Button {
+                        store.send(.addTapped(fromFAB: true))
+                    } label: {
+                        Label(Localizations.add, systemImage: "plus")
+                    }
+                    .accessibilityIdentifier("AddItemFloatingActionButton")
+                }
             }
         }
         .onAppear {
@@ -99,11 +112,10 @@ struct VaultAutofillListView: View {
     /// `delayEndInputSession:NO`), so the RTI session is never put on a countdown regardless of
     /// how many times the user opens and cancels search.
     @ViewBuilder private var inlineSearchBarView: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 6) {
+        HStack(spacing: PassYDesign.Spacing.small) {
+            HStack(spacing: PassYDesign.Spacing.small) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundStyle(Color(.tertiaryLabel))
-                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 TextField(
                     Localizations.search,
                     text: store.binding(
@@ -119,15 +131,14 @@ struct VaultAutofillListView: View {
                         store.send(.searchTextChanged(""))
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(Color(.tertiaryLabel))
-                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
+                    .accessibilityLabel(Localizations.clear)
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 7)
-            .background(Color(.tertiarySystemFill))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal, PassYDesign.Spacing.medium)
+            .frame(minHeight: 44)
+            .background(Color(.tertiarySystemFill), in: Capsule())
 
             if !store.state.searchText.isEmpty {
                 Button(Localizations.cancel) {
@@ -138,10 +149,9 @@ struct VaultAutofillListView: View {
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, PassYDesign.Spacing.large)
+        .padding(.vertical, PassYDesign.Spacing.small)
         .animation(.default, value: store.state.searchText.isEmpty)
-        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
     }
 
     /// A view that displays the ability to add or switch between account profiles
@@ -217,7 +227,6 @@ private struct VaultAutofillListSearchableView: View {
                     get: \.toast,
                     send: VaultAutofillListAction.toastShown,
                 ),
-                additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
             )
     }
 
@@ -234,110 +243,77 @@ private struct VaultAutofillListSearchableView: View {
 
     // MARK: Private Views
 
-    /// A view for displaying a list of ciphers.
-    @ViewBuilder
+    /// A view for displaying a list of ciphers: one card per section for passkeys and "insert text", a single
+    /// card of the matching logins otherwise.
     private func cipherListView(_ sections: [VaultListSection]) -> some View {
-        Group {
+        List {
             if store.state.isAutofillingFido2List || store.state.isCreatingFido2Credential ||
                 store.state.isAutofillingTextToInsertList {
-                cipherCombinedListView(sections)
-            } else {
-                let items = sections.first?.items ?? []
-                cipherSimpleListView(items)
-            }
-        }
-        .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
-        .scrollView()
-    }
-
-    /// A view for displaying a list of sections with ciphers.
-    @ViewBuilder
-    private func cipherCombinedListView(_ sections: [VaultListSection]) -> some View {
-        VStack(spacing: 16) {
-            ForEach(sections) { section in
-                VaultListSectionView(
-                    section: section,
-                    showCount: !store.state.isCreatingFido2Credential,
-                ) { item in
-                    vaultItemRow(for: item, isLastInSection: section.items.last == item)
+                ForEach(sections) { section in
+                    Section {
+                        itemRows(section.items)
+                    } header: {
+                        PassYSectionHeader(
+                            section.name,
+                            count: store.state.isCreatingFido2Credential ? nil : section.items.count,
+                        )
+                    }
+                }
+            } else if let items = sections.first?.items, !items.isEmpty {
+                Section {
+                    itemRows(items)
                 }
             }
         }
+        // Rebuilt when the set of rows changes (the incremental diff of search results crashed on the vault list).
+        .id(sections.flatMap { $0.items.map(\.id) })
+        .passYCardList(reservesBottomBarSpace: false)
     }
 
-    /// A view for displaying a list of ciphers without sections.
-    @ViewBuilder
-    private func cipherSimpleListView(_ items: [VaultListItem]) -> some View {
-        LazyVStack(spacing: 0) {
-            ForEach(items) { item in
-                vaultItemRow(for: item, isLastInSection: items.last == item)
-            }
+    /// The rows of a card.
+    private func itemRows(_ items: [VaultListItem]) -> some View {
+        ForEach(items) { item in
+            vaultItemRow(for: item)
+                .listRowInsets(EdgeInsets())
         }
-        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     /// A view that displays the empty vault interface.
-    @ViewBuilder
     private func emptyView() -> some View {
-        IllustratedMessageView(
-            image: Asset.Images.Illustrations.items.swiftUIImage,
+        PassYEmptyState(
+            Localizations.noEntries,
+            systemImage: "key",
             message: store.state.emptyViewMessage,
         ) {
-            if store.state.isAutofillingTotpList
-                || store.state.isAutofillingTextToInsertList {
-                EmptyView()
-            } else {
+            if !store.state.isAutofillingTotpList, !store.state.isAutofillingTextToInsertList {
                 Button {
                     store.send(.addTapped(fromFAB: false))
                 } label: {
-                    Label {
-                        Text(store.state.emptyViewButtonText)
-                    } icon: {
-                        SharedAsset.Icons.plus16.swiftUIImage
-                            .imageStyle(.accessoryIcon16(
-                                color: SharedAsset.Colors.buttonFilledForeground.swiftUIColor,
-                                scaleWithFont: true,
-                            ))
-                    }
+                    Label(store.state.emptyViewButtonText, systemImage: "plus")
                 }
-                .buttonStyle(.primary(shouldFillWidth: false))
+                .passYButtonStyle(.primary)
             }
         }
-        .scrollView(centerContentVertically: true)
     }
 
     /// A view that displays an error message and a retry button.
     ///
     /// - Parameter errorMessage: The error message to display.
     ///
-    @ViewBuilder
     private func errorViewWithRetry(errorMessage: String) -> some View {
-        VStack(spacing: 24) {
-            Text(errorMessage)
-                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                .styleGuide(.body)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 12)
-
-            AsyncButton {
-                await store.perform(.loadData)
-            } label: {
-                Text(Localizations.tryAgain)
+        PassYEmptyState(errorMessage, systemImage: "exclamationmark.triangle") {
+            Button(Localizations.tryAgain) {
+                Task { await store.perform(.loadData) }
             }
-            .buttonStyle(.primary(shouldFillWidth: false))
+            .passYButtonStyle(.primary)
         }
-        .scrollView(centerContentVertically: true)
     }
 
     /// Creates a row in the list for the provided item.
     ///
-    /// - Parameters:
-    ///   - item: The `VaultListItem` to use when creating the view.
-    ///   - isLastInSection: A flag indicating if this item is the last one in the section.
+    /// - Parameter item: The `VaultListItem` to use when creating the view.
     ///
-    @ViewBuilder
-    private func vaultItemRow(for item: VaultListItem, isLastInSection: Bool = false) -> some View {
+    private func vaultItemRow(for item: VaultListItem) -> some View {
         VaultListItemRowView(
             store: store.child(
                 state: { state in
@@ -345,7 +321,7 @@ private struct VaultAutofillListSearchableView: View {
                         iconBaseURL: state.iconBaseURL,
                         isFromExtension: true,
                         item: item,
-                        hasDivider: !isLastInSection,
+                        hasDivider: false,
                         showTotpCopyButton: false,
                         showWebIcons: state.showWebIcons,
                     )
@@ -373,18 +349,18 @@ private struct VaultAutofillListSearchableView: View {
                 || !store.state.searchText.isEmpty
                 || !store.state.ciphersForSearch.isEmpty
 
-            LoadingView(state: store.state.loadingState) { sections in
-                if sections.isEmpty {
-                    emptyView()
-                } else {
-                    cipherListView(sections)
-                }
-            } errorView: { errorMessage in
-                errorViewWithRetry(errorMessage: errorMessage)
-            }
-            .overlay(alignment: .bottomTrailing) {
-                addItemFloatingActionButton(hidden: !store.state.showAddItemButton) {
-                    store.send(.addTapped(fromFAB: true))
+            Group {
+                switch store.state.loadingState {
+                case .loading:
+                    PassYDelayedSpinner()
+                case let .data(sections):
+                    if sections.isEmpty {
+                        emptyView()
+                    } else {
+                        cipherListView(sections)
+                    }
+                case let .error(errorMessage):
+                    errorViewWithRetry(errorMessage: errorMessage)
                 }
             }
             .hidden(isSearching)
@@ -392,7 +368,9 @@ private struct VaultAutofillListSearchableView: View {
             searchContentView()
                 .hidden(!isSearching)
         }
-        .background(SharedAsset.Colors.backgroundPrimary.swiftUIColor.ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // One countdown clock for the code rows of the verification code list.
+        .passYCountdownClock(timeProvider: timeProvider, isActive: store.state.isAutofillingTotpList)
     }
 
     /// A view for displaying the cipher search results.

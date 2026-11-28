@@ -90,4 +90,50 @@ class PassYScreenSnapshotTests: BitwardenTestCase {
         let subject = AddEditItemView(store: Store(processor: processor))
         snap(subject.navStackWrapped)
     }
+
+    @MainActor
+    func test_snapshot_generatorInPlace() {
+        var state = GeneratorState()
+        state.generatedValue = "AK@N3zGAmeYvueGRjmGH2vA0^Aa3hw2g"
+        state.presentationMode = .inPlace
+        let subject = GeneratorView(store: Store(processor: StateProcessor(state: state)))
+        snap(subject.navStackWrapped)
+    }
+
+    @MainActor
+    func test_snapshot_autofillTextToInsert() {
+        let processor = MockProcessor<VaultAutofillListState, VaultAutofillListAction, VaultAutofillListEffect>(
+            state: VaultAutofillListState(),
+        )
+        processor.state.isAutofillingTextToInsertList = true
+        processor.state.loadingState = .data([
+            VaultListSection(
+                id: "Types",
+                items: [
+                    VaultListItem(id: "Logins", itemType: .group(.login, 240)),
+                    VaultListItem(id: "Cards", itemType: .group(.card, 3)),
+                    VaultListItem(id: "Identities", itemType: .group(.identity, 1)),
+                    VaultListItem(id: "SSHKeys", itemType: .group(.sshKey, 2)),
+                ],
+                name: Localizations.types,
+            ),
+            VaultListSection(
+                id: "Folders",
+                items: [VaultListItem(id: "work", itemType: .group(.folder(id: "work", name: "Work"), 12))],
+                name: Localizations.myFolders,
+            ),
+        ])
+        let subject = VaultAutofillListView(
+            store: Store(processor: processor),
+            timeProvider: MockTimeProvider(.mockTime(Date(timeIntervalSince1970: 1_700_000_000))),
+        )
+        snap(subject.navStackWrapped)
+    }
+
+    @MainActor
+    func test_snapshot_itemSelectionEmpty() {
+        let state = VaultItemSelectionState(iconBaseURL: nil, totpKeyModel: .fixtureExample)
+        let subject = VaultItemSelectionView(store: Store(processor: StateProcessor(state: state)))
+        snap(subject.navStackWrapped)
+    }
 }

@@ -1459,3 +1459,5 @@
 "BackupErrorDisabledByPolicy" = "Your organization doesn’t allow vault exports.";
 /* Encrypted backup error: writing failed. Parameter: the system error. */
 "BackupErrorWriteFailedX" = "The backup could not be saved (%1$@). Check the folder, then back up again.";
+"NoEntries" = "No items";
+"Select" = "Select";

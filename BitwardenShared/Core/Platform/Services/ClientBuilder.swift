@@ -64,7 +64,7 @@ class DefaultClientBuilder: ClientBuilder {
             userAgent: userAgentBuilder.value,
             deviceType: .iOs,
             deviceIdentifier: deviceIdentifier,
-            bitwardenClientVersion: Bundle.main.appVersion,
+            bitwardenClientVersion: Constants.serverCompatibilityVersion,
             bitwardenPackageType: nil,
         )
         // A fresh `ManagedSettingsBindingClient` carries no management profile. The app doesn't

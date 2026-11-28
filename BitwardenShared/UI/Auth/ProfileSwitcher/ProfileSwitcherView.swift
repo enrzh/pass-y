@@ -24,6 +24,9 @@ struct ProfileSwitcherView: View {
                 }
             }
             .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: PassYDesign.Radius.large, style: .continuous))
+            .padding(.horizontal, PassYDesign.Spacing.large)
+            .padding(.top, PassYDesign.Spacing.small)
             .transition(.move(edge: .top))
             .hidden(!store.state.isVisible)
             .fixedSize(horizontal: false, vertical: true)
@@ -64,16 +67,11 @@ struct ProfileSwitcherView: View {
         .accessibilityIdentifier("AddAccountButton")
     }
 
-    /// A background view with accessibility enabled
+    /// The dimmed page behind the account card.
     private var backgroundView: some View {
-        ZStack(alignment: .top) {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-            Color(.secondarySystemGroupedBackground)
-                .frame(height: abs(min(scrollOffset.y, 0)))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .hidden(!store.state.isVisible)
+        Color.black.opacity(0.4)
+            .ignoresSafeArea()
+            .hidden(!store.state.isVisible)
     }
 }
 

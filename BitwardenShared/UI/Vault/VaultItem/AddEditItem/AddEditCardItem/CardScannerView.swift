@@ -33,7 +33,8 @@ struct CardScannerWrapperView: View {
         NavigationView {
             VStack(spacing: 0) {
                 Text(Localizations.positionYourCardInTheFrameToScanIt)
-                    .styleGuide(.body)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(12)
 

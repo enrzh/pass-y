@@ -37,13 +37,11 @@ class VaultAutofillListViewTests: BitwardenTestCase {
 
     // MARK: Tests
 
-    /// Tapping the add item floating action button dispatches the `.addItemPressed` action.`
+    /// Tapping the add item toolbar button dispatches the `.addItemPressed` action.`
     @MainActor
-    func test_addItemFloatingActionButton_tap() async throws {
-        let fab = try subject.inspect().find(
-            floatingActionButtonWithAccessibilityIdentifier: "AddItemFloatingActionButton",
-        )
-        try await fab.tap()
+    func test_addToolbarButton_tap() throws {
+        let button = try subject.inspect().find(buttonWithAccessibilityIdentifier: "AddItemFloatingActionButton")
+        try button.tap()
         XCTAssertEqual(processor.dispatchedActions.last, .addTapped(fromFAB: true))
     }
 
@@ -72,8 +70,9 @@ class VaultAutofillListViewTests: BitwardenTestCase {
         processor.state.loadingState = .error(
             errorMessage: Localizations.weAreUnableToProcessYourRequestPleaseTryAgainOrContactUs,
         )
-        let button = try subject.inspect().find(asyncButton: Localizations.tryAgain)
-        try await button.tap()
+        let button = try subject.inspect().find(button: Localizations.tryAgain)
+        try button.tap()
+        try await waitForAsync { self.processor.effects.last != nil }
         XCTAssertEqual(processor.effects.last, .loadData)
     }
 

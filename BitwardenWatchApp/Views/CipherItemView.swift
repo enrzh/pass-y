@@ -2,11 +2,9 @@ import SwiftUI
 
 struct CipherItemView: View {
     let cipher: CipherDTO
-    let maxWidth: CGFloat
 
-    init(_ cipher: CipherDTO, _ maxWidth: CGFloat) {
+    init(_ cipher: CipherDTO) {
         self.cipher = cipher
-        self.maxWidth = maxWidth
     }
 
     var body: some View {
@@ -15,15 +13,13 @@ struct CipherItemView: View {
                 // Workaround: To display 0 results on search
                 // and the message to be localized
                 Text(LocalizedStringKey(cipher.name!))
-                    .font(.title3)
-                    .fontWeight(.bold)
+                    .font(.headline)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 Text(cipher.name ?? "")
-                    .font(.title3)
-                    .fontWeight(.bold)
+                    .font(.headline)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -31,26 +27,17 @@ struct CipherItemView: View {
 
             if cipher.login.username != nil {
                 Text(cipher.login.username!)
-                    .font(.body)
+                    .font(.footnote)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .foregroundColor(Color.ui.darkTextMuted)
+                    .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .privacySensitive()
             }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 5)
-                .foregroundColor(Color.ui.itemBackground)
-                .frame(width: maxWidth,
-                       alignment: .leading),
-        )
-        .frame(width: maxWidth,
-               alignment: .leading)
     }
 }
 
 #Preview {
-    CipherItemView(CipherMock.ciphers[0], .infinity)
+    CipherItemView(CipherMock.ciphers[0])
 }

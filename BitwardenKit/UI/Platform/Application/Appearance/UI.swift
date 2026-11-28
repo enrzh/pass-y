@@ -69,8 +69,6 @@ public enum UI {
         UIPageControl.appearance().currentPageIndicatorTintColor = SharedAsset.Colors.textPrimary.color
         UIPageControl.appearance().pageIndicatorTintColor = SharedAsset.Colors.textPrimary.color.withAlphaComponent(0.3)
 
-        UIBarButtonItem.appearance().tintColor = SharedAsset.Colors.textInteraction.color
-
         // Make the tab bar opaque.
         let tabBarAppearance = UITabBarAppearance()
         tabBarAppearance.configureWithOpaqueBackground()
@@ -105,13 +103,6 @@ public enum UI {
         UITabBar.appearance().unselectedItemTintColor = SharedAsset.Colors.iconPrimary.color
 
         UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).title = Localizations.cancel
-
-        UISearchBar.appearance().tintColor = SharedAsset.Colors.textInteraction.color
-        // Explicitly tint the image so that it does not assume the tint color assigned to the entire search bar.
-        let image = SharedAsset.Icons.circleX16.image
-        let tintedImage = image.withTintColor(SharedAsset.Colors.textSecondary.color, renderingMode: .alwaysOriginal)
-        UISearchBar.appearance().setImage(tintedImage, for: .clear, state: .normal)
-        UISearchBar.appearance().setImage(SharedAsset.Icons.search16.image, for: .search, state: .normal)
 
         // ui-r8: segmented controls keep the system font and colors.
 
