@@ -2,6 +2,7 @@ import BitwardenKit
 import BitwardenKitMocks
 import BitwardenSdk
 import CoreData
+import TestHelpers
 import XCTest
 
 @testable import BitwardenShared
@@ -1757,6 +1758,38 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
 
         // Additional user keys are removed.
         XCTAssertEqual(appSettingsStore.accountCryptographicStates, ["2": .v1(privateKey: "2:PRIVATE_KEY")])
+    }
+
+    /// `logoutAccount(_:)` removes the encrypted backup configuration and the backup password of the account (also
+    /// for account deletion, which goes through it) and leaves other accounts' configurations alone.
+    func test_logoutAccount_encryptedBackup() async throws {
+        let settings = EncryptedBackupSettings(folderBookmark: Data("bookmark".utf8), folderName: "Backups")
+        await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
+        appSettingsStore.encryptedBackupSettingsByUserId = ["1": settings, "2": settings]
+
+        try await subject.logoutAccount(userId: "1", userInitiated: true)
+
+        XCTAssertEqual(appSettingsStore.encryptedBackupSettingsByUserId, ["2": settings])
+        XCTAssertEqual(
+            keychainRepository.deleteUserAuthKeyReceivedItem,
+            .encryptedBackupPassword(userId: "1"),
+        )
+    }
+
+    /// `logoutAccount(_:)` also ends the encrypted backup on a timeout logout, and a keychain error does not stop the
+    /// logout.
+    func test_logoutAccount_encryptedBackup_timeoutKeychainError() async throws {
+        await subject.addAccount(.fixture(profile: .fixture(userId: "1")))
+        appSettingsStore.encryptedBackupSettingsByUserId["1"] = EncryptedBackupSettings(
+            folderBookmark: Data(),
+            folderName: "Backups",
+        )
+        keychainRepository.deleteUserAuthKeyThrowableError = BitwardenTestError.example
+
+        try await subject.logoutAccount(userInitiated: false)
+
+        XCTAssertNil(appSettingsStore.encryptedBackupSettingsByUserId["1"])
+        XCTAssertEqual(errorReporter.errors.last as? BitwardenTestError, .example)
     }
 
     /// `logoutAccount(_:)` removes all account data, but leaves the account if the logout wasn't user initiated.

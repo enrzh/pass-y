@@ -96,6 +96,9 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
     /// The service to make and use the device auth key.
     let deviceAuthKeyService: DeviceAuthKeyService
 
+    /// The service running the automatic encrypted backup.
+    let encryptedBackupService: EncryptedBackupService
+
     /// The service used by the application to manage the environment settings.
     public let environmentService: EnvironmentService
 
@@ -273,6 +276,7 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
     ///   - configService: The service to get server-specified configuration.
     ///   - deviceAPIService: The service used by the application to make device API requests.
     ///   - deviceAuthKeyService: The service to make and use the device auth key.
+    ///   - encryptedBackupService: The service running the automatic encrypted backup.
     ///   - environmentService: The service used by the application to manage the environment settings.
     ///   - errorReportBuilder: A helper for building an error report containing the details of an
     ///     error that occurred.
@@ -349,6 +353,7 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
         configService: ConfigService,
         deviceAPIService: DeviceAPIService,
         deviceAuthKeyService: DeviceAuthKeyService,
+        encryptedBackupService: EncryptedBackupService,
         environmentService: EnvironmentService,
         errorReportBuilder: ErrorReportBuilder,
         errorReporter: ErrorReporter,
@@ -420,6 +425,7 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
         self.configService = configService
         self.deviceAPIService = deviceAPIService
         self.deviceAuthKeyService = deviceAuthKeyService
+        self.encryptedBackupService = encryptedBackupService
         self.environmentService = environmentService
         self.errorReportBuilder = errorReportBuilder
         self.errorReporter = errorReporter
@@ -1176,6 +1182,21 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
         )
         Task { await authenticatorSyncService.start() }
 
+        let encryptedBackupService = DefaultEncryptedBackupService(
+            appContextHelper: appContextHelper,
+            appSettingsStore: appSettingsStore,
+            errorReporter: errorReporter,
+            eventService: eventService,
+            exportVaultService: exportVaultService,
+            fileSystem: DefaultEncryptedBackupFileSystem(),
+            folderService: folderService,
+            passwordStore: DefaultEncryptedBackupPasswordStore(keychainRepository: keychainRepository),
+            policyService: policyService,
+            stateService: stateService,
+            timeProvider: timeProvider,
+            vaultTimeoutService: vaultTimeoutService,
+        )
+
         self.init(
             apiService: apiService,
             appContextHelper: appContextHelper,
@@ -1201,6 +1222,7 @@ public class ServiceContainer: Services { // swiftlint:disable:this type_body_le
             configService: configService,
             deviceAPIService: apiService,
             deviceAuthKeyService: deviceAuthKeyService,
+            encryptedBackupService: encryptedBackupService,
             environmentService: environmentService,
             errorReportBuilder: errorReportBuilder,
             errorReporter: errorReporter,

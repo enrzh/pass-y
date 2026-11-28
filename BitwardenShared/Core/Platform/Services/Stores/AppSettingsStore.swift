@@ -189,6 +189,14 @@ protocol AppSettingsStore: AnyObject {
     ///
     func events(userId: String) -> [EventData]
 
+    /// Gets the automatic encrypted backup configuration of the user ID (folder bookmark and status, never the
+    /// backup password: that one lives in the keychain only).
+    ///
+    /// - Parameter userId: The user ID associated with the configuration.
+    /// - Returns: The configuration, or `nil` while the backup is off.
+    ///
+    func encryptedBackupSettings(userId: String) -> EncryptedBackupSettings?
+
     /// Gets the cached Fill-Assist rules data for the user ID.
     ///
     /// - Parameter userId: The user ID associated with the cached data.
@@ -495,6 +503,14 @@ protocol AppSettingsStore: AnyObject {
     ///   - userId: The user ID associated with the cached data.
     ///
     func setFillAssistCachedData(_ data: FillAssistCachedData?, userId: String)
+
+    /// Sets the automatic encrypted backup configuration of the user ID.
+    ///
+    /// - Parameters:
+    ///   - settings: The configuration, or `nil` to remove it (backup off).
+    ///   - userId: The user ID associated with the configuration.
+    ///
+    func setEncryptedBackupSettings(_ settings: EncryptedBackupSettings?, userId: String)
 
     /// Sets whether the Fill Assist feature is enabled for the user ID.
     ///
@@ -962,6 +978,7 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
         case defaultUriMatch(userId: String)
         case disableAutoTotpCopy(userId: String)
         case disableWebIcons
+        case encryptedBackupSettings(userId: String)
         case encryptedPin(userId: String)
         case events(userId: String)
         case fillAssistCachedData(userId: String)
@@ -1060,6 +1077,8 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
                 "disableAutoTotpCopy_\(userId)"
             case .disableWebIcons:
                 "disableFavicon"
+            case let .encryptedBackupSettings(userId):
+                "encryptedBackupSettings_\(userId)"
             case let .encryptedPin(userId):
                 "protectedPin_\(userId)"
             case let .events(userId):
@@ -1352,6 +1371,10 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
         fetch(for: .events(userId: userId)) ?? []
     }
 
+    func encryptedBackupSettings(userId: String) -> EncryptedBackupSettings? {
+        fetch(for: .encryptedBackupSettings(userId: userId))
+    }
+
     func fillAssistCachedData(userId: String) -> FillAssistCachedData? {
         fetch(for: .fillAssistCachedData(userId: userId))
     }
@@ -1514,6 +1537,10 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
 
     func setEvents(_ events: [EventData], userId: String) {
         store(events, for: .events(userId: userId))
+    }
+
+    func setEncryptedBackupSettings(_ settings: EncryptedBackupSettings?, userId: String) {
+        store(settings, for: .encryptedBackupSettings(userId: userId))
     }
 
     func setFillAssistCachedData(_ data: FillAssistCachedData?, userId: String) {

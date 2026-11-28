@@ -29,6 +29,7 @@ typealias Services = HasAPIService
     & HasDebugStateService
     & HasDeviceAPIService
     & HasDeviceAuthKeyService
+    & HasEncryptedBackupService
     & HasEnvironmentService
     & HasErrorReportBuilder
     & HasErrorReporter
@@ -250,7 +251,14 @@ protocol HasExportCXFCiphersRepository {
     var exportCXFCiphersRepository: ExportCXFCiphersRepository { get }
 }
 
-/// Protocol for an object that provides a `ExportVaultService`.
+/// Protocol for an object that provides an `EncryptedBackupService`.
+///
+protocol HasEncryptedBackupService {
+    /// The service running the automatic encrypted backup (Settings > Vault > Encrypted backup).
+    var encryptedBackupService: EncryptedBackupService { get }
+}
+
+/// Protocol for an object that provides an `ExportVaultService`.
 ///
 protocol HasExportVaultService {
     /// The service used by the application to handle vault export tasks.

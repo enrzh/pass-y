@@ -63,6 +63,18 @@ there; Pass-Y sends the request to that service directly.
 Import from another password manager in your server's web vault (Tools > Import data), then sync Pass-Y. On iOS 26 you
 can also move passwords between apps with the system's import and export.
 
+### Encrypted backup
+
+Settings > Vault > Encrypted backup saves a password-protected copy of your vault (a Bitwarden encrypted JSON export)
+to a folder you choose, for example in iCloud Drive. It runs at most once a day when something changed, or when you tap
+Back up now; the last 5 files are kept. Not included: attachments, Sends, items in the trash and items of
+organizations. Without the backup password the files cannot be opened.
+
+### Restore from a backup
+
+Pass-Y has no import. Open your server's web vault (a new or rebuilt server works too), go to Tools > Import data,
+choose the format "Bitwarden (json)", select the backup file (`passy-backup-….json`) and enter the backup password.
+
 ### Send
 
 Shares a text or a file through your server with a link, optionally with a password, an expiry date and a maximum
@@ -112,6 +124,8 @@ Fragen und Probleme: **support@aiity.de**. Sende nie Passwörter, Wiederherstell
   Server wählen, die HTTPS-Adresse eingeben, dann E-Mail und Master-Passwort.
 - Anmeldung klappt nicht: Serveradresse samt Pfad, gültiges Zertifikat und Uhrzeit prüfen.
 - AutoFill: in den iOS-Einstellungen unter Allgemein > Automatisches Ausfüllen & Passwörter aktivieren.
+- Verschlüsselte Sicherung: Einstellungen > Tresor > Verschlüsselte Sicherung. Wiederherstellen im Web-Tresor des
+  Servers unter Tools > Daten importieren, Format „Bitwarden (json)“, Datei wählen, Sicherungspasswort eingeben.
 - Konto löschen: Einstellungen > Kontosicherheit > Konto löschen.
 - Master-Passwort vergessen: Es kann nicht wiederhergestellt werden.
 - Weitere Themen (AutoFill, Send, Website-Symbole, Flugschreiber, ...) stehen oben unter „Topics“ (englisch).

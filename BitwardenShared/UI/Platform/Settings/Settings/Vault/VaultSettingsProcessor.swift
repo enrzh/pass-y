@@ -7,7 +7,8 @@ import BitwardenKit
 final class VaultSettingsProcessor: StateProcessor<VaultSettingsState, VaultSettingsAction, VaultSettingsEffect> {
     // MARK: Types
 
-    typealias Services = HasEnvironmentService
+    typealias Services = HasEncryptedBackupService
+        & HasEnvironmentService
         & HasErrorReporter
         & HasStateService
 
@@ -44,6 +45,9 @@ final class VaultSettingsProcessor: StateProcessor<VaultSettingsState, VaultSett
         switch effect {
         case .dismissImportLoginsActionCard:
             await dismissImportLoginsActionCard()
+        case .loadEncryptedBackupStatus:
+            guard let userId = try? await services.stateService.getActiveAccountId() else { return }
+            state.encryptedBackupStatus = await services.encryptedBackupService.status(userId: userId)
         case .streamSettingsBadge:
             await streamSettingsBadge()
         }
@@ -53,6 +57,8 @@ final class VaultSettingsProcessor: StateProcessor<VaultSettingsState, VaultSett
         switch action {
         case .clearUrl:
             state.url = nil
+        case .encryptedBackupTapped:
+            coordinator.navigate(to: .encryptedBackup)
         case .exportVaultTapped:
             coordinator.navigate(to: .exportVault)
         case .foldersTapped:

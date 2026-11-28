@@ -294,6 +294,23 @@ folders read through `PassYCustomizeFolders` while the screen is shown) is pushe
 `StateService` setting. DEBUG only: `-PassYLayoutPreset default|filled|rows|minimal` seeds a configuration for
 screenshots.
 
+#### Encrypted backup (Settings > Vault)
+
+`DefaultEncryptedBackupService` (actor, `Core/Vault/Services/EncryptedBackup`) writes the password-protected encrypted
+JSON export of `ExportVaultService.exportVaultFileContents(format: .encryptedJson, includeArchivedItems: true)` (SDK,
+same filter as Export vault) into a folder the user picked with the document picker. The export exists only in memory;
+a result without `encrypted` and `passwordProtected` is rejected. Per account: the password in the keychain
+(`BitwardenKeychainItem.encryptedBackupPassword`, when unlocked, this device only, never synced), the folder bookmark
+and the status (`EncryptedBackupSettings`, `AppSettingsStore`). `StateService.logoutAccount` (logout, timeout logout,
+account deletion) removes both. Automatic runs are scheduled by `AppProcessor` after a successful sync and on
+foreground (20 s delay, coalesced, utility priority, main app only) and run only for the active, unlocked account when
+the last backup is at least 24 h old and the change fingerprint (ids and revision dates of the exported items and
+folders) differs; after a failure they wait an hour. File I/O (`EncryptedBackupFileSystem`: atomic coordinated write,
+coordinated delete) runs on its own queue; rotation keeps the newest 5 files named
+`passy-backup-<8 hex of SHA-256(user id)>-<yyyyMMdd-HHmmss UTC>.json` and only after a successful write. Failures are
+stored as `EncryptedBackupFailure` and shown on the page and as a badge on the Vault settings row. The setup sheet
+(turn on, change password, change folder) asks for the export's user verification (master password or OTP).
+
 #### Pass-Y diagnostics (DEBUG only)
 
 Signposts, counters and startup / navigation marks (`PassYPerf`, `PassYNavigationProbe`) and the XCUITest idle-stall

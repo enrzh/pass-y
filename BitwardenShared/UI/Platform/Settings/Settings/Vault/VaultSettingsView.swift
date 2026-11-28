@@ -33,6 +33,9 @@ struct VaultSettingsView: View {
         .task {
             await store.perform(.streamSettingsBadge)
         }
+        .onAppear {
+            Task { await store.perform(.loadEncryptedBackupStatus) }
+        }
     }
 
     // MARK: Private views
@@ -69,6 +72,17 @@ struct VaultSettingsView: View {
                 identifier: "ExportVaultLabel",
             ) {
                 store.send(.exportVaultTapped)
+            }
+
+            PassYSettingsRow(
+                Localizations.encryptedBackup,
+                systemImage: "lock.doc.fill",
+                tint: .indigo,
+                value: store.state.encryptedBackupValue,
+                badge: store.state.encryptedBackupBadge,
+                identifier: "EncryptedBackupLabel",
+            ) {
+                store.send(.encryptedBackupTapped)
             }
         }
     }

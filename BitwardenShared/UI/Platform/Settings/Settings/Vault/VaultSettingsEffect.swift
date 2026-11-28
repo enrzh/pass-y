@@ -6,6 +6,9 @@ enum VaultSettingsEffect: Equatable {
     /// The user tapped the dismiss button on the import logins action card.
     case dismissImportLoginsActionCard
 
+    /// Load the status of the encrypted backup (row value).
+    case loadEncryptedBackupStatus
+
     /// Stream the state of the badges in the settings tab.
     case streamSettingsBadge
 }
