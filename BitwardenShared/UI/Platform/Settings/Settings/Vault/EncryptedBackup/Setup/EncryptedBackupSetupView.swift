@@ -99,7 +99,11 @@ struct EncryptedBackupSetupView: View {
                 toggleId: "BackupPasswordConfirmVisibilityToggle",
             )
 
-            PasswordStrengthIndicator(passwordStrengthScore: store.state.passwordStrengthScore)
+            PasswordStrengthIndicator(
+                passwordStrengthScore: store.state.passwordStrengthScore,
+                passwordTextCount: store.state.passwordText.count,
+                requiredTextCount: EncryptedBackupSetupState.minimumPasswordLength,
+            )
         } footer: {
             Text(Localizations.backupPasswordDescription)
         }
