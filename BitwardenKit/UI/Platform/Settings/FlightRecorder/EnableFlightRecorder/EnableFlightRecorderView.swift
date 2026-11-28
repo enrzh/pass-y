@@ -58,7 +58,8 @@ struct EnableFlightRecorderView: View {
     private var header: some View {
         VStack(spacing: 8) {
             Image(systemName: "record.circle")
-                .font(.system(size: 44, weight: .regular))
+                .font(.largeTitle)
+                .imageScale(.large)
                 .foregroundStyle(.red)
                 .accessibilityHidden(true)
                 .padding(.bottom, 4)

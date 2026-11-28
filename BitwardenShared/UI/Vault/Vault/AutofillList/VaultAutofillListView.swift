@@ -70,8 +70,8 @@ struct VaultAutofillListView: View {
             }
             .sharedBackgroundVisibility(.hidden)
 
-            if store.state.showAddItemButton {
-                ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
+                if store.state.showAddItemButton {
                     Button {
                         store.send(.addTapped(fromFAB: true))
                     } label: {
