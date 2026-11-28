@@ -27,50 +27,32 @@ struct PasswordStrengthIndicator: View {
     // MARK: View
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color(asset: SharedAsset.Colors.strokeDivider))
+        VStack(alignment: .leading, spacing: 6) {
+            ProgressView(value: hasPasswordMinimumLength ? passwordStrength.strengthPercent : 0)
+                .progressViewStyle(.linear)
+                .tint(passwordStrength.color)
+                .animation(.easeIn, value: hasPasswordMinimumLength ? passwordStrength.strengthPercent : 0)
+                .accessibilityHidden(true)
 
-                    let fillWidth = hasPasswordMinimumLength
-                        ? geometry.size.width * passwordStrength.strengthPercent
-                        : 0
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color(asset: passwordStrength.color))
-                        .frame(width: fillWidth, alignment: .leading)
-                        .animation(.easeIn, value: fillWidth)
-                }
-                .frame(height: 4)
-            }
-
-            HStack {
-                HStack(spacing: 4) {
-                    if hasPasswordMinimumLength {
-                        Image(asset: SharedAsset.Icons.check12)
-                            .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                            .padding(.leading, 1)
-                    } else {
-                        Circle()
-                            .stroke(SharedAsset.Colors.iconPrimary.swiftUIColor, lineWidth: 2)
-                            .frame(width: 10, height: 10)
-                            .padding(.leading, 1)
-                    }
-
+            HStack(alignment: .firstTextBaseline) {
+                Label {
                     Text(Localizations.xCharacters(requiredTextCount))
-                        .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                        .styleGuide(.footnote, weight: .bold)
-                        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
+                } icon: {
+                    Image(systemName: hasPasswordMinimumLength ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(hasPasswordMinimumLength ? Color.green : Color.secondary)
                 }
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
 
                 Spacer()
 
                 if hasPasswordMinimumLength {
                     Text(passwordStrength.text ?? "")
-                        .foregroundColor(Color(asset: passwordStrength.color))
-                        .styleGuide(.footnote)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(passwordStrength.color)
                 }
             }
+            .dynamicTypeSize(...DynamicTypeSize.accessibility3)
         }
     }
 
@@ -102,8 +84,8 @@ extension PasswordStrengthIndicator {
     struct PasswordStrength {
         // MARK: Properties
 
-        /// The color of the strength text and the indicator bar.
-        let color: ColorAsset
+        /// The color of the strength text and the indicator bar (system colours).
+        let color: Color
 
         /// The strength text to display beneath the indicator bar.
         let text: String?
@@ -121,21 +103,21 @@ extension PasswordStrengthIndicator {
         init(score: UInt8?) {
             switch score {
             case 0, 1:
-                color = SharedAsset.Colors.statusWeak1
+                color = .red
                 text = Localizations.weak
             case 2:
-                color = SharedAsset.Colors.statusWeak2
+                color = .orange
                 text = Localizations.weak
             case 3:
-                color = SharedAsset.Colors.statusGood
+                color = .blue
                 text = Localizations.good
             case 4:
-                color = SharedAsset.Colors.statusStrong
+                color = .green
                 text = Localizations.strong
             default:
                 // Provide the initial color when not visible so the color isn't animated when the
                 // first segment appears.
-                color = SharedAsset.Colors.statusWeak1
+                color = .red
                 text = nil
             }
 

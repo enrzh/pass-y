@@ -3,8 +3,8 @@ import SwiftUI
 
 // MARK: - NumberedList
 
-/// A view that displays a numbered list of views, separated by a divider. The list has the
-/// secondary background color applied with rounded corners.
+/// A view that displays a numbered list of views, separated by a divider (system fonts and colours; the `Form` row
+/// it sits in draws the card).
 ///
 /// Adapted from: https://movingparts.io/variadic-views-in-swiftui
 ///
@@ -45,10 +45,10 @@ extension NumberedList {
                 ForEachIndexed(children) { index, child in
                     HStack(spacing: 12) {
                         Text(String(index + 1))
-                            .styleGuide(.title2, weight: .bold)
-                            .foregroundStyle(SharedAsset.Colors.textInteraction.swiftUIColor)
+                            .font(.title3.weight(.bold))
+                            .monospacedDigit()
+                            .foregroundStyle(.tint)
                             .frame(minWidth: 24, alignment: .center)
-                            .padding(.leading, 12)
 
                         VStack(alignment: .leading, spacing: 0) {
                             child
@@ -61,8 +61,6 @@ extension NumberedList {
                     }
                 }
             }
-            .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }
 }

@@ -12,7 +12,7 @@ class PasswordStrengthIndicatorTests: BitwardenTestCase {
         let view = PasswordStrengthIndicator(
             passwordStrengthScore: 0,
         )
-        XCTAssertEqual(view.passwordStrength.color.swiftUIColor, SharedAsset.Colors.statusWeak1.swiftUIColor)
+        XCTAssertEqual(view.passwordStrength.color, Color.red)
         XCTAssertEqual(view.passwordStrength.text, "Weak")
         XCTAssertEqual(view.passwordStrength.strengthPercent, 0.2)
     }
@@ -22,7 +22,7 @@ class PasswordStrengthIndicatorTests: BitwardenTestCase {
         let view = PasswordStrengthIndicator(
             passwordStrengthScore: 1,
         )
-        XCTAssertEqual(view.passwordStrength.color.swiftUIColor, SharedAsset.Colors.statusWeak1.swiftUIColor)
+        XCTAssertEqual(view.passwordStrength.color, Color.red)
         XCTAssertEqual(view.passwordStrength.text, "Weak")
         XCTAssertEqual(view.passwordStrength.strengthPercent, 0.4)
     }
@@ -32,7 +32,7 @@ class PasswordStrengthIndicatorTests: BitwardenTestCase {
         let view = PasswordStrengthIndicator(
             passwordStrengthScore: 2,
         )
-        XCTAssertEqual(view.passwordStrength.color.swiftUIColor, SharedAsset.Colors.statusWeak2.swiftUIColor)
+        XCTAssertEqual(view.passwordStrength.color, Color.orange)
         XCTAssertEqual(view.passwordStrength.text, "Weak")
         XCTAssertEqual(view.passwordStrength.strengthPercent, 0.6)
     }
@@ -42,7 +42,7 @@ class PasswordStrengthIndicatorTests: BitwardenTestCase {
         let view = PasswordStrengthIndicator(
             passwordStrengthScore: 3,
         )
-        XCTAssertEqual(view.passwordStrength.color.swiftUIColor, SharedAsset.Colors.statusGood.swiftUIColor)
+        XCTAssertEqual(view.passwordStrength.color, Color.blue)
         XCTAssertEqual(view.passwordStrength.text, "Good")
         XCTAssertEqual(view.passwordStrength.strengthPercent, 0.8)
     }
@@ -52,7 +52,7 @@ class PasswordStrengthIndicatorTests: BitwardenTestCase {
         let view = PasswordStrengthIndicator(
             passwordStrengthScore: 4,
         )
-        XCTAssertEqual(view.passwordStrength.color.swiftUIColor, SharedAsset.Colors.statusStrong.swiftUIColor)
+        XCTAssertEqual(view.passwordStrength.color, Color.green)
         XCTAssertEqual(view.passwordStrength.text, "Strong")
         XCTAssertEqual(view.passwordStrength.strengthPercent, 1)
     }
@@ -62,7 +62,7 @@ class PasswordStrengthIndicatorTests: BitwardenTestCase {
         let view = PasswordStrengthIndicator(
             passwordStrengthScore: 8,
         )
-        XCTAssertEqual(view.passwordStrength.color.swiftUIColor, SharedAsset.Colors.statusWeak1.swiftUIColor)
+        XCTAssertEqual(view.passwordStrength.color, Color.red)
         XCTAssertNil(view.passwordStrength.text)
         XCTAssertEqual(view.passwordStrength.strengthPercent, 0)
     }
@@ -72,7 +72,7 @@ class PasswordStrengthIndicatorTests: BitwardenTestCase {
         let view = PasswordStrengthIndicator(
             passwordStrengthScore: nil,
         )
-        XCTAssertEqual(view.passwordStrength.color.swiftUIColor, SharedAsset.Colors.statusWeak1.swiftUIColor)
+        XCTAssertEqual(view.passwordStrength.color, Color.red)
         XCTAssertNil(view.passwordStrength.text)
         XCTAssertEqual(view.passwordStrength.strengthPercent, 0)
     }

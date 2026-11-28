@@ -52,111 +52,97 @@ struct MigrateToMyItemsView: View {
 
     // MARK: Private Views
 
+    /// The "Learn more" link (the transfer ownership help page).
+    private var learnMoreLink: some View {
+        Text(LocalizedStringKey(Localizations.learnMoreLink(ExternalLinksConstants.transferOwnership)))
+            .font(.subheadline.weight(.semibold))
+            .accessibilityLinks(in: Localizations.learnMoreLink(ExternalLinksConstants.transferOwnership))
+            .frame(maxWidth: .infinity)
+    }
+
     /// The main transfer page prompting the user to accept or decline.
     private var transferPage: some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.itemTransfer,
-                style: .mediumImage,
-                title: Localizations.transferItemsToX(store.state.organizationName),
-                message: Localizations.xIsRequiringAllItemsToBeOwnedByTheOrganizationDescriptionLong(
-                    store.state.organizationName,
-                ),
-            ) {
-                Text(LocalizedStringKey(
-                    Localizations.learnMoreLink(
-                        ExternalLinksConstants.transferOwnership,
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("arrow.left.arrow.right.circle.fill", .blue),
+                    title: Localizations.transferItemsToX(store.state.organizationName),
+                    message: Localizations.xIsRequiringAllItemsToBeOwnedByTheOrganizationDescriptionLong(
+                        store.state.organizationName,
                     ),
-                ))
-                .styleGuide(.body, weight: .semibold)
-                .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                .tint(SharedAsset.Colors.buttonOutlinedForeground.swiftUIColor)
-                .accessibilityLinks(in: Localizations.learnMoreLink(ExternalLinksConstants.transferOwnership))
-                // we need this moved up a bit to look like it's continuing
-                // from the previous "message" paragraph without much space between them.
-                .padding(.top, -8)
+                )
+                learnMoreLink
             }
+            .passYPlainListRow()
 
-            VStack(spacing: 12) {
-                AsyncButton(Localizations.acceptTransfer) {
+            PassYActionStack {
+                AsyncButton {
                     await store.perform(.acceptTransferTapped)
+                } label: {
+                    Text(Localizations.acceptTransfer).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.primary())
+                .passYButtonStyle(.primary, fillsWidth: true)
 
                 Button(Localizations.declineAndLeave) {
                     store.send(.declineAndLeaveTapped)
                 }
-                .buttonStyle(.bitwardenBorderless(size: .medium))
+                .buttonStyle(.borderless)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .frame(maxWidth: .infinity)
-        .scrollView()
     }
 
     /// The decline confirmation page warning the user about leaving the organization.
     private var declineConfirmationPage: some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.itemTransferWarning,
-                style: .mediumImage,
-                title: Localizations.areYouSureYouWantToLeave,
-                message: Localizations.byDecliningYourPersonalItemsWillStayInYourAccountDescriptionLong,
-            ) {
-                VStack(spacing: 8) {
-                    Text(LocalizedStringKey(
-                        Localizations.learnMoreLink(
-                            ExternalLinksConstants.transferOwnership,
-                        ),
-                    ))
-                    .styleGuide(.body, weight: .semibold)
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                    .tint(SharedAsset.Colors.buttonOutlinedForeground.swiftUIColor)
-                    .accessibilityLinks(in: Localizations.learnMoreLink(ExternalLinksConstants.transferOwnership))
-
-                    Text(Localizations.contactYourAdminToRegainAccess)
-                        .styleGuide(.body)
-                        .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                }
-                // we need this moved up a bit to look like it's continuing
-                // from the previous "message" paragraph without much space between them.
-                .padding(.top, -8)
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("exclamationmark.triangle.fill", .orange),
+                    title: Localizations.areYouSureYouWantToLeave,
+                    message: Localizations.byDecliningYourPersonalItemsWillStayInYourAccountDescriptionLong,
+                )
+                learnMoreLink
+                Text(Localizations.contactYourAdminToRegainAccess)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, PassYDesign.Spacing.large)
             }
+            .passYPlainListRow()
 
-            VStack(spacing: 12) {
-                AsyncButton(Localizations.leaveX(store.state.organizationName)) {
+            PassYActionStack {
+                AsyncButton(role: .destructive) {
                     await store.perform(.leaveOrganizationTapped)
+                } label: {
+                    Text(Localizations.leaveX(store.state.organizationName)).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.primary(isDestructive: true))
+                .passYButtonStyle(.destructive, fillsWidth: true)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .frame(maxWidth: .infinity)
-        .scrollView()
     }
 
     /// The page shown in app extensions prompting the user to complete migration in the main app.
     private var extensionPromptPage: some View {
-        VStack(spacing: 24) {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.itemTransfer,
-                style: .mediumImage,
-                title: Localizations.itemTransfer,
-                message: Localizations.itemTransferRequiresMainAppDescriptionLong,
-            )
-
-            Button(Localizations.continueToBitwarden) {
-                openURL(ExternalLinksConstants.appDeepLink)
-                store.send(.continueToBitwardenTapped)
+        Form {
+            Section {
+                PassYHeroHeader(
+                    mark: .symbol("arrow.up.forward.app.fill", .blue),
+                    title: Localizations.itemTransfer,
+                    message: Localizations.itemTransferRequiresMainAppDescriptionLong,
+                )
             }
-            .buttonStyle(.primary())
+            .passYPlainListRow()
+
+            PassYActionStack {
+                Button {
+                    openURL(ExternalLinksConstants.appDeepLink)
+                    store.send(.continueToBitwardenTapped)
+                } label: {
+                    Text(Localizations.continueToBitwarden).frame(maxWidth: .infinity)
+                }
+                .passYButtonStyle(.primary, fillsWidth: true)
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .frame(maxWidth: .infinity)
-        .scrollView()
     }
 }
 

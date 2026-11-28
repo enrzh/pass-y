@@ -252,7 +252,6 @@ struct VaultGroupView: View {
                 if !store.state.vaultFilterState.vaultFilterOptions.isEmpty {
                     Section {
                         searchVaultFilterRow
-                            .listRowInsets(EdgeInsets())
                     }
                 }
 
@@ -267,7 +266,7 @@ struct VaultGroupView: View {
             .passYCardList()
         } else {
             SearchNoResultsView {
-                searchVaultFilterRow
+                searchVaultFilterRow(isCard: true)
             }
         }
     }
@@ -275,8 +274,16 @@ struct VaultGroupView: View {
     /// Displays the vault filter for search row if the user is a member of any org.
     ///
     private var searchVaultFilterRow: some View {
+        searchVaultFilterRow(isCard: false)
+    }
+
+    /// Displays the vault filter for search row if the user is a member of any org.
+    ///
+    /// - Parameter isCard: Whether the row draws its own card (outside a list).
+    ///
+    private func searchVaultFilterRow(isCard: Bool) -> some View {
         SearchVaultFilterRowView(
-            hasDivider: false, store: store.child(
+            hasDivider: false, isCard: isCard, store: store.child(
                 state: \.vaultFilterState,
                 mapAction: { action in
                     switch action {

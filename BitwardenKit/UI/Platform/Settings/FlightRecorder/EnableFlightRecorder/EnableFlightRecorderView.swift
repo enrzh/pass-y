@@ -14,15 +14,20 @@ struct EnableFlightRecorderView: View {
     // MARK: View
 
     var body: some View {
-        VStack(spacing: 16) {
-            header
+        Form {
+            Section {
+                header
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            }
 
-            loggingDuration
-
-            footer
+            Section {
+                loggingDuration
+            } footer: {
+                footer
+            }
         }
         .navigationBar(title: Localizations.enableFlightRecorder, titleDisplayMode: .inline)
-        .scrollView()
         .toolbar {
             cancelToolbarItem {
                 store.send(.dismiss)
@@ -36,51 +41,57 @@ struct EnableFlightRecorderView: View {
 
     // MARK: Private Views
 
-    /// The footer view.
+    /// The footer view: automatic deletion and the help link.
     private var footer: some View {
-        VStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(Localizations.logsWillBeAutomaticallyDeletedAfter30DaysDescriptionLong)
 
             let helpCenterText = Localizations.forDetailsOnWhatIsAndIsntLoggedVisitTheBitwardenHelpCenter(
                 ExternalLinksConstants.helpAndFeedback,
             )
             Text(LocalizedStringKey(helpCenterText))
-                .tint(SharedAsset.Colors.textInteraction.swiftUIColor)
                 .accessibilityLinks(in: helpCenterText)
         }
-        .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
-        .multilineTextAlignment(.center)
-        .styleGuide(.footnote)
     }
 
-    /// The header view.
+    /// The header view: symbol, title and explanation, centred on the page background.
     private var header: some View {
-        VStack(spacing: 12) {
-            Text(Localizations.experiencingAnIssue)
-                .styleGuide(.title2, weight: .semibold)
+        VStack(spacing: 8) {
+            Image(systemName: "record.circle")
+                .font(.system(size: 44, weight: .regular))
+                .foregroundStyle(.red)
+                .accessibilityHidden(true)
+                .padding(.bottom, 4)
 
-            Group {
-                Text(Localizations.enableTemporaryLoggingDescriptionLong)
-                Text(Localizations.toGetStartedSetALoggingDurationDescriptionLong)
-            }
-            .styleGuide(.body)
+            Text(Localizations.experiencingAnIssue)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(.primary)
+
+            Text(Localizations.enableTemporaryLoggingDescriptionLong)
+            Text(Localizations.toGetStartedSetALoggingDurationDescriptionLong)
         }
-        .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
-        .padding(.top, 12)
+        .frame(maxWidth: .infinity)
     }
 
-    /// The menu field for selecting the logging duration.
+    /// The menu choice of the logging duration.
     private var loggingDuration: some View {
-        BitwardenMenuField(
-            title: Localizations.loggingDuration,
-            accessibilityIdentifier: "LoggingDurationChooser",
-            options: FlightRecorderLoggingDuration.allCases,
+        Picker(
+            Localizations.loggingDuration,
             selection: store.binding(
                 get: \.loggingDuration,
                 send: EnableFlightRecorderAction.loggingDurationChanged,
             ),
-        )
+        ) {
+            ForEach(FlightRecorderLoggingDuration.allCases, id: \.self) { duration in
+                Text(duration.localizedName)
+                    .tag(duration)
+            }
+        }
+        .pickerStyle(.menu)
+        .accessibilityIdentifier("LoggingDurationChooser")
     }
 }
 

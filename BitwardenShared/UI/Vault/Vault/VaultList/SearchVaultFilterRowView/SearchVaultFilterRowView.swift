@@ -5,7 +5,9 @@ import SwiftUI
 
 // MARK: - SearchVaultFilterRowView
 
-/// A search vault filter row view for displaying options for `VaultFilterType`.
+/// The vault filter row of the vault pages and their search ("Vault  All vaults ⌃⌄"): a menu choice row
+/// (`PassYPickerRow`) for the members of an organization. In a list it is a plain row; `isCard` draws it as a card of
+/// its own for pages without a list (no search results).
 struct SearchVaultFilterRowView: View {
     // MARK: Properties
 
@@ -15,52 +17,42 @@ struct SearchVaultFilterRowView: View {
     /// The accessibility ID for the row.
     let accessibilityID: String?
 
+    /// Whether the row draws its own card (outside a list).
+    let isCard: Bool
+
     /// The `Store` for this view.
     @ObservedObject var store: Store<SearchVaultFilterRowState, SearchVaultFilterRowAction, Void>
 
     var body: some View {
         if !store.state.vaultFilterOptions.isEmpty {
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    Text(store.state.searchVaultFilterType.filterTitle)
-                        .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
-                        .styleGuide(.body)
-                        .accessibilityIdentifier("ActiveFilterNameLabel")
-
-                    Spacer()
-
-                    Menu {
-                        Picker(selection: store.binding(
-                            get: \.searchVaultFilterType,
-                            send: SearchVaultFilterRowAction.searchVaultFilterChanged,
-                        )) {
-                            ForEach(store.state.vaultFilterOptions) { filter in
-                                Text(filter.title)
-                                    .tag(filter)
-                            }
-                        } label: {
-                            EmptyView()
-                        }
-                    } label: {
-                        SharedAsset.Icons.ellipsisHorizontal24.swiftUIImage
-                            .imageStyle(.rowIcon)
-                            .frame(width: 44, height: 44, alignment: .trailing)
-                            .contentShape(Rectangle())
-                    }
-                    .accessibilityLabel(Localizations.filterByVault)
-                    .accessibilityIdentifier("ActiveFilterRow")
-                    .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 9)
-                .frame(minHeight: 60)
-                .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
-
-                if hasDivider {
-                    Divider()
-                }
+            if isCard {
+                row
+                    .padding(.horizontal, PassYDesign.Spacing.large)
+                    .padding(.vertical, PassYDesign.Spacing.xSmall)
+                    .background(
+                        Color(.secondarySystemGroupedBackground),
+                        in: RoundedRectangle(cornerRadius: PassYDesign.Radius.large, style: .continuous),
+                    )
+                    .padding(PassYDesign.Spacing.large)
+            } else {
+                row
             }
         }
+    }
+
+    /// The choice row.
+    private var row: some View {
+        PassYPickerRow(
+            Localizations.vault,
+            options: store.state.vaultFilterOptions,
+            selection: store.binding(
+                get: \.searchVaultFilterType,
+                send: SearchVaultFilterRowAction.searchVaultFilterChanged,
+            ),
+            identifier: accessibilityID ?? "ActiveFilterRow",
+            optionTitle: \.title,
+        )
+        .accessibilityLabel(Localizations.filterByVault)
     }
 
     // MARK: Initialization
@@ -70,15 +62,18 @@ struct SearchVaultFilterRowView: View {
     /// - Parameters:
     ///   - hasDivider: Whether the row has a divider.
     ///   - accessibilityID: The accessibility ID for the row.
+    ///   - isCard: Whether the row draws its own card (outside a list).
     ///   - store: The store used to render the view.
     ///
     init(
         hasDivider: Bool,
         accessibilityID: String? = nil,
+        isCard: Bool = false,
         store: Store<SearchVaultFilterRowState, SearchVaultFilterRowAction, Void>,
     ) {
         self.hasDivider = hasDivider
         self.accessibilityID = accessibilityID
+        self.isCard = isCard
         self.store = store
     }
 }

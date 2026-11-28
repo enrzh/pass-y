@@ -51,23 +51,22 @@ struct FlightRecorderLogsView: View {
         if !store.state.logs.isEmpty {
             logsList
         } else {
-            IllustratedMessageView(
-                image: SharedAsset.Illustrations.secureDevices.swiftUIImage,
-                style: .mediumImage,
-                message: Localizations.noLogsRecorded,
-            )
-            .scrollView(centerContentVertically: true)
+            ContentUnavailableView(Localizations.noLogsRecorded, systemImage: "doc.text.magnifyingglass")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.systemGroupedBackground).ignoresSafeArea())
         }
     }
 
     /// A view containing the list of logs.
     private var logsList: some View {
-        ContentBlock(dividerLeadingPadding: 16) {
-            ForEach(store.state.logs) { log in
-                logRow(for: log)
+        List {
+            Section {
+                ForEach(store.state.logs) { log in
+                    logRow(for: log)
+                }
             }
         }
-        .scrollView()
+        .listStyle(.insetGrouped)
     }
 
     /// A row view for a single log within the logs list.
@@ -78,47 +77,65 @@ struct FlightRecorderLogsView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(log.formattedLoggingDateRange)
-                    .styleGuide(.body)
-                    .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+                    .font(.body)
+                    .foregroundStyle(.primary)
                     .accessibilityIdentifier("FlightRecorderLogDateRangeLabel")
                     .accessibilityLabel(log.loggingDateRangeAccessibilityLabel)
 
-                HStack(spacing: 16) {
-                    Text(log.fileSize)
-                        .accessibilityIdentifier("FlightRecorderLogFileSizeLabel")
-
-                    if let formattedExpiration = log.formattedExpiration(currentDate: timeProvider.presentTime) {
-                        Text(formattedExpiration)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 16) {
+                        fileSize(for: log)
+                        expiration(for: log)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                             .multilineTextAlignment(.trailing)
-                            .accessibilityIdentifier("FlightRecorderLogExpirationLabel")
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        fileSize(for: log)
+                        expiration(for: log)
                     }
                 }
-                .styleGuide(.subheadline)
-                .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Menu {
-                Button(Localizations.share) {
+                Button(Localizations.share, systemImage: "square.and.arrow.up") {
                     store.send(.share(log))
                 }
 
-                Button(Localizations.delete, role: .destructive) {
+                Button(Localizations.delete, systemImage: "trash", role: .destructive) {
                     store.send(.delete(log))
                 }
                 .disabled(log.isActiveLog)
             } label: {
-                SharedAsset.Icons.ellipsisHorizontal24.swiftUIImage
-                    .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+                Image(systemName: "ellipsis")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .accessibilityIdentifier("FlightRecorderLogOptionsButton")
             .accessibilityLabel(Localizations.moreOptions)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("FlightRecorderLogRow")
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 2)
+    }
+
+    /// The file size of a log.
+    private func fileSize(for log: FlightRecorderLogMetadata) -> some View {
+        Text(log.fileSize)
+            .accessibilityIdentifier("FlightRecorderLogFileSizeLabel")
+    }
+
+    /// The expiration of a log, if any.
+    @ViewBuilder
+    private func expiration(for log: FlightRecorderLogMetadata) -> some View {
+        if let formattedExpiration = log.formattedExpiration(currentDate: timeProvider.presentTime) {
+            Text(formattedExpiration)
+                .accessibilityIdentifier("FlightRecorderLogExpirationLabel")
+        }
     }
 }
 
