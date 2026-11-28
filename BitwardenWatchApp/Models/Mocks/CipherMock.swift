@@ -1,71 +1,61 @@
 import Foundation
 
 enum CipherMock {
+    /// Fictitious items of previews and the DEBUG demo mode (`-passyDemoCodes`, used for store screenshots).
     static let ciphers: [CipherDTO] = [
         CipherDTO(
             id: "0",
             login: LoginDTO(
-                totp: "otpauth://account?period=10&secret=LLLLLLLLLLLLLLLL",
+                totp: "JBSWY3DPEHPK3PXP",
                 uris: cipherLoginUris,
-                username: "test@testing.com",
+                username: "alex.miller@example.com",
             ),
-            name: "MySite",
+            name: "Acme Cloud",
             userId: "123123",
         ),
         CipherDTO(
             id: "1",
             login: LoginDTO(
-                totp: "LLLLLLLLLLLLLLLL",
+                totp: "KRSXG5CTMVRXEZLU",
                 uris: cipherLoginUris,
-                username: "thisisatest@testing.com",
+                username: "alexm",
             ),
-            name: "GitHub",
+            name: "Blue Harbor Bank",
             userId: "123123",
         ),
         CipherDTO(
             id: "2",
             login: LoginDTO(
-                totp: "otpauth://account?period=10&digits=8&algorithm=sha256&secret=LLLLLLLLLLLLLLLL",
+                totp: "MFRGGZDFMZTWQ2LK",
                 uris: cipherLoginUris,
-                username: nil,
+                username: "alex.miller@example.com",
             ),
-            name: "No user",
+            name: "Northwind Mail",
             userId: "123123",
         ),
         CipherDTO(
             id: "3",
             login: LoginDTO(
-                totp: "otpauth://account?period=10&digits=7&algorithm=sha512&secret=LLLLLLLLLLLLLLLL",
+                totp: "ONSWG4TFOQ2DKNRX",
                 uris: cipherLoginUris,
-                username: "longtestemail000000@fastmailasdfasdf.com",
+                username: "alex.miller@example.com",
             ),
-            name: "Site 2",
+            name: "Pixel Studio",
             userId: "123123",
         ),
         CipherDTO(
             id: "4",
             login: LoginDTO(
-                totp: "steam://LLLLLLLLLLLLLLLL",
+                totp: "GEZDGNBVGY3TQOJQ",
                 uris: cipherLoginUris,
-                username: "user3",
+                username: "alex.miller@example.com",
             ),
-            name: "Really long name for a site that is used for a totp",
-            userId: "123123",
-        ),
-        CipherDTO(
-            id: "5",
-            login: LoginDTO(
-                totp: "steam://LLLLLLLLLLLLLLLL",
-                uris: cipherLoginUris,
-                username: "u",
-            ),
-            name: "Short",
+            name: "Skyline Air",
             userId: "123123",
         ),
     ]
 
     static let cipherLoginUris: [LoginUriDTO] = [
-        LoginUriDTO(uri: "github.com"),
-        LoginUriDTO(uri: "example2.com"),
+        LoginUriDTO(uri: "example.com"),
     ]
 }
