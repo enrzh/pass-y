@@ -5,7 +5,7 @@ validator whose verdict is linked (all in [Docs/verdicts](Docs/verdicts/README.m
 in the working tree; they stay in git history (`git log --stat -- Docs/screenshots`).
 
 ## v1.28.0 (2026-11-27) - Apple polish round, App Review preparation
-Version 1.28.0 (build 2), first App Review submission; not tagged yet, no validator verdict yet.
+Version 1.28.0 (build 3), first App Review submission; not tagged yet, no validator verdict yet.
 
 - Servers get the upstream compatibility version (2026.9.1) as the client version instead of 1.28.0: Vaultwarden
   withheld SSH keys from the app. "Select" is localized.
