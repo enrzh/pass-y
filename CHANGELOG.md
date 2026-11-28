@@ -5,7 +5,8 @@ validator whose verdict is linked (all in [Docs/verdicts](Docs/verdicts/README.m
 in the working tree; they stay in git history (`git log --stat -- Docs/screenshots`).
 
 ## v1.29.0 (2026-11-27) - Encrypted backup
-Version 1.29.0 (build 5); not tagged yet, no validator verdict yet.
+Version 1.29.0 (build 5), tag `v1.29.0`, submitted to App Review on 2026-11-28 in place of 1.28.0; no validator verdict
+yet.
 
 - Settings > Vault > Encrypted backup, off by default, per account: an automatic password-protected copy of the vault
   in a folder you pick with the system document picker (iCloud Drive or any Files provider). The file is the encrypted
@@ -24,7 +25,8 @@ Version 1.29.0 (build 5); not tagged yet, no validator verdict yet.
   disables the personal export disables the backup. Restore: SUPPORT.md, "Restore from a backup".
 
 ## v1.28.0 (2026-11-27) - Apple polish round, App Review preparation
-Version 1.28.0 (build 4), first App Review submission; not tagged yet, no validator verdict yet.
+Version 1.28.0 (build 4), tag `v1.28.0`, first App Review submission, withdrawn on 2026-11-28 for 1.29.0 and never
+released; no validator verdict.
 
 - Servers get the upstream compatibility version (2026.9.1) as the client version instead of 1.28.0: Vaultwarden
   withheld SSH keys from the app. "Select" is localized.
