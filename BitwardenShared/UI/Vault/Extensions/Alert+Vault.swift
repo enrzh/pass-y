@@ -8,50 +8,30 @@ import UIKit
 // MARK: - Alert+Vault
 
 extension Alert {
-    /// Returns an alert for when archive is unavailable.
+    /// Returns an alert when archive is unavailable for this account. It only explains: Pass-Y offers no upgrade or purchase.
     ///
-    /// - Parameters:
-    ///   - action: A closure to execute on upgrading to Premium.
     /// - Returns: The alert when archive is unavailable.
-    static func archiveUnavailable(
-        action: @escaping () async -> Void,
-    ) -> Alert {
-        let preferredAction = AlertAction(title: Localizations.upgradeToPremium, style: .default) { _ in
-            await action()
-        }
-        let alert = Alert(
-            title: Localizations.premiumSubscriptionRequired,
-            message: Localizations.archivingItemsIsAPremiumFeatureDescriptionLong,
+    static func archiveUnavailable() -> Alert {
+        Alert(
+            title: Localizations.notAvailableForThisAccount,
+            message: Localizations.archiveNotAvailableDescriptionLong,
             alertActions: [
-                preferredAction,
-                AlertAction(title: Localizations.cancel, style: .cancel),
+                AlertAction(title: Localizations.ok, style: .default),
             ],
         )
-        alert.preferredAction = preferredAction
-        return alert
     }
 
-    /// Returns an alert for when attachments are unavailable.
+    /// Returns an alert when attachments are unavailable for this account. It only explains: Pass-Y offers no upgrade or purchase.
     ///
-    /// - Parameters:
-    ///   - action: A closure to execute on upgrading to Premium.
     /// - Returns: The alert when attachments are unavailable.
-    static func attachmentsUnavailable(
-        action: @escaping () async -> Void,
-    ) -> Alert {
-        let preferredAction = AlertAction(title: Localizations.upgradeToPremium, style: .default) { _ in
-            await action()
-        }
-        let alert = Alert(
-            title: Localizations.premiumSubscriptionRequired,
-            message: Localizations.addingAttachmentsIsAPremiumFeatureDescriptionLong,
+    static func attachmentsUnavailable() -> Alert {
+        Alert(
+            title: Localizations.notAvailableForThisAccount,
+            message: Localizations.attachmentsNotAvailableDescriptionLong,
             alertActions: [
-                preferredAction,
-                AlertAction(title: Localizations.cancel, style: .cancel),
+                AlertAction(title: Localizations.ok, style: .default),
             ],
         )
-        alert.preferredAction = preferredAction
-        return alert
     }
 
     /// Returns an alert notifying the user that one or more items in their vault were unable to be
@@ -223,26 +203,17 @@ extension Alert {
         )
     }
 
-    /// Returns an alert notifying the user that a Premium subscription is required to send files,
-    /// with an option to upgrade.
+    /// Returns an alert when sending files is unavailable for this account. It only explains: Pass-Y offers no upgrade or purchase.
     ///
-    /// - Parameters:
-    ///   - action: A closure to execute on upgrading to Premium.
-    /// - Returns: The alert shown when a non-Premium user tries to send a file.
-    static func fileSendPremiumRequired(
-        action: @escaping () -> Void,
-    ) -> Alert {
-        let preferredAction = AlertAction(title: Localizations.upgradeToPremium, style: .default) { _, _ in action() }
-        let alert = Alert(
-            title: Localizations.premiumSubscriptionRequired,
-            message: Localizations.sendFilePremiumRequired,
+    /// - Returns: The alert shown when an account without file Send tries to send a file.
+    static func fileSendPremiumRequired() -> Alert {
+        Alert(
+            title: Localizations.notAvailableForThisAccount,
+            message: Localizations.fileSendNotAvailableDescriptionLong,
             alertActions: [
-                preferredAction,
-                AlertAction(title: Localizations.cancel, style: .cancel),
+                AlertAction(title: Localizations.ok, style: .default),
             ],
         )
-        alert.preferredAction = preferredAction
-        return alert
     }
 
     /// An alert asking the user if they have a computer available to import logins.
@@ -353,26 +324,17 @@ extension Alert {
         )
     }
 
-    /// Returns an alert for when the "Specific People" Send feature is unavailable due to
-    /// lack of Premium subscription.
+    /// Returns an alert when sharing a Send with specific people is unavailable for this account. It only explains: Pass-Y offers no upgrade or purchase.
     ///
-    /// - Parameters:
-    ///   - action: A closure to execute on upgrading to Premium.
     /// - Returns: The alert when "Specific People" is unavailable.
-    static func specificPeopleUnavailable(
-        action: @escaping () -> Void,
-    ) -> Alert {
-        let preferredAction = AlertAction(title: Localizations.upgradeToPremium, style: .default) { _, _ in action() }
-        let alert = Alert(
-            title: Localizations.premiumSubscriptionRequired,
-            message: Localizations.sharingWithSpecificPeopleIsPremiumFeatureDescriptionLong,
+    static func specificPeopleUnavailable() -> Alert {
+        Alert(
+            title: Localizations.notAvailableForThisAccount,
+            message: Localizations.specificPeopleNotAvailableDescriptionLong,
             alertActions: [
-                preferredAction,
-                AlertAction(title: Localizations.cancel, style: .cancel),
+                AlertAction(title: Localizations.ok, style: .default),
             ],
         )
-        alert.preferredAction = preferredAction
-        return alert
     }
 
     /// An alert shown when a vault sync fails.
@@ -405,28 +367,17 @@ extension Alert {
         )
     }
 
-    /// Returns an alert notifying the user that a Premium subscription is required to view TOTP
-    /// codes, with an option to upgrade.
+    /// Returns an alert when verification codes are unavailable for this account. It only explains: Pass-Y offers no upgrade or purchase.
     ///
-    /// - Parameters:
-    ///   - action: A closure to execute on upgrading to Premium.
-    /// - Returns: The alert shown when a non-Premium user taps the TOTP premium required field.
-    static func totpPremiumRequired(
-        action: @escaping () async -> Void,
-    ) -> Alert {
-        let preferredAction = AlertAction(title: Localizations.upgradeToPremium, style: .default) { _ in
-            await action()
-        }
-        let alert = Alert(
-            title: Localizations.premiumSubscriptionRequired,
-            message: Localizations.premiumRequiredTOTPDescriptionLong,
+    /// - Returns: The alert shown when an account without TOTP taps the authenticator key row.
+    static func totpPremiumRequired() -> Alert {
+        Alert(
+            title: Localizations.notAvailableForThisAccount,
+            message: Localizations.totpNotAvailableDescriptionLong,
             alertActions: [
-                preferredAction,
-                AlertAction(title: Localizations.cancel, style: .cancel),
+                AlertAction(title: Localizations.ok, style: .default),
             ],
         )
-        alert.preferredAction = preferredAction
-        return alert
     }
 
     /// An alert notifying the user to update their encryption settings.

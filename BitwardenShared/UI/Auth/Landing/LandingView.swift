@@ -25,6 +25,7 @@ struct LandingView: View {
                     profileSwitcherToolbarItem
                 }
             }
+            .sharedBackgroundVisibility(.hidden)
         }
         .task {
             await store.perform(.appeared)

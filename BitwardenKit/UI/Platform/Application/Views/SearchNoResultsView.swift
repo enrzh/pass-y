@@ -21,24 +21,19 @@ public struct SearchNoResultsView<Content: View>: View {
                         headerView
                     }
 
-                    VStack(spacing: 35) {
-                        Image(decorative: SharedAsset.Icons.search24)
-                            .resizable()
-                            .frame(width: 74, height: 74)
-                            .foregroundColor(SharedAsset.Colors.textSecondary.swiftUIColor)
-
-                        Text(Localizations.thereAreNoItemsThatMatchTheSearch)
-                            .multilineTextAlignment(.center)
-                            .styleGuide(.callout)
-                            .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+                    ContentUnavailableView {
+                        Label {
+                            Text(Localizations.thereAreNoItemsThatMatchTheSearch)
+                                .accessibilityIdentifier("NoSearchResultsLabel")
+                        } icon: {
+                            Image(systemName: "magnifyingglass")
+                        }
                     }
-                    .accessibilityIdentifier("NoSearchResultsLabel")
-                    .padding(.horizontal, 16)
-                    .frame(maxWidth: .infinity, minHeight: reader.size.height, maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, minHeight: reader.size.height)
                 }
             }
         }
-        .background(Color(asset: SharedAsset.Colors.backgroundPrimary))
+        .background(Color(.systemGroupedBackground))
     }
 
     // MARK: Initialization

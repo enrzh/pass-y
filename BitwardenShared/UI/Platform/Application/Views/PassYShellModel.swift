@@ -476,29 +476,11 @@ struct PassYAvatarMenu: View {
         }
     }
 
-    /// The avatar itself: initials on the account color, nothing around it.
+    /// The avatar of the active account.
     private var avatar: some View {
         let source = model.profileMenu
         let profile = (source?.showsPlaceholder ?? true) ? nil : source?.activeProfile
-        return ZStack {
-            Circle().fill(profile?.color ?? Color(.tertiarySystemFill))
-            if profile?.userInitials != nil {
-                // ui-r7: darkened just enough that the white initials reach a 4.6:1 contrast on any account color.
-                Circle().fill(Color.black.opacity(Self.darkening(for: profile?.color)))
-            }
-            if let initials = profile?.userInitials {
-                Text(initials)
-                    .font(Font.system(.body, design: .rounded).weight(.semibold))
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
-                    .foregroundStyle(Color.white)
-            } else {
-                Image(systemName: "person.fill")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(width: Self.avatarSize, height: Self.avatarSize)
+        return PassYAvatarCircle(color: profile?.color, initials: profile?.userInitials)
     }
 
     /// The opacity of a black overlay (0 to 0.6) after which white text on `color` has a contrast ratio of at least 4.6.
@@ -522,6 +504,40 @@ struct PassYAvatarMenu: View {
     /// same size and weight. Fixed like those buttons: a Dynamic Type size would outgrow the bar; the initials shrink
     /// to fit instead.
     static let avatarSize: CGFloat = 44
+}
+
+// MARK: - PassYAvatarCircle
+
+/// The avatar itself: initials on the account color, nothing around it (the shell's avatar menu and the account
+/// switcher button of sheets and extensions).
+struct PassYAvatarCircle: View {
+    /// The account color.
+    var color: Color?
+
+    /// The account initials; `nil` shows the person symbol.
+    var initials: String?
+
+    var body: some View {
+        ZStack {
+            Circle().fill(color ?? Color(.tertiarySystemFill))
+            if initials != nil {
+                // ui-r7: darkened just enough that the white initials reach a 4.6:1 contrast on any account color.
+                Circle().fill(Color.black.opacity(PassYAvatarMenu.darkening(for: color)))
+            }
+            if let initials {
+                Text(initials)
+                    .font(Font.system(.body, design: .rounded).weight(.semibold))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .foregroundStyle(Color.white)
+            } else {
+                Image(systemName: "person.fill")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: PassYAvatarMenu.avatarSize, height: PassYAvatarMenu.avatarSize)
+    }
 }
 
 // MARK: - PassYAvatarToolbarItem

@@ -57,6 +57,7 @@ struct VaultUnlockView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 profileSwitcherToolbarItem
             }
+            .sharedBackgroundVisibility(.hidden)
         }
         .task {
             await store.perform(.appeared)

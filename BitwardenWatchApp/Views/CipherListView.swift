@@ -3,57 +3,27 @@ import SwiftUI
 struct CipherListView: View {
     @ObservedObject var viewModel = CipherListViewModel(CipherService.shared)
 
-    let AVATAR_ID: String = "avatarId"
-
-    var isHeaderVisible: Bool {
-        !viewModel.searchTerm.isEmpty || viewModel.filteredCiphers.count > 1
-    }
-
     var body: some View {
         NavigationView {
-            GeometryReader { geometry in
-                ScrollViewReader { scrollProxy in
-                    List {
-                        if isHeaderVisible {
-                            Section {
-                                getSearchSection(geometry.size.width)
-                            }
-                        }
-                        if viewModel.user?.email != nil {
-                            Section {
-                                avatarHeader
-                                    .id(AVATAR_ID)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 5)
-                                            .foregroundColor(Color.ui.avatarItemBackground)
-                                            .frame(width: geometry.size.width + 10, height: 50),
-                                    )
-                                    .padding(0)
-                            }
-                        }
-                        ForEach(viewModel.filteredCiphers, id: \.id) { cipher in
-                            NavigationLink(destination: CipherDetailsView(cipher: cipher)) {
-                                CipherItemView(cipher, geometry.size.width)
-                            }
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                            .padding(0)
-                        }
-                    }
-                    .emptyState(viewModel.filteredCiphers.isEmpty, emptyContent: {
-                        emptyContent
-                            .frame(width: geometry.size.width, alignment: .center)
-                    })
-                    .onReceive(viewModel.$updateHack) { _ in
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                            scrollProxy.scrollTo(AVATAR_ID, anchor: .top)
-                        }
+            List {
+                if viewModel.user?.email != nil {
+                    avatarHeader
+                        .listRowBackground(Color.clear)
+                }
+                ForEach(viewModel.filteredCiphers, id: \.id) { cipher in
+                    NavigationLink(destination: CipherDetailsView(cipher: cipher)) {
+                        CipherItemView(cipher)
                     }
                 }
             }
+            // "Search" is a key of the watch app's Localizable.strings.
+            .searchable(text: $viewModel.searchTerm, prompt: Text(LocalizedStringKey("Search")))
+            .emptyState(viewModel.filteredCiphers.isEmpty, emptyContent: {
+                emptyContent
+            })
+            .navigationTitle("Pass-Y")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .navigationTitle("Pass-Y")
-        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             #if targetEnvironment(simulator) // for the preview
             viewModel.fetchCiphers()
@@ -63,20 +33,6 @@ struct CipherListView: View {
         }
         .fullScreenCover(isPresented: $viewModel.showingSheet) {
             BWStateView(viewModel.currentState, viewModel.debugText)
-        }
-    }
-
-    var searchContent: some View {
-        HStack {
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(Color(.white))
-                .frame(width: 20, height: 30)
-            TextField("", text: $viewModel.searchTerm)
-                .foregroundColor(.white)
-                .frame(width: .infinity, height: 33)
-                .placeholder(when: viewModel.searchTerm.isEmpty) {
-                    Text("Search").foregroundColor(.white)
-                }
         }
     }
 
@@ -92,35 +48,15 @@ struct CipherListView: View {
     }
 
     var emptyContent: some View {
-        VStack(alignment: .center) {
-            Image("EmptyListPlaceholder")
-                .resizable()
-                .scaledToFit()
-                .padding(20)
+        VStack(spacing: 8) {
+            Image(systemName: "key")
+                .font(.largeTitle)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             Text("ThereAreNoItemsToList")
-                .foregroundColor(Color.white)
                 .font(.headline)
                 .multilineTextAlignment(.center)
         }
-    }
-
-    func getSearchSection(_ maxWidth: CGFloat) -> some View {
-        ZStack {
-            searchContent
-                .padding(5)
-                .background(
-                    RoundedRectangle(cornerRadius: 5)
-                        .foregroundColor(Color.ui.primary)
-                        .frame(width: maxWidth,
-                               alignment: .leading),
-                )
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 5)
-                .foregroundColor(Color.black)
-                .frame(width: maxWidth, height: 60),
-        )
-        .padding(0)
     }
 }
 

@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "URL dari lingkungan sudah tersimpan.";
 "IdentityUrl" = "URL Server Identitas";
 "SelfHostedEnvironment" = "Lingkungan Host-Mandiri";
-"SelfHostedEnvironmentFooter" = "Specify the base URL of your on-premise hosted bitwarden installation.";
 "ServerUrl" = "URL Server";
 "WebVaultUrl" = "URL Server Brankas Web";
 "CustomFields" = "Kolom ubahsuai";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Lanjut ke Kebijakan Privasi?";
 "ContinueToAppStore" = "Lanjut ke app store?";
 "ContinueWithoutSyncing" = "Lanjutkan tanpa sinkronisasi";
-"TwoStepLoginDescriptionLong" = "Amankan akun Anda dengan menyiapkan login dua langkah di apl web Pass-Y.";
 "YouCanImportDataToYourVaultOnX" = "Anda bisa mengimpor data ke brankas Anda di %1$@.";
-"PrivacyPolicyDescriptionLong" = "Lihat kebijakan privasi kami di bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Jelajahi lebih banyak fitur akun Pass-Y Anda di aplikasi web.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y memungkinkan Anda berbagi item brankas dengan orang lain melalui organisasi. Pelajari lebih lanjut di situs web bitwarden.com.";
 "RateAppDescriptionLong" = "Bantu orang lain mengetahui apakah Pass-Y cocok untuk mereka. Kunjungi app store dan beri penilaian sekarang.";
 "CreatedX" = "Dibuat %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Izin organisasi diperbarui. Anda harus mengatur sandi utama.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Tingkatkan login Anda";
 "IntroCarouselPage3Message" = "Gunakan pembuat sandi untuk membuat dan menyimpan sandi yang kuat dan unit untuk semua akun Anda.";
 "IntroCarouselPage4Title" = "Data Anda, kapanpun dan dimanapun Anda membutuhkannya";
-"IntroCarouselPage4Message" = "Simpan sandi tanpa batas lintas perangkat dengan aplikasi Pass-Y untuk mobile, browser, dan desktop.";
 "AccountSetup" = "Siapkan akun";
 "SetUpUnlock" = "Setel buka kunci";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Atur biometrik atau pilih kode PIN untuk akses cepat ke brankas Anda dan isi otomatis login.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "File ini akan dihapus setelah impor selesai.";
 "NeedHelpCheckOutImportHelp" = "Butuh bantuan? Lihat **[bantuan impor](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Di komputer Anda, buka tab peramban baru dan **pergi ke %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Masuk ke aplikasi web Pass-Y.**";
 "ImportLoginsToBitwarden" = "Impor login ke Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Di navigasi Pass-Y, **temukan opsi Alat** dan **pilih Impor data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Isi formulir dan **impor file sandi tersimpan Anda.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Pilih Impor data** di aplikasi web, lalu **Selesai** untuk menyelesaikan sinkronisasi.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Demi keamanan Anda, pastikan untuk **menghapus file sandi tersimpan Anda.**";
-"BitwardenTools" = "Alat Pass-Y";
 "ImportSuccessful" = "Impor Berhasil!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Kelola login Anda dari mana saja dengan alat Pass-Y untuk web dan desktop.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Kelola paket langganan Anda di aplikasi web Pass-Y.";
 "DownloadTheBrowserExtension" = "Unduh ekstensi peramban";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Buka bitwarden.com/download untuk mengintegrasikan Pass-Y ke browser favorit Anda agar pengalaman lebih mulus.";
-"UseTheWebApp" = "Gunakan aplikasi web";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Masuk di bitwarden.com untuk mengelola akun dan memperbarui pengaturan dengan mudah.";
 "AutofillPasswords" = "Isi otomatis sandi";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Atur isi otomatis di semua perangkat Anda untuk login dengan sekali ketuk di mana saja.";
 "GoBack" = "Kembali";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Tidak ada akun ditemukan. Silakan masuk kembali jika Anda terus melihat kesalahan ini.";
 "ImportError" = "Kesalahan impor";
 "NoLoginsWereImported" = "Tidak ada login yang diimpor";
-"ThisIsNotARecognizedServerDescriptionLong" = "Ini bukan server Pass-Y yang dikenali. Anda mungkin perlu memeriksa dengan penyedia atau memperbarui server Anda.";
 "LoginsImported" = "Login berhasil diimpor";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Jangan lupa hapus berkas sandi yang sudah diimpor dari komputer Anda.";
 "SomethingWentWrong" = "Terjadi kesalahan";
@@ -963,7 +947,6 @@
 "LastEdited" = "Terakhir diubah: %1$@";
 "PasswordLastUpdated" = "Sandi terakhir diperbarui: %1$@";
 "DecryptionError" = "Kesalahan dekripsi";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y tidak dapat mendekripsi item brankas ini. Salin dan bagikan laporan kesalahan ini ke tim layanan pelanggan untuk mencegah kehilangan data lebih lanjut.";
 "CopyErrorReport" = "Salin laporan kesalahan";
 "ErrorCannotDecrypt" = "[kesalahan: tidak bisa mendecrypt]";
 "AccountsSyncedFromBitwardenApp" = "Akun tersinkron dari aplikasi Pass-Y";

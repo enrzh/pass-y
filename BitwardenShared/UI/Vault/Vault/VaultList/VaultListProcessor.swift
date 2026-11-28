@@ -497,13 +497,7 @@ extension VaultListProcessor {
             }
         case let .group(group, count):
             if !state.hasPremium, group == .archive, count == 0 {
-                coordinator.showAlert(
-                    Alert.archiveUnavailable(action: { [weak self] in
-                        Task { [weak self] in
-                            await self?.navigateToPremiumUpgrade()
-                        }
-                    }),
-                )
+                coordinator.showAlert(Alert.archiveUnavailable())
                 return
             }
             coordinator.navigate(to: .group(group, filter: state.vaultFilterType, count: count))

@@ -23,14 +23,8 @@ public enum SettingsRoute: Equatable, Hashable {
     /// A route to the appearance screen.
     case appearance
 
-    /// A route to the app extension screen.
-    case appExtension
-
     /// A route to the Customize screen (on-device layout preferences).
     case customize
-
-    /// A route to the app extension setup sheet.
-    case appExtensionSetup
 
     /// A route to the auto-fill screen.
     case autoFill
@@ -64,6 +58,12 @@ public enum SettingsRoute: Equatable, Hashable {
 
     /// A route to the import logins screen.
     case importLogins
+
+    /// A route to a page of About > Licenses.
+    ///
+    /// - Parameter page: The page to show.
+    ///
+    case licenses(LicensesPage)
 
     /// A route to view a login request.
     ///

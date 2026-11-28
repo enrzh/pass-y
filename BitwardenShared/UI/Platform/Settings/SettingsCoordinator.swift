@@ -173,10 +173,6 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
             showAppearance()
         case .customize:
             showCustomize()
-        case .appExtension:
-            showAppExtension()
-        case .appExtensionSetup:
-            showAppExtensionSetup(delegate: context as? AppExtensionSetupDelegate)
         case .autoFill:
             showAutoFill()
         case .deleteAccount:
@@ -205,6 +201,8 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
             showFolders()
         case .importLogins:
             showImportLogins()
+        case let .licenses(page):
+            showLicenses(page)
         case let .loginRequest(loginRequest):
             showLoginRequest(loginRequest, delegate: context as? LoginRequestDelegate)
         case .other:
@@ -251,6 +249,32 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
         let viewController = UIHostingController(rootView: view)
         viewController.navigationItem.largeTitleDisplayMode = .never
         stackNavigator?.push(viewController, navigationTitle: Localizations.about)
+    }
+
+    /// Shows a page of About > Licenses.
+    ///
+    /// - Parameter page: The page to show.
+    ///
+    private func showLicenses(_ page: LicensesPage) {
+        let notices = PassYThirdPartyNotices.bundled
+        let open: (LicensesPage) -> Void = { [weak self] in self?.navigate(to: .licenses($0)) }
+        let viewController: UIViewController
+        let title: String
+        switch page {
+        case .overview:
+            viewController = UIHostingController(rootView: LicensesView(notices: notices, open: open))
+            title = Localizations.softwareLicenses
+        case .crates:
+            viewController = UIHostingController(rootView: LicenseCratesView(notices: notices, open: open))
+            title = Localizations.rustLibrariesInTheSDK
+        case let .text(pageTitle, texts):
+            viewController = UIHostingController(
+                rootView: LicenseTextView(title: pageTitle, text: notices.text(of: texts)),
+            )
+            title = pageTitle
+        }
+        viewController.navigationItem.largeTitleDisplayMode = .never
+        stackNavigator?.push(viewController, navigationTitle: title)
     }
 
     /// Shows the account security screen.
@@ -307,42 +331,6 @@ final class SettingsCoordinator: Coordinator, HasStackNavigator { // swiftlint:d
         let viewController = UIHostingController(rootView: view)
         viewController.navigationItem.largeTitleDisplayMode = .never
         stackNavigator?.push(viewController, navigationTitle: Localizations.appearance)
-    }
-
-    /// Shows the app extension screen.
-    ///
-    private func showAppExtension() {
-        let processor = AppExtensionProcessor(
-            coordinator: asAnyCoordinator(),
-            state: AppExtensionState(),
-        )
-        let view = AppExtensionView(store: Store(processor: processor))
-        let viewController = UIHostingController(rootView: view)
-        viewController.navigationItem.largeTitleDisplayMode = .never
-        stackNavigator?.push(viewController, navigationTitle: Localizations.appExtension)
-    }
-
-    /// Shows the app extension setup screen.
-    ///
-    /// - Parameter delegate: The `AppExtensionSetupDelegate` to notify when the user interacts with
-    ///     the extension.
-    ///
-    private func showAppExtensionSetup(delegate: AppExtensionSetupDelegate?) {
-        let extensionItem = NSExtensionItem()
-        extensionItem.attachments = [
-            NSItemProvider(
-                item: "" as NSString,
-                typeIdentifier: Constants.UTType.appExtensionSetup,
-            ),
-        ]
-        let viewController = UIActivityViewController(activityItems: [extensionItem], applicationActivities: nil)
-        viewController.completionWithItemsHandler = { activityType, completed, _, _ in
-            delegate?.didDismissExtensionSetup(
-                enabled: completed &&
-                    activityType?.rawValue == Bundle.main.appExtensionIdentifier,
-            )
-        }
-        stackNavigator?.present(viewController)
     }
 
     /// Navigates to the specified auth coordinator route within the existing navigator.

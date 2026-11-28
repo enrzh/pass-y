@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Omgjevnadsnettadressene er lagra.";
 "IdentityUrl" = "URL for identitetstenar";
 "SelfHostedEnvironment" = "Sjølvstelt omgjevnad";
-"SelfHostedEnvironmentFooter" = "Oppgi base-URL for din lokalt installerte Pass-Y-installasjon.";
 "ServerUrl" = "Tenarnettadresse";
 "WebVaultUrl" = "Tenaradressa åt Nettkvelv";
 "CustomFields" = "Eigendefinerte felt";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Fortset til personvernerklæringa?";
 "ContinueToAppStore" = "Halde fram til app-butikk?";
 "ContinueWithoutSyncing" = "Halde fram utan synkronisering";
-"TwoStepLoginDescriptionLong" = "Gjer kontoen din meir sikker ved å setje opp to-trinns pålogging i Pass-Y-nettappen.";
 "YouCanImportDataToYourVaultOnX" = "Du kan importere data til kvelvet på %1$@.";
-"PrivacyPolicyDescriptionLong" = "Sjekk ut personvernerklæringa vår på bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Utforsk fleire funksjonar i Pass-Y-kontoen din i nettappen.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y let deg dele kvelelementa dine med andre ved å bruke ein organisasjon. Lær meir på bitwarden.com.";
 "RateAppDescriptionLong" = "Hjelp andre med å finne ut om Pass-Y passar for dei. Besøk app-butikken og gje ei vurdering no.";
 "CreatedX" = "Oppretta %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Organisasjonsrettane dine vart oppdaterte, noko som krev at du set eit hovudpassord.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Løft påloggingane dine";
 "IntroCarouselPage3Message" = "Bruk generatoren til å lage og lagre sterke, unike passord for alle kontoane dine.";
 "IntroCarouselPage4Title" = "Dataa dine, når og kor du treng dei";
-"IntroCarouselPage4Message" = "Lagre ubegrensa passord på ubegrensa einingar med Pass-Y-appar for mobil, nettlesar og skrivebord.";
 "AccountSetup" = "Kontoinnstilling";
 "SetUpUnlock" = "Set opp opplåsing";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Set opp biometri eller vel ein PIN-kode for raskt å få tilgang til kvelvet og autoutfylle påloggingane dine.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Du vil slette denne fila etter at importen er fullført.";
 "NeedHelpCheckOutImportHelp" = "Treng du hjelp? Sjå **[hjelp for import](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "På datamaskinen, opne ein ny nettlesarfane og **gå til %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Logg inn i Pass-Y-nettappen.**";
 "ImportLoginsToBitwarden" = "Importer innloggingar til Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "I Pass-Y sin navigasjon, **finn Verktøy-alternativet** og **vel Importer data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Fyll ut skjemaet og **importer den lagra passordfila di.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Vel Importér data** i nettappen, og så **Ferdig** for å fullføre synkroniseringa.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "For di sikkerheit, ver sikker på å **slette di lagra passordfil.**";
-"BitwardenTools" = "Pass-Y-verktøy";
 "ImportSuccessful" = "Import vellykka!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Handsam påloggingane dine frå kvar som helst med Pass-Y-verktøy for nett og skrivebord.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Handsam abonnementsplanen din i Pass-Y-nettappen.";
 "DownloadTheBrowserExtension" = "Last ned nettlesarutvidinga";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Gå til bitwarden.com/download for å integrere Pass-Y i din favorittnettlesar for ei saumlaus oppleving.";
-"UseTheWebApp" = "Bruk nettappen";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Logg inn på bitwarden.com for enkelt å handsame kontoen din og oppdatere innstillingar.";
 "AutofillPasswords" = "Autoutfyll passord";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Set opp autoutfyll på alle einingane dine for å logge inn med eitt trykk overalt.";
 "GoBack" = "Gå tilbake";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Ingen konto funnen. Logg inn på nytt viss du framleis ser denne feilen.";
 "ImportError" = "Importfeil";
 "NoLoginsWereImported" = "Ingen påloggingar vart importerte";
-"ThisIsNotARecognizedServerDescriptionLong" = "Dette er ikkje ein gjenkjent Pass-Y-tenar. Du må kanskje sjekke med leverandøren din eller oppdatere tenaren.";
 "LoginsImported" = "Påloggingar importerte";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Husk å slette den importerte passordfila frå datamaskinen.";
 "SomethingWentWrong" = "Noko gjekk gale";
@@ -963,7 +947,6 @@
 "LastEdited" = "Sist redigert: %1$@";
 "PasswordLastUpdated" = "Passord sist oppdatert: %1$@";
 "DecryptionError" = "Dekrypteringsfeil";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y kunne ikkje dekryptere dette kvelelementet. Kopier og del denne feilmeldinga med kundestøtte for å unngå ytterlegare datatap.";
 "CopyErrorReport" = "Kopier feilmelding";
 "ErrorCannotDecrypt" = "[feil: kan ikkje dekryptere]";
 "AccountsSyncedFromBitwardenApp" = "Kontoar synkroniserte frå Pass-Y-appen";

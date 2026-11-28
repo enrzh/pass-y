@@ -17,17 +17,16 @@ struct NumberedListRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(LocalizedStringKey(title))
-                .styleGuide(.body)
-                .foregroundStyle(SharedAsset.Colors.textPrimary.swiftUIColor)
+                .font(.body)
+                .foregroundStyle(.primary)
 
             if let subtitle {
                 Text(LocalizedStringKey(subtitle))
-                    .styleGuide(.subheadline)
-                    .foregroundStyle(SharedAsset.Colors.textSecondary.swiftUIColor)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(.vertical, 12)
-        .padding(.trailing, 16) // Leading padding is handled by `NumberedList`.
     }
 
     // MARK: Initialization

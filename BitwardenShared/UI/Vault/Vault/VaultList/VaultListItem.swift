@@ -291,7 +291,7 @@ extension VaultListItem {
             fido2CredentialAutofillView?.userNameForUi ?? cipherView.subtitle
         case let .group(group, count):
             isPremiumSubscriptionRequired(group: group, count: count)
-                ? Localizations.premiumSubscriptionRequired
+                ? Localizations.notAvailableForThisAccount
                 : nil
         case .totp:
             nil

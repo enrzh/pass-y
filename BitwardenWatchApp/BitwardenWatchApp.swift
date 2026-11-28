@@ -10,7 +10,5 @@ struct BitwardenWatchAp: App {
                 CipherListView()
             }
         }
-
-        WKNotificationScene(controller: NotificationController.self, category: "myCategory")
     }
 }

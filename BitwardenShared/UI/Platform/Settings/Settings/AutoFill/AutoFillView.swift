@@ -147,16 +147,12 @@ struct AutoFillView: View {
     }
 
     /// The auto-fill section.
-    private var autoFillSection: some View {
-        Section(Localizations.autofill) {
-            if store.state.shouldShowPasswordAutofill {
+    @ViewBuilder private var autoFillSection: some View {
+        if store.state.shouldShowPasswordAutofill {
+            Section(Localizations.autofill) {
                 PassYSettingsRow(Localizations.passwordAutofill, systemImage: "key.viewfinder", tint: .green) {
                     store.send(.passwordAutoFillTapped)
                 }
-            }
-
-            PassYSettingsRow(Localizations.appExtension, systemImage: "puzzlepiece.extension.fill", tint: .blue) {
-                store.send(.appExtensionTapped)
             }
         }
     }

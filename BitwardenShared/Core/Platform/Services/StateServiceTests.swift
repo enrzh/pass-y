@@ -2798,8 +2798,12 @@ class StateServiceTests: BitwardenTestCase { // swiftlint:disable:this type_body
 
     /// `setShowWebIcons` saves the show web icons value..
     func test_setShowWebIcons() async {
+        let posted = expectation(forNotification: .passYShowWebIconsDidChange, object: nil) { notification in
+            notification.userInfo?[PassYLayoutCloudSync.showWebIconsKey] as? Bool == false
+        }
         await subject.setShowWebIcons(false)
         XCTAssertTrue(appSettingsStore.disableWebIcons)
+        await fulfillment(of: [posted], timeout: 1)
     }
 
     /// `setSiriAndShortcutsAccess(_:userId:)` saves the Siri & Shortcuts access value.

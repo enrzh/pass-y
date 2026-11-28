@@ -3,7 +3,8 @@ import Foundation
 
 public class MockAppInfoService: AppInfoService {
     public var appInfoStringValue = """
-    © Bitwarden Inc. 2015\(String.enDash)\(Calendar.current.component(.year, from: Date.now))
+    Pass-Y © 2026 aiity
+    Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
 
     📝 Bitwarden 1.0 (1)
     📦 Bundle: com.8bit.bitwarden
@@ -17,7 +18,8 @@ public class MockAppInfoService: AppInfoService {
     🍏 System: iOS 16.4
     """
     public var copyrightString = """
-    © Bitwarden Inc. 2015\(String.enDash)\(Calendar.current.component(.year, from: Date.now))
+    Pass-Y © 2026 aiity
+    Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)
     """
     public var isBetaBuild = false
     public var versionString = "1.0 (1)"

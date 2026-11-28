@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Palvelinympäristön URL-osoitteet tallennettiin.";
 "IdentityUrl" = "Henkilöllisyyspalvelimen URL";
 "SelfHostedEnvironment" = "Itse ylläpidetty palvelinympäristö";
-"SelfHostedEnvironmentFooter" = "Määritä omassa palvelinympäristössäsi suoritettavan Pass-Y-asennuksen pääverkkotunnus.";
 "ServerUrl" = "Palvelimen URL";
 "WebVaultUrl" = "Verkkoholvipalvelimen URL";
 "CustomFields" = "Lisäkentät";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Jatketaanko tietosuojakäytäntöön?";
 "ContinueToAppStore" = "Avataanko sovelluskauppa?";
 "ContinueWithoutSyncing" = "Jatka ilman synkronointia";
-"TwoStepLoginDescriptionLong" = "Paranna tilisi suojausta määrittämällä kaksivaiheinen kirjautuminen Pass-Yin verkkosovelluksessa.";
 "YouCanImportDataToYourVaultOnX" = "Voit tuoda tietoja holviisi osoitteessa %1$@.";
-"PrivacyPolicyDescriptionLong" = "Tutustu tietosuojakäytäntöömme osoitteessa bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Tutustu Pass-Y-tilisi muihin omimaisuuksiin verkkosovelluksessa.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y mahdollistaa holvisi sisällön jakamisen organisaation avulla. Lue lisää osoitteesta bitwarden.com.";
 "RateAppDescriptionLong" = "Auta muita selvittämään sopiiko Pass-Y heille. Arvioi se sovelluskaupassa nyt.";
 "CreatedX" = "Luotu %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Organisaatiosi käyttöoikeuksia muutettiin ja tämän seurauksena sinun on asetettava pääsalasana.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Nosta kirjautumisesi uudelle tasolle";
 "IntroCarouselPage3Message" = "Käytä generaattoria luodaksesi ja tallentaaksesi vahvoja, ainutlaatuisia salasanoja kaikille tileillesi.";
 "IntroCarouselPage4Title" = "Sinun tietosi, missä ja milloin tarvitset niitä";
-"IntroCarouselPage4Message" = "Tallenna rajattomasti salasanoja, rajattomalla määrällä laitteita, Pass-Yin mobiili-, selain- ja työpöytäapeilla.";
 "AccountSetup" = "Tilin määritys";
 "SetUpUnlock" = "Määritä lukituksen poisto";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Määritä biometriatiedot tai aseta PIN-koodi avataksesi holvisi ja automaattitäyttääksesi kirjautumistietojasi nopeasti.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Poistat tämän tiedoston, kun tuonti on valmis.";
 "NeedHelpCheckOutImportHelp" = "Tarvitsetko apua? Tutustu **[tuontiohjeisiin](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Avaa tietokoneellasi uusi selainvälilehti ja **mene osoitteeseen %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Kirjaudu Pass-Y-verkkosovellukseen.**";
 "ImportLoginsToBitwarden" = "Tuo kirjautumistietoja Pass-Yiin";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Etsi Pass-Yin valikosta **Työkalut-vaihtoehto** ja **valitse Tuo tiedot.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Täytä lomake ja **tuo tallennettu salasanatiedostosi.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Valitse Tuo tietoja** verkkoapissa, sitten **Valmis** lopettaaksesi synkronoinnin.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Varmista turvallisuutesi vuoksi, että **poistat tallennetun salasanatiedostosi.**";
-"BitwardenTools" = "Pass-Y-työkalut";
 "ImportSuccessful" = "Tuonti onnistui!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Hallitse kirjautumisiasi mistä tahansa Pass-Yin verkko- ja työpöytätyökaluilla.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Hallitse tilaustasi Pass-Y-verkkosovelluksessa.";
 "DownloadTheBrowserExtension" = "Lataa selaimen laajennus";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Siirry osoitteeseen bitwarden.com/download integroidaksesi Pass-Yin suosikkiselaimeesi saumattoman kokemuksen saamiseksi.";
-"UseTheWebApp" = "Käytä verkkosovellusta";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Kirjaudu sisään osoitteessa bitwarden.com hallitaksesi tiliäsi ja päivittääksesi asetuksia helposti.";
 "AutofillPasswords" = "Automaattitäytä salasanat";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Ota automaattinen täyttö käyttöön kaikilla laitteillasi kirjautuaksesi yhdellä napautuksella missä tahansa.";
 "GoBack" = "Palaa takaisin";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Tiliä ei löytynyt. Kirjaudu sisään uudelleen, jos tämä virhe toistuu.";
 "ImportError" = "Tuontivirhe";
 "NoLoginsWereImported" = "Kirjautumistietoja ei tuotu";
-"ThisIsNotARecognizedServerDescriptionLong" = "Tätä ei tunnistettu Pass-Y-palvelimeksi. Tarkista tiedot palveluntarjoajaltasi tai päivitä palvelimesi.";
 "LoginsImported" = "Kirjautumistiedot tuotiin";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Muista poistaa tuotu salasanatiedosto tietokoneeltasi.";
 "SomethingWentWrong" = "Jokin meni pieleen";
@@ -963,7 +947,6 @@
 "LastEdited" = "Viimeksi muokattu: %1$@";
 "PasswordLastUpdated" = "Salasana vaihdettiin: %1$@";
 "DecryptionError" = "Virhe salauksen purussa";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y ei pystynyt purkamaan tämän holvin kohteen salausta. Kopioi ja jaa tämä virheilmoitus asiakastuelle välttääksesi lisätietojen menetyksen.";
 "CopyErrorReport" = "Kopioi virheilmoitus";
 "ErrorCannotDecrypt" = "[virhe: salausta ei voi purkaa]";
 "AccountsSyncedFromBitwardenApp" = "Tilit synkronoitu Pass-Y-sovelluksesta";

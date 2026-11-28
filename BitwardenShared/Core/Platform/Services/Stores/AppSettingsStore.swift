@@ -34,7 +34,13 @@ protocol AppSettingsStore: AnyObject {
     /// The data used by the flight recorder for the active and any inactive logs.
     var flightRecorderData: FlightRecorderData? { get set }
 
-    /// Pass-Y: the on-device layout preferences (Customize). Per device, never synced, no vault data.
+    /// Pass-Y: whether the layout preferences are mirrored into iCloud. Per device, never synced.
+    var passYLayoutCloudSyncEnabled: Bool { get set }
+
+    /// Pass-Y: when the user last changed the layout preferences (decides between this device and iCloud).
+    var passYLayoutModifiedAt: Date? { get set }
+
+    /// Pass-Y: the layout preferences (Customize), no vault data. Mirrored into iCloud only if switched on.
     var passYLayoutPreferences: PassYLayoutPreferences? { get set }
 
     /// Whether the intro carousel screen has been shown.
@@ -979,6 +985,8 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
         // swiftlint:disable:next identifier_name
         case organizationUserNotificationBannerDismissal(userId: String)
         case passwordGenerationOptions(userId: String)
+        case passYLayoutCloudSyncEnabled
+        case passYLayoutModifiedAt
         case passYLayoutPreferences
         case pendingAppIntentActions
         case pinProtectedUserKey(userId: String) // Replaced by `pinProtectedUserKeyEnvelope`.
@@ -1120,6 +1128,10 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
                 "rememberedOrgIdentifier"
             case .reviewPromptData:
                 "reviewPromptData"
+            case .passYLayoutCloudSyncEnabled:
+                "passYLayoutCloudSyncEnabled"
+            case .passYLayoutModifiedAt:
+                "passYLayoutModifiedAt"
             case .passYLayoutPreferences:
                 "passYLayoutPreferences"
             case let .serverConfig(userId):
@@ -1242,6 +1254,16 @@ extension DefaultAppSettingsStore: AppSettingsStore, ConfigSettingsStore {
     var rememberedOrgIdentifier: String? {
         get { fetch(for: .rememberedOrgIdentifier) }
         set { store(newValue, for: .rememberedOrgIdentifier) }
+    }
+
+    var passYLayoutCloudSyncEnabled: Bool {
+        get { fetch(for: .passYLayoutCloudSyncEnabled) }
+        set { store(newValue, for: .passYLayoutCloudSyncEnabled) }
+    }
+
+    var passYLayoutModifiedAt: Date? {
+        get { fetch(for: .passYLayoutModifiedAt) }
+        set { store(newValue, for: .passYLayoutModifiedAt) }
     }
 
     var passYLayoutPreferences: PassYLayoutPreferences? {

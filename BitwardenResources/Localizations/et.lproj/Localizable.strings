@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "The environment URLs have been saved.";
 "IdentityUrl" = "Identifitseerimise serveri URL";
 "SelfHostedEnvironment" = "Enda majutatud keskkond";
-"SelfHostedEnvironmentFooter" = "Sisesta baas URL, kus sinu või ettevõtte majutatud Pass-Y asub.";
 "ServerUrl" = "Serveri URL";
 "WebVaultUrl" = "Veebihoidla serveri URL";
 "CustomFields" = "Kohandatud väljad";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Ava privaatsuspoliitika?";
 "ContinueToAppStore" = "Kas soovid avada enda rakenduste poe?";
 "ContinueWithoutSyncing" = "Jätka ilma sünkroonimata";
-"TwoStepLoginDescriptionLong" = "Muuda oma konto turvalisemaks seadistades brauseris kahe-astmeline sisselogimine.";
 "YouCanImportDataToYourVaultOnX" = "Sa saad importida oma andmed hoidlasse aadressil %1$@.";
-"PrivacyPolicyDescriptionLong" = "Vaadake meie privaatsuspoliitikat veebilehel bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Vaata ka teisi Pass-Yi konto funktsioone veebibrauseris.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y võimaldab sul hoidla sisu teiste kasutajatega jagada, kasutades selleks organisatsiooni kontot. Uuri lähemalt www.bitwarden.com.";
 "RateAppDescriptionLong" = "Aita meil jõuda rohkemate inimesteni. Külasta enda rakenduste poodi ja jäta sinna positiivne hinnang.";
 "CreatedX" = "Loodud %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Teie organisatsiooni seadeid värskendati, mistõttu peate määrama ülemparooli.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Tõstke oma sisselogimised uuele tasemele";
 "IntroCarouselPage3Message" = "Kasutage generaatorit, et luua ja salvestada kõigile oma kontodele tugevad ja kordumatud paroolid.";
 "IntroCarouselPage4Title" = "Teie andmed, millal ja kus te neid vajate";
-"IntroCarouselPage4Message" = "Salvestage piiramatult paroole piiramatul arvul seadmetes Pass-Yi mobiili-, veebi- ja töölauarakendustega.";
 "AccountSetup" = "Konto seadistamine";
 "SetUpUnlock" = "Avamise seadistamine";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Seadistage biomeetrilised andmed või valige PIN-kood, et pääseda kiiresti oma varale juurde ja täita sisselogimised automaatselt.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Kustutate selle faili pärast importimise lõpetamist.";
 "NeedHelpCheckOutImportHelp" = "Vajate abi? Vaadake **[importimise abi](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Oma arvutis avage uus brauseri vahekaart ja **minge aadressile %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Logige sisse Pass-Yi veebirakendusse.**";
 "ImportLoginsToBitwarden" = "Impordi sisselogimised Pass-Yisse";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Yi navigeerimisel **leidke valik Tööriistad** ja **valige Impordi andmed.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Täitke vorm ja **importige oma salvestatud paroolifail.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Valige veebirakenduses Impordi andmed**, seejärel **Valmis**, et sünkroonimine lõpule viia.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Turvalisuse huvides **kustutage kindlasti oma salvestatud paroolifail.**";
-"BitwardenTools" = "Pass-Yi tööriistad";
 "ImportSuccessful" = "Importimine õnnestus!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Hallake oma sisselogimisi kõikjalt Pass-Yi veebi- ja töölauatööriistadega.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Hallake oma tellimuse plaani Pass-Yi veebirakenduses.";
 "DownloadTheBrowserExtension" = "Laadige alla brauserilaiendus";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Minge aadressile bitwarden.com/download, et integreerida Pass-Y oma lemmikbrauserisse sujuva kogemuse saamiseks.";
-"UseTheWebApp" = "Kasutage veebirakendust";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Logige sisse aadressil bitwarden.com, et hõlpsasti oma kontot hallata ja seadeid uuendada.";
 "AutofillPasswords" = "Paroolide automaattäide";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Seadistage automaattäide kõigil oma seadmetel, et logida sisse ühe puudutusega kõikjal.";
 "GoBack" = "Mine tagasi";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Kontot ei leitud. Kui näete seda tõrget jätkuvalt, logige uuesti sisse.";
 "ImportError" = "Tõrge importimisel";
 "NoLoginsWereImported" = "Ühtegi sisselogimist ei imporditud";
-"ThisIsNotARecognizedServerDescriptionLong" = "See ei ole tunnustatud Pass-Yi server. Peate võib-olla kontrollima oma teenusepakkujat või uuendama oma serverit.";
 "LoginsImported" = "Sisselogimised imporditud";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Pidage meeles imporditud paroolifail arvutist kustutada.";
 "SomethingWentWrong" = "Midagi läks valesti";
@@ -963,7 +947,6 @@
 "LastEdited" = "Viimati muudetud: %1$@";
 "PasswordLastUpdated" = "Parooli viimane uuendus: %1$@";
 "DecryptionError" = "Viga dekrüpteerimisel";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y ei suutnud seda varahoidla üksust dekrüptida. Täiendavate andmekadude vältimiseks kopeerige ja jagage see veaaruandlus klienditoega.";
 "CopyErrorReport" = "Kopeeri veaaruandlus";
 "ErrorCannotDecrypt" = "[viga: dekrüptimine ebaõnnestus]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Yi rakendusest sünkroonitud kontod";

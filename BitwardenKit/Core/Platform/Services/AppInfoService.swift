@@ -152,7 +152,7 @@ public extension DefaultAppInfoService {
 
     /// The copyright information for the app.
     var copyrightString: String {
-        "© Bitwarden Inc. 2015\(String.enDash)\(Calendar.current.component(.year, from: timeProvider.presentTime))"
+        "Pass-Y © 2026 aiity\nBased on Bitwarden iOS © Bitwarden Inc. (GPLv3)"
     }
 
     /// Whether the running build is the Beta variant, derived from the bundle identifier.

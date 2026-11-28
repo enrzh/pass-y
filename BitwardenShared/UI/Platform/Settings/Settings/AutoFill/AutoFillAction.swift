@@ -5,9 +5,6 @@ import BitwardenKit
 /// Actions emitted by the `AutoFillView`.
 ///
 enum AutoFillAction: Equatable {
-    /// The app extension button was tapped.
-    case appExtensionTapped
-
     /// Clears the URL.
     case clearUrl
 

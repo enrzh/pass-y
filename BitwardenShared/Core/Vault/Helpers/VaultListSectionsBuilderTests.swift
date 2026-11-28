@@ -414,7 +414,7 @@ class VaultListSectionsBuilderTests: BitwardenTestCase { // swiftlint:disable:th
         XCTAssertEqual(archiveItem?.hasPremium, false)
 
         // Verify that Premium subscription is required (should show locked icon and subtitle)
-        XCTAssertEqual(archiveItem?.subtitle, Localizations.premiumSubscriptionRequired)
+        XCTAssertEqual(archiveItem?.subtitle, Localizations.notAvailableForThisAccount)
         XCTAssertEqual(archiveItem?.accessoryIcon?.name, SharedAsset.Icons.locked24.name)
     }
 

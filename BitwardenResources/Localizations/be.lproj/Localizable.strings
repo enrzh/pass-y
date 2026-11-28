@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "URL-адрас сервера асяроддзя захаваны.";
 "IdentityUrl" = "URL-адрас сервера пасведчання";
 "SelfHostedEnvironment" = "Асяроддзе ўласнага хостынгу";
-"SelfHostedEnvironmentFooter" = "Увядзіце асноўны URL-адрас вашага лакальнага размяшчэння ўсталяванага Pass-Y.";
 "ServerUrl" = "URL-адрас сервера";
 "WebVaultUrl" = "URL-адрас сервера вэб-сховішча";
 "CustomFields" = "Карыстальніцкія палі";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Працягнуць да палітыкі прыватнасці?";
 "ContinueToAppStore" = "Працягнуць у краму праграм?";
 "ContinueWithoutSyncing" = "Працягнуць без сінхранізацыі";
-"TwoStepLoginDescriptionLong" = "Зрабіце свой акаўнт больш бяспечным, наладзіўшы двухэтапны ўваход у вэб-праграме Pass-Y.";
 "YouCanImportDataToYourVaultOnX" = "Вы можаце імпартаваць даныя ў сваё сховішча на %1$@.";
-"PrivacyPolicyDescriptionLong" = "Азнаёмцеся з нашай палітыкай прыватнасці на bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Даследуйце больш функцый вашага акаўнта Pass-Y у вэб-праграме.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y дазваляе дзяліцца элементамі сховішча з іншымі праз арганізацыю. Даведайцеся больш на вэб-сайце bitwarden.com.";
 "RateAppDescriptionLong" = "Дапамажыце іншым даведацца, ці падыходзіць ім Pass-Y. Наведайце краму праграм і пакіньце ацэнку зараз.";
 "CreatedX" = "Створана %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Дазволы вашай арганізацыі былі абноўлены, і цяпер вам трэба ўсталяваць галоўны пароль.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Палепшыце свае ўваходы";
 "IntroCarouselPage3Message" = "Выкарыстоўвайце генератар, каб ствараць і захоўваць моцныя, унікальныя паролі для ўсіх сваіх акаўнтаў.";
 "IntroCarouselPage4Title" = "Вашы даныя, калі і дзе яны патрэбны";
-"IntroCarouselPage4Message" = "Захоўвайце бясконцую колькасць пароляў на бясконцай колькасці прылад з дапамогай мабільных, браўзерных і дэсктопных праграм Pass-Y.";
 "AccountSetup" = "Налада акаўнта";
 "SetUpUnlock" = "Наладзіць адблакіроўку";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Наладзьце біяметрыю або выберыце PIN-код, каб хутка атрымліваць доступ да сховішча і аўтазапаўняць вашы ўваходы.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Вы выдаліце гэты файл пасля завяршэння імпарту.";
 "NeedHelpCheckOutImportHelp" = "Патрэбна дапамога? Звярніцеся да **[даведкі па імпарце](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "На камп'ютары адкрыйце новую ўкладку браўзера і **перайдзіце на %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Увайдзіце ў вэб-праграму Pass-Y.**";
 "ImportLoginsToBitwarden" = "Імпартаваць уваходы ў Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "У навігацыі Pass-Y **знайдзіце опцыю Інструменты** і **абярыце Імпартаваць даныя.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Запоўніце форму і **імпартуйце файл з захаванымі паролямі.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Абярыце Імпартаваць даныя** у вэб-праграме, затым **Гатова**, каб завяршыць сінхранізацыю.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Дзеля вашай бяспекі абавязкова **выдаліце файл з захаванымі паролямі.**";
-"BitwardenTools" = "Інструменты Pass-Y";
 "ImportSuccessful" = "Імпарт паспяховы!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Кіруйце сваімі ўваходамі з любога месца з дапамогай інструментаў Pass-Y для вэб і камп'ютара.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Кіруйце планам падпіскі ў вэб-праграме Pass-Y.";
 "DownloadTheBrowserExtension" = "Спампаваць пашырэнне для браўзера";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Перайдзіце на bitwarden.com/download, каб інтэграваць Pass-Y у ваш любімы браўзер для бясшвоўнага вопыту.";
-"UseTheWebApp" = "Выкарыстоўваць вэб-праграму";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Увайдзіце на bitwarden.com, каб лёгка кіраваць сваім акаўнтам і абнаўляць налады.";
 "AutofillPasswords" = "Аўтазапаўненне пароляў";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Наладзьце аўтазапаўненне на ўсіх прыладах, каб уваходзіць адным націскам у любым месцы.";
 "GoBack" = "Вярнуцца";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Акаўнт не знойдзены. Калі памылка будзе паўтарацца, увайдзіце зноў.";
 "ImportError" = "Памылка імпартавання";
 "NoLoginsWereImported" = "Ніводзін уваход не быў імпартаваны";
-"ThisIsNotARecognizedServerDescriptionLong" = "Гэта не распазнаны сервер Pass-Y. Магчыма, вам трэба звярнуцца да правайдэра або абнавіць сервер.";
 "LoginsImported" = "Уваходы імпартаваны";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Не забудзьцеся выдаліць імпартаваны файл з паролямі з камп'ютара.";
 "SomethingWentWrong" = "Нешта пайшло не так";
@@ -963,7 +947,6 @@
 "LastEdited" = "Апошняе рэдагаванне: %1$@";
 "PasswordLastUpdated" = "Пароль апошні раз абноўлены: %1$@";
 "DecryptionError" = "Памылка расшыфроўкі";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y не змог расшыфраваць гэты элемент сховішча. Каб пазбегнуць дадатковай страты даных, скапіруйце і абагуліце гэтую справаздачу аб памылцы са службай падтрымкі.";
 "CopyErrorReport" = "Скапіраваць справаздачу аб памылцы";
 "ErrorCannotDecrypt" = "[памылка: нельга расшыфраваць]";
 "AccountsSyncedFromBitwardenApp" = "Акаўнты, сінхранізаваныя з праграмы Pass-Y";

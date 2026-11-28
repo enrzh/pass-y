@@ -197,7 +197,7 @@
 "EnvironmentSaved" = "The environment URLs have been saved.";
 "IdentityUrl" = "Identity server URL";
 "SelfHostedEnvironment" = "Self-hosted environment";
-"SelfHostedEnvironmentFooter" = "Specify the base URL of your on-premise hosted Pass-Y installation.";
+"SelfHostedEnvironmentFooter" = "Specify the base URL of your self-hosted server, for example Vaultwarden.";
 "ServerUrl" = "Server URL";
 "WebVaultUrl" = "Web vault server URL";
 "CustomFields" = "Custom fields";
@@ -622,11 +622,9 @@
 "ContinueToPrivacyPolicy" = "Continue to privacy policy?";
 "ContinueToAppStore" = "Continue to app store?";
 "ContinueWithoutSyncing" = "Continue without syncing";
-"TwoStepLoginDescriptionLong" = "Make your account more secure by setting up two-step login in the Pass-Y web app.";
+"TwoStepLoginDescriptionLong" = "Make your account more secure by setting up two-step login in your server’s web vault.";
 "YouCanImportDataToYourVaultOnX" = "You can import data to your vault on %1$@.";
-"PrivacyPolicyDescriptionLong" = "Check out our privacy policy on bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Explore more features of your Pass-Y account on the web app.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y allows you to share your vault items with others by using an organization. Learn more on the bitwarden.com website.";
+"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Explore more features of your account in your server’s web vault.";
 "RateAppDescriptionLong" = "Help others find out if Pass-Y is right for them. Visit the app store and leave a rating now.";
 "CreatedX" = "Created %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Your organization permissions were updated, requiring you to set a master password.";
@@ -671,7 +669,7 @@
 "IntroCarouselPage3Title" = "Level up your logins";
 "IntroCarouselPage3Message" = "Use the generator to create and save strong, unique passwords for all your accounts.";
 "IntroCarouselPage4Title" = "Your data, when and where you need it";
-"IntroCarouselPage4Message" = "Save unlimited passwords across unlimited devices with Pass-Y mobile, browser, and desktop apps.";
+"IntroCarouselPage4Message" = "Save unlimited passwords on your own server and use them on all your devices.";
 "AccountSetup" = "Account setup";
 "SetUpUnlock" = "Set up unlock";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Set up biometrics or choose a PIN code to quickly access your vault and autofill your logins.";
@@ -782,20 +780,19 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "You’ll delete this file after import is complete.";
 "NeedHelpCheckOutImportHelp" = "Need help? Check out **[import help](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "On your computer, open a new browser tab and **go to %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Log in to the Pass-Y web app.**";
+"LogInToTheBitwardenWebApp" = "**Log in to your server’s web vault.**";
 "ImportLoginsToBitwarden" = "Import logins to Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "In the Pass-Y navigation, **find the Tools option** and **select Import data.**";
+"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "In the web vault navigation, **find the Tools option** and **select Import data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Fill out the form and **import your saved password file.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Select Import data** in the web app, then **Done** to finish syncing.";
+"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Select Import data** in the web vault, then **Done** to finish syncing.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "For your security, be sure to **delete your saved password file.**";
-"BitwardenTools" = "Pass-Y tools";
+"BitwardenTools" = "Next steps";
 "ImportSuccessful" = "Import successful!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Manage your logins from anywhere with Pass-Y tools for web and desktop.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Manage your subscription plan in the Pass-Y web app.";
+"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Your logins are in your vault on your server: use them in Pass-Y on all your devices and manage them in your server’s web vault.";
+"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Manage your subscription plan in your server’s web vault.";
 "DownloadTheBrowserExtension" = "Download the browser extension";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Go to bitwarden.com/download to integrate Pass-Y into your favorite browser for a seamless experience.";
-"UseTheWebApp" = "Use the web app";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Log in at bitwarden.com to easily manage your account and update settings.";
+"UseTheWebApp" = "Use your server’s web vault";
+"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Log in to your server’s web vault to manage your account and settings.";
 "AutofillPasswords" = "Autofill passwords";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Set up autofill on all your devices to login with a single tap anywhere.";
 "GoBack" = "Go back";
@@ -811,7 +808,7 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "No account found. Please log in again if you continue to see this error.";
 "ImportError" = "Import error";
 "NoLoginsWereImported" = "No logins were imported";
-"ThisIsNotARecognizedServerDescriptionLong" = "This is not a recognized Pass-Y server. You may need to check with your provider or update your server.";
+"ThisIsNotARecognizedServerDescriptionLong" = "This server is not recognized. You may need to check with your provider or update your server.";
 "LoginsImported" = "Logins imported";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Remember to delete your imported password file from your computer.";
 "SomethingWentWrong" = "Something went wrong";
@@ -941,7 +938,7 @@
 "LastEdited" = "Last edited: %1$@";
 "PasswordLastUpdated" = "Password last updated: %1$@";
 "DecryptionError" = "Decryption error";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y could not decrypt this vault item. Copy and share this error report with customer success to avoid additional data loss.";
+"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y could not decrypt this vault item. Copy this error report and send it to Pass-Y support (support@aiity.de) to avoid additional data loss.";
 "CopyErrorReport" = "Copy error report";
 "ErrorCannotDecrypt" = "[error: cannot decrypt]";
 "AccountsSyncedFromBitwardenApp" = "Accounts synced from Pass-Y app";
@@ -1293,7 +1290,7 @@
 /* Title of the Pass-Y Customize screen (on-device layout preferences). */
 "Customize" = "Customize";
 /* Footer of the Customize preview. */
-"CustomizeDescription" = "Changes apply to this device only and are not synced.";
+"CustomizeDescription" = "Changes are saved on this device. To keep them in iCloud too, turn on “Sync layout with iCloud” in Settings.";
 /* Customize: section title for the vault home. */
 "HomeScreen" = "Home screen";
 /* Customize: footer of the card / folder row switches. */
@@ -1364,3 +1361,45 @@
 "NewFolderEllipsis" = "New folder…";
 /* Toast after an item was moved into a folder. */
 "MovedToX" = "Moved to %1$@";
+/* Settings: switch that mirrors the Customize layout into iCloud. */
+"SyncLayoutWithICloud" = "Sync layout with iCloud";
+/* Settings: footer of the iCloud layout switch. */
+"SyncLayoutWithICloudDescription" = "Syncs only your vault layout. Never passwords.";
+/* About: row that writes an email to Pass-Y support. */
+"ContactSupport" = "Contact support";
+/* About: toast when no mail app is set up; the argument is the support email address. */
+"NoMailAppXCopied" = "No mail app is set up. %1$@ was copied.";
+/* About: row that opens the source code of Pass-Y. */
+"SourceCode" = "Source code";
+/* About: row and title of the software licences screen ("Licenses" alone is used for driver's licenses). */
+"SoftwareLicenses" = "Licenses";
+/* Licenses: Pass-Y's licence notice. */
+"PassYLicenseNotice" = "Pass-Y is free software: you can redistribute and modify it under the terms of the GNU General Public License, version 3. It comes without any warranty.";
+/* Licenses: attribution of the upstream project. */
+"BasedOnBitwardenIOS" = "Based on Bitwarden iOS © Bitwarden Inc. (GPLv3)";
+/* Licenses: row that shows the full licence text. */
+"GNUGeneralPublicLicenseV3" = "GNU General Public License v3";
+/* Licenses: header of the third-party components. */
+"ThirdPartySoftware" = "Third-party software";
+/* Licenses: footer of the third-party components. */
+"ThirdPartySoftwareFooter" = "These components are part of the app. Tap one to read its license.";
+/* Licenses: row and title of the list of Rust crates compiled into the SDK. */
+"RustLibrariesInTheSDK" = "Rust libraries in the SDK";
+/* Licenses: footer of the Rust crate list; the argument is the source revision of the SDK. */
+"RustLibrariesFooter" = "The SDK is compiled from these Rust libraries (revision %1$@). The list also contains libraries that are only used while compiling.";
+/* Import logins: title of the step that signs in to the server's web vault. */
+"LogInToYourWebVault" = "Log in to your web vault";
+/* Title of the alerts for features the account cannot use (no upgrade is offered). */
+"NotAvailableForThisAccount" = "Not available for this account";
+/* Alert: archive unavailable for the account. */
+"ArchiveNotAvailableDescriptionLong" = "Archiving items is not available for this account.";
+/* Alert: attachments unavailable for the account. */
+"AttachmentsNotAvailableDescriptionLong" = "Attachments are not available for this account.";
+/* Alert: file Send unavailable for the account. */
+"FileSendNotAvailableDescriptionLong" = "This account can only send text. Sending files is not available.";
+/* Alert: Send to specific people unavailable for the account. */
+"SpecificPeopleNotAvailableDescriptionLong" = "Sharing with specific people is not available for this account.";
+/* Alert: verification codes unavailable for the account. */
+"TOTPNotAvailableDescriptionLong" = "Verification codes (TOTP) are not available for this account.";
+"NoEntries" = "No items";
+"Select" = "Select";

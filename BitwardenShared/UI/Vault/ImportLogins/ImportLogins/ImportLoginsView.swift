@@ -110,7 +110,7 @@ struct ImportLoginsView: View {
     /// The step 2 page view.
     @ViewBuilder
     private func step2() -> some View {
-        stepView(step: 2, title: Localizations.logInToBitwarden) {
+        stepView(step: 2, title: Localizations.logInToYourWebVault) {
             NumberedListRow(title: Localizations.onYourComputerOpenANewBrowserTabAndGoTo(store.state.webVaultHost))
             NumberedListRow(title: Localizations.logInToTheBitwardenWebApp)
         }

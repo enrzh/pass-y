@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "URL vlastního prostředí byly uloženy.";
 "IdentityUrl" = "URL serveru identity";
 "SelfHostedEnvironment" = "Prostředí vlastního serveru";
-"SelfHostedEnvironmentFooter" = "Zadejte základní URL vlastní hostované aplikace Pass-Y.";
 "ServerUrl" = "URL serveru";
 "WebVaultUrl" = "URL serveru webového trezoru";
 "CustomFields" = "Vlastní pole";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Pokračovat na Zásady ochrany osobních údajů?";
 "ContinueToAppStore" = "Pokračovat do obchodu s aplikacemi?";
 "ContinueWithoutSyncing" = "Pokračovat bez synchronizace";
-"TwoStepLoginDescriptionLong" = "Vytvořte svůj účet bezpečnějším nastavením dvoufázového přihlášení ve webové aplikaci Pass-Y.";
 "YouCanImportDataToYourVaultOnX" = "Data můžete importovat do Vašeho trezoru na %1$@.";
-"PrivacyPolicyDescriptionLong" = "Podívejte se na naše Zásady ochrany osobních údajů na bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Prozkoumejte další funkce Vašeho účtu Pass-Y ve webové aplikaci.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y Vám umožňuje sdílet položky v trezoru s ostatními prostřednictvím organizace. Více informací naleznete na bitwarden.com.";
 "RateAppDescriptionLong" = "Pomozte ostatním zjistit, zda je Pass-Y pro ně správný. Navštivte obchod s aplikacemi a zanechte hodnocení.";
 "CreatedX" = "Vytvořeno %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Oprávnění Vaší organizace byla aktualizována. To vyžaduje nastavení hlavního hesla.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Zvýšit úroveň přihlašování";
 "IntroCarouselPage3Message" = "Použijte generátor k vytvoření a uložení silných, jedinečných hesel pro všechny Vaše účty.";
 "IntroCarouselPage4Title" = "Vaše data, kdy a kde je potřebujete";
-"IntroCarouselPage4Message" = "Uložte neomezená hesla na neomezených zařízeních s Pass-Yem na mobilu, prohlížeči a desktopové aplikaci.";
 "AccountSetup" = "Nastavení účtu";
 "SetUpUnlock" = "Nastavit odemknutí";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Nastavte si biometrické údaje nebo zvolte kód PIN pro rychlý přístup k trezoru a automatické vyplňování přihlašovacích údajů.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Po dokončení importu tento soubor smažete.";
 "NeedHelpCheckOutImportHelp" = "Potřebujete pomoc? Podívejte se do **[nápovědy pro import](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Na Vašem počítači otevřete novou kartu prohlížeče a **přejděte do %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Přihlaste se do webové aplikace Pass-Y**";
 "ImportLoginsToBitwarden" = "Importovat přihlášení do Pass-Yu";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "V navigaci Pass-Y **najděte volbu Nástroje** a **vyberte Importovat data.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Vyplňte formulář a **importujte soubor s uloženým heslem**.";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Vyberte data k importu** ve webové aplikaci a poté klepněte na tlačítko Hotovo pro dokončení synchronizace.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Z důvodu bezpečnosti nezapomeňte **smazat soubor s uloženým heslem**.";
-"BitwardenTools" = "Nástroje Pass-Y";
 "ImportSuccessful" = "Import byl úspěšný!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Spravujte přihlašovací údaje odkudkoli pomocí nástrojů Pass-Y pro web i počítač.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Spravujte svoje předplatné ve webové aplikaci Pass-Y.";
 "DownloadTheBrowserExtension" = "Stáhnout rozšíření prohlížeče";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Přejděte na bitwarden.com/download a integrujte Pass-Y do svého oblíbeného prohlížeče pro bezproblémové používání.";
-"UseTheWebApp" = "Použít webovou aplikaci";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Přihlaste se na bitwarden.com a snadno spravujte svůj účet a aktualizujte nastavení.";
 "AutofillPasswords" = "Automatické vyplňování hesel";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Nastavte automatické vyplňování na všech Vašich zařízeních pro přihlášení jedním klepnutím kdekoliv.";
 "GoBack" = "Vrátit se";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Nebyl nalezen žádný účet. Přihlaste se znovu, pokud znovu uvidíte tuto chybu.";
 "ImportError" = "Chyba importu";
 "NoLoginsWereImported" = "Nebyla importována žádná přihlášení";
-"ThisIsNotARecognizedServerDescriptionLong" = "Nejedná se o rozpoznaný server Pass-Y. Možná budete muset zkontrolovat svého poskytovatele nebo aktualizovat svůj server.";
 "LoginsImported" = "Přihlášení importována";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Nezapomeňte smazat soubor importovaných hesel z Vašeho počítače.";
 "SomethingWentWrong" = "Něco se pokazilo";
@@ -963,7 +947,6 @@
 "LastEdited" = "Naposledy upraveno: %1$@";
 "PasswordLastUpdated" = "Poslední aktualizace hesla: %1$@";
 "DecryptionError" = "Chyba dešifrování";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y nemohl dešifrovat tuto položku trezoru. Zkopírujte a sdílejte tuto zprávu o chybě s oddělením zákaznické podpory, abyste předešli další ztrátě dat.";
 "CopyErrorReport" = "Zkopírovat zprávu o chybě";
 "ErrorCannotDecrypt" = "[chyba: nelze dešifrovat]";
 "AccountsSyncedFromBitwardenApp" = "Účty jsou synchronizovány z aplikace Pass-Y";

@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "تم حفظ عناوين URLs الخاصة بالبيئة.";
 "IdentityUrl" = "URL خادم الهوية";
 "SelfHostedEnvironment" = "البيئة المستضافة ذاتيا";
-"SelfHostedEnvironmentFooter" = "حدد عنوان URL الأساسي لتثبيت Pass-Y ذاتي الاستضافة.";
 "ServerUrl" = "رابط الخادم";
 "WebVaultUrl" = "URL خادم خزنة الويب";
 "CustomFields" = "حقول مخصصة";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "هل تريد المتابعة إلى سياسة الخصوصية؟";
 "ContinueToAppStore" = "هل تريد المتابعة إلى متجر التطبيقات؟";
 "ContinueWithoutSyncing" = "المتابعة دون إجراء المزامنة";
-"TwoStepLoginDescriptionLong" = "اجعل حسابك أكثر أمنا من خلال إعداد تسجيل الدخول بخطوتين في تطبيق Pass-Y على الويب.";
 "YouCanImportDataToYourVaultOnX" = "يمكنك استيراد البيانات إلى خزنتك على %1$@.";
-"PrivacyPolicyDescriptionLong" = "اطلع على سياستنا للخصوصية على bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "استكشف المزيد من ميزات حساب Pass-Y الخاص بك على تطبيق الويب.";
-"LearnAboutOrganizationsDescriptionLong" = "يتيح لك Pass-Y مشاركة عناصر خزنتك مع الآخرين باستخدام حساب المنظمة. وتعرف على المزيد على موقع bitwarden.com.";
 "RateAppDescriptionLong" = "ساعد الآخرين في معرفة ما إذا كان Pass-Y مناسبا لهم. تفضل بزيارة متجر إضافات متصفحك واترك تقييما الآن.";
 "CreatedX" = "تم إنشاء %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "تم تحديث صلاحيات منظمتك، مما يتطلب عليك تعيين كلمة مرور رئيسية.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "حسن تجربة تسجيل الدخول لديك";
 "IntroCarouselPage3Message" = "استخدم المولد لإنشاء كلمات مرور قوية وفريدة و حفظها لجميع حساباتك.";
 "IntroCarouselPage4Title" = "بياناتك، وقتما وأينما احتجتها";
-"IntroCarouselPage4Message" = "احفظ عددا غير محدود من كلمات المرور على أجهزة غير محدودة مع تطبيقات Pass-Y للجوال والمتصفح وسطح المكتب.";
 "AccountSetup" = "إعداد الحساب";
 "SetUpUnlock" = "إعداد فتح القفل";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "إعداد المصادقة البيومترية أو اختيار رمز PIN للوصول بسرعة إلى الخزنة الخاص بك وملء تلقائي لتسجيل الدخول.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "ستقوم بحذف هذا الملف بعد اكتمال عملية الاستيراد.";
 "NeedHelpCheckOutImportHelp" = "هل تحتاج إلى مساعدة؟ اطلع على **[مساعدة الاستيراد](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "على جهاز الكمبيوتر الخاص بك، افتح علامة تبويب جديدة في المتصفح و**انتقل إلى %1$@**.";
-"LogInToTheBitwardenWebApp" = "**تسجيل الدخول إلى تطبيق ويب Pass-Y.**";
 "ImportLoginsToBitwarden" = "استيراد تسجيلات الدخول إلى Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "في شريط التنقل في Pass-Y، **ابحث عن خيار الأدوات** و**اختر استيراد البيانات.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "املأ النموذج و**استورد ملف كلمات المرور المحفوظ لديك.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**حدد بيانات الاستيراد** في تطبيق الويب، ثم **تم** لإنهاء المزامنة.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "للأمان الخاص بك، تأكد من **حذف ملف كلمة المرور المحفوظة.**";
-"BitwardenTools" = "أدوات Pass-Y";
 "ImportSuccessful" = "تم الاستيراد بنجاح!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "إدارة تسجيلات الدخول الخاصة بك من أي مكان باستخدام أدوات Pass-Y للويب وسطح المكتب.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "إدارة باقة اشتراكك في تطبيق Pass-Y على الويب.";
 "DownloadTheBrowserExtension" = "تحميل إضافة المتصفح";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "اذهب إلى bitwarden.com/download لدمج Pass-Y في المتصفح المفضل لديك للحصول على تجربة سلسة.";
-"UseTheWebApp" = "استخدام تطبيق الويب";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "قم بتسجيل الدخول إلى موقع bitwarden.com لإدارة حسابك وتحديث الإعدادات بسهولة.";
 "AutofillPasswords" = "الملء التلقائي لكلمات المرور";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "إعداد الملء التلقائي على جميع الأجهزة الخاصة بك لتسجيل الدخول بنقرة واحدة في أي مكان.";
 "GoBack" = "الرجوع إلى الخلف";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "لم يتم العثور على الحساب. يرجى تسجيل الدخول مرة أخرى إذا استمر ظهور هذا الخطأ.";
 "ImportError" = "خطأ في الاستيراد";
 "NoLoginsWereImported" = "لم يتم استيراد أي تسجيلات دخول";
-"ThisIsNotARecognizedServerDescriptionLong" = "هذا ليس خادم Pass-Y المعترف به. قد تحتاج إلى التحقق مع المزود الخاص بك أو تحديث الخادم الخاص بك.";
 "LoginsImported" = "تم استيراد بيانات تسجيل الدخول";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "تذكر أن تحذف ملف كلمة المرور المستوردة من جهاز الكمبيوتر الخاص بك.";
 "SomethingWentWrong" = "حدث خطأ ما";
@@ -963,7 +947,6 @@
 "LastEdited" = "آخر تعديل: %1$@";
 "PasswordLastUpdated" = "آخر تحديث لكلمة المرور: %1$@";
 "DecryptionError" = "خطأ في فك التشفير";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "تعذر على Pass-Y فك تشفير عنصر الخزنة هذا. انسخ تقرير الخطأ هذا وشاركه مع دعم العملاء لتجنب خسارة إضافية للبيانات.";
 "CopyErrorReport" = "نسخ تقرير الخطأ";
 "ErrorCannotDecrypt" = "[خطأ: لا يمكن فك التشفير]";
 "AccountsSyncedFromBitwardenApp" = "تمت مزامنة الحسابات من تطبيق Pass-Y";

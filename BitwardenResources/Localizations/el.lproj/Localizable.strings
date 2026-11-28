@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Τα URL έχουν αποθηκευτεί.";
 "IdentityUrl" = "URL διακομιστή ταυτότητας";
 "SelfHostedEnvironment" = "Αυτο-Φιλοξενούμενο Περιβάλλον";
-"SelfHostedEnvironmentFooter" = "Καθορίστε το URL εγκατάστασης Pass-Y.";
 "ServerUrl" = "URL Διακομιστή";
 "WebVaultUrl" = "URL διακομιστή διαδικτυακής κρύπτης";
 "CustomFields" = "Προσαρμοσμένα πεδία";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Συνέχεια στην πολιτική απορρήτου;";
 "ContinueToAppStore" = "Συνέχεια στο κατάστημα εφαρμογών;";
 "ContinueWithoutSyncing" = "Συνέχεια χωρίς συγχρονισμό";
-"TwoStepLoginDescriptionLong" = "Κάντε τον λογαριασμό σας πιο ασφαλή με τη ρύθμιση δύο βημάτων σύνδεσης στην εφαρμογή διαδικτύου Pass-Y.";
 "YouCanImportDataToYourVaultOnX" = "Μπορείτε να εισαγάγετε δεδομένα στο vault σας στο %1$@.";
-"PrivacyPolicyDescriptionLong" = "Δείτε την πολιτική απορρήτου μας στο bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Εξερευνήστε περισσότερες δυνατότητες του Pass-Y λογαριασμού σας, στην εφαρμογή διαδικτύου.";
-"LearnAboutOrganizationsDescriptionLong" = "Το Pass-Y σας επιτρέπει να μοιράζεστε τα στοιχεία της κρύπτης σας με άλλους, χρησιμοποιώντας έναν λογαριασμό οργανισμού. Μάθετε περισσότερα στην ιστοσελίδα bitwarden.com.";
 "RateAppDescriptionLong" = "Βοηθήστε άλλους να μάθουν αν το Pass-Y είναι κατάλληλο για αυτούς. Επισκεφθείτε το κατάστημα εφαρμογών και αφήστε τώρα μια βαθμολογία.";
 "CreatedX" = "Δημιουργήθηκε %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Τα δικαιώματα του οργανισμού σας ενημερώθηκαν, απαιτώντας από εσάς να ορίσετε έναν κύριο κωδικό πρόσβασης.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Αναβαθμίστε τις συνδέσεις σας";
 "IntroCarouselPage3Message" = "Χρησιμοποιήστε τη γεννήτρια για να δημιουργήσετε και να αποθηκεύσετε ισχυρούς, μοναδικούς κωδικούς πρόσβασης για όλους τους λογαριασμούς σας.";
 "IntroCarouselPage4Title" = "Τα δεδομένα σας, όποτε και όπου τα χρειάζεστε";
-"IntroCarouselPage4Message" = "Αποθηκεύστε απεριόριστους κωδικούς πρόσβασης σε απεριόριστες συσκευές με τις εφαρμογές Pass-Y για κινητά, περιηγητές και υπολογιστές.";
 "AccountSetup" = "Ρύθμιση λογαριασμού";
 "SetUpUnlock" = "Ρύθμιση ξεκλειδώματος";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Ρυθμίστε τα βιομετρικά στοιχεία ή επιλέξτε έναν κωδικό PIN για γρήγορη πρόσβαση στο θησαυ/κιο και αυτόματη συμπλήρωση των συνδέσεών σας.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Θα διαγράψετε αυτό το αρχείο μετά την ολοκλήρωση της εισαγωγής.";
 "NeedHelpCheckOutImportHelp" = "Χρειάζεστε βοήθεια; Δείτε τη **[βοήθεια εισαγωγής](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Στον υπολογιστή σας, ανοίξτε μια νέα καρτέλα προγράμματος περιήγησης και **μεταβείτε στο %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Συνδεθείτε στην εφαρμογή web του Pass-Y.**";
 "ImportLoginsToBitwarden" = "Εισαγωγή συνδέσεων στο Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Στην πλοήγηση του Pass-Y, **βρείτε την επιλογή Εργαλεία** και **επιλέξτε Εισαγωγή δεδομένων.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Συμπληρώστε τη φόρμα και **εισάγετε το αποθηκευμένο αρχείο κωδικών πρόσβασής σας.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Επιλέξτε Εισαγωγή δεδομένων** στην εφαρμογή web και, στη συνέχεια, **Τέλος** για να ολοκληρώσετε τον συγχρονισμό.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Για την ασφάλειά σας, φροντίστε να **διαγράψετε το αποθηκευμένο αρχείο κωδικών πρόσβασής σας.**";
-"BitwardenTools" = "Εργαλεία Pass-Y";
 "ImportSuccessful" = "Επιτυχής εισαγωγή!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Διαχειριστείτε τις συνδέσεις σας από οπουδήποτε με τα εργαλεία Pass-Y για web και desktop.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Διαχειριστείτε το πρόγραμμα συνδρομής σας στην εφαρμογή web του Pass-Y.";
 "DownloadTheBrowserExtension" = "Κατεβάστε την επέκταση περιηγητή";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Πηγαίνετε στο bitwarden.com/download για να ενσωματώσετε το Pass-Y στο αγαπημένο σας πρόγραμμα περιήγησης για μια απρόσκοπτη εμπειρία.";
-"UseTheWebApp" = "Χρήση της εφαρμογής web";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Συνδεθείτε στο bitwarden.com για να διαχειριστείτε εύκολα το λογαριασμό σας και να ενημερώσετε τις ρυθμίσεις.";
 "AutofillPasswords" = "Αυτόματη συμπλήρωση κωδικών πρόσβασης";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Ρυθμίστε την αυτόματη συμπλήρωση όλων των συσκευών σας για να συνδεθείτε με ένα μόνο πάτημα οπουδήποτε.";
 "GoBack" = "Επιστροφή";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Δεν βρέθηκε λογαριασμός. Παρακαλώ συνδεθείτε ξανά αν συνεχίσετε να βλέπετε αυτό το σφάλμα.";
 "ImportError" = "Σφάλμα εισαγωγής";
 "NoLoginsWereImported" = "Δεν εισήχθησαν συνδέσεις";
-"ThisIsNotARecognizedServerDescriptionLong" = "Αυτός δεν είναι αναγνωρισμένος διακομιστής Pass-Y. Μπορεί να χρειαστεί να ελέγξετε με τον πάροχο σας ή να ενημερώσετε τον διακομιστή σας.";
 "LoginsImported" = "Εισήχθησαν συνδέσεις";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Θυμηθείτε να διαγράψετε το εισαγόμενο αρχείο κωδικών πρόσβασης από τον υπολογιστή σας.";
 "SomethingWentWrong" = "Κάτι πήγε στραβά";
@@ -963,7 +947,6 @@
 "LastEdited" = "Τελευταία επεξεργασία: %1$@";
 "PasswordLastUpdated" = "Τελευταία ενημέρωση κωδικού πρόσβασης: %1$@";
 "DecryptionError" = "Σφάλμα αποκρυπτογράφησης";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Το Pass-Y δεν μπόρεσε να αποκρυπτογραφήσει αυτό το αντικείμενο θησαυροφυλακίου. Αντιγράψτε και μοιραστείτε αυτήν την αναφορά σφάλματος με την ομάδα υποστήριξης για να αποφύγετε περαιτέρω απώλεια δεδομένων.";
 "CopyErrorReport" = "Αντιγραφή αναφοράς σφάλματος";
 "ErrorCannotDecrypt" = "[σφάλμα: δεν είναι δυνατή η αποκρυπτογράφηση]";
 "AccountsSyncedFromBitwardenApp" = "Λογαριασμοί που συγχρονίστηκαν από την εφαρμογή Pass-Y";

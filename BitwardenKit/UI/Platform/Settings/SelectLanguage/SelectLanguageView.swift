@@ -14,12 +14,14 @@ public struct SelectLanguageView: View {
     // MARK: View
 
     public var body: some View {
-        ContentBlock(dividerLeadingPadding: 16) {
-            ForEach(LanguageOption.allCases) { languageOption in
-                languageOptionRow(languageOption)
+        List {
+            Section {
+                ForEach(LanguageOption.allCases) { languageOption in
+                    languageOptionRow(languageOption)
+                }
             }
         }
-        .scrollView()
+        .listStyle(.insetGrouped)
         .navigationBar(title: Localizations.selectLanguage, titleDisplayMode: .inline)
         .toolbar {
             cancelToolbarItem {
@@ -41,22 +43,26 @@ public struct SelectLanguageView: View {
 
     // MARK: Private Views
 
-    /// Show a checkmark as the trailing image for the currently selected language.
-    @ViewBuilder
-    private func checkmarkView(_ languageOption: LanguageOption) -> some View {
-        if languageOption == store.state.currentLanguage {
-            Image(asset: SharedAsset.Icons.check24)
-                .imageStyle(.rowIcon)
-        }
-    }
-
-    /// Construct the row for the language option.
+    /// Construct the row for the language option: the name, a checkmark on the current language.
     private func languageOptionRow(_ languageOption: LanguageOption) -> some View {
-        SettingsListItem(languageOption.title) {
+        let isSelected = languageOption == store.state.currentLanguage
+        return Button {
             store.send(.languageTapped(languageOption))
-        } trailingContent: {
-            checkmarkView(languageOption)
+        } label: {
+            HStack {
+                Text(languageOption.title)
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                }
+            }
+            .contentShape(Rectangle())
         }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

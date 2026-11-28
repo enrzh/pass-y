@@ -90,7 +90,7 @@ struct ViewLoginItemView: View {
     @ViewBuilder private var premiumSubscriptionRequired: some View {
         PassYCopyRow(
             Localizations.authenticatorKey,
-            value: Localizations.premiumSubscriptionRequired,
+            value: Localizations.notAvailableForThisAccount,
             identifier: "PremiumSubscriptionRequiredButton",
         ) {
             PassYIconButton(Localizations.learnMore, systemImage: "questionmark.circle") {

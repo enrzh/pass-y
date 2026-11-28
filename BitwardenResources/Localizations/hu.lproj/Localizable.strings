@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "A környezet URL-ek el lettek mentve.";
 "IdentityUrl" = "Azonosító szerver webcím";
 "SelfHostedEnvironment" = "Saját üzemeltetésű környezet";
-"SelfHostedEnvironmentFooter" = "Adjuk meg a helyileg üzemeltetett Pass-Y telepítés alap webcímét.";
 "ServerUrl" = "Szerver URL";
 "WebVaultUrl" = "Webes széf szerver webcím";
 "CustomFields" = "Egyedi mezők";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Tovább az adatvédelmi szabályzathoz?";
 "ContinueToAppStore" = "Tovább az alkalmazásboltba?";
 "ContinueWithoutSyncing" = "Folytatás szinkronizálás nélkül";
-"TwoStepLoginDescriptionLong" = "Tegyük biztonságosabbá a fiókot a kétlépcsős bejelentkezés beállításával a Pass-Y webalkalmazásban.";
 "YouCanImportDataToYourVaultOnX" = "Adatokat importálhatunk a széfbe itt: %1$@.";
-"PrivacyPolicyDescriptionLong" = "Az adatvédelmi szabályzat megtekintése a bitwarden.com webhelyen.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Fedezzük fel a Pass-Y-fiók további funkcióit a webalkalmazásban.";
-"LearnAboutOrganizationsDescriptionLong" = "A Pass-Y lehetővé teszi a széf elemeinek megosztását másokkal egy szervezet használatával. További információ a bitwarden.com webhelyen.";
 "RateAppDescriptionLong" = "Segítsünk másoknak megtudni, hogy a Pass-Y megfelelő-e számukra. Látogassunk el az alkalmazásboltba és értékeljünk most.";
 "CreatedX" = "Létrehozva: %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "A szervezeti jogosultságok frissítésre kerültek, ezért be kell állítani egy mesterjelszót.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "A bejelentkezések magasabb szintre emelése";
 "IntroCarouselPage3Message" = "Használjuk a generátort, hogy erős, egyedi jelszavakat hozzunk létre és mentsük az összes fióknál.";
 "IntroCarouselPage4Title" = "Saját adatok, mikor és hol van rá szükség";
-"IntroCarouselPage4Message" = "Mentsünk el a korlátlan jelszót korlátlan számú eszközön a Pass-Y mobil, böngésző és asztali alkalmazásokkal.";
 "AccountSetup" = "Fiók beüzemelés";
 "SetUpUnlock" = "Feloldás beüzemelés";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Állítsunk be biometrikus adatokat vagy válasszunk egy PIN kódot a széf gyors eléréséhez és a bejelentkezések automatikus kitöltéséhez.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Az importálás befejezése után ez a fájl törölhető.";
 "NeedHelpCheckOutImportHelp" = "Segítségre van szükség? Nézzük meg: **[import help](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "A számítógépén nyissunk meg egy új böngészőfület és **ugrás ide: %1$@**";
-"LogInToTheBitwardenWebApp" = "**Jelentkezzünk be a Pass-Y webes alkalmazásba.**";
 "ImportLoginsToBitwarden" = "Bejelentkezések importálása a Pass-Ybe";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "A Pass-Y navigációban **keressük meg az Eszközök opciót**, és **válasszuk az Adatok importálása lehetőséget.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Töltsük ki az űrlapot és **importáljuk a mentett jelszófájlt.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "** Válasszuk ki az adatok importálását ** a webes alkalmazásban, majd Kész a szinkronizálás befejezéséhez.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "A biztonság érdekében **töröljük a mentett jelszófájlt.**";
-"BitwardenTools" = "Pass-Y eszközök";
 "ImportSuccessful" = "Sikeres importálás!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Kezelje a belépéseit bárhonnan a Pass-Y eszközök webes vagy asztali verziójával.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Az előfizetési csomag kezelése a Pass-Y webalkalmazásban.";
 "DownloadTheBrowserExtension" = "Töltse le a böngésző bővítményt";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Látogasson a bitwarden.com/download címre, hogy kifogástalan élményért kedvenc böngészőjébe integrálhassa a Pass-Y-t.";
-"UseTheWebApp" = "Használja a webes appot";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Lépjen be a bitwarden.com címen, hogy könnyen tudja fiókját és beállításait módosítani.";
 "AutofillPasswords" = "Jelszavak automata-kitöltése";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Állítsa be az összes eszközén az automata-kitöltést, hogy egy koppintással be tudjon lépni bárhol.";
 "GoBack" = "Vissza";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Nem található fiók. Kérem, lépjen be újra, ha továbbra is ezzel a hibával találkozik.";
 "ImportError" = "Importálási hiba";
 "NoLoginsWereImported" = "Nem lett bejelentkezés importáva.";
-"ThisIsNotARecognizedServerDescriptionLong" = "Ez nem egy felismert Pass-Y szerver. Konzultálhatunk a szolgáltatóval vagy frissítsük a szervert.";
 "LoginsImported" = "A bejelentkezések importálásra kerültek.";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Ne felejtsük el törölni az importált jelszófájlt a számítógépről.";
 "SomethingWentWrong" = "Valami hiba lépett fel";
@@ -963,7 +947,6 @@
 "LastEdited" = "Utolsó szerkesztés: %1$@";
 "PasswordLastUpdated" = "Jelszó utolsó frissítés: %1$@";
 "DecryptionError" = "Visszafejtési hiba";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y nem tudta visszafejteni ezt a széf elemet. Másoljuk és osszuk meg ezt a hibajelentést az ügyfél sikerrel, hogy elkerüljük a további adatvesztést.";
 "CopyErrorReport" = "Hibajelentés másolása";
 "ErrorCannotDecrypt" = "[hiba: nem fejlthető vissza]";
 "AccountsSyncedFromBitwardenApp" = "A fiók szinkronizálva lett a Pass-Y alkalmazásból.";

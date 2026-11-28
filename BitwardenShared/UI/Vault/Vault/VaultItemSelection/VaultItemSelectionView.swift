@@ -47,6 +47,16 @@ struct VaultItemSelectionView: View {
                     ),
                 )
             }
+            .sharedBackgroundVisibility(.hidden)
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    store.send(.addTapped)
+                } label: {
+                    Label(Localizations.add, systemImage: "plus")
+                }
+                .accessibilityIdentifier("AddItemFloatingActionButton")
+            }
         }
     }
 
@@ -106,11 +116,6 @@ private struct VaultItemSelectionSearchableView: View {
                 || !store.state.searchResults.isEmpty
 
             contentView()
-                .overlay(alignment: .bottomTrailing) {
-                    addItemFloatingActionButton {
-                        store.send(.addTapped)
-                    }
-                }
                 .hidden(isSearching)
 
             searchContentView()
@@ -141,9 +146,8 @@ private struct VaultItemSelectionSearchableView: View {
                 get: \.toast,
                 send: VaultItemSelectionAction.toastShown,
             ),
-            additionalBottomPadding: FloatingActionButton.bottomOffsetPadding,
         )
-        .background(Color(asset: SharedAsset.Colors.backgroundPrimary).ignoresSafeArea())
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
     }
 
     // MARK: Private Views
@@ -152,45 +156,37 @@ private struct VaultItemSelectionSearchableView: View {
     @ViewBuilder
     private func contentView() -> some View {
         if store.state.vaultListSections.isEmpty {
-            IllustratedMessageView(
-                image: Asset.Images.Illustrations.items.swiftUIImage,
-                message: emptyViewMessage,
-            ) {
+            PassYEmptyState(Localizations.noEntries, systemImage: "key", message: emptyViewMessage) {
                 Button {
                     store.send(.addTapped)
                 } label: {
-                    Label {
-                        Text(Localizations.addItem)
-                    } icon: {
-                        SharedAsset.Icons.plus16.swiftUIImage
-                            .imageStyle(.accessoryIcon16(
-                                color: SharedAsset.Colors.buttonFilledForeground.swiftUIColor,
-                                scaleWithFont: true,
-                            ))
-                    }
+                    Label(Localizations.addItem, systemImage: "plus")
                 }
-                .buttonStyle(.primary(shouldFillWidth: false))
+                .passYButtonStyle(.primary)
             }
-            .scrollView(centerContentVertically: true)
         } else {
             matchingItemsView()
         }
     }
 
     /// A view for displaying the list of items that match the OTP key.
-    @ViewBuilder
     private func matchingItemsView() -> some View {
-        VStack(spacing: 16) {
-            InfoContainer(Localizations.addTheKeyToAnExistingOrNewItem)
+        List {
+            Section {} footer: {
+                Text(Localizations.addTheKeyToAnExistingOrNewItem)
+            }
 
             ForEach(store.state.vaultListSections) { section in
-                VaultListSectionView(section: section) { item in
-                    vaultListItemView(item, hasDivider: section.items.last != item)
+                Section {
+                    ForEach(section.items) { item in
+                        vaultListItemView(item)
+                    }
+                } header: {
+                    PassYSectionHeader(section.name, count: section.items.count)
                 }
             }
         }
-        .padding(.bottom, FloatingActionButton.bottomOffsetPadding)
-        .scrollView()
+        .passYCardList(reservesBottomBarSpace: false)
     }
 
     /// A view for displaying the cipher search results.
@@ -204,21 +200,23 @@ private struct VaultItemSelectionSearchableView: View {
     }
 
     /// A view for displaying the search result items.
-    @ViewBuilder
     private func searchResultItemsView() -> some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(store.state.searchResults) { item in
-                    vaultListItemView(item, hasDivider: store.state.searchResults.last != item)
+        List {
+            if !store.state.searchResults.isEmpty {
+                Section {
+                    ForEach(store.state.searchResults) { item in
+                        vaultListItemView(item)
+                    }
                 }
             }
-            .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
         }
+        // Rebuilt when the set of result rows changes (the incremental diff of search results crashed).
+        .id(store.state.searchResults.map(\.id))
+        .passYCardList(reservesBottomBarSpace: false)
     }
 
     /// A view for displaying a `VaultListItem`.
-    @ViewBuilder
-    private func vaultListItemView(_ item: VaultListItem, hasDivider: Bool) -> some View {
+    private func vaultListItemView(_ item: VaultListItem) -> some View {
         VaultListItemRowView(
             store: store.child(
                 state: { state in
@@ -226,7 +224,7 @@ private struct VaultItemSelectionSearchableView: View {
                         iconBaseURL: state.iconBaseURL,
                         hasPremium: state.hasPremium,
                         item: item,
-                        hasDivider: hasDivider,
+                        hasDivider: false,
                         showWebIcons: state.showWebIcons,
                     )
                 },
@@ -242,6 +240,7 @@ private struct VaultItemSelectionSearchableView: View {
             ),
             timeProvider: CurrentTime(),
         )
+        .listRowInsets(EdgeInsets())
     }
 }
 

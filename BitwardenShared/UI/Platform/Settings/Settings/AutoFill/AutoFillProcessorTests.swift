@@ -204,13 +204,6 @@ class AutoFillProcessorTests: BitwardenTestCase {
         XCTAssertEqual(errorReporter.errors as? [StateServiceError], [.noActiveAccount])
     }
 
-    /// `receive(_:)` with `.appExtensionTapped` navigates to the app extension view.
-    @MainActor
-    func test_receive_appExtensionTapped() {
-        subject.receive(.appExtensionTapped)
-        XCTAssertEqual(coordinator.routes.last, .appExtension)
-    }
-
     /// `.receive(_:)` with `.defaultUriMatchTypeChanged` updates the state's default URI match type value.
     @MainActor
     func test_receive_defaultUriMatchTypeChanged() {

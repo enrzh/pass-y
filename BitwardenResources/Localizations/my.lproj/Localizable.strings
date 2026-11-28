@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "ပတ်ဝန်းကျင် URL များ သိမ်းဆည်းပြီးပါပြီ။";
 "IdentityUrl" = "Identity ဆာဗာ URL";
 "SelfHostedEnvironment" = "ကိုယ်တိုင် လက်ခံကျင်းပသော ပတ်ဝန်းကျင်";
-"SelfHostedEnvironmentFooter" = "သင့် on-premise လက်ခံကျင်းပထားသော Pass-Y တပ်ဆင်မှု၏ အခြေခံ URL ကို သတ်မှတ်ပါ။";
 "ServerUrl" = "ဆာဗာ URL";
 "WebVaultUrl" = "ဝဘ်ဗော်လ်တ် ဆာဗာ URL";
 "CustomFields" = "စိတ်ကြိုက် အကွက်များ";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "ကိုယ်ရေးမူဝါဒသို့ ဆက်လက်မည်လား?";
 "ContinueToAppStore" = "အက်ပ်စတိုးသို့ ဆက်လက်မည်လား?";
 "ContinueWithoutSyncing" = "ထပ်တူမပြုဘဲ ဆက်လက်ပါ";
-"TwoStepLoginDescriptionLong" = "Pass-Y ဝဘ်အက်ပ်တွင် အဆင့်နှစ်ဆင့် ဝင်ရောက်ခြင်းကို သတ်မှတ်ခြင်းဖြင့် သင့်အကောင့်ကို ပိုမိုလုံခြုံအောင်ပြုလုပ်ပါ။";
 "YouCanImportDataToYourVaultOnX" = "သင်သည် %1$@ တွင် သင့်ဗော်လ်တ်သို့ ဒေတာ တင်သွင်းနိုင်သည်။";
-"PrivacyPolicyDescriptionLong" = "bitwarden.com တွင် ကျွန်ုပ်တို့၏ ကိုယ်ရေးမူဝါဒကို ကြည့်ရှုပါ။";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "သင့် Pass-Y အကောင့်၏ နောက်ထပ် အင်္ဂါရပ်များကို ဝဘ်အက်ပ်တွင် စူးစမ်းပါ။";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y သည် အဖွဲ့အစည်းတစ်ခုကို သုံး၍ သင့်ဗော်လ်တ်ပစ္စည်းများကို အခြားသူများနှင့် မျှဝေနိုင်စေသည်။ bitwarden.com ဝဘ်ဆိုက်တွင် ပိုမိုလေ့လာပါ။";
 "RateAppDescriptionLong" = "Pass-Y သည် သူတို့အတွက် သင့်တော်မသင့် အခြားသူများ သိရှိစေရန် ကူညီပါ။ အက်ပ်စတိုးသို့ သွားရောက်၍ ယခု အဆင့်သတ်မှတ်ချက်ချန်ထားပါ။";
 "CreatedX" = "ဖန်တီးခဲ့သည် %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "သင့်အဖွဲ့အစည်း ခွင့်ပြုချက်များ အပ်ဒိတ်လုပ်ထားပြီး၊ မာစတာစကားဝှက် သတ်မှတ်ရန် လိုအပ်သည်။";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "သင့်ဝင်ရောက်မှုများကို အဆင့်မြှင့်ပါ";
 "IntroCarouselPage3Message" = "သင့်အကောင့်အားလုံးအတွက် ခိုင်မာပြီး ထူးခြားသော စကားဝှက်များ ဖန်တီးသိမ်းဆည်းရန် ဂျင်နရေတာကို သုံးပါ။";
 "IntroCarouselPage4Title" = "သင့်ဒေတာ၊ သင်လိုအပ်သည့်အချိန်နှင့် နေရာ";
-"IntroCarouselPage4Message" = "Pass-Y မိုဘိုင်း၊ ဘရောက်ဆာနှင့် ဒက်စတော့အက်ပ်များဖြင့် အကန့်အသတ်မရှိ စက်ပစ္စည်းများတွင် အကန့်အသတ်မရှိ စကားဝှက်များ သိမ်းဆည်းပါ။";
 "AccountSetup" = "အကောင့် သတ်မှတ်ခြင်း";
 "SetUpUnlock" = "သော့ဖွင့်ခြင်း သတ်မှတ်ပါ";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "သင့်ဗော်လ်တ်ကို အမြန်ဝင်ရောက်ရန်နှင့် သင့်ဝင်ရောက်မှုများကို အလိုအလျောက်ဖြည့်ရန် ဇီဝဗေဒဆိုင်ရာ အချက်အလက်ကို သတ်မှတ်ပါ သို့မဟုတ် PIN ကုဒ်ကို ရွေးပါ။";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "တင်သွင်းခြင်း ပြီးဆုံးပြီးနောက် ဤဖိုင်ကို သင်ဖျက်မည်။";
 "NeedHelpCheckOutImportHelp" = "အကူအညီ လိုပါသလား? **[တင်သွင်းခြင်း အကူအညီ](%1$@)** ကို ကြည့်ပါ။";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "သင့်ကွန်ပျူတာပေါ်တွင်၊ ဘရောက်ဆာ တက်ဘ်အသစ်ဖွင့်ပြီး **%1$@ သို့ သွားပါ**။";
-"LogInToTheBitwardenWebApp" = "**Pass-Y ဝဘ်အက်ပ်သို့ ဝင်ရောက်ပါ။**";
 "ImportLoginsToBitwarden" = "Pass-Y သို့ ဝင်ရောက်မှုများ တင်သွင်းပါ";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Y လမ်းညွှန်တွင်၊ **Tools ရွေးချယ်မှုကို ရှာပါ** ပြီး **Import data ကို ရွေးပါ။**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "ဖောင်ကို ဖြည့်ပြီး **သင့်သိမ်းဆည်းထားသော စကားဝှက်ဖိုင်ကို တင်သွင်းပါ။**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "ဝဘ်အက်ပ်တွင် **Import data ကို ရွေးပါ**၊ ထို့နောက် ထပ်တူပြုခြင်းကို အပြီးသတ်ရန် **Done** ကို ရွေးပါ။";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "သင့်လုံခြုံရေးအတွက်၊ **သင့်သိမ်းဆည်းထားသော စကားဝှက်ဖိုင်ကို ဖျက်ရန် သေချာပါစေ။**";
-"BitwardenTools" = "Pass-Y ကိရိယာများ";
 "ImportSuccessful" = "တင်သွင်းခြင်း အောင်မြင်ပါပြီ!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Pass-Y ဝဘ်နှင့် ဒက်စတော့ကိရိယာများဖြင့် သင့်ဝင်ရောက်မှုများကို မည်နေရာမှမဆို စီမံခန့်ခွဲပါ။";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "သင့်စာရင်းသွင်းမှုအစီအစဉ်ကို Pass-Y ဝဘ်အက်ပ်တွင် စီမံခန့်ခွဲပါ။";
 "DownloadTheBrowserExtension" = "ဘရောက်ဆာ တိုးချဲ့မှုကို ဒေါင်းလုဒ်လုပ်ပါ";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "ချောမွေ့သော အတွေ့အကြုံအတွက် Pass-Y ကို သင့်အကြိုက်ဆုံး ဘရောက်ဆာတွင် ပေါင်းစပ်ရန် bitwarden.com/download သို့ သွားပါ။";
-"UseTheWebApp" = "ဝဘ်အက်ပ်ကို သုံးပါ";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "သင့်အကောင့်ကို အလွယ်တကူ စီမံခန့်ခွဲရန်နှင့် ဆက်တင်များ အပ်ဒိတ်လုပ်ရန် bitwarden.com တွင် ဝင်ရောက်ပါ။";
 "AutofillPasswords" = "စကားဝှက်များ အလိုအလျောက်ဖြည့်ပါ";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "မည်နေရာတွင်မဆို တစ်ချက်နှိပ်ရုံဖြင့် ဝင်ရောက်ရန် သင့်စက်ပစ္စည်းအားလုံးတွင် အလိုအလျောက်ဖြည့်ခြင်းကို သတ်မှတ်ပါ။";
 "GoBack" = "ပြန်သွားပါ";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "အကောင့် မတွေ့ပါ။ ဤအမှားကို ဆက်မြင်နေရပါက ပြန်လည်ဝင်ရောက်ပါ။";
 "ImportError" = "တင်သွင်းခြင်းအမှား";
 "NoLoginsWereImported" = "ဝင်ရောက်မှုများ မတင်သွင်းရသေးပါ";
-"ThisIsNotARecognizedServerDescriptionLong" = "ဤသည် မှတ်မိသော Pass-Y ဆာဗာ မဟုတ်ပါ။ သင့်ပံ့ပိုးပေးသူနှင့် စစ်ဆေးရန် သို့မဟုတ် သင့်ဆာဗာကို အပ်ဒိတ်လုပ်ရန် လိုအပ်နိုင်သည်။";
 "LoginsImported" = "ဝင်ရောက်မှုများ တင်သွင်းပြီး";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "သင့်ကွန်ပျူတာမှ သင့်တင်သွင်းထားသော စကားဝှက်ဖိုင်ကို ဖျက်ရန် မမေ့ပါနှင့်။";
 "SomethingWentWrong" = "တစ်ခုခု မှားယွင်းသွားသည်";
@@ -963,7 +947,6 @@
 "LastEdited" = "နောက်ဆုံး ပြင်ဆင်ခဲ့သည်- %1$@";
 "PasswordLastUpdated" = "စကားဝှက် နောက်ဆုံး အပ်ဒိတ်လုပ်ခဲ့သည်- %1$@";
 "DecryptionError" = "ကုဒ်ဖြင့်ဖွင့်ခြင်းအမှား";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y သည် ဤဗော်လ်တ်ပစ္စည်းကို ကုဒ်ဖြင့်ဖွင့်၍ မရပါ။ နောက်ထပ် ဒေတာဆုံးရှုံးမှုကို ရှောင်ရှားရန် ဤအမှားအစီရင်ခံစာကို ကူးယူပြီး ဖောက်သည်အောင်မြင်ရေးအဖွဲ့ထံ မျှဝေပါ။";
 "CopyErrorReport" = "အမှားအစီရင်ခံစာ ကူးယူပါ";
 "ErrorCannotDecrypt" = "[အမှား- ကုဒ်ဖြင့်ဖွင့်၍မရ]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y အက်ပ်မှ ထပ်တူပြုထားသော အကောင့်များ";

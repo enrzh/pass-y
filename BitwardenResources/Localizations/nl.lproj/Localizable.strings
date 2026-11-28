@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "De omgeving-URL's zijn opgeslagen.";
 "IdentityUrl" = "Identiteitserver-URL";
 "SelfHostedEnvironment" = "Zelfgehoste omgeving";
-"SelfHostedEnvironmentFooter" = "Geef de basis-URL van je zelfgehoste Pass-Y-installatie op.";
 "ServerUrl" = "Server-URL";
 "WebVaultUrl" = "Webkluis server-URL";
 "CustomFields" = "Aangepaste velden";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Doorgaan naar privacybeleid?";
 "ContinueToAppStore" = "Doorgaan naar de app store?";
 "ContinueWithoutSyncing" = "Doorgaan zonder synchroniseren";
-"TwoStepLoginDescriptionLong" = "Maak je account veiliger met het instellen van tweestapsaanmelding in de Pass-Y-webapp.";
 "YouCanImportDataToYourVaultOnX" = "Je kunt gegevens importeren in je kluis op %1$@.";
-"PrivacyPolicyDescriptionLong" = "Bekijk ons privacybeleid op bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Ontdek meer functies van je Pass-Y-account in de webapp.";
-"LearnAboutOrganizationsDescriptionLong" = "Met Pass-Y kun je je kluis-items met anderen delen door gebruik te maken van een organisatie. Lees meer op de website bitwarden.com.";
 "RateAppDescriptionLong" = "Help anderen met beslissen of Pass-Y iets voor hen is. Bezoek de app store en laat een beoordeling achter.";
 "CreatedX" = "Aangemaakt: %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "De organisatierechten zijn bijgewerkt, je moet een hoofdwachtwoord instellen.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Versterk je logins";
 "IntroCarouselPage3Message" = "Gebruik de generator voor het aanmaken en bewaren van sterke, unieke wachtwoorden voor al je accounts.";
 "IntroCarouselPage4Title" = "Jouw gegevens, wanneer en waar je ze nodig hebt";
-"IntroCarouselPage4Message" = "Onbeperkt wachtwoorden opslaan op alle apparaten met Pass-Y-apps voor mobiel, browser en desktop.";
 "AccountSetup" = "Accountinstellingen";
 "SetUpUnlock" = "Ontgrendelen instellen";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Biometrie instellen of een pincode kiezen om snel toegang tot je kluis te krijgen en je inloggegevens automatisch in te vullen.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Je verwijdert dit bestand zodra de import is afgerond.";
 "NeedHelpCheckOutImportHelp" = "Hulp nodig? Bekijk **[importhulp](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Open op je computer een nieuw browsertabblad en **ga naar %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Inloggen op de Pass-Y-webapp.**";
 "ImportLoginsToBitwarden" = "Inloggegevens naar Pass-Y importeren";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Zoek in de Pass-Y-navigatie de optie **Hulpmiddelen** en **selecteer gegevens importeren.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Vul het formulier in en **importeer je opgeslagen wachtwoordbestand.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Selecteer Importgegevens** in de webapp, dan **Klaar** om de synchronisatie af te ronden.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Voor je eigen veiligheid, **verwijder je opgeslagen wachtwoordbestand.**";
-"BitwardenTools" = "Pass-Y-hulpmiddelen";
 "ImportSuccessful" = "Importeren gelukt!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Beheer je logins waar je ook bent met Pass-Y-hulpmiddelen voor web en desktop.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Je abonnement beheren in de Pass-Y-webapp.";
 "DownloadTheBrowserExtension" = "Browserextensie downloaden";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Ga naar bitwarden.com/download om Pass-Y in je favoriete browser te integreren voor een naadloze werking.";
-"UseTheWebApp" = "Gebruik de webapp";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Je kunt inloggen op bitwarden.com om je account en instellingen te beheren.";
 "AutofillPasswords" = "Wachtwoorden automatisch invullen";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Stel automatisch invullen in op al je apparaten zodat je overal met enkele tik kunt inloggen.";
 "GoBack" = "Ga terug";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Geen account gevonden. Log opnieuw in als je deze foutmelding blijft zien.";
 "ImportError" = "Fout bij importeren";
 "NoLoginsWereImported" = "Er zijn geen logins geïmporteerd";
-"ThisIsNotARecognizedServerDescriptionLong" = "Dit is geen herkende Pass-Y-server. Je moet mogelijk controleren met je provider of je server bijwerken.";
 "LoginsImported" = "Inloggegevens geïmporteerd";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Vergeet niet het geïmporteerde wachtwoordbestand van je computer te verwijderen.";
 "SomethingWentWrong" = "Er is iets fout gegaan";
@@ -963,7 +947,6 @@
 "LastEdited" = "Laatst bewerkt: %1$@";
 "PasswordLastUpdated" = "Wachtwoord laatst bijgewerkt: %1$@";
 "DecryptionError" = "Ontsleutelingsfout";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y kon het onderstaande kluisitem niet ontsleutelen. Kopieer deze foutenrapporte en stuur het door naar klantondersteuning om meer dataverlies te voorkomen.";
 "CopyErrorReport" = "Foutrapportage kopiëren";
 "ErrorCannotDecrypt" = "[fout: kan niet ontsleutelen]";
 "AccountsSyncedFromBitwardenApp" = "Accounts gesynchroniseerd vanuit Pass-Y app";

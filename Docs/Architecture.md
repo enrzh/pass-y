@@ -38,7 +38,7 @@ The iOS repository contains two main apps: Bitwarden Password Manager and Bitwar
 - `Bitwarden`: The main iOS Password Manager app.
 - `BitwardenActionExtension`: An [Action extension](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/Action.html) that can be accessed via the system share sheet "Autofill with Bitwarden" option.
 - `BitwardenAutoFillExtension`: An AutoFill Credential Provider extension which allows Bitwarden to offer up credentials for [Password AutoFill](https://developer.apple.com/documentation/security/password_autofill/).
-- `BitwardenNotificationExtension`: A [UNNotificationServiceExtension](https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension) that is used to update the content of push notifications.
+- `BitwardenNotificationExtension`: A [UNNotificationServiceExtension](https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension) that is used to update the content of push notifications. Pass-Y does not embed it in the app (push is off, there is no relay); the target is kept so the code still compiles.
 - `BitwardenShareExtension`: A [Share extension](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/Share.html) that allows creating text or file sends via the system share sheet.
 - `BitwardenShared`: The main Password Manager framework containing the Core and UI layers shared between the app and extensions.
 
@@ -267,7 +267,12 @@ the performance boundary) and `VaultItemIconTile`; Send and folder rows use `Pas
 `PassYLayoutPreferences` (Codable, `version` 2, lenient field-by-field decoding; home elements keyed by
 `passYHomeElementId`: the type tiles' `VaultListGroup.tileIdentifier`, `folder:<id>`, `noFolder`; sections by vault list
 section id; no vault data but folder ids) stored in `AppSettingsStore` (`passYLayoutPreferences`, app group defaults,
-never synced). The defaults are "no override", so they draw today's look. `PassYLayoutStore` (`@Observable`, `shared`)
+never synced to the server). `PassYLayoutCloudSync` optionally mirrors them, together with the app-wide "Show website icons" switch (an optional
+payload field: older payloads without it leave the local value alone; applied through `StateService`, whose
+`setShowWebIcons` posts `passYShowWebIconsDidChange`), into the user's iCloud key-value store
+(Settings, "Sync layout with iCloud": off by default, per device, main app only, who wins is documented on the type;
+entitlement `com.apple.developer.ubiquity-kvstore-identifier` on the app target only). The defaults are
+"no override", so they draw today's look. `PassYLayoutStore` (`@Observable`, `shared`)
 exposes three slices (home, rows, codes) that invalidate independently. Every page is its own hosting controller, so
 list pages apply them with `passYLayoutEnvironment()` (vault home, group pages, their search results); rows read only
 small environment values: `passYRowOptions` (`PassYRow`, `PassYCodeRow`: subtitle, icon), `passYBadgeOptions` (vault

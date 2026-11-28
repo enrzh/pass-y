@@ -39,12 +39,6 @@ struct ImportLoginsSuccessView: View {
 
             Section {
                 rowView(
-                    symbol: "puzzlepiece.extension",
-                    title: Localizations.downloadTheBrowserExtension,
-                    subtitle: Localizations
-                        .goToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience,
-                )
-                rowView(
                     symbol: "desktopcomputer",
                     title: Localizations.useTheWebApp,
                     subtitle: Localizations.logInAtBitwardenToEasilyManageYourAccountAndUpdateSettings,

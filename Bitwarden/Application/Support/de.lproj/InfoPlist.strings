@@ -1,0 +1,5 @@
+/* Permission prompts of the app (Info.plist usage descriptions). */
+"NFCReaderUsageDescription" = "Pass-Y liest YubiKeys per NFC für die zweistufige Anmeldung.";
+"NSCameraUsageDescription" = "Pass-Y verwendet die Kamera, um QR-Codes und Zahlungskarten zu scannen.";
+"NSFaceIDUsageDescription" = "Mit Face ID deinen Tresor entsperren.";
+"NSPhotoLibraryUsageDescription" = "Pass-Y verwendet deine Fotomediathek nur, wenn du Fotos zum Anhängen oder Teilen auswählst.";

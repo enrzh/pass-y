@@ -11,6 +11,11 @@ public enum Constants {
     /// The client type corresponding to the app.
     public static let clientType: ClientType = "mobile"
 
+    /// The upstream Bitwarden mobile version this app is compatible with, sent to the server as the client version.
+    /// Servers gate features by it (Vaultwarden withholds SSH keys below 2024.12.0), so Pass-Y's own marketing
+    /// version must not be sent. Raise it when upstream changes are merged.
+    public static let serverCompatibilityVersion = "2026.9.1"
+
     /// The device type for this app.
     public static let deviceType: DeviceType = .iOS
 

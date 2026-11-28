@@ -106,13 +106,13 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         processor.state.loadingState = .data([])
 
         // Hidden by default when set up progress is `nil`.
-        XCTAssertThrowsError(try subject.inspect().find(actionCard: Localizations.importSavedLogins))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: Localizations.importSavedLogins))
 
         processor.state.importLoginsSetupProgress = .setUpLater
-        XCTAssertThrowsError(try subject.inspect().find(actionCard: Localizations.importSavedLogins))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: Localizations.importSavedLogins))
 
         processor.state.importLoginsSetupProgress = .complete
-        XCTAssertThrowsError(try subject.inspect().find(actionCard: Localizations.importSavedLogins))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: Localizations.importSavedLogins))
     }
 
     /// The action card is visible if the import logins setup progress is incomplete.
@@ -120,7 +120,7 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     func test_importLoginsActionCard_visible() async throws {
         processor.state.importLoginsSetupProgress = .incomplete
         processor.state.loadingState = .data([])
-        XCTAssertNoThrow(try subject.inspect().find(actionCard: Localizations.importSavedLogins))
+        XCTAssertNoThrow(try subject.inspect().find(setupSection: Localizations.importSavedLogins))
     }
 
     /// Tapping the dismiss button in the import logins action card sends the
@@ -129,10 +129,11 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     func test_importLoginsActionCard_visible_tapDismiss() async throws {
         processor.state.importLoginsSetupProgress = .incomplete
         processor.state.loadingState = .data([])
-        let actionCard = try subject.inspect().find(actionCard: Localizations.importSavedLogins)
+        let actionCard = try subject.inspect().find(setupSection: Localizations.importSavedLogins)
 
-        let button = try actionCard.find(asyncButton: Localizations.dismiss)
-        try await button.tap()
+        let button = try actionCard.find(button: Localizations.dismiss)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects, [.dismissImportLoginsActionCard])
     }
 
@@ -142,10 +143,11 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     func test_importLoginsActionCard_visible_tapGetStarted() async throws {
         processor.state.importLoginsSetupProgress = .incomplete
         processor.state.loadingState = .data([])
-        let actionCard = try subject.inspect().find(actionCard: Localizations.importSavedLogins)
+        let actionCard = try subject.inspect().find(setupSection: Localizations.importSavedLogins)
 
-        let button = try actionCard.find(asyncButton: Localizations.getStarted)
-        try await button.tap()
+        let button = try actionCard.find(button: Localizations.getStarted)
+        try button.tap()
+        try await waitForAsync { !self.processor.dispatchedActions.isEmpty }
         XCTAssertEqual(processor.dispatchedActions, [.showImportLogins])
     }
 
@@ -197,7 +199,7 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         processor.state.loadingState = .data([])
         processor.state.shouldShowSubscriptionAttentionCard = true
         XCTAssertThrowsError(
-            try subject.inspect().find(actionCard: Localizations.importSavedLogins),
+            try subject.inspect().find(setupSection: Localizations.importSavedLogins),
         )
     }
 
@@ -216,7 +218,7 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     @MainActor
     func test_orgBannerActionCard_hidden() {
         processor.state.loadingState = .data([])
-        XCTAssertThrowsError(try subject.inspect().find(actionCard: "Upcoming Maintenance"))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: "Upcoming Maintenance"))
     }
 
     /// The organization banner action card is visible when `organizationUserNotificationBannerData` is set.
@@ -224,7 +226,7 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     func test_orgBannerActionCard_visible() {
         processor.state.loadingState = .data([])
         processor.state.organizationUserNotificationBannerData = .fixture()
-        XCTAssertNoThrow(try subject.inspect().find(actionCard: "Upcoming Maintenance"))
+        XCTAssertNoThrow(try subject.inspect().find(setupSection: "Upcoming Maintenance"))
     }
 
     /// The organization banner action card takes precedence over other action cards, which are
@@ -234,12 +236,12 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
         processor.state.loadingState = .data([])
         processor.state.importLoginsSetupProgress = .incomplete
         processor.state.organizationUserNotificationBannerData = .fixture()
-        XCTAssertNoThrow(try subject.inspect().find(actionCard: "Upcoming Maintenance"))
-        XCTAssertThrowsError(try subject.inspect().find(actionCard: Localizations.importSavedLogins))
+        XCTAssertNoThrow(try subject.inspect().find(setupSection: "Upcoming Maintenance"))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: Localizations.importSavedLogins))
 
         processor.state.organizationUserNotificationBannerData = nil
-        XCTAssertThrowsError(try subject.inspect().find(actionCard: "Upcoming Maintenance"))
-        XCTAssertNoThrow(try subject.inspect().find(actionCard: Localizations.importSavedLogins))
+        XCTAssertThrowsError(try subject.inspect().find(setupSection: "Upcoming Maintenance"))
+        XCTAssertNoThrow(try subject.inspect().find(setupSection: Localizations.importSavedLogins))
     }
 
     /// When the organization banner has a primary button (and a header), the close (X) button is not shown.
@@ -250,9 +252,9 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
             buttonText: "I understand",
             headerText: "Upcoming Maintenance",
         )
-        let actionCard = try subject.inspect().find(actionCard: "Upcoming Maintenance")
+        let actionCard = try subject.inspect().find(setupSection: "Upcoming Maintenance")
         XCTAssertNoThrow(try actionCard.find(ViewType.Button.self) { (try? $0.find(text: "I understand")) != nil })
-        XCTAssertThrowsError(try actionCard.find(asyncButton: Localizations.dismiss))
+        XCTAssertThrowsError(try actionCard.find(button: Localizations.dismiss))
     }
 
     /// Tapping the dismiss button on the organization banner dispatches the
@@ -261,9 +263,10 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     func test_orgBannerActionCard_tapDismiss() async throws {
         processor.state.loadingState = .data([])
         processor.state.organizationUserNotificationBannerData = .fixture(buttonText: nil)
-        let actionCard = try subject.inspect().find(actionCard: "Upcoming Maintenance")
-        let button = try actionCard.find(asyncButton: Localizations.dismiss)
-        try await button.tap()
+        let actionCard = try subject.inspect().find(setupSection: "Upcoming Maintenance")
+        let button = try actionCard.find(button: Localizations.dismiss)
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects, [.dismissOrganizationBanner(fromActionButton: false)])
     }
 
@@ -273,9 +276,10 @@ class VaultListViewTests: BitwardenTestCase { // swiftlint:disable:this type_bod
     func test_orgBannerActionCard_tapActionButton() async throws {
         processor.state.loadingState = .data([])
         processor.state.organizationUserNotificationBannerData = .fixture()
-        let actionCard = try subject.inspect().find(actionCard: "Upcoming Maintenance")
-        let button = try actionCard.find(asyncButton: "I understand")
-        try await button.tap()
+        let actionCard = try subject.inspect().find(setupSection: "Upcoming Maintenance")
+        let button = try actionCard.find(button: "I understand")
+        try button.tap()
+        try await waitForAsync { !self.processor.effects.isEmpty }
         XCTAssertEqual(processor.effects, [.dismissOrganizationBanner(fromActionButton: true)])
     }
 

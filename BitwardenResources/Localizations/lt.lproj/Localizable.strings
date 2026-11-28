@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Aplinkos URL buvo išsaugoti.";
 "IdentityUrl" = "Tapatybės serverio URL";
 "SelfHostedEnvironment" = "Savarankiška aplinka";
-"SelfHostedEnvironmentFooter" = "Nurodykite bazinį vietinio priglobto „Pass-Y“ diegimo URL.";
 "ServerUrl" = "Serverio URL";
 "WebVaultUrl" = "Žiniatinklio saugyklos serverio URL";
 "CustomFields" = "Papildomi laukai";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Tęsti privatumo politiką?";
 "ContinueToAppStore" = "Tęsti programų parduotuvėje?";
 "ContinueWithoutSyncing" = "Tęsti be sinchronizavimo";
-"TwoStepLoginDescriptionLong" = "Padidinkite savo paskyros saugumą, nustatydami dviejų veiksnių prisijungimą „Pass-Y“ internetinėje programoje.";
 "YouCanImportDataToYourVaultOnX" = "Galite importuoti duomenis į savo saugyklą %1$@.";
-"PrivacyPolicyDescriptionLong" = "Peržiūrėkite mūsų privatumo politiką bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Naršykite daugiau „Pass-Y“ paskyros funkcijų internetinėje programoje.";
-"LearnAboutOrganizationsDescriptionLong" = "„Pass-Y“ leidžia dalytis saugyklos elementais su kitais naudojant organizaciją. Daugiau sužinokite bitwarden.com svetainėje.";
 "RateAppDescriptionLong" = "Padėkite kitiems sužinoti, ar „Pass-Y“ jiems tinka. Aplankykite programų parduotuvę ir dabar palikite įvertinimą.";
 "CreatedX" = "Sukurta %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Dėl pasikeitusių Jūsų organizacijos nuostatų, jums reikia nustatyti pagrindinį slaptažodį.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Patobulinkite savo prisijungimus";
 "IntroCarouselPage3Message" = "Naudokite generatorių, kad sukurtumėte ir išsaugotumėte stiprius, unikalius slaptažodžius visoms savo paskyroms.";
 "IntroCarouselPage4Title" = "Jūsų duomenys, kada ir kur jų reikia";
-"IntroCarouselPage4Message" = "Išsaugokite neribotą kiekį slaptažodžių neribotame įrenginių skaičiuje naudodami „Pass-Y“ mobiliąsias, naršyklės ir darbalaukio programas.";
 "AccountSetup" = "Paskyros nustatymas";
 "SetUpUnlock" = "Nustatyti atrakinimą";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Nustatykite biometriją arba pasirinkite PIN kodą, kad greitai pasiektumėte savo saugyklą ir automatiškai pildytumėte prisijungimus.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Ištrinsite šį failą, kai importas bus baigtas.";
 "NeedHelpCheckOutImportHelp" = "Reikia pagalbos? Peržiūrėkite **[importo pagalbą](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Savo kompiuteryje atidarykite naują naršyklės skirtuką ir **eikite į %1$@**.";
-"LogInToTheBitwardenWebApp" = "**Prisijunkite prie „Pass-Y“ internetinės programos.**";
 "ImportLoginsToBitwarden" = "Importuoti prisijungimus į „Pass-Y“";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "„Pass-Y“ naršymo srityje **raskite parinktį Įrankiai** ir **pasirinkite Importuoti duomenis.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Užpildykite formą ir **importuokite savo išsaugotą slaptažodžių failą.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "Internetinėje programoje **pasirinkite Importuoti duomenis**, tada **Atlikta**, kad užbaigtumėte sinchronizavimą.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Dėl savo saugumo būtinai **ištrinkite savo išsaugotą slaptažodžių failą.**";
-"BitwardenTools" = "„Pass-Y“ įrankiai";
 "ImportSuccessful" = "Importas sėkmingas!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Tvarkykite savo prisijungimus iš bet kurios vietos naudodami „Pass-Y“ įrankius, skirtus žiniatinkliui ir darbalaukiui.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Tvarkykite savo prenumeratos planą „Pass-Y“ internetinėje programoje.";
 "DownloadTheBrowserExtension" = "Atsisiųskite naršyklės plėtinį";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Eikite į bitwarden.com/download, kad integruotumėte „Pass-Y“ į savo mėgstamą naršyklę, kad patirtis būtų sklandi.";
-"UseTheWebApp" = "Naudoti internetinę programą";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Prisijunkite bitwarden.com, kad lengvai tvarkytumėte savo paskyrą ir atnaujintumėte nustatymus.";
 "AutofillPasswords" = "Automatinis slaptažodžių pildymas";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Nustatykite automatinį pildymą visuose savo įrenginiuose, kad galėtumėte prisijungti vienu bakstelėjimu bet kur.";
 "GoBack" = "Grįžti atgal";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Paskyra nerasta. Jei ši klaida vis dar rodoma, prisijunkite dar kartą.";
 "ImportError" = "Importavimo klaida";
 "NoLoginsWereImported" = "Nebuvo importuota jokių prisijungimų";
-"ThisIsNotARecognizedServerDescriptionLong" = "Tai nėra atpažintas „Pass-Y“ serveris. Gali tekti pasitikrinti pas savo teikėją arba atnaujinti savo serverį.";
 "LoginsImported" = "Prisijungimai importuoti";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Nepamirškite ištrinti importuoto slaptažodžių failo iš savo kompiuterio.";
 "SomethingWentWrong" = "Kažkas nutiko ne taip";
@@ -963,7 +947,6 @@
 "LastEdited" = "Paskutinį kartą redaguota: %1$@";
 "PasswordLastUpdated" = "Slaptažodis paskutinį kartą atnaujintas: %1$@";
 "DecryptionError" = "Iššifravimo klaida";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "„Pass-Y“ nepavyko iššifruoti šio saugyklos elemento. Nukopijuokite ir bendrinkite šią klaidų ataskaitą su klientų aptarnavimo tarnyba, kad išvengtumėte papildomų duomenų praradimų.";
 "CopyErrorReport" = "Kopijuoti klaidų ataskaitą";
 "ErrorCannotDecrypt" = "[klaida: nepavyko iššifruoti]";
 "AccountsSyncedFromBitwardenApp" = "Paskyros, sinchronizuotos iš „Pass-Y“ programos";

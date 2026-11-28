@@ -14,6 +14,9 @@ struct SettingsState: Equatable {
     /// The accounts known to the app and the active one (shown in the account row at the top).
     var profileState = ProfileSwitcherState.empty(allowLockAndLogout: true)
 
+    /// Whether the layout preferences are mirrored into iCloud ("Sync layout with iCloud").
+    var isLayoutCloudSyncEnabled = false
+
     /// The presentation mode based on where the settings view is displayed from. This determines
     /// if the UI should show specific elements.
     var presentationMode = SettingsPresentationMode.tab

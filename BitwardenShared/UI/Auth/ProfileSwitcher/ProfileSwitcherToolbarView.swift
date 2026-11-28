@@ -16,29 +16,14 @@ struct ProfileSwitcherToolbarView: View {
 
     /// The Toolbar item for the profile switcher view
     @ViewBuilder var profileSwitcherToolbarItem: some View {
-        let tintColor = store.state.showPlaceholderToolbarIcon
-            ? nil
-            : store.state.activeAccountProfile?.color
+        let profile = store.state.showPlaceholderToolbarIcon ? nil : store.state.activeAccountProfile
 
         AsyncButton {
             await store.perform(.requestedProfileSwitcher(visible: !store.state.isVisible))
         } label: {
-            // The tint color on Liquid Glass gives the button its color (no icon background color).
-            profileSwitcherIcon(
-                color: nil,
-                initials: store.state.showPlaceholderToolbarIcon
-                    ? nil
-                    : store.state.activeAccountProfile?.userInitials,
-                textColor: store.state.showPlaceholderToolbarIcon
-                    ? nil
-                    : store.state.activeAccountProfile?.profileIconTextColor,
-                size: .toolbar,
-            )
+            PassYAvatarCircle(color: profile?.color, initials: profile?.userInitials)
         }
-        .buttonStyle(.glassProminent)
-        .tint(tintColor ?? SharedAsset.Colors.backgroundTertiary.swiftUIColor)
-        // Removes the extra padding around the button, so the initials can scale larger without widening it.
-        .padding(.horizontal, -4)
+        .buttonStyle(.plain)
         .accessibilityIdentifier("CurrentActiveAccount")
         .accessibilityLabel(Localizations.account)
         .hidden(!store.state.showPlaceholderToolbarIcon && store.state.accounts.isEmpty)

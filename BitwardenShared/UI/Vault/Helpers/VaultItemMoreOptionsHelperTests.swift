@@ -470,13 +470,14 @@ class VaultItemMoreOptionsHelperTests: BitwardenTestCase { // swiftlint:disable:
 
         let archiveUnavailableAlert = try XCTUnwrap(coordinator.alertShown.last)
 
-        try await archiveUnavailableAlert.tapAction(title: Localizations.upgradeToPremium)
-        try await waitForAsync { navigatedToPremiumUpgrade }
+        XCTAssertEqual(archiveUnavailableAlert.alertActions.map(\.title), [Localizations.ok])
+
+        try await archiveUnavailableAlert.tapAction(title: Localizations.ok)
 
         XCTAssertNil(coordinator.loadingOverlaysShown.last?.title)
         XCTAssertTrue(vaultRepository.archiveCipher.isEmpty)
         XCTAssertNil(toastToDisplay)
-        XCTAssertTrue(navigatedToPremiumUpgrade)
+        XCTAssertFalse(navigatedToPremiumUpgrade)
     }
 
     /// `performMoreOptionsAction(_:for:...)` with `.unarchive` unarchives the cipher.

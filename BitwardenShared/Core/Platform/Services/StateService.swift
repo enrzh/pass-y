@@ -2345,6 +2345,12 @@ actor DefaultStateService: StateService, ActiveAccountStateProvider, ConfigState
     func setShowWebIcons(_ showWebIcons: Bool) async {
         appSettingsStore.disableWebIcons = !showWebIcons
         showWebIconsSubject.send(showWebIcons)
+        // The iCloud mirror of the Customize settings (`PassYLayoutCloudSync`) listens for this.
+        NotificationCenter.default.post(
+            name: .passYShowWebIconsDidChange,
+            object: nil,
+            userInfo: [PassYLayoutCloudSync.showWebIconsKey: showWebIcons],
+        )
     }
 
     func setSiriAndShortcutsAccess(_ siriAndShortcutsAccess: Bool, userId: String?) async throws {

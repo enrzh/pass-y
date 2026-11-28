@@ -14,6 +14,7 @@ class SettingsProcessorTests: BitwardenTestCase {
     var coordinator: MockCoordinator<SettingsRoute, SettingsEvent>!
     var delegate: MockSettingsProcessorDelegate!
     var errorReporter: MockErrorReporter!
+    var layoutCloudSync: MockPassYLayoutCloudSync!
     var subject: SettingsProcessor!
     var stateService: MockStateService!
 
@@ -26,6 +27,7 @@ class SettingsProcessorTests: BitwardenTestCase {
         coordinator = MockCoordinator()
         delegate = MockSettingsProcessorDelegate()
         errorReporter = MockErrorReporter()
+        layoutCloudSync = MockPassYLayoutCloudSync()
         stateService = MockStateService()
 
         setUpSubject()
@@ -38,6 +40,7 @@ class SettingsProcessorTests: BitwardenTestCase {
         coordinator = nil
         delegate = nil
         errorReporter = nil
+        layoutCloudSync = nil
         subject = nil
         stateService = nil
     }
@@ -47,6 +50,7 @@ class SettingsProcessorTests: BitwardenTestCase {
         subject = SettingsProcessor(
             coordinator: coordinator.asAnyCoordinator(),
             delegate: delegate,
+            layoutCloudSync: layoutCloudSync,
             services: ServiceContainer.withMocks(
                 authRepository: authRepository,
                 errorReporter: errorReporter,
@@ -57,6 +61,25 @@ class SettingsProcessorTests: BitwardenTestCase {
     }
 
     // MARK: Tests
+
+    /// `init()` shows whether the layout is synced with iCloud.
+    @MainActor
+    func test_init_layoutCloudSync() {
+        XCTAssertFalse(subject.state.isLayoutCloudSyncEnabled)
+        layoutCloudSync.isEnabled = true
+        setUpSubject()
+        XCTAssertTrue(subject.state.isLayoutCloudSyncEnabled)
+    }
+
+    /// `receive(_:)` with `.layoutCloudSyncChanged` switches the iCloud sync of the layout.
+    @MainActor
+    func test_receive_layoutCloudSyncChanged() {
+        subject.receive(.layoutCloudSyncChanged(true))
+        XCTAssertTrue(subject.state.isLayoutCloudSyncEnabled)
+        subject.receive(.layoutCloudSyncChanged(false))
+        XCTAssertFalse(subject.state.isLayoutCloudSyncEnabled)
+        XCTAssertEqual(layoutCloudSync.setEnabledValues, [true, false])
+    }
 
     /// `init()` does not subscribe to the badge publisher when the presentation mode is `.preLogin`.
     @MainActor

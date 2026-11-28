@@ -7,8 +7,8 @@ configs:
 include:
   - path: project-common.yml
 settings:
-  MARKETING_VERSION: 1.27.0    # Pass-Y scheme MAJOR.MINOR.PATCH, see Docs/Releasing.md.
-  CURRENT_PROJECT_VERSION: 1
+  MARKETING_VERSION: 1.28.0    # Pass-Y scheme MAJOR.MINOR.PATCH, see Docs/Releasing.md.
+  CURRENT_PROJECT_VERSION: 4
 packages:
   SwiftUIIntrospect:
     url: https://github.com/siteline/SwiftUI-Introspect

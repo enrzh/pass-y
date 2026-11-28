@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Inguruneko URL-ak gorde dira.";
 "IdentityUrl" = "Identitate zerbitzariaren URL-a";
 "SelfHostedEnvironment" = "Ostatze ingurune propioa";
-"SelfHostedEnvironmentFooter" = "Pass-Y instalatzeko, zehaztu ostatatze propioaren oinarrizko URL-a.";
 "ServerUrl" = "Zerbitzariaren URL-a";
 "WebVaultUrl" = "Web kutxa gotorreko zerbitzariaren URL-a";
 "CustomFields" = "Eremu pertsonalizatuak";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Pribatutasun-politikara jarraitu?";
 "ContinueToAppStore" = "Aplikazio-dendara jarraitu?";
 "ContinueWithoutSyncing" = "Jarraitu sinkronizatu gabe";
-"TwoStepLoginDescriptionLong" = "Egin zure kontua seguruagoa bi urratsetako saioa konfiguratuz Pass-Y web-aplikazioan.";
 "YouCanImportDataToYourVaultOnX" = "Datuak inporta ditzakezu zure kutxan %1$@-n.";
-"PrivacyPolicyDescriptionLong" = "Begiratu gure pribatutasun-politika bitwarden.com-en.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Arakatu zure Pass-Y kontuaren ezaugarri gehiago web-aplikazioan.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y-ek zure kutxako elementuak beste batzuekin partekatzeko aukera ematen dizu erakunde bat erabiliz. Ikasi gehiago bitwarden.com webgunean.";
 "RateAppDescriptionLong" = "Lagundu besteei Pass-Y egokia den jakiten. Bisitatu aplikazio-denda eta utzi balorazio bat orain.";
 "CreatedX" = "Sortua %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Zure erakundearen baimenak eguneratu dira, pasahitz nagusi bat ezartzea eskatuz.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Bultzatu zure saioak";
 "IntroCarouselPage3Message" = "Erabili sortzailea pasahitz sendo eta bakarrak sortzeko eta gordetzeko zure kontu guztietarako.";
 "IntroCarouselPage4Title" = "Zure datuak, noiz eta non behar dituzun";
-"IntroCarouselPage4Message" = "Gorde mugagabeko pasahitzak gailu mugagabeetan Pass-Y mugikorreko, arakatzaileko eta mahaigaineko aplikazioekin.";
 "AccountSetup" = "Kontuaren konfigurazioa";
 "SetUpUnlock" = "Konfiguratu desblokeoa";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Konfiguratu biometria edo aukeratu PIN kode bat zure kutxa azkar sartzeko eta saioak autobeteteko.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Fitxategi hau ezabatuko duzu inportazioa amaitutakoan.";
 "NeedHelpCheckOutImportHelp" = "Laguntza behar duzu? Begiratu **[inportazioaren laguntza](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Zure ordenagailuan, ireki nabigatzailearen fitxa berri bat eta **joan %1$@-ra**.";
-"LogInToTheBitwardenWebApp" = "**Hasi saioa Pass-Y web-aplikazioan.**";
 "ImportLoginsToBitwarden" = "Inportatu saioak Pass-Y-era";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Y nabigazioan, **bilatu Tresnak aukera** eta **hautatu Inportatu datuak.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Bete formularioa eta **inportatu zure gordetako pasahitz-fitxategia.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**Hautatu Inportatu datuak** web-aplikazioan, eta gero **Eginda** sinkronizazioa amaitzeko.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Zure segurtasunerako, ziurtatu **zure gordetako pasahitz-fitxategia ezabatzea.**";
-"BitwardenTools" = "Pass-Y tresnak";
 "ImportSuccessful" = "Inportazioa arrakastatsua!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Kudeatu zure saioak edonondik Pass-Y-ek web eta mahaigainerako dituen tresnekin.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Kudeatu zure harpidetza-plana Pass-Y web-aplikazioan.";
 "DownloadTheBrowserExtension" = "Deskargatu nabigatzailearen hedapena";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Joan bitwarden.com/download-era Pass-Y zure nabigatzaile gogokoenan integratzeko esperientzia ezin hobea izateko.";
-"UseTheWebApp" = "Erabili web-aplikazioa";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Hasi saioa bitwarden.com-en zure kontua erraz kudeatzeko eta ezarpenak eguneratzeko.";
 "AutofillPasswords" = "Autobeteketa pasahitzak";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Konfiguratu autobeteketa zure gailu guztietan edonon ukitu bakarrarekin saioa hasteko.";
 "GoBack" = "Atzera";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Ez da konturik aurkitu. Mesedez, hasi saioa berriro errore hau ikusten jarraitzen baduzu.";
 "ImportError" = "Errorea inportatzerakoan";
 "NoLoginsWereImported" = "Ez da saiorik inportatu";
-"ThisIsNotARecognizedServerDescriptionLong" = "Hau ez da Pass-Y zerbitzari ezagun bat. Baliteke zure hornitzailearekin egiaztatu edo zure zerbitzaria eguneratu behar izatea.";
 "LoginsImported" = "Saioak inportatuta";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Gogoratu inportatutako pasahitz-fitxategia zure ordenagailutik ezabatzea.";
 "SomethingWentWrong" = "Zerbait gaizki joan da";
@@ -963,7 +947,6 @@
 "LastEdited" = "Azken aldaketa: %1$@";
 "PasswordLastUpdated" = "Pasahitzaren azken eguneratzea: %1$@";
 "DecryptionError" = "Desenkriptatze-errorea";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y-ek ezin du kutxako elementu hau desenkriptatu. Kopiatu eta partekatu errore-txosten hau bezeroarentzako arretarekin datu-galera gehiago saihesteko.";
 "CopyErrorReport" = "Kopiatu errore-txostena";
 "ErrorCannotDecrypt" = "[errorea: ezin da desenkriptatu]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y aplikaziotik sinkronizatutako kontuak";

@@ -152,10 +152,7 @@ final class SendListProcessor: StateProcessor<SendListState, SendListAction, Sen
             let hasPremium = await services.sendRepository.doesActiveAccountHavePremium()
 
             guard hasPremium else {
-                coordinator.showAlert(.fileSendPremiumRequired { [weak self] in
-                    guard let self else { return }
-                    Task { await self.premiumUpgradeHelper.navigateToPremiumUpgrade() }
-                })
+                coordinator.showAlert(.fileSendPremiumRequired())
                 return
             }
         }

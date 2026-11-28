@@ -53,13 +53,15 @@ struct VaultItemActionHelperTests {
         )
 
         let alert = try #require(coordinator.alertShown.last)
-        #expect(alert.title == Localizations.premiumSubscriptionRequired)
-        #expect(alert.message == Localizations.archivingItemsIsAPremiumFeatureDescriptionLong)
+        #expect(alert.title == Localizations.notAvailableForThisAccount)
+        #expect(alert.message == Localizations.archiveNotAvailableDescriptionLong)
         #expect(vaultRepository.archiveCipher.isEmpty)
         #expect(!completionCalled)
 
-        try await alert.tapAction(title: Localizations.upgradeToPremium)
-        #expect(navigatedToPremiumUpgrade)
+        #expect(alert.alertActions.map(\.title) == [Localizations.ok])
+
+        try await alert.tapAction(title: Localizations.ok)
+        #expect(!navigatedToPremiumUpgrade)
     }
 
     /// `archive(cipher:handleNavigateToPremiumUpgrade:completionHandler:)` shows the confirmation

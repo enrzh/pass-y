@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "כתובות הסביבה נשמרו.";
 "IdentityUrl" = "URL של שרת הזהות";
 "SelfHostedEnvironment" = "סביבה באירוח עצמי";
-"SelfHostedEnvironmentFooter" = "הזן את כתובת השרת המקומי של Pass-Y.";
 "ServerUrl" = "כתובת שרת";
 "WebVaultUrl" = "URL של שרת כספת הרשת";
 "CustomFields" = "שדות מותאמים אישית";
@@ -640,11 +639,7 @@
 "ContinueToPrivacyPolicy" = "להמשיך אל מדיניות הפרטיות?";
 "ContinueToAppStore" = "להמשיך אל חנות האפליקציות?";
 "ContinueWithoutSyncing" = "המשך ללא סנכרון";
-"TwoStepLoginDescriptionLong" = "הפוך את החשבון שלך למאובטח יותר על ידי הגדרת כניסה דו־שלבית ביישום הרשת של Pass-Y.";
 "YouCanImportDataToYourVaultOnX" = "אתה יכול ייבא נתונים לכספת שלך ב־%1$@.";
-"PrivacyPolicyDescriptionLong" = "בדוק את מדיניות הפרטיות שלנו ב־bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "גלה עוד תכונות של חשבון ה־Pass-Y שלך ביישום הרשת.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y מאפשר לך לשתף את פריטי הכספת שלך עם אחרים על ידי שימוש בארגון. למד עוד באתר האינטרנט bitwarden.com.";
 "RateAppDescriptionLong" = "עזור לאחרים לגלות אם Pass-Y מתאים להם. בקר בחנות האפליקציות והשאר דירוג עכשיו.";
 "CreatedX" = "נוצר %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "הרשאות הארגון שלך עודכנו, מה שמאלץ אותך להגדיר סיסמה ראשית.";
@@ -689,7 +684,6 @@
 "IntroCarouselPage3Title" = "שדרג את הכניסות שלך";
 "IntroCarouselPage3Message" = "השתמש במחולל כדי ליצור ולשמור סיסמאות חזקות וייחודיות עבור כל החשבונות שלך.";
 "IntroCarouselPage4Title" = "הנתונים שלך, מתי והיכן שאתה צריך אותם";
-"IntroCarouselPage4Message" = "שמור מספר בלתי מוגבל של סיסמאות בין מספר בלתי מוגבל של מכשירים עם יישומי Pass-Y לנייד, דפדפן, ושולחן עבודה.";
 "AccountSetup" = "הגדרת חשבון";
 "SetUpUnlock" = "הגדר ביטול נעילה";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "הגדר זיהוי ביומטרי או בחר קוד PIN כדי לגשת במהירות לכספת שלך ולמלא אוטומטית את הכניסות שלך.";
@@ -800,20 +794,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "תמחק את קובץ הזה לאחר שהייבוא הושלם.";
 "NeedHelpCheckOutImportHelp" = "צריך עזרה? בדוק את **[עזרה עם ייבוא](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "במחשב שלך, פתח כרטיסיית דפדפן חדשה ו**לך אל %1$@**.";
-"LogInToTheBitwardenWebApp" = "**היכנס ליישום הרשת של Pass-Y.**";
 "ImportLoginsToBitwarden" = "ייבא כניסות אל Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "בניווט של Pass-Y, **מצא את אפשרות הכלים** ו**בחר את 'ייבוא נתונים'.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "מלא את הטופס ו**ייבא את קובץ הסיסמאות השמורות שלך.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "**בחר את 'ייבוא נתונים'** ביישום הרשת, ואז **בוצע** כדי לסיים את הסנכרון.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "למען הביטחון שלך, הפקד ל**מחוק את קובץ הסיסמאות השמורות שלך.**";
-"BitwardenTools" = "כלים של Pass-Y";
 "ImportSuccessful" = "הייבוא הצליח!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "נהל את כל הכניסות שלך מכל מקום עם הכלים של Pass-Y לרשת ושולחן העבודה.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "נהל את תוכנית המנוי שלך באפליקציית האינטרנט של Pass-Y.";
 "DownloadTheBrowserExtension" = "הורד את הרחבת הדפדפן";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "לך אל bitwarden.com/download כדי לשלב את Pass-Y לתוך הדפדפן המועדף שלך עבור חוויה חלקה.";
-"UseTheWebApp" = "השתמש ביישום הרשת";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "היכנס אל bitwarden.com כדי לנהל את החשבון שלך ולעדכן הגדרות.";
 "AutofillPasswords" = "מלא אוטומטית סיסמאות";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "הגדר מילוי אוטומטי בכל המכשירים שלך כדי להיכנס עם הקשה אחת בכל מקום.";
 "GoBack" = "חזור";
@@ -829,7 +814,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "לא נמצא חשבון. נא להיכנס שוב אם אתה ממשיך לראות שגיאה זו.";
 "ImportError" = "שגיאת ייבוא";
 "NoLoginsWereImported" = "לא יובאו כניסות";
-"ThisIsNotARecognizedServerDescriptionLong" = "זה לא שרת מוכר של Pass-Y. ייתכן שתצטרך לבדוק עם הספק שלך או לעדכן את השרת שלך.";
 "LoginsImported" = "יובאו כניסות";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "זכור למחוק את קובץ הסיסמאות המיובאות שלך מהמחשב שלך.";
 "SomethingWentWrong" = "משהו השתבש";
@@ -964,7 +948,6 @@
 "LastEdited" = "נערך לאחרונה: %1$@";
 "PasswordLastUpdated" = "הסיסמה עודכנה לאחרונה: %1$@";
 "DecryptionError" = "שגיאת פענוח";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y לא יכל לפענח את פריט כספת זה. העתק ושתף דוח שגיאה זה עם הצלחת לקוח כדי להימנע מאיבוד נתונים נוסף.";
 "CopyErrorReport" = "העתק דוח שגיאה";
 "ErrorCannotDecrypt" = "[שגיאה: לא ניתן לפענח]";
 "AccountsSyncedFromBitwardenApp" = "חשבונות מסונכרנים מתוך היישום Pass-Y";

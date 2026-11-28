@@ -40,10 +40,8 @@ final class AboutProcessor: StateProcessor<AboutState, AboutAction, AboutEffect>
         self.coordinator = coordinator
         self.services = services
 
-        // Set the initial value of the crash logs toggle.
         var state = state
         state.copyrightText = services.appInfoService.copyrightString
-        state.isSubmitCrashLogsToggleOn = services.errorReporter.isEnabled
         state.version = services.appInfoService.versionString
 
         super.init(state: state)
@@ -75,6 +73,8 @@ final class AboutProcessor: StateProcessor<AboutState, AboutAction, AboutEffect>
             state.appReviewUrl = nil
         case .clearURL:
             state.url = nil
+        case .contactSupportTapped:
+            state.mailURL = ExternalLinksConstants.supportEmail
         case let .flightRecorder(flightRecorderAction):
             switch flightRecorderAction {
             case .viewLogsTapped:
@@ -82,23 +82,24 @@ final class AboutProcessor: StateProcessor<AboutState, AboutAction, AboutEffect>
             }
         case .helpCenterTapped:
             state.url = ExternalLinksConstants.helpAndFeedback
-        case .learnAboutOrganizationsTapped:
-            coordinator.showAlert(.learnAboutOrganizationsAlert {
-                self.state.url = ExternalLinksConstants.aboutOrganizations
-            })
+        case .licensesTapped:
+            coordinator.navigate(to: .licenses(.overview))
+        case let .mailURLOpened(opened):
+            state.mailURL = nil
+            guard !opened else { return }
+            // No mail app: the address goes to the clipboard instead.
+            services.pasteboardService.copy(ExternalLinksConstants.supportEmailAddress)
+            state.toast = Toast(title: Localizations.noMailAppXCopied(ExternalLinksConstants.supportEmailAddress))
         case .privacyPolicyTapped:
-            coordinator.showAlert(.privacyPolicyAlert {
-                self.state.url = ExternalLinksConstants.privacyPolicy
-            })
+            state.url = ExternalLinksConstants.privacyPolicy
         case .rateTheAppTapped:
             coordinator.showAlert(.appStoreAlert {
                 self.state.appReviewUrl = ExternalLinksConstants.appReview
             })
+        case .sourceCodeTapped:
+            state.url = ExternalLinksConstants.sourceCode
         case let .toastShown(newValue):
             state.toast = newValue
-        case let .toggleSubmitCrashLogs(isOn):
-            state.isSubmitCrashLogsToggleOn = isOn
-            services.errorReporter.isEnabled = isOn
         }
     }
 

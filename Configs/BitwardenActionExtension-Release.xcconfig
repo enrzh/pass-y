@@ -1,6 +1,7 @@
 #include "./Common-bwpm.xcconfig"
 #include? "./Local-bwpm.xcconfig"
 
-ASSETCATALOG_COMPILER_APPICON_NAME = $(APPICON_NAME)
+// The share sheet draws an action extension's icon as a template: only the alpha channel of this glyph counts.
+ASSETCATALOG_COMPILER_APPICON_NAME = ActionIcon
 PRODUCT_BUNDLE_IDENTIFIER = $(BASE_BUNDLE_ID).find-login-action-extension
 PROVISIONING_PROFILE_SPECIFIER = $(PROVISIONING_PROFILE_SPECIFIER_ACTION_EXTENSION)

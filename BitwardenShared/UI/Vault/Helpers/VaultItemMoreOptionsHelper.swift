@@ -232,13 +232,7 @@ class DefaultVaultItemMoreOptionsHelper: VaultItemMoreOptionsHelper {
         hasPremium: Bool,
     ) async {
         guard hasPremium else {
-            coordinator.showAlert(
-                Alert.archiveUnavailable(action: {
-                    Task {
-                        await handleNavigateToPremiumUpgrade()
-                    }
-                }),
-            )
+            coordinator.showAlert(Alert.archiveUnavailable())
             return
         }
 

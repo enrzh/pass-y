@@ -66,7 +66,7 @@ class AttachmentsProcessorTests: BitwardenTestCase {
         await subject.perform(.loadPremiumStatus)
 
         XCTAssertFalse(subject.state.hasPremium)
-        XCTAssertEqual(coordinator.alertShown.last, .attachmentsUnavailable(action: {}))
+        XCTAssertEqual(coordinator.alertShown.last, .attachmentsUnavailable())
     }
 
     /// `perform(_:)` with `.loadPremiumStatus` does not show an alert when the user has Premium.
@@ -88,8 +88,9 @@ class AttachmentsProcessorTests: BitwardenTestCase {
         await subject.perform(.loadPremiumStatus)
 
         let alert = try XCTUnwrap(coordinator.alertShown.last)
-        try await alert.tapAction(title: Localizations.upgradeToPremium)
-        XCTAssertTrue(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
+        XCTAssertEqual(alert.alertActions.map(\.title), [Localizations.ok])
+        try await alert.tapAction(title: Localizations.ok)
+        XCTAssertFalse(premiumUpgradeHelper.navigateToPremiumUpgradeCalled)
     }
 
     /// `perform(_:)` with `.save` saves the attachment and updates the view.
@@ -146,7 +147,7 @@ class AttachmentsProcessorTests: BitwardenTestCase {
 
         await subject.perform(.save)
 
-        XCTAssertEqual(coordinator.alertShown.last, .attachmentsUnavailable(action: {}))
+        XCTAssertEqual(coordinator.alertShown.last, .attachmentsUnavailable())
     }
 
     /// `perform(_:)` with `.save` shows an alert if the file is too large.

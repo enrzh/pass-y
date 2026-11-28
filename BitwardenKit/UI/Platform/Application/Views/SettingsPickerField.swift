@@ -39,37 +39,36 @@ public struct SettingsPickerField: View {
                     if !title.isEmpty {
                         Text(title)
                             .multilineTextAlignment(.leading)
-                            .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
-                            .padding(.vertical, 19)
+                            .foregroundStyle(.primary)
                             .fixedSize(horizontal: false, vertical: true)
 
                         Spacer()
                     }
 
+                    // The value chip of a compact system date picker.
                     Text(customTimeoutValue)
+                        .monospacedDigit()
                         .accessibilityLabel(customTimeoutAccessibilityLabel)
                         .multilineTextAlignment(title.isEmpty ? .leading : .trailing)
-                        .foregroundColor(SharedAsset.Colors.textPrimary.swiftUIColor)
+                        .foregroundStyle(showTimePicker ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
                         .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(SharedAsset.Colors.backgroundPrimary.swiftUIColor),
-                        )
+                        .padding(.vertical, 6)
+                        .background(Color(.tertiarySystemFill), in: .capsule)
 
                     if title.isEmpty {
                         Spacer()
                     }
                 }
-                .styleGuide(.body)
+                .font(.body)
                 .id(title)
-                .padding(.horizontal, 16)
-                .padding(.vertical, title.isEmpty ? 12 : 0)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
 
             if footer != nil {
                 Divider()
-                    .padding(.leading, 16)
+                    .padding(.top, 8)
             }
 
             if showTimePicker {
@@ -78,19 +77,17 @@ public struct SettingsPickerField: View {
 
                 if footer != nil {
                     Divider()
-                        .padding(.leading, 16)
                 }
             }
 
             if let footer {
                 Text(footer)
-                    .styleGuide(.subheadline)
-                    .foregroundColor(Color(asset: SharedAsset.Colors.textSecondary))
-                    .padding(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 8)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .background(SharedAsset.Colors.backgroundSecondary.swiftUIColor)
     }
 
     // MARK: Initialization

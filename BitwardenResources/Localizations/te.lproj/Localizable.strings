@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "పరిసరాల URLలు భద్రపరచబడ్డాయి.";
 "IdentityUrl" = "ఐడెంటిటీ సర్వర్ URL";
 "SelfHostedEnvironment" = "స్వీయ-హోస్ట్ చేసిన పరిసరాలు";
-"SelfHostedEnvironmentFooter" = "మీ ఆన్-ప్రేమిస్ హోస్ట్ చేసిన Pass-Y ఇన్‌స్టాలేషన్ యొక్క బేస్ URLని పేర్కొనండి.";
 "ServerUrl" = "సర్వర్ URL";
 "WebVaultUrl" = "వెబ్ ఖజానా సర్వర్ URL";
 "CustomFields" = "అనుకూల ఫీల్డ్‌లు";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "గోప్యతా విధానానికి కొనసాగించాలా?";
 "ContinueToAppStore" = "యాప్ స్టోర్‌కు కొనసాగించాలా?";
 "ContinueWithoutSyncing" = "సింక్ చేయకుండా కొనసాగించు";
-"TwoStepLoginDescriptionLong" = "Pass-Y వెబ్ యాప్‌లో రెండు-దశల లాగిన్ సెటప్ చేయడం ద్వారా మీ ఖాతాను మరింత సురక్షితంగా చేయండి.";
 "YouCanImportDataToYourVaultOnX" = "మీరు %1$@లో మీ ఖజానాకు డేటాను దిగుమతి చేయవచ్చు.";
-"PrivacyPolicyDescriptionLong" = "bitwarden.comలో మా గోప్యతా విధానాన్ని చూడండి.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "వెబ్ యాప్‌లో మీ Pass-Y ఖాతా యొక్క మరిన్ని లక్షణాలను అన్వేషించండి.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y సంస్థను ఉపయోగించడం ద్వారా మీ ఖజానా అంశాలను ఇతరులతో భాగస్వామ్యం చేయడానికి మిమ్మల్ని అనుమతిస్తుంది. bitwarden.com వెబ్‌సైట్‌లో మరింత తెలుసుకోండి.";
 "RateAppDescriptionLong" = "Pass-Y వారికి సరైందేనా అని ఇతరులు కనుగొనడంలో సహాయపడండి. యాప్ స్టోర్ సందర్శించి ఇప్పుడే రేటింగ్ ఇవ్వండి.";
 "CreatedX" = "సృష్టించబడింది %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "మీ సంస్థ అనుమతులు నవీకరించబడ్డాయి, మీరు మాస్టర్ పాస్వర్డ్ సెట్ చేయాల్సిన అవసరం ఉంది.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "మీ లాగిన్‌లను మెరుగుపరచుకోండి";
 "IntroCarouselPage3Message" = "మీ ఖాతాలన్నింటికీ బలమైన, ప్రత్యేక పాస్వర్డ్‌లను సృష్టించడానికి మరియు భద్రపరచడానికి జనరేటర్ ఉపయోగించండి.";
 "IntroCarouselPage4Title" = "మీ డేటా, మీకు అవసరమైనప్పుడు మరియు ఎక్కడ";
-"IntroCarouselPage4Message" = "Pass-Y మొబైల్, బ్రౌజర్ మరియు డెస్క్‌టాప్ యాప్‌లతో అపరిమిత పరికరాల్లో అపరిమిత పాస్వర్డ్‌లను భద్రపరచండి.";
 "AccountSetup" = "ఖాతా సెటప్";
 "SetUpUnlock" = "అన్లాక్ సెటప్ చేయి";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "మీ ఖజానాను త్వరగా యాక్సెస్ చేయడానికి మరియు మీ లాగిన్‌లను ఆటోఫిల్ చేయడానికి బయోమెట్రిక్స్ సెటప్ చేయండి లేదా PIN కోడ్ ఎంచుకోండి.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "దిగుమతి పూర్తయిన తర్వాత మీరు ఈ ఫైల్‌ను తొలగిస్తారు.";
 "NeedHelpCheckOutImportHelp" = "సహాయం కావాలా? **[దిగుమతి సహాయం](%1$@)** చూడండి";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "మీ కంప్యూటర్‌లో, కొత్త బ్రౌజర్ ట్యాబ్ తెరిచి **%1$@కి వెళ్ళండి**.";
-"LogInToTheBitwardenWebApp" = "**Pass-Y వెబ్ యాప్‌కు లాగిన్ అవ్వండి.**";
 "ImportLoginsToBitwarden" = "లాగిన్‌లను Pass-Yకు దిగుమతి చేయి";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Y నావిగేషన్‌లో, **టూల్స్ ఎంపికను కనుగొని** **డేటాను దిగుమతి చేయి ఎంచుకోండి.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "ఫారమ్‌ను పూరించి, **మీ సేవ్ చేసిన పాస్వర్డ్ ఫైల్‌ను దిగుమతి చేయండి.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "వెబ్ యాప్‌లో **డేటాను దిగుమతి చేయి ఎంచుకోండి**, ఆపై సింక్ పూర్తి చేయడానికి **పూర్తయింది** నొక్కండి.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "మీ భద్రత కోసం, **మీ సేవ్ చేసిన పాస్వర్డ్ ఫైల్‌ను తొలగించాలని** నిర్ధారించుకోండి.";
-"BitwardenTools" = "Pass-Y టూల్స్";
 "ImportSuccessful" = "దిగుమతి విజయవంతమైంది!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Pass-Y వెబ్ మరియు డెస్క్‌టాప్ టూల్స్‌తో ఎక్కడి నుండైనా మీ లాగిన్‌లను నిర్వహించండి.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "మీ సభ్యత్వ ప్లాన్‌ను Pass-Y వెబ్ యాప్‌లో నిర్వహించండి.";
 "DownloadTheBrowserExtension" = "బ్రౌజర్ పొడిగింపును డౌన్‌లోడ్ చేయి";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "అతుకులు లేని అనుభవం కోసం Pass-Yను మీ ఇష్టమైన బ్రౌజర్‌లో సమగ్రపరచడానికి bitwarden.com/download కు వెళ్ళండి.";
-"UseTheWebApp" = "వెబ్ యాప్ ఉపయోగించండి";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "bitwarden.comలో మీ ఖాతాను సులభంగా నిర్వహించడానికి మరియు సెట్టింగ్‌లను నవీకరించడానికి లాగిన్ అవ్వండి.";
 "AutofillPasswords" = "పాస్వర్డ్‌లను ఆటోఫిల్ చేయి";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "ఎక్కడైనా ఒకే ట్యాప్‌తో లాగిన్ అవ్వడానికి మీ అన్ని పరికరాలలో ఆటోఫిల్ సెటప్ చేయండి.";
 "GoBack" = "తిరిగి వెళ్ళు";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "ఖాతా కనుగొనబడలేదు. మీరు ఈ లోపాన్ని కొనసాగిస్తే దయచేసి మళ్లీ లాగిన్ అవ్వండి.";
 "ImportError" = "దిగుమతి లోపం";
 "NoLoginsWereImported" = "లాగిన్‌లు దిగుమతి చేయబడలేదు";
-"ThisIsNotARecognizedServerDescriptionLong" = "ఇది గుర్తించబడిన Pass-Y సర్వర్ కాదు. మీరు మీ ప్రొవైడర్‌తో తనిఖీ చేయాలి లేదా మీ సర్వర్‌ను నవీకరించాలి.";
 "LoginsImported" = "లాగిన్‌లు దిగుమతి చేయబడ్డాయి";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "మీ కంప్యూటర్ నుండి మీ దిగుమతి చేసిన పాస్వర్డ్ ఫైల్‌ను తొలగించాలని గుర్తుంచుకోండి.";
 "SomethingWentWrong" = "ఏదో తప్పు జరిగింది";
@@ -963,7 +947,6 @@
 "LastEdited" = "చివరిగా సవరించబడింది: %1$@";
 "PasswordLastUpdated" = "పాస్వర్డ్ చివరిగా నవీకరించబడింది: %1$@";
 "DecryptionError" = "డీక్రిప్షన్ లోపం";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y ఈ ఖజానా అంశాన్ని డీక్రిప్ట్ చేయలేకపోయింది. అదనపు డేటా నష్టాన్ని నివారించడానికి ఈ లోపం నివేదికను కాపీ చేసి, కస్టమర్ సక్సెస్‌తో భాగస్వామ్యం చేయండి.";
 "CopyErrorReport" = "లోపం నివేదికను కాపీ చేయి";
 "ErrorCannotDecrypt" = "[లోపం: డీక్రిప్ట్ చేయలేము]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y యాప్ నుండి సింక్ చేసిన ఖాతాలు";

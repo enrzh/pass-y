@@ -82,6 +82,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             errorReporter: { ErrorReporterFactory.makeDefaultErrorReporter() },
             nfcReaderService: { DefaultNFCReaderService() },
         )
+        // Pass-Y "Sync layout with iCloud" runs in the main app only (does nothing unless switched on). It needs the
+        // services for the website icons setting, which it syncs with the layout.
+        PassYLayoutCloudSync.shared.start(services: services)
         let appModule = DefaultAppModule(services: services)
         appProcessor = AppProcessor(appModule: appModule, services: services)
         return true

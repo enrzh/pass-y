@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "Vides URL ir saglabāti.";
 "IdentityUrl" = "Identitātes servera URL";
 "SelfHostedEnvironment" = "Pašuzturēta vide";
-"SelfHostedEnvironmentFooter" = "Norādīt pašuzstādīta Pass-Y pamata URL.";
 "ServerUrl" = "Servera URL";
 "WebVaultUrl" = "Tīmekļa glabātavas servera URL";
 "CustomFields" = "Pielāgoti lauki";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "Pāriet uz privātuma nosacījumiem?";
 "ContinueToAppStore" = "Pāriet uz lietotņu veikalu?";
 "ContinueWithoutSyncing" = "Turpināt bez vienādošanas";
-"TwoStepLoginDescriptionLong" = "Savu kontu var padarīt drošāku ar divpakāpju pieteikšanās uzstādīšanu Pass-Y tīmekļa lietotnē.";
 "YouCanImportDataToYourVaultOnX" = "Ievietot datus savā glabātavā var %1$@.";
-"PrivacyPolicyDescriptionLong" = "Mūsu privātuma nosacījumi ir pārskatāmi bitwarden.com.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "Vairāk sava Pass-Y konta iespēju var izpētīt tīmekļa vietnē.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y nodrošina iespēju kopīgot savas glabātavas vienumus ar citiem, kad tiek izmantota apvienība. Vairāk var uzzināt tīmekļvietnē bitwarden.com.";
 "RateAppDescriptionLong" = "Var palīdzēt citiem noskaidrot, vai Pass-Y tiem der. To var izdarīt lietotņu veikalā, atstājot vērtējumu.";
 "CreatedX" = "Izveidots %1$@";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "Apvienības atļaujas tika atjauninātas, un tās pieprasa iestatīt galveno paroli.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "Uzlabo savu pieteikšanos";
 "IntroCarouselPage3Message" = "Veidotājs ir izmantojams, lai izveidotu un saglabātu spēcīgas, neatkārtojamas paroles visiem Taviem kontiem.";
 "IntroCarouselPage4Title" = "Tavi dati, kad un kur vien tie ir nepieciešami";
-"IntroCarouselPage4Message" = "Neierobežotu paroļu skaitu var saglabāt neierobežotā ierīdžu daudzumā ar Pass-Y mobilo, pārlūka un darbvirsmas lietotni.";
 "AccountSetup" = "Konta iestatīšana";
 "SetUpUnlock" = "Iestatīt atslēgšanu";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "Biometriju var iestatīt vai PIN kodu var izvēlēties, lai ātri piekļūtu savai glabātavai un automātiski aizpildītu pieteikšanās vienumus.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "Šī datne ir izdzēšama pēc tam, kad ievietošana ir pabeigta.";
 "NeedHelpCheckOutImportHelp" = "Vajadzīga palīdzība? Apskatīt **[palīdzību par ievietošanu](%1$@)**";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "Savā datorā jāatver jauna pārlūka cilne un **jādodas uz %1$@**";
-"LogInToTheBitwardenWebApp" = "**Jāpiesakās Pass-Y tīmekļa lietotnē.**";
 "ImportLoginsToBitwarden" = "Ievietot pieteikšanās vienumus Pass-Y";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Y izvēlnē **jāatrod \"Rīki\"** un **jāatlasa \"Ievietot datus\"**.";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "Jāaizpilda veidlapa un **jāievieto saglabātā paroļu datne**.";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "Tīmekļa lietotnē **jāatlasa \"Ievietot datus\"**, tad **\"Darīts\"**, lai pabeigtu sinhronizēšanu.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "Drošības dēļ jānodrošina, ka **paroļu datne tiek izdzēsta**.";
-"BitwardenTools" = "Pass-Y rīki";
 "ImportSuccessful" = "Ievietošana veiksmīga.";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "Pārvaldi savus pieteikšanāš vienumus no jebkurienes ar Pass-Y tīmekļa un darbvirsmas rīkiem!";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Abonēšanas plāns ir pārvaldāms Pass-Y tīmekļa lietotnē.";
 "DownloadTheBrowserExtension" = "Lejupielādēt pārlūka paplašinājumu";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "Jādodas uz bitwarden.com/download, lai iekļautu Pass-Y savā iecienītākajā pārlūkā, lai iegūtu nevainojamu pieredzi.";
-"UseTheWebApp" = "Izmantot tīmekļa lietotni";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "Piesakies bitwarden.com, lai viegli pārvaldītu savu kontu un atjauninātu iestatījumus";
 "AutofillPasswords" = "Automātiski aizpildīt paroles";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "Iestati automātiskuo aizpildi visās savās ierīcēs, lai visur pieteiktos ar vienu piesitienu!";
 "GoBack" = "Doties atpakaļ";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "Netika atrasts neviens konts. Lūgums pieteikties vēlreiz, ja šī kļūda joprojām ir redzama.";
 "ImportError" = "Ievietošanas kļūda";
 "NoLoginsWereImported" = "Netika ievietots neviens pieteikšanās vienums";
-"ThisIsNotARecognizedServerDescriptionLong" = "Šis nav atzīts Pass-Y serveris. Var būt nepieciešams vērsties pie nodrošinātāja, lai pārbaudītu, vai atjaunināt savu serveri.";
 "LoginsImported" = "Pieteikšanās vienumi ievietoti";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "Jāatceras datorā izdzēst savu ievietoto paroļu datni.";
 "SomethingWentWrong" = "Kaut kas nogājis greizi";
@@ -963,7 +947,6 @@
 "LastEdited" = "Pēdējoreiz labots: %1$@";
 "PasswordLastUpdated" = "Parole pēdējoreiz atjaunināta: %1$@";
 "DecryptionError" = "Atšifrēšanas kļūda";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y nevarēja atšifrēt šo glabātavas vienumu. Šī kļūda jāievieto starpliktuvē un jākopīgo ar klientu atbalstu, lai izvairītos no papildu datu zudumiem.";
 "CopyErrorReport" = "Ievietot kļūdas ziņojumu starpliktuvē";
 "ErrorCannotDecrypt" = "[kļūda: nevar atšifrēt]";
 "AccountsSyncedFromBitwardenApp" = "No Pass-Y lietotnes sinhronizētie konti";

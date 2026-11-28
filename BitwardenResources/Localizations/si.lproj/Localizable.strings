@@ -198,7 +198,6 @@
 "EnvironmentSaved" = "පරිසර URL සුරකින ලදී.";
 "IdentityUrl" = "අනන්‍යතා සේවාදායක URL";
 "SelfHostedEnvironment" = "ස්වයං-සත්කාරක පරිසරය";
-"SelfHostedEnvironmentFooter" = "ඔබගේ on-premise සත්කාරක Pass-Y ස්ථාපනයේ මූලික URL නියම කරන්න.";
 "ServerUrl" = "සේවාදායක URL";
 "WebVaultUrl" = "වෙබ් සුරක්ෂිතාගාර සේවාදායක URL";
 "CustomFields" = "අභිරුචි ක්ෂේත්‍ර";
@@ -639,11 +638,7 @@
 "ContinueToPrivacyPolicy" = "රහස්‍යතා ප්‍රතිපත්තිය වෙත ඉදිරියට යන්නද?";
 "ContinueToAppStore" = "යෙදුම් ගබඩාව වෙත ඉදිරියට යන්නද?";
 "ContinueWithoutSyncing" = "සමමුහුර්තකරණයෙන් තොරව ඉදිරියට යන්න";
-"TwoStepLoginDescriptionLong" = "Pass-Y වෙබ් යෙදුමේ පියවර දෙකක පිවිසුම සැකසීමෙන් ඔබගේ ගිණුම වඩාත් ආරක්ෂිත කරන්න.";
 "YouCanImportDataToYourVaultOnX" = "ඔබට %1$@ මත ඔබගේ සුරක්ෂිතාගාරයට දත්ත ආයාත කළ හැක.";
-"PrivacyPolicyDescriptionLong" = "bitwarden.com හි අපගේ රහස්‍යතා ප්‍රතිපත්තිය බලන්න.";
-"ExploreMoreFeaturesOfYourBitwardenAccountOnTheWebApp" = "වෙබ් යෙදුමේ ඔබගේ Pass-Y ගිණුමේ තවත් විශේෂාංග ගවේෂණය කරන්න.";
-"LearnAboutOrganizationsDescriptionLong" = "Pass-Y ඔබට සංවිධානයක් භාවිතයෙන් ඔබගේ සුරක්ෂිතාගාර අයිතම අන් අය සමඟ බෙදා ගැනීමට ඉඩ සලසයි. bitwarden.com වෙබ් අඩවියෙන් වැඩිදුර ඉගෙන ගන්න.";
 "RateAppDescriptionLong" = "Pass-Y ඔවුන්ට සුදුසු දැයි සොයා ගැනීමට අන් අයට උදව් කරන්න. යෙදුම් ගබඩාවට පිවිස දැන් ශ්‍රේණිගත කිරීමක් තබන්න.";
 "CreatedX" = "%1$@ සාදන ලදී";
 "YourOrganizationPermissionsWereUpdatedRequeringYouToSetAMasterPassword" = "ඔබගේ සංවිධාන අවසර යාවත්කාලීන කරන ලද අතර, ඔබට ප්‍රධාන මුරපදයක් සැකසීමට අවශ්‍ය විය.";
@@ -688,7 +683,6 @@
 "IntroCarouselPage3Title" = "ඔබගේ පිවිසුම් ඉහළ නංවන්න";
 "IntroCarouselPage3Message" = "ඔබගේ සියලු ගිණුම් සඳහා ශක්තිමත්, අනන්‍ය මුරපද සාදා ගැනීමට සහ සුරැකීමට උත්පාදක යන්ත්‍රය භාවිතා කරන්න.";
 "IntroCarouselPage4Title" = "ඔබගේ දත්ත, ඔබට අවශ්‍ය විට සහ අවශ්‍ය තැන";
-"IntroCarouselPage4Message" = "Pass-Y ජංගම, බ්‍රවුසර සහ ඩෙස්ක්ටොප් යෙදුම් සමඟ අසීමිත උපාංග හරහා අසීමිත මුරපද සුරකින්න.";
 "AccountSetup" = "ගිණුම් සැකසුම";
 "SetUpUnlock" = "අගුළු ඇරීම සකසන්න";
 "SetUpBiometricsOrChooseAPinCodeToQuicklyAccessYourVaultAndAutofillYourLogins" = "ඔබගේ සුරක්ෂිතාගාරයට ඉක්මනින් ප්‍රවේශ වීමට සහ ඔබගේ පිවිසුම් ස්වයං පිරවුම් කිරීමට ජෛවමිතික සකසන්න හෝ PIN කේතයක් තෝරන්න.";
@@ -799,20 +793,11 @@
 "YoullDeleteThisFileAfterImportIsComplete" = "ආයාතය සම්පූර්ණ වූ පසු ඔබ මෙම ගොනුව මකා දමනු ඇත.";
 "NeedHelpCheckOutImportHelp" = "උදව් අවශ්‍යද? **[ආයාත උපකාරය](%1$@)** බලන්න";
 "OnYourComputerOpenANewBrowserTabAndGoTo" = "ඔබගේ පරිගණකයේ, නව බ්‍රවුසර ටැබයක් විවෘත කර **%1$@ වෙත යන්න**.";
-"LogInToTheBitwardenWebApp" = "**Pass-Y වෙබ් යෙදුමට පිවිසෙන්න.**";
 "ImportLoginsToBitwarden" = "Pass-Y වෙත පිවිසුම් ආයාත කරන්න";
-"InTheBitwardenNavigationFindTheToolsOptionAndSelectImportData" = "Pass-Y සංචාලනයේ, **මෙවලම් විකල්පය සොයා** **දත්ත ආයාත කරන්න තෝරන්න.**";
 "FillOutTheFormAndImportYourSavedPasswordFile" = "පෝරමය පුරවා **ඔබගේ සුරැකි මුරපද ගොනුව ආයාත කරන්න.**";
-"SelectImportDataInTheWebAppThenDoneToFinishSyncing" = "වෙබ් යෙදුමේ **දත්ත ආයාත කරන්න තෝරන්න**, පසුව සමමුහුර්තකරණය අවසන් කිරීමට **අවසන්** තෝරන්න.";
 "ForYourSecurityBeSureToDeleteYourSavedPasswordFile" = "ඔබගේ ආරක්ෂාව සඳහා, **ඔබගේ සුරැකි මුරපද ගොනුව මකා දැමීමට** වග බලා ගන්න.";
-"BitwardenTools" = "Pass-Y මෙවලම්";
 "ImportSuccessful" = "ආයාතය සාර්ථකයි!";
-"ManageYourLoginsFromAnywhereWithBitwardenToolsForWebAndDesktop" = "වෙබ් සහ ඩෙස්ක්ටොප් සඳහා Pass-Y මෙවලම් සමඟ ඕනෑම තැනක සිට ඔබගේ පිවිසුම් කළමනාකරණය කරන්න.";
-"ManageYourSubscriptionPlanInTheBitwardenWebApp" = "Pass-Y වෙබ් යෙදුමේ ඔබගේ දායකත්ව සැලැස්ම කළමනාකරණය කරන්න.";
 "DownloadTheBrowserExtension" = "බ්‍රවුසර දිගුව බාගත කරන්න";
-"GoToBitwardenToIntegrateBitwardenIntoYourFavoriteBrowserForASeamlessExperience" = "බාධාවකින් තොර අත්දැකීමක් සඳහා ඔබගේ ප්‍රියතම බ්‍රවුසරයට Pass-Y ඒකාබද්ධ කිරීමට bitwarden.com/download වෙත යන්න.";
-"UseTheWebApp" = "වෙබ් යෙදුම භාවිතා කරන්න";
-"LogInAtBitwardenToEasilyManageYourAccountAndUpdateSettings" = "ඔබගේ ගිණුම පහසුවෙන් කළමනාකරණය කිරීමට සහ සැකසුම් යාවත්කාලීන කිරීමට bitwarden.com හි පිවිසෙන්න.";
 "AutofillPasswords" = "මුරපද ස්වයං පිරවුම් කරන්න";
 "SetUpAutofillOnAllYourDevicesToLoginWithASingleTapAnywhere" = "ඕනෑම තැනක තනි තට්ටුවකින් පිවිසීමට ඔබගේ සියලු උපාංගවල ස්වයං පිරවුම් සකසන්න.";
 "GoBack" = "ආපසු යන්න";
@@ -828,7 +813,6 @@
 "NoAccountFoundPleaseLogInAgainIfYouContinueToSeeThisError" = "ගිණුමක් හමු නොවීය. ඔබට මෙම දෝෂය දිගටම පෙනෙන්නේ නම් කරුණාකර නැවත පිවිසෙන්න.";
 "ImportError" = "ආයාත දෝෂය";
 "NoLoginsWereImported" = "පිවිසුම් කිසිවක් ආයාත කර නොමැත";
-"ThisIsNotARecognizedServerDescriptionLong" = "මෙය හඳුනාගත් Pass-Y සේවාදායකයක් නොවේ. ඔබට ඔබගේ සපයන්නා සමඟ පරීක්ෂා කිරීමට හෝ ඔබගේ සේවාදායකය යාවත්කාලීන කිරීමට අවශ්‍ය විය හැක.";
 "LoginsImported" = "පිවිසුම් ආයාත කරන ලදී";
 "RememberToDeleteYourImportedPasswordFileFromYourComputer" = "ඔබගේ ආයාත කළ මුරපද ගොනුව ඔබගේ පරිගණකයෙන් මකා දැමීමට මතක තබා ගන්න.";
 "SomethingWentWrong" = "යමක් වැරදී ඇත";
@@ -963,7 +947,6 @@
 "LastEdited" = "අවසන් වරට සංස්කරණය කරන ලදී: %1$@";
 "PasswordLastUpdated" = "මුරපදය අවසන් වරට යාවත්කාලීන කරන ලදී: %1$@";
 "DecryptionError" = "විකේතන දෝෂය";
-"BitwardenCouldNotDecryptThisVaultItemDescriptionLong" = "Pass-Y ට මෙම සුරක්ෂිතාගාර අයිතමය විකේතනය කළ නොහැකි විය. අමතර දත්ත පාඩුව වළක්වා ගැනීමට මෙම දෝෂ වාර්තාව පිටපත් කර පාරිභෝගික සාර්ථකත්වය සමඟ බෙදාගන්න.";
 "CopyErrorReport" = "දෝෂ වාර්තාව පිටපත් කරන්න";
 "ErrorCannotDecrypt" = "[දෝෂය: විකේතනය කළ නොහැක]";
 "AccountsSyncedFromBitwardenApp" = "Pass-Y යෙදුමෙන් සමමුහුර්ත කළ ගිණුම්";
